@@ -5,18 +5,18 @@ namespace Adact.Engine.Elements;
 /// </summary>
 public interface IElement
 {
-    string? Name { get; }
-    string? AutomationId { get; }
-    string ControlType { get; }
-    string? ClassName { get; }
-    bool IsEnabled { get; }
-    bool IsOffscreen { get; }
-    string? Value { get; }
-    string? HelpText { get; }
-    Rect BoundingRectangle { get; }
-    bool IsKeyboardFocusable { get; }
-    bool HasKeyboardFocus { get; }
-    IReadOnlyList<IElement> Children { get; }
-    void Click();
-    void Fill(string text);
+  string? Name { get; }
+  string? AutomationId { get; }
+  string ControlType { get; }
+  string? ClassName { get; }
+  bool IsEnabled { get; }
+  bool IsOffscreen { get; }
+  string? Value { get; }
+  string? HelpText { get; }
+  Rect BoundingRectangle { get; }
+  bool IsKeyboardFocusable { get; }
+  bool HasKeyboardFocus { get; }
+  IReadOnlyList<IElement> Children { get; }
+  void Click();
+  void Fill(string text);
 }

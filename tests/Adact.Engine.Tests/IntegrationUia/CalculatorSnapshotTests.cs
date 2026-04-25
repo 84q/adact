@@ -8,55 +8,55 @@ namespace Adact.Engine.Tests.IntegrationUia;
 [Collection("UiaSerial")]
 public class CalculatorSnapshotTests : IAsyncLifetime
 {
-    private Process? _process;
+  private Process? _process;
 
-    public async Task InitializeAsync()
+  public async Task InitializeAsync()
+  {
+    _process = Process.Start(new ProcessStartInfo
     {
-        _process = Process.Start(new ProcessStartInfo
-        {
-            FileName = "calc.exe",
-            UseShellExecute = true,
-        });
-        // 電卓は launcher 経由で別プロセスに置き換わる。CalculatorApp.exe が起動するのを待つ。
-        await WaitForProcessAsync("CalculatorApp", TimeSpan.FromSeconds(10));
-        await Task.Delay(800); // ウィンドウ描画安定待ち
-    }
+      FileName = "calc.exe",
+      UseShellExecute = true,
+    });
+    // 電卓は launcher 経由で別プロセスに置き換わる。CalculatorApp.exe が起動するのを待つ。
+    await WaitForProcessAsync("CalculatorApp", TimeSpan.FromSeconds(10));
+    await Task.Delay(800); // ウィンドウ描画安定待ち
+  }
 
-    public async Task DisposeAsync()
+  public async Task DisposeAsync()
+  {
+    foreach (var p in Process.GetProcessesByName("CalculatorApp"))
     {
-        foreach (var p in Process.GetProcessesByName("CalculatorApp"))
-        {
-            try { p.Kill(); p.WaitForExit(2000); } catch { }
-        }
-        if (_process is not null)
-        {
-            try { _process.Dispose(); } catch { }
-        }
-        await Task.CompletedTask;
+      try { p.Kill(); p.WaitForExit(2000); } catch { }
     }
-
-    private static async Task WaitForProcessAsync(string name, TimeSpan timeout)
+    if (_process is not null)
     {
-        var sw = Stopwatch.StartNew();
-        while (sw.Elapsed < timeout)
-        {
-            if (Process.GetProcessesByName(name).Length > 0) return;
-            await Task.Delay(150);
-        }
+      try { _process.Dispose(); } catch { }
     }
+    await Task.CompletedTask;
+  }
 
-    [Fact]
-    public async Task Snapshot_OnCalculator_ContainsExpectedNodes()
+  private static async Task WaitForProcessAsync(string name, TimeSpan timeout)
+  {
+    var sw = Stopwatch.StartNew();
+    while (sw.Elapsed < timeout)
     {
-        using var engine = new UiaEngine();
-        // UWP 電卓は ApplicationFrameHost が見えるウィンドウを所有するため、ProcessName でなく
-        // ウィンドウタイトル (日本語ロケール: "電卓") でアタッチする。
-        using var session = await engine.AttachAsync(AttachQuery.ByTitle("電卓"));
-        var snap = await session.SnapshotAsync();
-
-        Assert.Equal(1, snap.Generation);
-        Assert.StartsWith("s", snap.SessionId);
-        Assert.Equal("電卓", snap.WindowTitle);
-        Assert.Contains("Button", snap.Json); // 何かしら Button が含まれる
+      if (Process.GetProcessesByName(name).Length > 0) return;
+      await Task.Delay(150);
     }
+  }
+
+  [Fact]
+  public async Task Snapshot_OnCalculator_ContainsExpectedNodes()
+  {
+    using var engine = new UiaEngine();
+    // UWP 電卓は ApplicationFrameHost が見えるウィンドウを所有するため、ProcessName でなく
+    // ウィンドウタイトル (日本語ロケール: "電卓") でアタッチする。
+    using var session = await engine.AttachAsync(AttachQuery.ByTitle("電卓"));
+    var snap = await session.SnapshotAsync();
+
+    Assert.Equal(1, snap.Generation);
+    Assert.StartsWith("s", snap.SessionId);
+    Assert.Equal("電卓", snap.WindowTitle);
+    Assert.Contains("Button", snap.Json); // 何かしら Button が含まれる
+  }
 }

@@ -1,6 +1,6 @@
 # Phase 1-A MCP SDK 採用判断調査
 
-> 前提: [001_要件定義.md](001_要件定義.md) / [002_アーキテクチャ設計.md](002_アーキテクチャ設計.md) / [003_実装計画.md](003_実装計画.md)
+> 前提: [001\_要件定義.md](001_要件定義.md) / [002\_アーキテクチャ設計.md](002_アーキテクチャ設計.md) / [003\_実装計画.md](003_実装計画.md)
 > 目的: C# / .NET で MCP サーバー / クライアントを実装するための SDK を比較し、ADACT の採用方針を確定する。
 > 調査日: 2026-04-25
 
@@ -52,44 +52,44 @@
 2 系統が用意されている：
 
 1. **属性ベース（推奨）**
-   - `[McpServerToolType]` をクラスに、`[McpServerTool]` をメソッドに付与
-   - 引数の `[Description]` 属性が JSON Schema の説明にマッピングされる
-   - DI 経由で任意のサービスを引数として受け取れる（`MonkeyService monkeyService` のように）
-   - `WithToolsFromAssembly()` でアセンブリ内を自動スキャン
+   * `[McpServerToolType]` をクラスに、`[McpServerTool]` をメソッドに付与
+   * 引数の `[Description]` 属性が JSON Schema の説明にマッピングされる
+   * DI 経由で任意のサービスを引数として受け取れる（`MonkeyService monkeyService` のように）
+   * `WithToolsFromAssembly()` でアセンブリ内を自動スキャン
 2. **プログラム的登録**
-   - `McpServerTool.Create((string message) => ..., new() { Name = "echo" })` で動的に作成可能
-   - ツールセットの動的更新にも対応（`listChanged` capability）
+   * `McpServerTool.Create((string message) => ..., new() { Name = "echo" })` で動的に作成可能
+   * ツールセットの動的更新にも対応（`listChanged` capability）
 
 → ADACT のツール（`windows_snapshot` `windows_click` 等）はメソッド + 属性で素直に書ける。引数は ref（string） / value（string） 等、JSON Schema が自動生成される領域に収まる。
 
 ### 2.4 セッション・ステート保持と Ref レジストリの共存
 
-- DI が Microsoft.Extensions.Hosting / DependencyInjection をベースにしているため、**Ref レジストリは `Singleton` または `Scoped` サービスとして登録**して `[McpServerTool]` メソッドの引数で受け取れる。
-- snapshot 単位での破棄（既存 Ref をクリアして再発行）も、レジストリ内部で `windows_snapshot` 呼び出し時に内部 Dictionary をクリアするだけで実装可能。SDK 側に介入されない。
-- HTTP の Stateful モードで `Mcp-Session-Id` を使う場合は、サーバー側で Per-Session のスコープを切れる（`AspNetCoreMcpPerSessionTools` サンプルあり）。ADACT のリモート構成（CLI 1 台 ↔ サーバー 1 台）では Stateless でも問題ないと見込まれる。
-- 結論: **ADACT 独自要件と衝突しない**。
+* DI が Microsoft.Extensions.Hosting / DependencyInjection をベースにしているため、**Ref レジストリは `Singleton` または `Scoped` サービスとして登録**して `[McpServerTool]` メソッドの引数で受け取れる。
+* snapshot 単位での破棄（既存 Ref をクリアして再発行）も、レジストリ内部で `windows_snapshot` 呼び出し時に内部 Dictionary をクリアするだけで実装可能。SDK 側に介入されない。
+* HTTP の Stateful モードで `Mcp-Session-Id` を使う場合は、サーバー側で Per-Session のスコープを切れる（`AspNetCoreMcpPerSessionTools` サンプルあり）。ADACT のリモート構成（CLI 1 台 ↔ サーバー 1 台）では Stateless でも問題ないと見込まれる。
+* 結論: **ADACT 独自要件と衝突しない**。
 
 ### 2.5 メンテナンス状況・成熟度
 
-- v1.0 を超え v1.2.0 が出ており API は安定フェーズに入っている（プレリリースを脱した）。
-- Microsoft DevBlogs ([build-a-model-context-protocol-mcp-server-in-csharp](https://devblogs.microsoft.com/dotnet/build-a-model-context-protocol-mcp-server-in-csharp/)) で公式に紹介され、`learn.microsoft.com/dotnet/ai/quickstarts/build-mcp-server` に project template が組み込まれている。
-- AOT 対応（`Makefile` に AOT 互換性の publish test あり）。
-- Issue 数 115 / PR 48 と活発。直近 2 週間以内に複数のコミット。
+* v1.0 を超え v1.2.0 が出ており API は安定フェーズに入っている（プレリリースを脱した）。
+* Microsoft DevBlogs ([build-a-model-context-protocol-mcp-server-in-csharp](https://devblogs.microsoft.com/dotnet/build-a-model-context-protocol-mcp-server-in-csharp/)) で公式に紹介され、`learn.microsoft.com/dotnet/ai/quickstarts/build-mcp-server` に project template が組み込まれている。
+* AOT 対応（`Makefile` に AOT 互換性の publish test あり）。
+* Issue 数 115 / PR 48 と活発。直近 2 週間以内に複数のコミット。
 
 ### 2.6 依存関係
 
-- メインパッケージ `ModelContextProtocol` は `Microsoft.Extensions.*`（Hosting / DI / Logging）系に依存。.NET 8 アプリには標準的なセットで重くない。
-- HTTP 公開する場合のみ `ModelContextProtocol.AspNetCore` を追加（ASP.NET Core 依存）。Phase 3（stdio のみ）の段階では引き込み不要。
-- LLM 連携用に `Microsoft.Extensions.AI` の型（`AIFunction`）に統合されているが、サーバー側だけ作る場合は気にしなくてよい。
+* メインパッケージ `ModelContextProtocol` は `Microsoft.Extensions.*`（Hosting / DI / Logging）系に依存。.NET 8 アプリには標準的なセットで重くない。
+* HTTP 公開する場合のみ `ModelContextProtocol.AspNetCore` を追加（ASP.NET Core 依存）。Phase 3（stdio のみ）の段階では引き込み不要。
+* LLM 連携用に `Microsoft.Extensions.AI` の型（`AIFunction`）に統合されているが、サーバー側だけ作る場合は気にしなくてよい。
 
 ***
 
 ## 3. 候補 2: コミュニティ実装
 
-- 公式化以前は `mcpdotnet`（PederHP 氏ら）など複数の C# 実装が GitHub に存在した。
-- 公式 SDK のコントリビューター一覧に `PederHP` が含まれていることから、**主要コミュニティ実装は公式 SDK にマージ済み**と判断される。
-- 結論として、現時点で「公式 SDK と独立に積極メンテされ、かつ公式 SDK が満たせない要件を満たすコミュニティ SDK」は確認できなかった。
-- 仮に公式 SDK が将来停滞しても、Apache-2.0 なのでフォーク・自社メンテ可能。
+* 公式化以前は `mcpdotnet`（PederHP 氏ら）など複数の C# 実装が GitHub に存在した。
+* 公式 SDK のコントリビューター一覧に `PederHP` が含まれていることから、**主要コミュニティ実装は公式 SDK にマージ済み**と判断される。
+* 結論として、現時点で「公式 SDK と独立に積極メンテされ、かつ公式 SDK が満たせない要件を満たすコミュニティ SDK」は確認できなかった。
+* 仮に公式 SDK が将来停滞しても、Apache-2.0 なのでフォーク・自社メンテ可能。
 
 ***
 
@@ -110,9 +110,9 @@ ADACT で必要な最小機能セットを自作した場合のスコープ：
 
 ### 工数感（粗い見立て）
 
-- **Phase 3（stdio + ツール）の最小自作**: 数週間規模で動くものは作れる。ただし Cancellation や notifications の取りこぼしバグが入りやすい。
-- **Phase 4（Streamable HTTP）の自作**: SSE フレーミング＋セッション管理＋backpressure を仕様通りにやると、さらに数週間〜1 か月以上の追加コストが見込まれる。
-- **継続コスト**: 仕様改版のたびに追従する必要があり、ADACT 本体（UIA エンジン / Snapshot ビルダー）の開発時間を侵食する。
+* **Phase 3（stdio + ツール）の最小自作**: 数週間規模で動くものは作れる。ただし Cancellation や notifications の取りこぼしバグが入りやすい。
+* **Phase 4（Streamable HTTP）の自作**: SSE フレーミング＋セッション管理＋backpressure を仕様通りにやると、さらに数週間〜1 か月以上の追加コストが見込まれる。
+* **継続コスト**: 仕様改版のたびに追従する必要があり、ADACT 本体（UIA エンジン / Snapshot ビルダー）の開発時間を侵食する。
 
 → ADACT のコア価値は Windows UIA の抽象化であり、**MCP プロトコル実装は本質的差別化要因ではない**。自作は明確に費用対効果が悪い。
 
@@ -173,8 +173,8 @@ ADACT で必要な最小機能セットを自作した場合のスコープ：
 
 ### 要件定義書の更新点（参考）
 
-- [001_要件定義.md](001_要件定義.md) §10「未決事項: MCP SDK の採用方針」→ **本書をもって `ModelContextProtocol` 公式 C# SDK 採用で確定**。
-- [002_アーキテクチャ設計.md](002_アーキテクチャ設計.md) §5「MCP SDK: 公式 C# SDK を第一候補、なければ最小自前実装（未決）」→ **公式 SDK で確定**に置き換え可能。
+* [001\_要件定義.md](001_要件定義.md) §10「未決事項: MCP SDK の採用方針」→ **本書をもって `ModelContextProtocol` 公式 C# SDK 採用で確定**。
+* [002\_アーキテクチャ設計.md](002_アーキテクチャ設計.md) §5「MCP SDK: 公式 C# SDK を第一候補、なければ最小自前実装（未決）」→ **公式 SDK で確定**に置き換え可能。
 
 ***
 

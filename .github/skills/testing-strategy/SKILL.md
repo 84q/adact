@@ -1,6 +1,6 @@
 ---
 name: testing-strategy
-description: 'ADACT プロジェクトのテスト方針。ユニット・結合・スモーク・E2E の各レベルで何をどの程度確認するかをまとめたガイド。テストコードを書く・追加する・レビューする・テストプロジェクト構成を決める・xUnit Trait でレベル分類する・モック設計する・FlaUI を使う/使わないテストを切り分ける、いずれかの場面で必ず参照する。Phase 2 以降のすべての実装フェーズで適用される。'
+description: "ADACT プロジェクトのテスト方針。ユニット・結合・スモーク・E2E の各レベルで何をどの程度確認するかをまとめたガイド。テストコードを書く・追加する・レビューする・テストプロジェクト構成を決める・xUnit Trait でレベル分類する・モック設計する・FlaUI を使う/使わないテストを切り分ける、いずれかの場面で必ず参照する。Phase 2 以降のすべての実装フェーズで適用される。"
 ---
 
 # ADACT テスト戦略
@@ -22,13 +22,13 @@ description: 'ADACT プロジェクトのテスト方針。ユニット・結合
 
 ADACT のテストは以下の 5 レベルに分類する。レベルが上がるほど環境依存が強くなり、実行コストも高くなる。
 
-| レベル | 名称 | 対象 | 環境依存 | 速度 | xUnit Trait |
-|---|---|---|---|---|---|
-| L1 | ユニット | pure ロジック (フィルタ判定・Ref 採番・JSON 生成・例外型) | なし | 高速 | `Layer=Unit` |
-| L2 | コンポーネント結合 (FlaUI 除く) | Engine モジュール間結合 (SnapshotBuilder ↔ RefRegistry ↔ FilterStrategy 等) | なし | 高速 | `Layer=Integration` |
-| L3 | コンポーネント結合 (FlaUI 込み) | UIA バックエンドの直叩きを含む結合 | Windows + 起動済アプリ | 中速 | `Layer=IntegrationUia` |
-| L4 | スモーク / E2E (Engine) | 起動 → attach → 操作 → 検証 を Engine 通しで実施 | Windows + アプリ自動起動 | 遅い | `Layer=Smoke` |
-| L5 | MCP 経由 E2E | MCP クライアント ↔ サーバー ↔ Engine を通す | 同上 + MCP クライアント | 遅い | `Layer=E2E` |
+| レベル | 名称                            | 対象                                                                        | 環境依存                 | 速度 | xUnit Trait            |
+| ------ | ------------------------------- | --------------------------------------------------------------------------- | ------------------------ | ---- | ---------------------- |
+| L1     | ユニット                        | pure ロジック (フィルタ判定・Ref 採番・JSON 生成・例外型)                   | なし                     | 高速 | `Layer=Unit`           |
+| L2     | コンポーネント結合 (FlaUI 除く) | Engine モジュール間結合 (SnapshotBuilder ↔ RefRegistry ↔ FilterStrategy 等) | なし                     | 高速 | `Layer=Integration`    |
+| L3     | コンポーネント結合 (FlaUI 込み) | UIA バックエンドの直叩きを含む結合                                          | Windows + 起動済アプリ   | 中速 | `Layer=IntegrationUia` |
+| L4     | スモーク / E2E (Engine)         | 起動 → attach → 操作 → 検証 を Engine 通しで実施                            | Windows + アプリ自動起動 | 遅い | `Layer=Smoke`          |
+| L5     | MCP 経由 E2E                    | MCP クライアント ↔ サーバー ↔ Engine を通す                                 | 同上 + MCP クライアント  | 遅い | `Layer=E2E`            |
 
 ## 各レベルの方針
 
@@ -77,19 +77,26 @@ ADACT のテストは以下の 5 レベルに分類する。レベルが上が�
 
 ### L5: MCP 経由 E2E
 
-- **対象**: MCP クライアントから ADACT MCP サーバーを叩いて、実アプリを操作するまでを通す
-- **Phase 2 ではスコープ外**。Phase 3 で stdio MCP の最小スモークを追加、Phase 4 で HTTP MCP のスモーク、Phase 5 でプロキシ経由のスモーク
-- **量**: 各 Phase で 1〜2 本
+- **対象**: MCP クライアントから ADACT MCP サーバー (`adact.exe --local`) を叩いて、実アプリを操作するまでを通す
+- **テストプロジェクト**: **Phase 3 で `tests/Adact.Mcp.Stdio.Tests/` を新設** (xUnit、`[Trait("Layer", "E2E")]`)。Phase 4 / Phase 5 で HTTP 版・proxy 版ケースを同プロジェクトに追加するか・別プロジェクトとするかは Phase 4 着手時に判断
+- **起動方式**: ビルド済 `adact.exe --local` を `Process.Start` で spawn → stdio (stdin/stdout) で接続 → JSON-RPC を送したり受けたりする
+- **クライアント SDK**: 公式 `ModelContextProtocol` C# SDK のクライアント API (`ModelContextProtocol.Client` 名前空間) を使用。生 JSON-RPC を手で組まない
+- **対象アプリの起動**: L4 と同じく `Process.Start` で (電卓・Notepad++ 等)。L4 と L5 でセットアップ手順が重複してもよい
+- **Phase 3 で追加するケース (1〜2 本)**:
+  - `ListApps_OnRunningSystem_ReturnsNonEmpty` — `windows_list_apps` ツールを呼んで結果が空でないことを確認
+  - `AttachAndSnapshot_OnCalculator_ReturnsTreeWithButtons` — 電卓を起動 → `windows_attach` → `windows_snapshot` → tree に Button が含まれることを確認
+- **量**: Phase 3 で 1〜2 本、以降 Phase ごとに同程度追加
+- **命名規約・Trait**: L1〜L4 と同じ (`<操作>_<前提>_<期待>` 形式、`Trait("Layer", "E2E")`)
 
 ## Phase ごとの取り込み
 
-| Phase | L1 | L2 | L3 | L4 | L5 |
-|---|---|---|---|---|---|
-| Phase 2 | 必須 | 必須 | 1 本以上 | 必須 (電卓 + Notepad++) | — |
-| Phase 3 | 維持 | 維持 | 維持 | 維持 | stdio で 1〜2 本追加 |
-| Phase 4 | 維持 | 維持 | 維持 | 維持 | HTTP で追加 |
-| Phase 5 | 維持 | 維持 | 維持 | 維持 | proxy 経由で追加 |
-| Phase 6 | 拡充 | 拡充 | 拡充 | 拡充 | 拡充 + CI 整備 |
+| Phase   | L1   | L2   | L3       | L4                      | L5                   |
+| ------- | ---- | ---- | -------- | ----------------------- | -------------------- |
+| Phase 2 | 必須 | 必須 | 1 本以上 | 必須 (電卓 + Notepad++) | —                    |
+| Phase 3 | 維持 | 維持 | 維持     | 維持                    | stdio で 1〜2 本追加 |
+| Phase 4 | 維持 | 維持 | 維持     | 維持                    | HTTP で追加          |
+| Phase 5 | 維持 | 維持 | 維持     | 維持                    | proxy 経由で追加     |
+| Phase 6 | 拡充 | 拡充 | 拡充     | 拡充                    | 拡充 + CI 整備       |
 
 ## プロジェクト構成
 
@@ -112,7 +119,7 @@ tests/
         └── NotepadppSmokeTests.cs
 ```
 
-L5 (MCP 経由) は Phase 3 以降に `tests/Adact.Mcp.Stdio.Tests/` 等を追加。
+L5 (MCP 経由) は Phase 3 で `tests/Adact.Mcp.Stdio.Tests/` を新設し、`adact.exe --local` を `Process.Start` で spawn して stdio 接続し、公式 `ModelContextProtocol.Client` API で JSON-RPC を叩く。詳細は L5 の項参照。
 
 ## 命名規約
 
@@ -164,6 +171,7 @@ public interface IElement
 ```
 
 実装:
+
 - `FlaUiElement : IElement` (FlaUI ラップ、production 用)
 - `FakeElement : IElement` (テスト用、in-memory ツリー組み立て)
 

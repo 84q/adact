@@ -173,4 +173,3 @@ dotnet run --no-build -- snapshot Notepad --uia2
   * Snapshot 出力に **位置ベースの暗黙インデックス**（同じ親内での同 Role 連番）を付与する案を検討（無名 Button 群を `Button[15]` のように扱える）。
   * **ツールチップ取得 API**（`Properties.HelpText` 等）を Snapshot Builder で拾えるか調査タスクを追加。
   * 「メニュー経由代替パスの提示」を AI 向けの暗黙の優先順位として持たせる（無名 ToolBar Button を最後にする）。
-

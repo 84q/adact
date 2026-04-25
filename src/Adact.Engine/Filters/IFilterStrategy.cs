@@ -8,7 +8,7 @@ namespace Adact.Engine.Filters;
 /// </summary>
 public interface IFilterStrategy
 {
-    string Name { get; }
-    NodeDecision Decide(IElement el, FilterContext ctx);
-    IReadOnlyDictionary<string, object?> ExtractProperties(IElement el);
+  string Name { get; }
+  NodeDecision Decide(IElement el, FilterContext ctx);
+  IReadOnlyDictionary<string, object?> ExtractProperties(IElement el);
 }
