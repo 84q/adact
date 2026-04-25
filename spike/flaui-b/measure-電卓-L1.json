@@ -1,0 +1,612 @@
+{
+  "Ref": "w47",
+  "Role": "Window",
+  "Name": "\u96FB\u5353",
+  "ClassName": "ApplicationFrameWindow",
+  "Rect": [
+    77,
+    0,
+    1213,
+    939
+  ],
+  "Children": [
+    {
+      "Ref": "w5",
+      "Role": "Window",
+      "Name": "\u96FB\u5353",
+      "AutomationId": "TitleBar",
+      "ClassName": "ApplicationFrameTitleBarWindow",
+      "Rect": [
+        1096,
+        1,
+        188,
+        32
+      ],
+      "Children": [
+        {
+          "Ref": "w1",
+          "Role": "MenuItem",
+          "Name": "\u30B7\u30B9\u30C6\u30E0",
+          "Rect": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "Ref": "w2",
+          "Role": "Button",
+          "Name": "\u96FB\u5353 \u306E\u6700\u5C0F\u5316",
+          "AutomationId": "Minimize",
+          "Rect": [
+            1146,
+            1,
+            46,
+            32
+          ]
+        },
+        {
+          "Ref": "w3",
+          "Role": "Button",
+          "Name": "\u96FB\u5353 \u3092\u6700\u5927\u5316\u3059\u308B",
+          "AutomationId": "Maximize",
+          "Rect": [
+            1192,
+            1,
+            46,
+            32
+          ]
+        },
+        {
+          "Ref": "w4",
+          "Role": "Button",
+          "Name": "\u96FB\u5353 \u3092\u9589\u3058\u308B",
+          "AutomationId": "Close",
+          "Rect": [
+            1238,
+            1,
+            46,
+            32
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w46",
+      "Role": "Window",
+      "Name": "\u96FB\u5353",
+      "ClassName": "Windows.UI.Core.CoreWindow",
+      "Rect": [
+        84,
+        1,
+        1200,
+        932
+      ],
+      "Children": [
+        {
+          "Ref": "w6",
+          "Role": "Text",
+          "Name": "\u96FB\u5353",
+          "AutomationId": "AppName",
+          "ClassName": "TextBlock",
+          "Rect": [
+            132,
+            9,
+            24,
+            16
+          ]
+        },
+        {
+          "Ref": "w8",
+          "Role": "Button",
+          "Name": "\u30CA\u30D3\u30B2\u30FC\u30B7\u30E7\u30F3\u3092\u958B\u304F",
+          "AutomationId": "TogglePaneButton",
+          "ClassName": "Button",
+          "Rect": [
+            88,
+            39,
+            40,
+            36
+          ],
+          "Children": [
+            {
+              "Ref": "w7",
+              "Role": "Text",
+              "AutomationId": "PaneTitleTextBlock",
+              "ClassName": "TextBlock",
+              "Rect": [
+                0,
+                0,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "Ref": "w9",
+          "Role": "Text",
+          "Name": "\u5F0F\u306F  \u3067\u3059",
+          "AutomationId": "CalculatorExpression",
+          "Rect": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "Ref": "w10",
+          "Role": "Text",
+          "Name": "\u8868\u793A\u306F 0 \u3067\u3059",
+          "AutomationId": "CalculatorResults",
+          "Rect": [
+            84,
+            124,
+            880,
+            142
+          ]
+        },
+        {
+          "Ref": "w11",
+          "Role": "Button",
+          "Name": "\u3059\u3079\u3066\u306E\u30E1\u30E2\u30EA\u3092\u30AF\u30EA\u30A2",
+          "AutomationId": "ClearMemoryButton",
+          "ClassName": "Button",
+          "Rect": [
+            88,
+            266,
+            78,
+            61
+          ]
+        },
+        {
+          "Ref": "w12",
+          "Role": "Button",
+          "Name": "\u30E1\u30E2\u30EA\u547C\u3073\u51FA\u3057",
+          "AutomationId": "MemRecall",
+          "ClassName": "Button",
+          "Rect": [
+            168,
+            266,
+            78,
+            61
+          ]
+        },
+        {
+          "Ref": "w13",
+          "Role": "Button",
+          "Name": "\u30E1\u30E2\u30EA\u52A0\u7B97",
+          "AutomationId": "MemPlus",
+          "ClassName": "Button",
+          "Rect": [
+            248,
+            266,
+            78,
+            61
+          ]
+        },
+        {
+          "Ref": "w14",
+          "Role": "Button",
+          "Name": "\u30E1\u30E2\u30EA\u6E1B\u7B97",
+          "AutomationId": "MemMinus",
+          "ClassName": "Button",
+          "Rect": [
+            328,
+            266,
+            78,
+            61
+          ]
+        },
+        {
+          "Ref": "w15",
+          "Role": "Button",
+          "Name": "\u30E1\u30E2\u30EA\u4FDD\u5B58",
+          "AutomationId": "memButton",
+          "ClassName": "Button",
+          "Rect": [
+            408,
+            266,
+            78,
+            61
+          ]
+        },
+        {
+          "Ref": "w16",
+          "Role": "Button",
+          "Name": "%",
+          "AutomationId": "percentButton",
+          "ClassName": "Button",
+          "Rect": [
+            88,
+            329,
+            217,
+            99
+          ]
+        },
+        {
+          "Ref": "w17",
+          "Role": "Button",
+          "Name": "\u5165\u529B\u306E\u30AF\u30EA\u30A2",
+          "AutomationId": "clearEntryButton",
+          "ClassName": "Button",
+          "Rect": [
+            306,
+            329,
+            217,
+            99
+          ]
+        },
+        {
+          "Ref": "w18",
+          "Role": "Button",
+          "Name": "\u30AF\u30EA\u30A2",
+          "AutomationId": "clearButton",
+          "ClassName": "Button",
+          "Rect": [
+            525,
+            329,
+            217,
+            99
+          ]
+        },
+        {
+          "Ref": "w19",
+          "Role": "Button",
+          "Name": "\u30D0\u30C3\u30AF\u30B9\u30DA\u30FC\u30B9",
+          "AutomationId": "backSpaceButton",
+          "ClassName": "Button",
+          "Rect": [
+            743,
+            329,
+            217,
+            99
+          ]
+        },
+        {
+          "Ref": "w20",
+          "Role": "Button",
+          "Name": "\u9006\u6570",
+          "AutomationId": "invertButton",
+          "ClassName": "Button",
+          "Rect": [
+            88,
+            430,
+            217,
+            98
+          ]
+        },
+        {
+          "Ref": "w21",
+          "Role": "Button",
+          "Name": "2 \u4E57",
+          "AutomationId": "xpower2Button",
+          "ClassName": "Button",
+          "Rect": [
+            306,
+            430,
+            217,
+            98
+          ]
+        },
+        {
+          "Ref": "w22",
+          "Role": "Button",
+          "Name": "\u5E73\u65B9\u6839\u7B97\u51FA",
+          "AutomationId": "squareRootButton",
+          "ClassName": "Button",
+          "Rect": [
+            525,
+            430,
+            217,
+            98
+          ]
+        },
+        {
+          "Ref": "w23",
+          "Role": "Button",
+          "Name": "\u9664\u7B97",
+          "AutomationId": "divideButton",
+          "ClassName": "Button",
+          "Rect": [
+            743,
+            430,
+            217,
+            98
+          ]
+        },
+        {
+          "Ref": "w24",
+          "Role": "Button",
+          "Name": "\u4E57\u7B97",
+          "AutomationId": "multiplyButton",
+          "ClassName": "Button",
+          "Rect": [
+            743,
+            530,
+            217,
+            99
+          ]
+        },
+        {
+          "Ref": "w25",
+          "Role": "Button",
+          "Name": "\u30DE\u30A4\u30CA\u30B9",
+          "AutomationId": "minusButton",
+          "ClassName": "Button",
+          "Rect": [
+            743,
+            630,
+            217,
+            98
+          ]
+        },
+        {
+          "Ref": "w26",
+          "Role": "Button",
+          "Name": "\u30D7\u30E9\u30B9",
+          "AutomationId": "plusButton",
+          "ClassName": "Button",
+          "Rect": [
+            743,
+            730,
+            217,
+            99
+          ]
+        },
+        {
+          "Ref": "w27",
+          "Role": "Button",
+          "Name": "\u7B49\u53F7",
+          "AutomationId": "equalButton",
+          "ClassName": "Button",
+          "Rect": [
+            743,
+            831,
+            217,
+            98
+          ]
+        },
+        {
+          "Ref": "w28",
+          "Role": "Button",
+          "Name": "0",
+          "AutomationId": "num0Button",
+          "ClassName": "Button",
+          "Rect": [
+            306,
+            831,
+            217,
+            98
+          ]
+        },
+        {
+          "Ref": "w29",
+          "Role": "Button",
+          "Name": "1",
+          "AutomationId": "num1Button",
+          "ClassName": "Button",
+          "Rect": [
+            88,
+            730,
+            217,
+            99
+          ]
+        },
+        {
+          "Ref": "w30",
+          "Role": "Button",
+          "Name": "2",
+          "AutomationId": "num2Button",
+          "ClassName": "Button",
+          "Rect": [
+            306,
+            730,
+            217,
+            99
+          ]
+        },
+        {
+          "Ref": "w31",
+          "Role": "Button",
+          "Name": "3",
+          "AutomationId": "num3Button",
+          "ClassName": "Button",
+          "Rect": [
+            525,
+            730,
+            217,
+            99
+          ]
+        },
+        {
+          "Ref": "w32",
+          "Role": "Button",
+          "Name": "4",
+          "AutomationId": "num4Button",
+          "ClassName": "Button",
+          "Rect": [
+            88,
+            630,
+            217,
+            98
+          ]
+        },
+        {
+          "Ref": "w33",
+          "Role": "Button",
+          "Name": "5",
+          "AutomationId": "num5Button",
+          "ClassName": "Button",
+          "Rect": [
+            306,
+            630,
+            217,
+            98
+          ]
+        },
+        {
+          "Ref": "w34",
+          "Role": "Button",
+          "Name": "6",
+          "AutomationId": "num6Button",
+          "ClassName": "Button",
+          "Rect": [
+            525,
+            630,
+            217,
+            98
+          ]
+        },
+        {
+          "Ref": "w35",
+          "Role": "Button",
+          "Name": "7",
+          "AutomationId": "num7Button",
+          "ClassName": "Button",
+          "Rect": [
+            88,
+            530,
+            217,
+            99
+          ]
+        },
+        {
+          "Ref": "w36",
+          "Role": "Button",
+          "Name": "8",
+          "AutomationId": "num8Button",
+          "ClassName": "Button",
+          "Rect": [
+            306,
+            530,
+            217,
+            99
+          ]
+        },
+        {
+          "Ref": "w37",
+          "Role": "Button",
+          "Name": "9",
+          "AutomationId": "num9Button",
+          "ClassName": "Button",
+          "Rect": [
+            525,
+            530,
+            217,
+            99
+          ]
+        },
+        {
+          "Ref": "w38",
+          "Role": "Button",
+          "Name": "\u5C0F\u6570\u70B9",
+          "AutomationId": "decimalSeparatorButton",
+          "ClassName": "Button",
+          "Rect": [
+            525,
+            831,
+            217,
+            98
+          ]
+        },
+        {
+          "Ref": "w39",
+          "Role": "Button",
+          "Name": "\u6B63\u8CA0",
+          "AutomationId": "negateButton",
+          "ClassName": "Button",
+          "Rect": [
+            88,
+            831,
+            217,
+            98
+          ]
+        },
+        {
+          "Ref": "w43",
+          "Role": "Tab",
+          "AutomationId": "DockPivot",
+          "ClassName": "Pivot",
+          "Rect": [
+            964,
+            30,
+            320,
+            903
+          ],
+          "Children": [
+            {
+              "Ref": "w41",
+              "Role": "TabItem",
+              "Name": "\u307E\u3060\u5C65\u6B74\u304C\u3042\u308A\u307E\u305B\u3093\u3002 \u5C65\u6B74",
+              "AutomationId": "HistoryLabel",
+              "ClassName": "PivotItem",
+              "Rect": [
+                964,
+                30,
+                52,
+                48
+              ],
+              "Children": [
+                {
+                  "Ref": "w40",
+                  "Role": "Text",
+                  "Name": "\u307E\u3060\u5C65\u6B74\u304C\u3042\u308A\u307E\u305B\u3093\u3002",
+                  "AutomationId": "HistoryEmpty",
+                  "ClassName": "TextBlock",
+                  "Rect": [
+                    976,
+                    96,
+                    284,
+                    837
+                  ]
+                }
+              ]
+            },
+            {
+              "Ref": "w42",
+              "Role": "TabItem",
+              "Name": "\u30E1\u30E2\u30EA\u306B\u4F55\u3082\u4FDD\u5B58\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002 \u30E1\u30E2\u30EA",
+              "AutomationId": "MemoryLabel",
+              "ClassName": "PivotItem",
+              "Rect": [
+                1016,
+                30,
+                55,
+                48
+              ]
+            }
+          ]
+        },
+        {
+          "Ref": "w44",
+          "Role": "Text",
+          "Name": "\u6A19\u6E96 \u96FB\u5353\u30E2\u30FC\u30C9",
+          "AutomationId": "Header",
+          "ClassName": "TextBlock",
+          "Rect": [
+            132,
+            42,
+            40,
+            27
+          ]
+        },
+        {
+          "Ref": "w45",
+          "Role": "Button",
+          "Name": "\u5E38\u306B\u624B\u524D\u306B\u8868\u793A",
+          "AutomationId": "NormalAlwaysOnTopButton",
+          "ClassName": "Button",
+          "Rect": [
+            182,
+            41,
+            32,
+            32
+          ]
+        }
+      ]
+    }
+  ]
+}

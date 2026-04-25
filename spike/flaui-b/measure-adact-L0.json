@@ -1,0 +1,175 @@
+{
+  "Ref": "w14",
+  "Role": "Window",
+  "Name": "004_Phase1A_MCP_SDK\u8ABF\u67FB.md - adact - Visual Studio Code",
+  "ClassName": "Chrome_WidgetWin_1",
+  "Rect": [
+    -7,
+    -7,
+    1933,
+    977
+  ],
+  "Children": [
+    {
+      "Ref": "w1",
+      "Role": "Pane",
+      "ClassName": "Intermediate D3D Window",
+      "Rect": [
+        0,
+        0,
+        1920,
+        964
+      ]
+    },
+    {
+      "Ref": "w13",
+      "Role": "Pane",
+      "Name": "004_Phase1A_MCP_SDK\u8ABF\u67FB.md - adact - Visual Studio Code",
+      "ClassName": "RootView",
+      "Rect": [
+        0,
+        0,
+        1920,
+        964
+      ],
+      "Children": [
+        {
+          "Ref": "w12",
+          "Role": "Pane",
+          "ClassName": "NonClientView",
+          "Rect": [
+            0,
+            0,
+            1920,
+            964
+          ],
+          "Children": [
+            {
+              "Ref": "w11",
+              "Role": "Pane",
+              "ClassName": "WinFrameView",
+              "Rect": [
+                0,
+                0,
+                1920,
+                964
+              ],
+              "Children": [
+                {
+                  "Ref": "w5",
+                  "Role": "Pane",
+                  "ClassName": "WinCaptionButtonContainer",
+                  "Rect": [
+                    1783,
+                    0,
+                    137,
+                    34
+                  ],
+                  "Children": [
+                    {
+                      "Ref": "w2",
+                      "Role": "Button",
+                      "Name": "Minimize",
+                      "ClassName": "WinCaptionButton",
+                      "Rect": [
+                        1783,
+                        0,
+                        45,
+                        34
+                      ]
+                    },
+                    {
+                      "Ref": "w3",
+                      "Role": "Button",
+                      "Name": "Restore",
+                      "ClassName": "WinCaptionButton",
+                      "Rect": [
+                        1828,
+                        0,
+                        46,
+                        34
+                      ]
+                    },
+                    {
+                      "Ref": "w4",
+                      "Role": "Button",
+                      "Name": "Close",
+                      "ClassName": "WinCaptionButton",
+                      "Rect": [
+                        1874,
+                        0,
+                        46,
+                        34
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Ref": "w10",
+                  "Role": "Pane",
+                  "ClassName": "ClientView",
+                  "Rect": [
+                    0,
+                    0,
+                    1920,
+                    964
+                  ],
+                  "Children": [
+                    {
+                      "Ref": "w9",
+                      "Role": "Pane",
+                      "ClassName": "View",
+                      "Rect": [
+                        0,
+                        0,
+                        1920,
+                        964
+                      ],
+                      "Children": [
+                        {
+                          "Ref": "w8",
+                          "Role": "Pane",
+                          "ClassName": "View",
+                          "Rect": [
+                            0,
+                            0,
+                            1920,
+                            964
+                          ],
+                          "Children": [
+                            {
+                              "Ref": "w6",
+                              "Role": "Pane",
+                              "ClassName": "View",
+                              "Rect": [
+                                0,
+                                0,
+                                1920,
+                                964
+                              ]
+                            },
+                            {
+                              "Ref": "w7",
+                              "Role": "Pane",
+                              "ClassName": "View",
+                              "Rect": [
+                                0,
+                                0,
+                                1920,
+                                964
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

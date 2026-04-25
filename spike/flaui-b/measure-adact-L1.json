@@ -1,0 +1,50 @@
+{
+  "Ref": "w4",
+  "Role": "Window",
+  "Name": "004_Phase1A_MCP_SDK\u8ABF\u67FB.md - adact - Visual Studio Code",
+  "ClassName": "Chrome_WidgetWin_1",
+  "Rect": [
+    -7,
+    -7,
+    1933,
+    977
+  ],
+  "Children": [
+    {
+      "Ref": "w1",
+      "Role": "Button",
+      "Name": "Minimize",
+      "ClassName": "WinCaptionButton",
+      "Rect": [
+        1783,
+        0,
+        45,
+        34
+      ]
+    },
+    {
+      "Ref": "w2",
+      "Role": "Button",
+      "Name": "Restore",
+      "ClassName": "WinCaptionButton",
+      "Rect": [
+        1828,
+        0,
+        46,
+        34
+      ]
+    },
+    {
+      "Ref": "w3",
+      "Role": "Button",
+      "Name": "Close",
+      "ClassName": "WinCaptionButton",
+      "Rect": [
+        1874,
+        0,
+        46,
+        34
+      ]
+    }
+  ]
+}

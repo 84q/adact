@@ -1,0 +1,1056 @@
+{
+  "Ref": "w83",
+  "Role": "Window",
+  "Name": "adact - \u30A8\u30AF\u30B9\u30D7\u30ED\u30FC\u30E9\u30FC",
+  "ClassName": "CabinetWClass",
+  "Rect": [
+    306,
+    107,
+    1139,
+    641
+  ],
+  "Children": [
+    {
+      "Ref": "w1",
+      "Role": "Text",
+      "Name": "3 \u500B\u306E\u9805\u76EE",
+      "AutomationId": "PropertyValue",
+      "ClassName": "MetadataLabel",
+      "Rect": [
+        325,
+        717,
+        60,
+        25
+      ]
+    },
+    {
+      "Ref": "w2",
+      "Role": "RadioButton",
+      "Name": "\u8A73\u7D30",
+      "AutomationId": "ViewMode_Details",
+      "ClassName": "SelectorButton",
+      "Rect": [
+        1385,
+        717,
+        25,
+        25
+      ]
+    },
+    {
+      "Ref": "w3",
+      "Role": "RadioButton",
+      "Name": "\u5927\u304D\u3044\u30A2\u30A4\u30B3\u30F3",
+      "AutomationId": "ViewMode_LargeIcons",
+      "ClassName": "SelectorButton",
+      "Rect": [
+        1410,
+        717,
+        25,
+        25
+      ]
+    },
+    {
+      "Ref": "w4",
+      "Role": "Button",
+      "Name": "1 \u884C\u4E0A",
+      "AutomationId": "UpButton",
+      "Rect": [
+        452,
+        243,
+        9,
+        17
+      ]
+    },
+    {
+      "Ref": "w5",
+      "Role": "Button",
+      "Name": "\u4E0B\u3078\u30C9\u30E9\u30C3\u30B0",
+      "AutomationId": "DownPageButton",
+      "Rect": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Ref": "w6",
+      "Role": "Button",
+      "Name": "1 \u884C\u4E0B",
+      "AutomationId": "DownButton",
+      "Rect": [
+        452,
+        700,
+        9,
+        17
+      ]
+    },
+    {
+      "Ref": "w19",
+      "Role": "TreeItem",
+      "Name": "\u30C7\u30B9\u30AF\u30C8\u30C3\u30D7",
+      "Rect": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "Children": [
+        {
+          "Ref": "w7",
+          "Role": "TreeItem",
+          "Name": "\u30DB\u30FC\u30E0",
+          "Rect": [
+            364,
+            249,
+            29,
+            32
+          ]
+        },
+        {
+          "Ref": "w8",
+          "Role": "TreeItem",
+          "Name": "\u30AE\u30E3\u30E9\u30EA\u30FC",
+          "Rect": [
+            364,
+            281,
+            44,
+            32
+          ]
+        },
+        {
+          "Ref": "w9",
+          "Role": "TreeItem",
+          "Name": "\u30AF\u30A4\u30C3\u30AF \u30A2\u30AF\u30BB\u30B9\u306E\u958B\u59CB - yuta_ (\u30D4\u30F3\u7559\u3081)",
+          "Rect": [
+            364,
+            345,
+            30,
+            32
+          ]
+        },
+        {
+          "Ref": "w10",
+          "Role": "TreeItem",
+          "Name": "\u30C7\u30B9\u30AF\u30C8\u30C3\u30D7 (\u30D4\u30F3\u7559\u3081)",
+          "Rect": [
+            364,
+            377,
+            55,
+            32
+          ]
+        },
+        {
+          "Ref": "w11",
+          "Role": "TreeItem",
+          "Name": "\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9 (\u30D4\u30F3\u7559\u3081)",
+          "Rect": [
+            364,
+            409,
+            54,
+            32
+          ]
+        },
+        {
+          "Ref": "w12",
+          "Role": "TreeItem",
+          "Name": "\u30D4\u30AF\u30C1\u30E3 (\u30D4\u30F3\u7559\u3081)",
+          "Rect": [
+            364,
+            441,
+            36,
+            32
+          ]
+        },
+        {
+          "Ref": "w13",
+          "Role": "TreeItem",
+          "Name": "\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8 (\u30D4\u30F3\u7559\u3081)",
+          "Rect": [
+            364,
+            473,
+            54,
+            32
+          ]
+        },
+        {
+          "Ref": "w14",
+          "Role": "TreeItem",
+          "Name": "\u30DF\u30E5\u30FC\u30B8\u30C3\u30AF (\u30D4\u30F3\u7559\u3081)",
+          "Rect": [
+            364,
+            505,
+            52,
+            32
+          ]
+        },
+        {
+          "Ref": "w15",
+          "Role": "TreeItem",
+          "Name": "\u30AF\u30A4\u30C3\u30AF \u30A2\u30AF\u30BB\u30B9\u306E\u7D42\u4E86 - \u30D3\u30C7\u30AA (\u30D4\u30F3\u7559\u3081)",
+          "Rect": [
+            364,
+            537,
+            28,
+            32
+          ]
+        },
+        {
+          "Ref": "w16",
+          "Role": "TreeItem",
+          "Name": "PC",
+          "Rect": [
+            364,
+            601,
+            16,
+            32
+          ]
+        },
+        {
+          "Ref": "w17",
+          "Role": "TreeItem",
+          "Name": "DVD \u30C9\u30E9\u30A4\u30D6 (D:) Windows11_26100.4349_Professiona",
+          "Rect": [
+            364,
+            633,
+            88,
+            32
+          ]
+        },
+        {
+          "Ref": "w18",
+          "Role": "TreeItem",
+          "Name": "\u30CD\u30C3\u30C8\u30EF\u30FC\u30AF",
+          "Rect": [
+            364,
+            665,
+            54,
+            32
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w21",
+      "Role": "SplitButton",
+      "Name": "\u540D\u524D",
+      "AutomationId": "System.ItemNameDisplay",
+      "ClassName": "UIColumnHeader",
+      "Rect": [
+        473,
+        243,
+        306,
+        26
+      ],
+      "Children": [
+        {
+          "Ref": "w20",
+          "Role": "Button",
+          "Name": "\u30D5\u30A3\u30EB\u30BF\u30FC \u30C9\u30ED\u30C3\u30D7\u30C0\u30A6\u30F3",
+          "AutomationId": "DropDown",
+          "ClassName": "Button",
+          "Rect": [
+            763,
+            243,
+            15,
+            26
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w23",
+      "Role": "SplitButton",
+      "Name": "\u66F4\u65B0\u65E5\u6642",
+      "AutomationId": "System.DateModified",
+      "ClassName": "UIColumnHeader",
+      "Rect": [
+        779,
+        243,
+        162,
+        26
+      ],
+      "Children": [
+        {
+          "Ref": "w22",
+          "Role": "Button",
+          "Name": "\u30D5\u30A3\u30EB\u30BF\u30FC \u30C9\u30ED\u30C3\u30D7\u30C0\u30A6\u30F3",
+          "AutomationId": "DropDown",
+          "ClassName": "Button",
+          "Rect": [
+            925,
+            243,
+            15,
+            26
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w25",
+      "Role": "SplitButton",
+      "Name": "\u7A2E\u985E",
+      "AutomationId": "System.ItemTypeText",
+      "ClassName": "UIColumnHeader",
+      "Rect": [
+        941,
+        243,
+        135,
+        26
+      ],
+      "Children": [
+        {
+          "Ref": "w24",
+          "Role": "Button",
+          "Name": "\u30D5\u30A3\u30EB\u30BF\u30FC \u30C9\u30ED\u30C3\u30D7\u30C0\u30A6\u30F3",
+          "AutomationId": "DropDown",
+          "ClassName": "Button",
+          "Rect": [
+            1060,
+            243,
+            15,
+            26
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w27",
+      "Role": "SplitButton",
+      "Name": "\u30B5\u30A4\u30BA",
+      "AutomationId": "System.Size",
+      "ClassName": "UIColumnHeader",
+      "Rect": [
+        1076,
+        243,
+        90,
+        26
+      ],
+      "Children": [
+        {
+          "Ref": "w26",
+          "Role": "Button",
+          "Name": "\u30D5\u30A3\u30EB\u30BF\u30FC \u30C9\u30ED\u30C3\u30D7\u30C0\u30A6\u30F3",
+          "AutomationId": "DropDown",
+          "ClassName": "Button",
+          "Rect": [
+            1150,
+            243,
+            15,
+            26
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w32",
+      "Role": "ListItem",
+      "Name": "discussion",
+      "AutomationId": "0",
+      "ClassName": "UIItem",
+      "Rect": [
+        487,
+        275,
+        675,
+        24
+      ],
+      "Children": [
+        {
+          "Ref": "w28",
+          "Role": "Edit",
+          "Name": "\u540D\u524D",
+          "AutomationId": "System.ItemNameDisplay",
+          "ClassName": "UIProperty",
+          "Rect": [
+            509,
+            278,
+            270,
+            19
+          ]
+        },
+        {
+          "Ref": "w29",
+          "Role": "Edit",
+          "Name": "\u66F4\u65B0\u65E5\u6642",
+          "AutomationId": "System.DateModified",
+          "ClassName": "UIProperty",
+          "Rect": [
+            779,
+            278,
+            162,
+            19
+          ]
+        },
+        {
+          "Ref": "w30",
+          "Role": "Edit",
+          "Name": "\u7A2E\u985E",
+          "AutomationId": "System.ItemTypeText",
+          "ClassName": "UIProperty",
+          "Rect": [
+            941,
+            278,
+            135,
+            19
+          ]
+        },
+        {
+          "Ref": "w31",
+          "Role": "Edit",
+          "Name": "\u30B5\u30A4\u30BA",
+          "AutomationId": "System.Size",
+          "ClassName": "UIProperty",
+          "Rect": [
+            1076,
+            278,
+            90,
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w37",
+      "Role": "ListItem",
+      "Name": "spike",
+      "AutomationId": "1",
+      "ClassName": "UIItem",
+      "Rect": [
+        487,
+        303,
+        675,
+        24
+      ],
+      "Children": [
+        {
+          "Ref": "w33",
+          "Role": "Edit",
+          "Name": "\u540D\u524D",
+          "AutomationId": "System.ItemNameDisplay",
+          "ClassName": "UIProperty",
+          "Rect": [
+            509,
+            306,
+            270,
+            19
+          ]
+        },
+        {
+          "Ref": "w34",
+          "Role": "Edit",
+          "Name": "\u66F4\u65B0\u65E5\u6642",
+          "AutomationId": "System.DateModified",
+          "ClassName": "UIProperty",
+          "Rect": [
+            779,
+            306,
+            162,
+            19
+          ]
+        },
+        {
+          "Ref": "w35",
+          "Role": "Edit",
+          "Name": "\u7A2E\u985E",
+          "AutomationId": "System.ItemTypeText",
+          "ClassName": "UIProperty",
+          "Rect": [
+            941,
+            306,
+            135,
+            19
+          ]
+        },
+        {
+          "Ref": "w36",
+          "Role": "Edit",
+          "Name": "\u30B5\u30A4\u30BA",
+          "AutomationId": "System.Size",
+          "ClassName": "UIProperty",
+          "Rect": [
+            1076,
+            306,
+            90,
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w42",
+      "Role": "ListItem",
+      "Name": ".gitignore",
+      "AutomationId": "2",
+      "ClassName": "UIItem",
+      "Rect": [
+        487,
+        331,
+        675,
+        24
+      ],
+      "Children": [
+        {
+          "Ref": "w38",
+          "Role": "Edit",
+          "Name": "\u540D\u524D",
+          "AutomationId": "System.ItemNameDisplay",
+          "ClassName": "UIProperty",
+          "Rect": [
+            509,
+            334,
+            270,
+            19
+          ]
+        },
+        {
+          "Ref": "w39",
+          "Role": "Edit",
+          "Name": "\u66F4\u65B0\u65E5\u6642",
+          "AutomationId": "System.DateModified",
+          "ClassName": "UIProperty",
+          "Rect": [
+            779,
+            334,
+            162,
+            19
+          ]
+        },
+        {
+          "Ref": "w40",
+          "Role": "Edit",
+          "Name": "\u7A2E\u985E",
+          "AutomationId": "System.ItemTypeText",
+          "ClassName": "UIProperty",
+          "Rect": [
+            941,
+            334,
+            135,
+            19
+          ]
+        },
+        {
+          "Ref": "w41",
+          "Role": "Edit",
+          "Name": "\u30B5\u30A4\u30BA",
+          "AutomationId": "System.Size",
+          "ClassName": "UIProperty",
+          "Rect": [
+            1076,
+            334,
+            90,
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w47",
+      "Role": "Tab",
+      "AutomationId": "TabView",
+      "ClassName": "Microsoft.UI.Xaml.Controls.TabView",
+      "Rect": [
+        313,
+        109,
+        1126,
+        38
+      ],
+      "Children": [
+        {
+          "Ref": "w45",
+          "Role": "TabItem",
+          "Name": "adact",
+          "ClassName": "ListViewItem",
+          "Rect": [
+            317,
+            115,
+            248,
+            32
+          ],
+          "Children": [
+            {
+              "Ref": "w43",
+              "Role": "Text",
+              "Name": "adact",
+              "ClassName": "TextBlock",
+              "Rect": [
+                356,
+                123,
+                30,
+                16
+              ]
+            },
+            {
+              "Ref": "w44",
+              "Role": "Button",
+              "Name": "\u30BF\u30D6\u3092\u9589\u3058\u308B",
+              "AutomationId": "CloseButton",
+              "ClassName": "Button",
+              "Rect": [
+                524,
+                119,
+                32,
+                24
+              ]
+            }
+          ]
+        },
+        {
+          "Ref": "w46",
+          "Role": "Button",
+          "Name": "\u65B0\u3057\u3044\u30BF\u30D6\u306E\u8FFD\u52A0",
+          "AutomationId": "AddButton",
+          "ClassName": "Button",
+          "Rect": [
+            568,
+            120,
+            32,
+            24
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w48",
+      "Role": "Button",
+      "Name": "\u623B\u308B",
+      "AutomationId": "backButton",
+      "ClassName": "AppBarButton",
+      "Rect": [
+        324,
+        155,
+        32,
+        32
+      ]
+    },
+    {
+      "Ref": "w49",
+      "Role": "Button",
+      "Name": "\u9032\u3080",
+      "AutomationId": "forwardButton",
+      "ClassName": "AppBarButton",
+      "Rect": [
+        372,
+        155,
+        32,
+        32
+      ]
+    },
+    {
+      "Ref": "w50",
+      "Role": "Button",
+      "Name": "\u0022dev\u0022 \u3078 (Alt\u002B\u4E0A\u77E2\u5370)",
+      "AutomationId": "upButton",
+      "ClassName": "AppBarButton",
+      "Rect": [
+        420,
+        155,
+        32,
+        32
+      ]
+    },
+    {
+      "Ref": "w51",
+      "Role": "Button",
+      "Name": "\u0022adact\u0022 \u3092\u6700\u65B0\u306E\u60C5\u5831\u306B\u66F4\u65B0(F5)",
+      "AutomationId": "refreshButton",
+      "ClassName": "AppBarButton",
+      "Rect": [
+        468,
+        155,
+        32,
+        32
+      ]
+    },
+    {
+      "Ref": "w52",
+      "Role": "Edit",
+      "Name": "\u30A2\u30C9\u30EC\u30B9 \u30D0\u30FC",
+      "AutomationId": "TextBox",
+      "ClassName": "TextBox",
+      "Rect": [
+        514,
+        155,
+        646,
+        32
+      ]
+    },
+    {
+      "Ref": "w53",
+      "Role": "SplitButton",
+      "Name": "PC",
+      "AutomationId": "FirstCrumbStackPanel",
+      "ClassName": "FileExplorerExtensions.FirstCrumbStackPanelControl",
+      "Rect": [
+        527,
+        159,
+        51,
+        24
+      ]
+    },
+    {
+      "Ref": "w55",
+      "Role": "SplitButton",
+      "Name": "PC",
+      "ClassName": "FileExplorerExtensions.BreadcrumbBarItemControl",
+      "Rect": [
+        578,
+        159,
+        58,
+        24
+      ],
+      "Children": [
+        {
+          "Ref": "w54",
+          "Role": "Text",
+          "Name": "PC",
+          "ClassName": "TextBlock",
+          "Rect": [
+            587,
+            161,
+            17,
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w57",
+      "Role": "SplitButton",
+      "Name": "\u30ED\u30FC\u30AB\u30EB \u30C7\u30A3\u30B9\u30AF (C:)",
+      "ClassName": "FileExplorerExtensions.BreadcrumbBarItemControl",
+      "Rect": [
+        636,
+        159,
+        151,
+        24
+      ],
+      "Children": [
+        {
+          "Ref": "w56",
+          "Role": "Text",
+          "Name": "\u30ED\u30FC\u30AB\u30EB \u30C7\u30A3\u30B9\u30AF (C:)",
+          "ClassName": "TextBlock",
+          "Rect": [
+            645,
+            161,
+            110,
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w59",
+      "Role": "SplitButton",
+      "Name": "\u30E6\u30FC\u30B6\u30FC",
+      "ClassName": "FileExplorerExtensions.BreadcrumbBarItemControl",
+      "Rect": [
+        786,
+        159,
+        83,
+        24
+      ],
+      "Children": [
+        {
+          "Ref": "w58",
+          "Role": "Text",
+          "Name": "\u30E6\u30FC\u30B6\u30FC",
+          "ClassName": "TextBlock",
+          "Rect": [
+            795,
+            161,
+            42,
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w61",
+      "Role": "SplitButton",
+      "Name": "yuta_",
+      "ClassName": "FileExplorerExtensions.BreadcrumbBarItemControl",
+      "Rect": [
+        869,
+        159,
+        74,
+        24
+      ],
+      "Children": [
+        {
+          "Ref": "w60",
+          "Role": "Text",
+          "Name": "yuta_",
+          "ClassName": "TextBlock",
+          "Rect": [
+            878,
+            161,
+            33,
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w63",
+      "Role": "SplitButton",
+      "Name": "dev",
+      "ClassName": "FileExplorerExtensions.BreadcrumbBarItemControl",
+      "Rect": [
+        942,
+        159,
+        64,
+        24
+      ],
+      "Children": [
+        {
+          "Ref": "w62",
+          "Role": "Text",
+          "Name": "dev",
+          "ClassName": "TextBlock",
+          "Rect": [
+            951,
+            161,
+            23,
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w65",
+      "Role": "SplitButton",
+      "Name": "adact",
+      "ClassName": "FileExplorerExtensions.BreadcrumbBarItemControl",
+      "Rect": [
+        1006,
+        159,
+        76,
+        24
+      ],
+      "Children": [
+        {
+          "Ref": "w64",
+          "Role": "Text",
+          "Name": "adact",
+          "ClassName": "TextBlock",
+          "Rect": [
+            1015,
+            161,
+            34,
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w67",
+      "Role": "Edit",
+      "Name": " adact\u306E\u691C\u7D22",
+      "AutomationId": "TextBox",
+      "ClassName": "TextBox",
+      "Rect": [
+        1167,
+        155,
+        261,
+        32
+      ],
+      "Children": [
+        {
+          "Ref": "w66",
+          "Role": "Text",
+          "Name": " adact\u306E\u691C\u7D22",
+          "ClassName": "TextBlock",
+          "Rect": [
+            1178,
+            161,
+            77,
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w68",
+      "Role": "Button",
+      "Name": "\u65B0\u898F\u4F5C\u6210",
+      "ClassName": "AppBarButton",
+      "Rect": [
+        319,
+        196,
+        109,
+        46
+      ]
+    },
+    {
+      "Ref": "w69",
+      "Role": "Button",
+      "Name": "\u5207\u308A\u53D6\u308A",
+      "ClassName": "AppBarButton",
+      "Rect": [
+        439,
+        196,
+        40,
+        46
+      ]
+    },
+    {
+      "Ref": "w70",
+      "Role": "Button",
+      "Name": "\u30B3\u30D4\u30FC\u200B\u200B",
+      "ClassName": "AppBarButton",
+      "Rect": [
+        487,
+        196,
+        40,
+        46
+      ]
+    },
+    {
+      "Ref": "w71",
+      "Role": "Button",
+      "Name": "\u8CBC\u308A\u4ED8\u3051\u200B\u200B",
+      "ClassName": "AppBarButton",
+      "Rect": [
+        535,
+        196,
+        40,
+        46
+      ]
+    },
+    {
+      "Ref": "w72",
+      "Role": "Button",
+      "Name": "\u540D\u524D\u306E\u5909\u66F4",
+      "ClassName": "AppBarButton",
+      "Rect": [
+        583,
+        196,
+        40,
+        46
+      ]
+    },
+    {
+      "Ref": "w73",
+      "Role": "Button",
+      "Name": "\u5171\u6709",
+      "ClassName": "AppBarButton",
+      "Rect": [
+        631,
+        196,
+        40,
+        46
+      ]
+    },
+    {
+      "Ref": "w74",
+      "Role": "Button",
+      "Name": "\u524A\u9664\u200B\u200B",
+      "ClassName": "AppBarButton",
+      "Rect": [
+        679,
+        196,
+        40,
+        46
+      ]
+    },
+    {
+      "Ref": "w75",
+      "Role": "Button",
+      "Name": "\u4E26\u3079\u66FF\u3048",
+      "AutomationId": "SortAndGroupButton",
+      "ClassName": "AppBarButton",
+      "Rect": [
+        730,
+        196,
+        105,
+        46
+      ]
+    },
+    {
+      "Ref": "w76",
+      "Role": "Button",
+      "Name": "\u8868\u793A",
+      "ClassName": "AppBarButton",
+      "Rect": [
+        838,
+        196,
+        85,
+        46
+      ]
+    },
+    {
+      "Ref": "w77",
+      "Role": "Button",
+      "Name": "\u305D\u306E\u4ED6\u306E\u30AA\u30D7\u30B7\u30E7\u30F3",
+      "AutomationId": "MoreButton",
+      "ClassName": "Button",
+      "Rect": [
+        930,
+        196,
+        48,
+        46
+      ]
+    },
+    {
+      "Ref": "w78",
+      "Role": "Button",
+      "Name": "\u8A73\u7D30",
+      "AutomationId": "DetailsPaneToggleButton",
+      "ClassName": "AppBarButton",
+      "Rect": [
+        1357,
+        196,
+        72,
+        46
+      ]
+    },
+    {
+      "Ref": "w79",
+      "Role": "MenuItem",
+      "Name": "\u30B7\u30B9\u30C6\u30E0",
+      "Rect": [
+        313,
+        114,
+        22,
+        22
+      ]
+    },
+    {
+      "Ref": "w80",
+      "Role": "Button",
+      "Name": "\u6700\u5C0F\u5316",
+      "AutomationId": "Minimize-Restore",
+      "Rect": [
+        1299,
+        108,
+        47,
+        29
+      ]
+    },
+    {
+      "Ref": "w81",
+      "Role": "Button",
+      "Name": "\u6700\u5927\u5316",
+      "AutomationId": "Maximize-Restore",
+      "Rect": [
+        1346,
+        108,
+        46,
+        29
+      ]
+    },
+    {
+      "Ref": "w82",
+      "Role": "Button",
+      "Name": "\u9589\u3058\u308B",
+      "AutomationId": "Close",
+      "Rect": [
+        1392,
+        108,
+        47,
+        29
+      ]
+    }
+  ]
+}

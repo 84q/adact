@@ -1,0 +1,659 @@
+{
+  "Ref": "w62",
+  "Role": "Window",
+  "Name": "\u65B0\u898F1 - Notepad\u002B\u002B",
+  "ClassName": "Notepad\u002B\u002B",
+  "Rect": [
+    0,
+    0,
+    512,
+    350
+  ],
+  "Children": [
+    {
+      "Ref": "w2",
+      "Role": "Tab",
+      "Name": "Tab",
+      "ClassName": "SysTabControl32",
+      "Rect": [
+        7,
+        88,
+        499,
+        234
+      ],
+      "Children": [
+        {
+          "Ref": "w1",
+          "Role": "TabItem",
+          "Name": "\u65B0\u898F1",
+          "Rect": [
+            8,
+            89,
+            95,
+            22
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w3",
+      "Role": "Text",
+      "Name": "Normal text file",
+      "Rect": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Ref": "w4",
+      "Role": "Text",
+      "Name": "\u9577\u3055: 0    \u884C\u6570: 1",
+      "Rect": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Ref": "w5",
+      "Role": "Text",
+      "Name": "\u884C: 1    \u6841: 1    \u4F4D\u7F6E: 1",
+      "Rect": [
+        7,
+        323,
+        229,
+        21
+      ]
+    },
+    {
+      "Ref": "w6",
+      "Role": "Text",
+      "Name": "Windows (CR LF)",
+      "Rect": [
+        237,
+        323,
+        109,
+        21
+      ]
+    },
+    {
+      "Ref": "w7",
+      "Role": "Text",
+      "Name": "UTF-8",
+      "Rect": [
+        347,
+        323,
+        119,
+        21
+      ]
+    },
+    {
+      "Ref": "w8",
+      "Role": "Text",
+      "Name": "INS",
+      "Rect": [
+        467,
+        323,
+        23,
+        21
+      ]
+    },
+    {
+      "Ref": "w9",
+      "Role": "Button",
+      "Rect": [
+        8,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w10",
+      "Role": "Button",
+      "Rect": [
+        27,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w11",
+      "Role": "Button",
+      "Rect": [
+        47,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w12",
+      "Role": "Button",
+      "Rect": [
+        66,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w13",
+      "Role": "Button",
+      "Rect": [
+        86,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w14",
+      "Role": "Button",
+      "Rect": [
+        105,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w15",
+      "Role": "Button",
+      "Rect": [
+        125,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w16",
+      "Role": "Button",
+      "Rect": [
+        148,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w17",
+      "Role": "Button",
+      "Rect": [
+        168,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w18",
+      "Role": "Button",
+      "Rect": [
+        187,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w19",
+      "Role": "Button",
+      "Rect": [
+        211,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w20",
+      "Role": "Button",
+      "Rect": [
+        230,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w21",
+      "Role": "Button",
+      "Rect": [
+        254,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w22",
+      "Role": "Button",
+      "Rect": [
+        273,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w23",
+      "Role": "Button",
+      "Rect": [
+        297,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w24",
+      "Role": "Button",
+      "Rect": [
+        316,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w25",
+      "Role": "Button",
+      "Rect": [
+        340,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w26",
+      "Role": "Button",
+      "Rect": [
+        359,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w27",
+      "Role": "Button",
+      "Rect": [
+        383,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w28",
+      "Role": "SplitButton",
+      "Rect": [
+        402,
+        68,
+        35,
+        19
+      ]
+    },
+    {
+      "Ref": "w29",
+      "Role": "Button",
+      "Rect": [
+        437,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w30",
+      "Role": "Button",
+      "Rect": [
+        461,
+        68,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w31",
+      "Role": "Button",
+      "Rect": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Ref": "w32",
+      "Role": "Button",
+      "Rect": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Ref": "w33",
+      "Role": "Button",
+      "Rect": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Ref": "w34",
+      "Role": "Button",
+      "Rect": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Ref": "w35",
+      "Role": "Button",
+      "Rect": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Ref": "w36",
+      "Role": "Button",
+      "Rect": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Ref": "w37",
+      "Role": "Button",
+      "Rect": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Ref": "w38",
+      "Role": "Button",
+      "Rect": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Ref": "w39",
+      "Role": "Button",
+      "Rect": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Ref": "w40",
+      "Role": "Button",
+      "Rect": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "Ref": "w41",
+      "Role": "Button",
+      "Name": "\u30B7\u30A7\u30D6\u30ED\u30F3-",
+      "Rect": [
+        489,
+        68,
+        17,
+        21
+      ]
+    },
+    {
+      "Ref": "w42",
+      "Role": "MenuItem",
+      "Name": "\u30B7\u30B9\u30C6\u30E0",
+      "Rect": [
+        7,
+        7,
+        22,
+        22
+      ]
+    },
+    {
+      "Ref": "w43",
+      "Role": "Button",
+      "Name": "\u6700\u5C0F\u5316",
+      "AutomationId": "Minimize-Restore",
+      "Rect": [
+        366,
+        1,
+        47,
+        29
+      ]
+    },
+    {
+      "Ref": "w44",
+      "Role": "Button",
+      "Name": "\u6700\u5927\u5316",
+      "AutomationId": "Maximize-Restore",
+      "Rect": [
+        413,
+        1,
+        46,
+        29
+      ]
+    },
+    {
+      "Ref": "w45",
+      "Role": "Button",
+      "Name": "\u9589\u3058\u308B",
+      "AutomationId": "Close",
+      "Rect": [
+        459,
+        1,
+        47,
+        29
+      ]
+    },
+    {
+      "Ref": "w46",
+      "Role": "MenuItem",
+      "Name": "\u30D5\u30A1\u30A4\u30EB(F)",
+      "Rect": [
+        7,
+        29,
+        61,
+        19
+      ]
+    },
+    {
+      "Ref": "w47",
+      "Role": "MenuItem",
+      "Name": "\u7DE8\u96C6(E)",
+      "Rect": [
+        68,
+        29,
+        51,
+        19
+      ]
+    },
+    {
+      "Ref": "w48",
+      "Role": "MenuItem",
+      "Name": "\u691C\u7D22(S)",
+      "Rect": [
+        119,
+        29,
+        52,
+        19
+      ]
+    },
+    {
+      "Ref": "w49",
+      "Role": "MenuItem",
+      "Name": "\u8868\u793A(V)",
+      "Rect": [
+        170,
+        29,
+        53,
+        19
+      ]
+    },
+    {
+      "Ref": "w50",
+      "Role": "MenuItem",
+      "Name": "\u30A8\u30F3\u30B3\u30FC\u30C9(N)",
+      "Rect": [
+        223,
+        29,
+        73,
+        19
+      ]
+    },
+    {
+      "Ref": "w51",
+      "Role": "MenuItem",
+      "Name": "\u8A00\u8A9E(L)",
+      "Rect": [
+        295,
+        29,
+        51,
+        19
+      ]
+    },
+    {
+      "Ref": "w52",
+      "Role": "MenuItem",
+      "Name": "\u8A2D\u5B9A(T)",
+      "Rect": [
+        346,
+        29,
+        52,
+        19
+      ]
+    },
+    {
+      "Ref": "w53",
+      "Role": "MenuItem",
+      "Name": "\u30C4\u30FC\u30EB(O)",
+      "Rect": [
+        397,
+        29,
+        57,
+        19
+      ]
+    },
+    {
+      "Ref": "w54",
+      "Role": "MenuItem",
+      "Name": "\u30DE\u30AF\u30ED(M)",
+      "Rect": [
+        7,
+        48,
+        59,
+        19
+      ]
+    },
+    {
+      "Ref": "w55",
+      "Role": "MenuItem",
+      "Name": "\u5B9F\u884C(R)",
+      "Rect": [
+        65,
+        48,
+        52,
+        19
+      ]
+    },
+    {
+      "Ref": "w56",
+      "Role": "MenuItem",
+      "Name": "\u30D7\u30E9\u30B0\u30A4\u30F3(P)",
+      "Rect": [
+        117,
+        48,
+        71,
+        19
+      ]
+    },
+    {
+      "Ref": "w57",
+      "Role": "MenuItem",
+      "Name": "\u30A6\u30A3\u30F3\u30C9\u30A6\u7BA1\u7406(W)",
+      "Rect": [
+        188,
+        48,
+        99,
+        19
+      ]
+    },
+    {
+      "Ref": "w58",
+      "Role": "MenuItem",
+      "Name": "?",
+      "Rect": [
+        287,
+        48,
+        20,
+        19
+      ]
+    },
+    {
+      "Ref": "w59",
+      "Role": "MenuItem",
+      "Name": "\uFF0B",
+      "Rect": [
+        430,
+        48,
+        26,
+        19
+      ]
+    },
+    {
+      "Ref": "w60",
+      "Role": "MenuItem",
+      "Name": "\u25BC",
+      "Rect": [
+        456,
+        48,
+        26,
+        19
+      ]
+    },
+    {
+      "Ref": "w61",
+      "Role": "MenuItem",
+      "Name": "\u2715",
+      "Rect": [
+        482,
+        48,
+        24,
+        19
+      ]
+    }
+  ]
+}
