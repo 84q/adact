@@ -1,10 +1,5 @@
-using System.CommandLine;
-using System.Text.Json;
-
-using Adact.Engine;
 using Adact.Mcp.Stdio;
 
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 
@@ -14,108 +9,58 @@ internal static class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        var verboseOption = new Option<bool>(
-            name: "--verbose",
-            description: "Enable verbose (Debug) logging on stderr.");
-
-        var jsonOption = new Option<bool>(
-            name: "--json",
-            description: "Emit machine-readable JSON.");
-
-        var processOption = new Option<string>(
-            name: "--process",
-            description: "Target process name (e.g. notepad++, CalculatorApp).")
-        { IsRequired = true };
-
-        var filterOption = new Option<string>(
-            name: "--filter",
-            description: "Snapshot filter strategy: operable (default) or raw.",
-            getDefaultValue: () => "operable");
-
-        var minifiedOption = new Option<bool>(
-            name: "--minified",
-            description: "Emit a single-line JSON instead of pretty-printed.");
-
-        var listCmd = new Command("list", "List top-level windows.")
+        // 簡易引数解析: 第 1 引数をサブコマンドとして扱い、残りを各サブコマンドに渡す。
+        if (args.Length == 0)
         {
-            jsonOption,
+            PrintUsage();
+            return 1;
+        }
+
+        var subcommand = args[0];
+        var rest = args[1..];
+
+        return subcommand switch
+        {
+            "local" => await RunLocalAsync(rest).ConfigureAwait(false),
+            "serve" => RunServePlaceholder(rest),
+            _ => UnknownSubcommand(subcommand),
         };
-        listCmd.SetHandler(async (bool json, bool verbose) =>
-        {
-            using var loggerFactory = CreateLoggerFactory(verbose);
-            using var engine = new UiaEngine(loggerFactory);
-            var windows = await engine.ListWindowsAsync().ConfigureAwait(false);
+    }
 
-            if (json)
-            {
-                var dto = windows.Select(w => new
-                {
-                    pid = w.ProcessId,
-                    processName = w.ProcessName,
-                    title = w.Title,
-                    controlType = w.ControlType,
-                    className = w.ClassName,
-                    hwnd = w.NativeWindowHandle.ToInt64(),
-                });
-                Console.WriteLine(JsonSerializer.Serialize(dto, new JsonSerializerOptions { WriteIndented = true }));
-            }
-            else
-            {
-                Console.WriteLine($"Top-level windows: {windows.Count}");
-                foreach (var w in windows)
-                {
-                    Console.WriteLine($"  pid={w.ProcessId,-6} proc={w.ProcessName,-24} ctrl={w.ControlType,-12} title=\"{w.Title}\"");
-                }
-            }
-        }, jsonOption, verboseOption);
+    private static async Task<int> RunLocalAsync(string[] args)
+    {
+        var verbose = args.Contains("--verbose");
+        using var loggerFactory = CreateLoggerFactory(verbose);
+        using var cts = new CancellationTokenSource();
+        Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
+        await McpStdioServer.RunAsync(loggerFactory, cts.Token).ConfigureAwait(false);
+        return 0;
+    }
 
-        var snapshotCmd = new Command("snapshot", "Snapshot a single window.")
-        {
-            processOption,
-            filterOption,
-            minifiedOption,
-        };
-        snapshotCmd.SetHandler(async (string processName, string filter, bool minified, bool verbose) =>
-        {
-            using var loggerFactory = CreateLoggerFactory(verbose);
-            using var engine = new UiaEngine(loggerFactory);
-            using var session = await engine.AttachAsync(AttachQuery.ByProcess(processName)).ConfigureAwait(false);
-            var result = await session.SnapshotAsync(new SnapshotOptions(FilterName: filter)).ConfigureAwait(false);
+    private static int RunServePlaceholder(string[] args)
+    {
+        // Phase 4 サブタスク 4 で本実装予定。現時点では placeholder として exit 1 を返す。
+        Console.Error.WriteLine("adact serve: not implemented yet (Phase 4 サブタスク 4 で実装予定).");
+        return 1;
+    }
 
-            if (minified)
-            {
-                Console.WriteLine(result.Json);
-            }
-            else
-            {
-                using var doc = JsonDocument.Parse(result.Json);
-                Console.WriteLine(JsonSerializer.Serialize(doc.RootElement, new JsonSerializerOptions { WriteIndented = true }));
-            }
-        }, processOption, filterOption, minifiedOption, verboseOption);
+    private static int UnknownSubcommand(string subcommand)
+    {
+        Console.Error.WriteLine($"adact: unknown subcommand '{subcommand}'.");
+        PrintUsage();
+        return 1;
+    }
 
-        var rootCmd = new RootCommand("ADACT — Windows desktop UI automation CLI (Phase 2 prototype).")
-        {
-            listCmd,
-            snapshotCmd,
-        };
-        rootCmd.AddGlobalOption(verboseOption);
-
-        var localOption = new Option<bool>(
-            name: "--local",
-            description: "Run as a stdio MCP server. stdin/stdout speak JSON-RPC; logs go to stderr.");
-        rootCmd.AddGlobalOption(localOption);
-
-        // --local が指定されたら他サブコマンドより優先して MCP サーバーを起動する。
-        rootCmd.SetHandler(async (bool local, bool verbose) =>
-        {
-            if (!local) return;
-            using var loggerFactory = CreateLoggerFactory(verbose);
-            using var cts = new CancellationTokenSource();
-            Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
-            await McpStdioServer.RunAsync(loggerFactory, cts.Token).ConfigureAwait(false);
-        }, localOption, verboseOption);
-
-        return await rootCmd.InvokeAsync(args).ConfigureAwait(false);
+    private static void PrintUsage()
+    {
+        Console.Error.WriteLine("Usage: adact <subcommand> [options]");
+        Console.Error.WriteLine();
+        Console.Error.WriteLine("Subcommands:");
+        Console.Error.WriteLine("  local              Run as a stdio MCP server (stdin/stdout = JSON-RPC, stderr = logs).");
+        Console.Error.WriteLine("  serve [--port N]   Run as an HTTP MCP server (not implemented yet).");
+        Console.Error.WriteLine();
+        Console.Error.WriteLine("Common options:");
+        Console.Error.WriteLine("  --verbose          Enable Debug-level logging on stderr.");
     }
 
     private static ILoggerFactory CreateLoggerFactory(bool verbose)

@@ -18,7 +18,7 @@ public class WindowsToolsE2ETests
         {
             Name = "adact",
             Command = AdactExePath.Resolve(),
-            Arguments = ["--local"],
+            Arguments = ["local"],
         });
     }
 
