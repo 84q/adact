@@ -1,16 +1,22 @@
 using System.CommandLine;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 
 using Adact.Cli.Connection;
 using Adact.Cli.Output;
-using Adact.Cli.Snapshots;
 
 namespace Adact.Cli.Commands;
 
 internal static class AttachCommand
 {
-    private static readonly Regex WindowRefPattern = new("^w\\d+$", RegexOptions.Compiled);
+    /// <summary>
+    /// attach コマンドの引数バリデーション対象。Unit テストから直接呼び出すため
+    /// snapshot 関連の補助オプションは含めない (Mi6)。
+    /// </summary>
+    internal sealed record AttachArgs(
+        string? Ref,
+        string? ProcessName,
+        string? Title,
+        int? ProcessId,
+        string? ClassName);
 
     public static Command Build()
     {
@@ -44,36 +50,38 @@ internal static class AttachCommand
                 ProcessName: parseResult.GetValue(processName),
                 Title: parseResult.GetValue(title),
                 ProcessId: parseResult.GetValue(processId),
-                ClassName: parseResult.GetValue(className),
-                NoSnapshot: parseResult.GetValue(noSnapshot),
-                SnapshotDir: parseResult.GetValue(snapshotDir));
+                ClassName: parseResult.GetValue(className));
 
             // 引数バリデーションは接続前に実施する。
-            var validationExit = ValidateArgs(args, out var arguments);
-            if (validationExit is { } code) return Task.FromResult(code);
+            var (errorCode, errorMessage) = ValidateAttachArgs(args);
+            if (errorCode is not null)
+            {
+                CliError.Write(errorCode, errorMessage ?? "invalid arguments.");
+                return Task.FromResult(ExitCodes.UserError);
+            }
 
+            var arguments = BuildArguments(args);
+            var noSnap = parseResult.GetValue(noSnapshot);
+            var dir = parseResult.GetValue(snapshotDir);
             var serverArg = parseResult.GetValue(server);
+
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
-                (client, token) => ExecuteAsync(client, arguments!, args, token),
+                (client, token) => ExecuteAsync(client, arguments, noSnap, dir, token),
                 ct);
         });
 
         return cmd;
     }
 
-    private sealed record AttachArgs(
-        string? Ref,
-        string? ProcessName,
-        string? Title,
-        int? ProcessId,
-        string? ClassName,
-        bool NoSnapshot,
-        string? SnapshotDir);
-
-    private static int? ValidateArgs(AttachArgs args, out Dictionary<string, object?>? arguments)
+    /// <summary>
+    /// attach 引数のバリデーションのみ実施する (MCP 呼び出しは行わない)。
+    /// 不正なら <c>(errorCode, errorMessage)</c>、正常なら <c>(null, null)</c> を返す。
+    /// </summary>
+    internal static (string? errorCode, string? errorMessage) ValidateAttachArgs(AttachArgs args)
     {
-        arguments = null;
+        ArgumentNullException.ThrowIfNull(args);
+
         var hasFlags = args.ProcessName is not null
             || args.Title is not null
             || args.ProcessId is not null
@@ -81,27 +89,33 @@ internal static class AttachCommand
 
         if (!string.IsNullOrEmpty(args.Ref))
         {
-            if (!WindowRefPattern.IsMatch(args.Ref))
+            if (!RefValidator.IsWindowRef(args.Ref))
             {
-                CliError.Write(ErrorCodes.InvalidArgument,
+                return (ErrorCodes.InvalidArgument,
                     $"ref must be in 'w<n>' form, got '{args.Ref}'.");
-                return ExitCodes.UserError;
             }
             if (hasFlags)
             {
-                CliError.Write(ErrorCodes.InvalidArgument,
+                return (ErrorCodes.InvalidArgument,
                     "Positional ref and matching flags (--process-name/--title/--process-id/--class-name) are mutually exclusive.");
-                return ExitCodes.UserError;
             }
-            arguments = new Dictionary<string, object?> { ["windowRef"] = args.Ref };
-            return null;
+            return (null, null);
         }
 
         if (!hasFlags)
         {
-            CliError.Write(ErrorCodes.InvalidArgument,
+            return (ErrorCodes.InvalidArgument,
                 "Specify either positional ref (w<n>) or at least one of --process-name/--title/--process-id/--class-name.");
-            return ExitCodes.UserError;
+        }
+
+        return (null, null);
+    }
+
+    private static Dictionary<string, object?> BuildArguments(AttachArgs args)
+    {
+        if (!string.IsNullOrEmpty(args.Ref))
+        {
+            return new Dictionary<string, object?> { ["windowRef"] = args.Ref };
         }
 
         var dict = new Dictionary<string, object?>();
@@ -109,14 +123,14 @@ internal static class AttachCommand
         if (args.Title is not null) dict["windowTitle"] = args.Title;
         if (args.ClassName is not null) dict["className"] = args.ClassName;
         if (args.ProcessId is not null) dict["processId"] = args.ProcessId.Value;
-        arguments = dict;
-        return null;
+        return dict;
     }
 
     private static async Task<int> ExecuteAsync(
         AdactMcpClient client,
         Dictionary<string, object?> arguments,
-        AttachArgs args,
+        bool noSnapshot,
+        string? snapshotDir,
         CancellationToken ct)
     {
         var attachResult = await client.CallToolAsync("windows_attach", arguments, ct).ConfigureAwait(false);
@@ -134,63 +148,25 @@ internal static class AttachCommand
             return ExitCodes.CommandFailed;
         }
 
-        // snapshot 取得 (--no-snapshot でなければ)
-        int? generation = null;
-        string? snapshotPath = null;
-        if (!args.NoSnapshot)
-        {
-            var snapResult = await client.CallToolAsync(
-                "windows_snapshot",
-                new Dictionary<string, object?> { ["sessionId"] = sessionId },
-                ct).ConfigureAwait(false);
-
-            var snapErrorExit = McpResponse.TryReportError(snapResult);
-            if (snapErrorExit is { } snapCode) return snapCode;
-
-            var snapJson = McpResponse.GetJson(snapResult);
-            generation = ExtractGeneration(snapJson);
-            var sid = ParseSidNumber(sessionId);
-            var raw = SnapshotJsonText(snapResult, snapJson);
-            snapshotPath = SnapshotFileWriter.Write(raw, sid, generation ?? 0, args.SnapshotDir);
-        }
-
+        // 出力順は sessionId / windowRef / generation / snapshot (設計 §5.2)。
+        // sessionId / windowRef は attach 結果から書き出し、generation / snapshot は
+        // WriteSnapshotResultAsync (writeSessionId=false) に委譲する。
         KeyValueWriter.Write("sessionId", sessionId);
-        if (!string.IsNullOrEmpty(windowRef)) KeyValueWriter.Write("windowRef", windowRef);
-        if (generation is { } g) KeyValueWriter.Write("generation", g.ToString(System.Globalization.CultureInfo.InvariantCulture));
-        if (!string.IsNullOrEmpty(snapshotPath)) KeyValueWriter.Write("snapshot", snapshotPath);
-
-        return ExitCodes.Success;
-    }
-
-    private static int ParseSidNumber(string sessionId)
-    {
-        // "s1" → 1
-        if (sessionId.Length >= 2 && sessionId[0] == 's'
-            && int.TryParse(sessionId.AsSpan(1), out var n))
+        if (!string.IsNullOrEmpty(windowRef))
         {
-            return n;
+            KeyValueWriter.Write("windowRef", windowRef);
         }
-        return 0;
-    }
 
-    private static int? ExtractGeneration(JsonElement snapshotJson)
-    {
-        if (snapshotJson.ValueKind != JsonValueKind.Object) return null;
-        if (!snapshotJson.TryGetProperty("_meta", out var meta)) return null;
-        return JsonHelpers.GetIntOrNull(meta, "generation");
-    }
-
-    private static string SnapshotJsonText(
-        ModelContextProtocol.Protocol.CallToolResult result,
-        JsonElement parsed)
-    {
-        // 元の JSON 文字列をそのまま保存する (Content[0].Text 優先)
-        if (result.Content is { Count: > 0 } content
-            && content[0] is ModelContextProtocol.Protocol.TextContentBlock tcb
-            && !string.IsNullOrEmpty(tcb.Text))
+        if (noSnapshot)
         {
-            return tcb.Text;
+            return ExitCodes.Success;
         }
-        return parsed.GetRawText();
+
+        return await CommandHelpers.WriteSnapshotResultAsync(
+            client,
+            sessionId,
+            snapshotDir,
+            ct,
+            writeSessionId: false).ConfigureAwait(false);
     }
 }

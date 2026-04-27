@@ -14,7 +14,7 @@ internal static class SnapshotFileWriter
     {
         ArgumentNullException.ThrowIfNull(snapshotJson);
 
-        var ts = DateTime.UtcNow.ToString("yyyyMMddTHHmmss", CultureInfo.InvariantCulture);
+        var ts = DateTime.UtcNow.ToString("yyyyMMddTHHmmssfff", CultureInfo.InvariantCulture);
         var filename = $"session-{sid}-gen-{generation}-{ts}.json";
         var targetDir = string.IsNullOrEmpty(dir) ? ".adact" : dir;
         Directory.CreateDirectory(targetDir);

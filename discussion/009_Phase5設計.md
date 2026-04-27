@@ -154,7 +154,7 @@ Phase 5 は **CLI クライアント層** の実装フェーズ。Phase 4 まで
 
 - `attach` / `click` / `fill` の **成功時**、結果に snapshot path を含める
 - `--no-snapshot` 指定時は snapshot を取得・保存しない
-- snapshot 自体はファイル (既定 `.adact/session-<sid>-gen-<gen>-<timestamp>.yml`) に書き出し、stdout には **path のみ** を出力 (コンテキストウィンドウ節約)
+- snapshot 自体はファイル (既定 `.adact/session-<sid>-gen-<gen>-<timestamp>.json`) に書き出し、stdout には **path のみ** を出力 (コンテキストウィンドウ節約)
 - `detach` / `close` / `kill` / `close-all` は snapshot 同梱なし
 
 ### 4.5 lifecycle セマンティクス
@@ -185,12 +185,22 @@ s3	fail	CLOSE_TIMEOUT
 
 ### 5.2 各コマンドの stdout
 
-`attach` / `click` / `fill` / `snapshot` (成功時):
+`attach` (成功時):
+```
+sessionId s1
+windowRef w3
+generation 1
+snapshot .adact/session-1-gen-1-20251108T120000000.json
+```
+
+`click` / `fill` / `snapshot` (成功時):
 ```
 sessionId s1
 generation 1
-snapshot .adact/session-1-gen-1-20251108T120000.yml
+snapshot .adact/session-1-gen-1-20251108T120000000.json
 ```
+
+> ※ Phase 5 では snapshot 形式を JSON で保存 (拡張子 `.json`)。YAML 化は将来検討。
 
 `list-apps`:
 ```

@@ -1,5 +1,7 @@
 using System.CommandLine;
 
+using Adact.Cli.Output;
+
 namespace Adact.Cli.Commands;
 
 internal static class ClickCommand
@@ -12,7 +14,7 @@ internal static class ClickCommand
         };
         var noSnapshot = new Option<bool>("--no-snapshot") { Description = "Do not capture a snapshot after the action." };
         var snapshotDir = new Option<string?>("--snapshot-dir") { Description = "Snapshot output directory (default '.adact/')." };
-        var server = new Option<string?>("--server") { Description = "Connection target URL." };
+        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("click", "Click an element identified by an Element Ref.");
         cmd.Arguments.Add(refArg);
@@ -20,13 +22,26 @@ internal static class ClickCommand
         cmd.Options.Add(snapshotDir);
         cmd.Options.Add(server);
 
-        cmd.SetAction(parseResult =>
+        cmd.SetAction((parseResult, ct) =>
         {
-            _ = parseResult.GetValue(refArg);
-            _ = parseResult.GetValue(noSnapshot);
-            _ = parseResult.GetValue(snapshotDir);
-            _ = parseResult.GetValue(server);
-            return CommandHelpers.NotYetImplemented("click");
+            var refValue = parseResult.GetValue(refArg);
+            var noSnap = parseResult.GetValue(noSnapshot);
+            var dirArg = parseResult.GetValue(snapshotDir);
+            var serverArg = parseResult.GetValue(server);
+
+            if (!RefValidator.IsElementRef(refValue))
+            {
+                CliError.Write(ErrorCodes.InvalidRefFormat,
+                    $"ref must be in 's<sid>g<gen>e<eid>' form, got '{refValue}'.");
+                return Task.FromResult(ExitCodes.UserError);
+            }
+
+            var args = new Dictionary<string, object?> { ["ref"] = refValue };
+            return CommandHelpers.RunWithClientAsync(
+                serverArg,
+                (client, token) => CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
+                    client, "windows_click", args, refValue!, noSnap, dirArg, token),
+                ct);
         });
 
         return cmd;

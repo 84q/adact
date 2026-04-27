@@ -96,4 +96,32 @@ public class McpResponseTests
         Assert.Contains("error INTERNAL_ERROR", stderr);
         Assert.Contains("raw error text", stderr);
     }
+
+    [Fact]
+    public void TryReportError_OnError_WithHint_WritesHintLine()
+    {
+        var structured = JsonSerializer.SerializeToElement(new
+        {
+            code = "STALE_REF",
+            message = "ref no longer matches current generation",
+            hint = "rerun snapshot",
+        });
+        var result = new CallToolResult
+        {
+            IsError = true,
+            Content = [new TextContentBlock { Text = "STALE_REF: stale" }],
+            StructuredContent = structured,
+        };
+
+        var (stdout, stderr) = CapturedConsole.Run(() =>
+        {
+            var exit = McpResponse.TryReportError(result);
+            Assert.Equal(ExitCodes.CommandFailed, exit);
+        });
+
+        Assert.Equal(string.Empty, stdout);
+        Assert.Contains("error STALE_REF", stderr);
+        Assert.Contains("message ref no longer matches current generation", stderr);
+        Assert.Contains("hint rerun snapshot", stderr);
+    }
 }
