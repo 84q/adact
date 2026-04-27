@@ -38,6 +38,14 @@ cd sim && ./scripts/build.sh
 cd web/backend && npm run dev -- --run
 ```
 
+## C# Formatting / Linting (adact)
+
+- C# コード変更時は必ずワークスペース設定に従う。
+- フォーマットは `.editorconfig` と VS Code 設定 (`.vscode/settings.json`) を基準にする。
+- リンターは .NET Analyzers (`Directory.Build.props`) を基準にする。
+- 可能な限り `dotnet format adact.sln` で整形した状態を維持する。
+- 可能な限り `dotnet build adact.sln` で警告・エラーを確認してから完了とする。
+
 ## 用語集
 
 | 用語                      | 意味                                                         |

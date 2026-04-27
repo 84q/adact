@@ -1,0 +1,7 @@
+{
+  "editor.formatOnSave": false,
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.formatOnSave": true
+  }
+}
