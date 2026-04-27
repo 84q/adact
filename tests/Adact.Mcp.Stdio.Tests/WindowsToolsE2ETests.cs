@@ -40,6 +40,8 @@ public class WindowsToolsE2ETests
     [Fact]
     public async Task AttachAndSnapshot_OnCalculator_ReturnsTreeWithButtons()
     {
+        // calc.exe を使う E2E をアセンブリ間並列でも直列化するための named semaphore
+        using var _calcLock = new CalculatorMutex();
         var calculator = StartCalculator();
         try
         {

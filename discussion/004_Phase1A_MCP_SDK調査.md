@@ -145,7 +145,7 @@ ADACT で必要な最小機能セットを自作した場合のスコープ：
 
 | Phase | 追加パッケージ |
 | --- | --- |
-| Phase 3（`adact --local` stdio MCP サーバー） | `ModelContextProtocol` + `Microsoft.Extensions.Hosting` |
+| Phase 3（`adact local` stdio MCP サーバー） | `ModelContextProtocol` + `Microsoft.Extensions.Hosting` |
 | Phase 4（`adact serve` Streamable HTTP MCP サーバー） | 上記 + `ModelContextProtocol.AspNetCore` |
 | Phase 5（`adact` プロキシ = stdio サーバー + HTTP クライアント） | 上記。クライアント側は `HttpClientTransport(StreamableHttp)` を利用 |
 

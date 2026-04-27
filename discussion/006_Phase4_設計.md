@@ -120,7 +120,7 @@ Phase 4 で以下のテストプロジェクト構成を取る。
 | --- | --- | --- |
 | `Adact.Engine.Tests` (既存) | L1 / L2 / L3 / L4 | Engine 単体の責務。`UiaEngine` の `SemaphoreSlim` 直列化テスト (L1) は Engine の責務であるため引き続きここに置く |
 | `Adact.Mcp.Stdio.Tests` (既存) | L5 | stdio MCP の E2E |
-| `Adact.Mcp.Http.Tests` (新規) | L4 / L5 | HTTP MCP のテスト。L4 は `WebApplicationFactory<TEntryPoint>` でインプロセス HTTP サーバーを起動し SDK の HTTP MCP client で `windows_list_apps` を呼ぶ。L5 は HTTP 経由で電卓 attach + snapshot |
+| `Adact.Mcp.Http.Tests` (新規) | L4 / L5 | HTTP MCP のテスト。L4 は `HttpHost.BuildApplication(0)` を直接 `StartAsync` してエフェメラルポートで実 Kestrel を起動し、SDK の HTTP MCP client (`HttpClientTransport` + `HttpTransportMode.StreamableHttp`) で接続して `windows_list_apps` を呼ぶ。L5 は HTTP 経由で電卓 attach + snapshot |
 
 `Adact.Mcp.Common` (§4.1) の共通ロジックを対象とするテストは適切な既存テストプロジェクトに配置する。Common 専用のテストプロジェクトは Phase 4 では新設せず、必要が生じた時点で別途検討する。
 
@@ -149,7 +149,7 @@ Phase 4 で以下のテストプロジェクト構成を取る。
 | レベル | 内容 |
 | --- | --- |
 | L1 | `UiaEngine` の `SemaphoreSlim` gate が並列呼び出しを直列化することを mock element ベースで検証 |
-| L4 (Smoke) | `Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<TEntryPoint>` でインプロセス HTTP MCP サーバーを起動し、SDK の HTTP MCP client で接続して `windows_list_apps` を 1 回呼ぶ |
+| L4 (Smoke) | `HttpHost.BuildApplication(0)` を直接 `StartAsync` してエフェメラルポートで実 Kestrel を起動し、SDK の HTTP MCP client (`HttpClientTransport` + `HttpTransportMode.StreamableHttp`) で接続して `windows_list_apps` を 1 回呼ぶ |
 | L5 (E2E) | HTTP 経由で電卓を `windows_attach` + `windows_snapshot` する (Phase 3 stdio E2E の HTTP 版) |
 
 直列化検証は L1 のみで十分とし、L4 / L5 で並列実行を組まない。HTTP 経由で複数同時呼び出しを観測するテストは flaky になりやすく、ROI が見合わないため不採用。
@@ -157,6 +157,11 @@ Phase 4 で以下のテストプロジェクト構成を取る。
 ### 6.2 手動疎通
 
 **VS Code Copilot Chat (内蔵 MCP クライアント)** で stdio + HTTP の両方を確認する。これは [005 §6.3](005_Phase3_完了・修正メモ.md) で Phase 3 完了条件として残った「実 MCP クライアントからの手動疎通」と統合される。
+
+運用メモ:
+
+- `.vscode/mcp.json` に `adact-stdio` (`dotnet run --no-build -- local`) と `adact-http` (`http://127.0.0.1:41300/` への接続) の 2 つを定義済み。
+- HTTP モードはユーザーが事前に `adact serve --port 41300` を別途起動しておく前提。stdio モードは VS Code が必要時に子プロセスを起動する。
 
 ## 7. Phase 4 への申し送り (Phase 3 から継続)
 
