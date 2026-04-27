@@ -41,6 +41,7 @@ public static class McpStdioServer
         builder.Services.AddSingleton<UiaEngine>(sp =>
             new UiaEngine(sp.GetRequiredService<ILoggerFactory>()));
         builder.Services.AddSingleton<SessionStore>();
+        builder.Services.AddSingleton<WindowRefStore>();
 
         builder.Services
             .AddMcpServer(o =>

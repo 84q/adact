@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 
 using Adact.Engine;
 using Adact.Engine.Exceptions;
@@ -21,12 +22,16 @@ namespace Adact.Mcp.Common;
 [McpServerToolType]
 public sealed class WindowsTools
 {
+    private static readonly Regex WindowRefPattern = new("^w\\d+$", RegexOptions.Compiled);
+
     private readonly SessionStore _store;
+    private readonly WindowRefStore _refStore;
     private readonly ILogger<WindowsTools> _logger;
 
-    public WindowsTools(SessionStore store, ILogger<WindowsTools>? logger = null)
+    public WindowsTools(SessionStore store, WindowRefStore refStore, ILogger<WindowsTools>? logger = null)
     {
         _store = store;
+        _refStore = refStore;
         _logger = logger ?? NullLogger<WindowsTools>.Instance;
     }
 
@@ -38,18 +43,27 @@ public sealed class WindowsTools
         try
         {
             var windows = await _store.Engine.ListWindowsAsync(ct).ConfigureAwait(false);
+            var presentKeys = new List<WindowKey>(windows.Count);
             var arr = new JsonArray();
             foreach (var w in windows)
             {
+                var key = WindowKey.From(w);
+                presentKeys.Add(key);
+                var entry = _refStore.SyncOrAssign(key, w);
+
                 var o = new JsonObject
                 {
-                    ["processName"] = w.ProcessName,
-                    ["windowTitle"] = w.Title,
-                    ["processId"] = w.ProcessId,
+                    ["windowRef"] = entry.WindowRef,
                 };
+                if (!string.IsNullOrEmpty(entry.SessionId)) o["sessionId"] = entry.SessionId;
+                o["processName"] = w.ProcessName;
+                o["processId"] = w.ProcessId;
                 if (!string.IsNullOrEmpty(w.ClassName)) o["className"] = w.ClassName;
+                o["windowTitle"] = w.Title;
                 arr.Add(o);
             }
+            _refStore.RetireMissing(presentKeys);
+
             var json = arr.ToJsonString();
             return new CallToolResult
             {
@@ -67,8 +81,10 @@ public sealed class WindowsTools
     }
 
     [McpServerTool(Name = "windows_attach")]
-    [Description("Attach to a single top-level window via strict-equal matching. Specify any combination of processName / windowTitle / className / processId; multiple matches yield AMBIGUOUS_ATTACH. Returns sessionId (e.g. 's1') and windowInfo. The attached session becomes the active session for subsequent windows_snapshot calls.")]
+    [Description("Attach to a single top-level window. Specify windowRef (from windows_list_apps) OR any combination of processName / windowTitle / className / processId for strict-equal matching; multiple matches yield AMBIGUOUS_ATTACH. Returns sessionId (e.g. 's1'), windowRef and windowInfo.")]
     public async Task<CallToolResult> AttachAsync(
+        [Description("Window Ref (e.g. 'w1') obtained from windows_list_apps. When specified, other matching parameters are ignored.")]
+      string? windowRef = null,
         [Description("Process name (case-insensitive, exact match). Example: 'CalculatorApp', 'notepad++'.")]
       string? processName = null,
         [Description("Window title (case-insensitive, exact match). Example: '電卓'.")]
@@ -81,22 +97,109 @@ public sealed class WindowsTools
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
 
-        if (processName is null && windowTitle is null && className is null && processId is null)
+        if (windowRef is null
+            && processName is null && windowTitle is null && className is null && processId is null)
         {
             return ToolErrors.Error(ToolErrors.InvalidArgument,
-                "At least one of processName / windowTitle / className / processId must be specified.");
+                "windowRef must be specified, or at least one of processName / windowTitle / className / processId.");
         }
 
         try
         {
-            var query = new AttachQuery(processName, windowTitle, className, processId);
-            var session = await _store.Engine.AttachAsync(query, ct).ConfigureAwait(false);
+            WindowSession session;
+            string assignedWindowRef;
 
-            _store.Register(session);
+            if (windowRef is not null)
+            {
+                if (!WindowRefPattern.IsMatch(windowRef))
+                {
+                    return ToolErrors.Error(ToolErrors.InvalidArgument,
+                        $"Invalid windowRef format: '{windowRef}'. Expected pattern: w<n>.");
+                }
+
+                if (!_refStore.TryResolve(windowRef, out var entry))
+                {
+                    return ToolErrors.Error(ToolErrors.InvalidWindowRef,
+                        $"Window Ref '{windowRef}' is unknown or has been retired. Re-run windows_list_apps.");
+                }
+
+                // idempotent: 既存 session が生きていればそれを返す
+                if (entry.SessionId is not null
+                    && _store.TryGet(entry.SessionId, out var existing))
+                {
+                    var existingInfo = new JsonObject
+                    {
+                        ["sessionId"] = entry.SessionId,
+                        ["windowRef"] = entry.WindowRef,
+                        ["windowInfo"] = new JsonObject
+                        {
+                            ["processName"] = existing.ProcessName,
+                            ["windowTitle"] = existing.Title,
+                            ["processId"] = existing.ProcessId,
+                        },
+                    };
+                    return new CallToolResult
+                    {
+                        Content = [new TextContentBlock { Text = existingInfo.ToJsonString() }],
+                        StructuredContent = JsonSerializer.SerializeToElement(existingInfo),
+                    };
+                }
+
+                session = await _store.Engine.AttachByHandleAsync(entry.Key.Hwnd, ct).ConfigureAwait(false);
+                _store.Register(session);
+                assignedWindowRef = entry.WindowRef;
+                _refStore.AssociateSession(assignedWindowRef, $"s{session.SessionId}");
+            }
+            else
+            {
+                var query = new AttachQuery(processName, windowTitle, className, processId);
+
+                // attach 前にマッチング対象を確定し、WindowKey で既存 entry を検索することで idempotent 化する。
+                var matches = await _store.Engine.FindMatchesAsync(query, ct).ConfigureAwait(false);
+                if (matches.Count == 0)
+                    throw new WindowNotFoundException(query);
+                if (matches.Count > 1)
+                    throw new AmbiguousAttachException(query, matches);
+
+                var target = matches[0];
+                var key = WindowKey.From(target);
+
+                // 既存 entry が生きている session を持っていれば idempotent: 既存 sessionId/windowRef を返す
+                if (_refStore.TryFindByKey(key, out var found)
+                    && !found.Retired
+                    && found.SessionId is not null
+                    && _store.TryGet(found.SessionId, out var existingSession))
+                {
+                    var existingInfo = new JsonObject
+                    {
+                        ["sessionId"] = found.SessionId,
+                        ["windowRef"] = found.WindowRef,
+                        ["windowInfo"] = new JsonObject
+                        {
+                            ["processName"] = existingSession.ProcessName,
+                            ["windowTitle"] = existingSession.Title,
+                            ["processId"] = existingSession.ProcessId,
+                        },
+                    };
+                    return new CallToolResult
+                    {
+                        Content = [new TextContentBlock { Text = existingInfo.ToJsonString() }],
+                        StructuredContent = JsonSerializer.SerializeToElement(existingInfo),
+                    };
+                }
+
+                session = await _store.Engine.AttachByHandleAsync(key.Hwnd, ct).ConfigureAwait(false);
+                _store.Register(session);
+
+                var entry = _refStore.SyncOrAssign(key, target);
+                assignedWindowRef = entry.WindowRef;
+                _refStore.AssociateSession(assignedWindowRef, $"s{session.SessionId}");
+            }
 
             var info = new JsonObject
             {
                 ["sessionId"] = $"s{session.SessionId}",
+                ["windowRef"] = assignedWindowRef,
                 ["windowInfo"] = new JsonObject
                 {
                     ["processName"] = session.ProcessName,

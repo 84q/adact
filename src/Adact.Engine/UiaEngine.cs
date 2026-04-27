@@ -93,6 +93,67 @@ public sealed class UiaEngine : IDisposable
         return list;
     }
 
+    /// <summary>
+    /// HWND 直指定で attach する。AttachQuery によるマッチングを経ず、HWND 一致で 1 件確定する。
+    /// 該当 HWND が現在の列挙に含まれない、もしくは <c>FromHandle</c> が失敗した場合は
+    /// <see cref="WindowNotFoundException"/> を throw する。
+    /// </summary>
+    public Task<WindowSession> AttachByHandleAsync(nint hwnd, CancellationToken ct = default)
+    {
+        ThrowIfDisposed();
+        ct.ThrowIfCancellationRequested();
+        return RunSerializedAsync(c =>
+        {
+            c.ThrowIfCancellationRequested();
+            var all = ListWindowsCore();
+            var target = all.FirstOrDefault(w => w.NativeWindowHandle == hwnd);
+            if (target is null)
+                throw new WindowNotFoundException(new AttachQuery(ProcessId: null));
+
+            AutomationElement? raw;
+            try
+            {
+                raw = _automation.FromHandle(target.NativeWindowHandle);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "FromHandle failed for hwnd {Hwnd}", target.NativeWindowHandle);
+                throw new WindowNotFoundException(new AttachQuery(ProcessId: null));
+            }
+            if (raw is null)
+                throw new WindowNotFoundException(new AttachQuery(ProcessId: null));
+
+            var sessionId = Interlocked.Increment(ref _nextSessionId);
+            var session = new WindowSession(
+                _automation,
+                raw.AsWindow(),
+                sessionId,
+                target,
+                _filters,
+                _gate,
+                _loggerFactory.CreateLogger<WindowSession>(),
+                ownsAutomation: false);
+            return Task.FromResult(session);
+        }, ct);
+    }
+
+    /// <summary>
+    /// 指定 <see cref="AttachQuery"/> にマッチする現在の top-level window 一覧を返す。
+    /// attach は行わない。WindowsTools 側で attach 前に WindowKey を確定するために使用する。
+    /// </summary>
+    public Task<IReadOnlyList<WindowInfo>> FindMatchesAsync(AttachQuery query, CancellationToken ct = default)
+    {
+        ThrowIfDisposed();
+        ct.ThrowIfCancellationRequested();
+        return RunSerializedAsync(c =>
+        {
+            c.ThrowIfCancellationRequested();
+            var all = ListWindowsCore();
+            IReadOnlyList<WindowInfo> matches = all.Where(w => Matches(w, query)).ToList();
+            return Task.FromResult(matches);
+        }, ct);
+    }
+
     public Task<WindowSession> AttachAsync(AttachQuery query, CancellationToken ct = default)
     {
         ThrowIfDisposed();

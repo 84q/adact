@@ -15,6 +15,7 @@ namespace Adact.Mcp.Common;
 internal static class ToolErrors
 {
     public const string InvalidArgument = "INVALID_ARGUMENT";
+    public const string InvalidWindowRef = "INVALID_WINDOW_REF";
     public const string WindowNotFound = "WINDOW_NOT_FOUND";
     public const string AmbiguousAttach = "AMBIGUOUS_ATTACH";
     public const string RefNotFound = "REF_NOT_FOUND";

@@ -30,6 +30,7 @@ public sealed class WindowSession : IDisposable
     private readonly int _processId;
     private readonly string _processName;
     private readonly string _title;
+    private readonly nint _nativeWindowHandle;
     private bool _disposed;
 
     internal WindowSession(
@@ -53,12 +54,14 @@ public sealed class WindowSession : IDisposable
         _processId = info.ProcessId;
         _processName = info.ProcessName;
         _title = info.Title;
+        _nativeWindowHandle = info.NativeWindowHandle;
     }
 
     public int SessionId => _registry.SessionId;
     public string ProcessName => _processName;
     public int ProcessId => _processId;
     public string Title => _title;
+    public nint NativeWindowHandle => _nativeWindowHandle;
 
     public Task<SnapshotResult> SnapshotAsync(SnapshotOptions? options = null, CancellationToken ct = default)
     {

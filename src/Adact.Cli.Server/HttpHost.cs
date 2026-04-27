@@ -59,6 +59,7 @@ public static class HttpHost
         builder.Services.AddSingleton<UiaEngine>(sp =>
             new UiaEngine(sp.GetRequiredService<ILoggerFactory>()));
         builder.Services.AddSingleton<SessionStore>();
+        builder.Services.AddSingleton<WindowRefStore>();
 
         // MCP サーバー (Streamable HTTP / Stateless) を登録。
         builder.Services
