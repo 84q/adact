@@ -23,6 +23,10 @@ public sealed class UiaEngine : IDisposable
     private readonly FilterStrategyRegistry _filters;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<UiaEngine> _logger;
+    // UIA はマシン全体で前面ウィンドウを取り合うため、Engine と Engine が払い出す
+    // WindowSession の UIA 操作はマシン内で 1 本に直列化する。Engine と全 Session で
+    // 同じインスタンスを共有する。詳細は 006_Phase4_設計.md §5 参照。
+    private readonly SemaphoreSlim _gate = new(1, 1);
     private int _nextSessionId;
     private bool _disposed;
 
@@ -49,7 +53,15 @@ public sealed class UiaEngine : IDisposable
     {
         ThrowIfDisposed();
         ct.ThrowIfCancellationRequested();
+        return RunSerializedAsync(c =>
+        {
+            c.ThrowIfCancellationRequested();
+            return Task.FromResult(ListWindowsCore());
+        }, ct);
+    }
 
+    private IReadOnlyList<WindowInfo> ListWindowsCore()
+    {
         var desktop = _automation.GetDesktop();
         var windows = desktop.FindAllChildren(cf => cf.ByControlType(ControlType.Window));
         var list = new List<WindowInfo>(windows.Length);
@@ -78,45 +90,84 @@ public sealed class UiaEngine : IDisposable
                 _logger.LogDebug(ex, "Failed to read a window during ListWindowsAsync; skipping.");
             }
         }
-        return Task.FromResult<IReadOnlyList<WindowInfo>>(list);
+        return list;
     }
 
-    public async Task<WindowSession> AttachAsync(AttachQuery query, CancellationToken ct = default)
+    public Task<WindowSession> AttachAsync(AttachQuery query, CancellationToken ct = default)
     {
         ThrowIfDisposed();
         ct.ThrowIfCancellationRequested();
+        return RunSerializedAsync(c =>
+        {
+            c.ThrowIfCancellationRequested();
+            // 同 gate 内のため self-deadlock 回避目的に ListWindowsAsync ではなく Core を直接呼ぶ
+            var all = ListWindowsCore();
+            var matches = all.Where(w => Matches(w, query)).ToList();
 
-        var all = await ListWindowsAsync(ct).ConfigureAwait(false);
-        var matches = all.Where(w => Matches(w, query)).ToList();
+            if (matches.Count == 0)
+                throw new WindowNotFoundException(query);
+            if (matches.Count > 1)
+                throw new AmbiguousAttachException(query, matches);
 
-        if (matches.Count == 0)
-            throw new WindowNotFoundException(query);
-        if (matches.Count > 1)
-            throw new AmbiguousAttachException(query, matches);
+            var target = matches[0];
+            AutomationElement? raw;
+            try
+            {
+                raw = _automation.FromHandle(target.NativeWindowHandle);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "FromHandle failed for hwnd {Hwnd}", target.NativeWindowHandle);
+                throw new WindowNotFoundException(query);
+            }
+            if (raw is null)
+                throw new WindowNotFoundException(query);
 
-        var target = matches[0];
-        AutomationElement? raw;
+            var sessionId = Interlocked.Increment(ref _nextSessionId);
+            var session = new WindowSession(
+                _automation,
+                raw.AsWindow(),
+                sessionId,
+                target,
+                _filters,
+                _gate,
+                _loggerFactory.CreateLogger<WindowSession>(),
+                ownsAutomation: false);
+            return Task.FromResult(session);
+        }, ct);
+    }
+
+    /// <summary>
+    /// UIA 操作を直列化して実行する。Engine と Engine から払い出された全 WindowSession の
+    /// UIA 操作はこの gate を共有する。
+    /// </summary>
+    internal async Task<T> RunSerializedAsync<T>(Func<CancellationToken, Task<T>> action, CancellationToken ct)
+    {
+        await _gate.WaitAsync(ct).ConfigureAwait(false);
         try
         {
-            raw = _automation.FromHandle(target.NativeWindowHandle);
+            return await action(ct).ConfigureAwait(false);
         }
-        catch (Exception ex)
+        finally
         {
-            _logger.LogDebug(ex, "FromHandle failed for hwnd {Hwnd}", target.NativeWindowHandle);
-            throw new WindowNotFoundException(query);
+            _gate.Release();
         }
-        if (raw is null)
-            throw new WindowNotFoundException(query);
+    }
 
-        var sessionId = Interlocked.Increment(ref _nextSessionId);
-        return new WindowSession(
-            _automation,
-            raw.AsWindow(),
-            sessionId,
-            target,
-            _filters,
-            _loggerFactory.CreateLogger<WindowSession>(),
-            ownsAutomation: false);
+    /// <summary>
+    /// 戻り値なし版の <see cref="RunSerializedAsync{T}"/>。
+    /// </summary>
+    internal async Task RunSerializedAsync(Func<CancellationToken, Task> action, CancellationToken ct)
+    {
+        await _gate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            await action(ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            _gate.Release();
+        }
     }
 
     internal static bool Matches(WindowInfo w, AttachQuery q)
@@ -146,6 +197,7 @@ public sealed class UiaEngine : IDisposable
         if (_disposed) return;
         _disposed = true;
         try { _automation.Dispose(); } catch { }
+        try { _gate.Dispose(); } catch { }
     }
 
     private void ThrowIfDisposed()

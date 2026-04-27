@@ -24,6 +24,7 @@ public sealed class WindowSession : IDisposable
     private readonly IElement _rootElement;
     private readonly RefRegistry _registry;
     private readonly FilterStrategyRegistry _filters;
+    private readonly SemaphoreSlim _gate;
     private readonly ILogger<WindowSession> _logger;
     private readonly bool _ownsAutomation;
     private readonly int _processId;
@@ -37,6 +38,7 @@ public sealed class WindowSession : IDisposable
         int sessionId,
         WindowInfo info,
         FilterStrategyRegistry filters,
+        SemaphoreSlim gate,
         ILogger<WindowSession>? logger = null,
         bool ownsAutomation = false)
     {
@@ -45,6 +47,7 @@ public sealed class WindowSession : IDisposable
         _rootElement = new FlaUiElement(window);
         _registry = new RefRegistry(sessionId);
         _filters = filters;
+        _gate = gate;
         _logger = logger ?? NullLogger<WindowSession>.Instance;
         _ownsAutomation = ownsAutomation;
         _processId = info.ProcessId;
@@ -61,71 +64,112 @@ public sealed class WindowSession : IDisposable
     {
         ThrowIfDisposed();
         ct.ThrowIfCancellationRequested();
-        options ??= new SnapshotOptions();
-        var filter = _filters.Get(options.FilterName);
-
-        var modals = DetectModalElements();
-        var now = DateTimeOffset.UtcNow;
-        var input = new SnapshotBuildInput(
-            _rootElement, modals, filter, options,
-            WindowTitle: Title,
-            ProcessName: ProcessName,
-            ProcessId: ProcessId,
-            GeneratedAt: now);
-
-        try
+        return RunSerializedAsync(c =>
         {
-            var builder = new SnapshotBuilder(_registry);
-            var built = builder.Build(input);
-            return Task.FromResult(new SnapshotResult(
-                Json: built.Json,
-                SessionId: built.SessionId,
-                Generation: built.Generation,
-                FilterName: filter.Name,
+            c.ThrowIfCancellationRequested();
+            var opt = options ?? new SnapshotOptions();
+            var filter = _filters.Get(opt.FilterName);
+
+            var modals = DetectModalElements();
+            var now = DateTimeOffset.UtcNow;
+            var input = new SnapshotBuildInput(
+                _rootElement, modals, filter, opt,
                 WindowTitle: Title,
                 ProcessName: ProcessName,
                 ProcessId: ProcessId,
-                GeneratedAt: now));
-        }
-        catch (Exception ex) when (ex is not AdactException)
-        {
-            throw new SnapshotException("Snapshot construction failed.", ex);
-        }
+                GeneratedAt: now);
+
+            try
+            {
+                var builder = new SnapshotBuilder(_registry);
+                var built = builder.Build(input);
+                return Task.FromResult(new SnapshotResult(
+                    Json: built.Json,
+                    SessionId: built.SessionId,
+                    Generation: built.Generation,
+                    FilterName: filter.Name,
+                    WindowTitle: Title,
+                    ProcessName: ProcessName,
+                    ProcessId: ProcessId,
+                    GeneratedAt: now));
+            }
+            catch (Exception ex) when (ex is not AdactException)
+            {
+                throw new SnapshotException("Snapshot construction failed.", ex);
+            }
+        }, ct);
     }
 
     public Task ClickAsync(string refId, ClickOptions? options = null, CancellationToken ct = default)
     {
         ThrowIfDisposed();
         ct.ThrowIfCancellationRequested();
-        var el = _registry.Resolve(refId);
-        try
+        return RunSerializedAsync(async c =>
         {
-            try { _window.Focus(); } catch { /* best effort */ }
-            el.Click();
-        }
-        catch (AdactException) { throw; }
-        catch (Exception ex)
-        {
-            throw new ElementInteractionException(refId, "click", ex.Message, ex);
-        }
-        return AutoWaitAfterInteractionAsync(ct);
+            c.ThrowIfCancellationRequested();
+            var el = _registry.Resolve(refId);
+            try
+            {
+                try { _window.Focus(); } catch { /* best effort */ }
+                el.Click();
+            }
+            catch (AdactException) { throw; }
+            catch (Exception ex)
+            {
+                throw new ElementInteractionException(refId, "click", ex.Message, ex);
+            }
+            await AutoWaitAfterInteractionAsync(c).ConfigureAwait(false);
+        }, ct);
     }
 
     public Task FillAsync(string refId, string text, CancellationToken ct = default)
     {
         ThrowIfDisposed();
         ct.ThrowIfCancellationRequested();
-        var el = _registry.Resolve(refId);
+        return RunSerializedAsync(async c =>
+        {
+            c.ThrowIfCancellationRequested();
+            var el = _registry.Resolve(refId);
+            try
+            {
+                el.Fill(text);
+            }
+            catch (AdactException) { throw; }
+            catch (Exception ex)
+            {
+                throw new ElementInteractionException(refId, "fill", ex.Message, ex);
+            }
+            await AutoWaitAfterInteractionAsync(c).ConfigureAwait(false);
+        }, ct);
+    }
+
+    /// <summary>
+    /// UIA 操作を Engine と共有の gate で直列化して実行する。
+    /// </summary>
+    private async Task<T> RunSerializedAsync<T>(Func<CancellationToken, Task<T>> action, CancellationToken ct)
+    {
+        await _gate.WaitAsync(ct).ConfigureAwait(false);
         try
         {
-            el.Fill(text);
+            return await action(ct).ConfigureAwait(false);
         }
-        catch (AdactException) { throw; }
-        catch (Exception ex)
+        finally
         {
-            throw new ElementInteractionException(refId, "fill", ex.Message, ex);
+            _gate.Release();
         }
-        return AutoWaitAfterInteractionAsync(ct);
+    }
+
+    private async Task RunSerializedAsync(Func<CancellationToken, Task> action, CancellationToken ct)
+    {
+        await _gate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            await action(ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            _gate.Release();
+        }
     }
 
     /// <summary>
