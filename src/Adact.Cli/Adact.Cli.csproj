@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" Version="1.2.0" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta5.25306.1" />
   </ItemGroup>
 
@@ -18,6 +19,10 @@
     <ProjectReference Include="..\Adact.Engine\Adact.Engine.csproj" />
     <ProjectReference Include="..\Adact.Mcp.Common\Adact.Mcp.Common.csproj" />
     <ProjectReference Include="..\Adact.Mcp.Stdio\Adact.Mcp.Stdio.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Adact.Cli.Tests" />
   </ItemGroup>
 
 </Project>

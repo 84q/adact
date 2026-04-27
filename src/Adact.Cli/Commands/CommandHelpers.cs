@@ -1,3 +1,5 @@
+using System.CommandLine;
+
 using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
@@ -15,4 +17,15 @@ internal static class CommandHelpers
             $"{commandName}: not implemented yet (Phase 5 in progress).");
         return ExitCodes.CommandFailed;
     }
+
+    /// <summary>
+    /// 共通 <c>--server</c> Option。設計 009 §3 / §4.2。
+    /// 各コマンドはこのヘルパで Option を生成し、AddOption で root に登録する。
+    /// </summary>
+    public static Option<string?> CreateServerOption() =>
+        new("--server")
+        {
+            Description = "Connection target URL (e.g. http://127.0.0.1:41300/mcp). "
+                + "Falls back to .adact/config.json or the default endpoint.",
+        };
 }
