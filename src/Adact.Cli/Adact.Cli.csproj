@@ -19,4 +19,9 @@
     <ProjectReference Include="..\Adact.Mcp.Stdio\Adact.Mcp.Stdio.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- HttpHost.BuildApplication を Adact.Mcp.Http.Tests から呼ぶため、internal を可視化する。 -->
+    <InternalsVisibleTo Include="Adact.Mcp.Http.Tests" />
+  </ItemGroup>
+
 </Project>
