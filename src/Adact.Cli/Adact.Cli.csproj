@@ -10,7 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Adact.Engine\Adact.Engine.csproj" />
+    <ProjectReference Include="..\Adact.Mcp.Common\Adact.Mcp.Common.csproj" />
     <ProjectReference Include="..\Adact.Mcp.Stdio\Adact.Mcp.Stdio.csproj" />
   </ItemGroup>
 

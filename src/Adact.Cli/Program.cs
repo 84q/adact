@@ -22,7 +22,7 @@ internal static class Program
         return subcommand switch
         {
             "local" => await RunLocalAsync(rest).ConfigureAwait(false),
-            "serve" => RunServePlaceholder(rest),
+            "serve" => await RunServeAsync(rest).ConfigureAwait(false),
             _ => UnknownSubcommand(subcommand),
         };
     }
@@ -37,11 +37,55 @@ internal static class Program
         return 0;
     }
 
-    private static int RunServePlaceholder(string[] args)
+    private static async Task<int> RunServeAsync(string[] args)
     {
-        // Phase 4 サブタスク 4 で本実装予定。現時点では placeholder として exit 1 を返す。
-        Console.Error.WriteLine("adact serve: not implemented yet (Phase 4 サブタスク 4 で実装予定).");
-        return 1;
+        const int defaultPort = 41300;
+        if (!TryParsePort(args, defaultPort, out var port, out var error))
+        {
+            Console.Error.WriteLine($"adact serve: {error}");
+            return 1;
+        }
+
+        using var cts = new CancellationTokenSource();
+        Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
+        return await HttpHost.RunAsync(port, cts.Token).ConfigureAwait(false);
+    }
+
+    private static bool TryParsePort(string[] args, int defaultPort, out int port, out string? error)
+    {
+        port = defaultPort;
+        error = null;
+        for (var i = 0; i < args.Length; i++)
+        {
+            var a = args[i];
+            string? value = null;
+            if (a == "--port")
+            {
+                if (i + 1 >= args.Length)
+                {
+                    error = "--port requires a value.";
+                    return false;
+                }
+                value = args[++i];
+            }
+            else if (a.StartsWith("--port=", StringComparison.Ordinal))
+            {
+                value = a["--port=".Length..];
+            }
+            else
+            {
+                error = $"unknown option '{a}'.";
+                return false;
+            }
+
+            if (!int.TryParse(value, out var parsed) || parsed < 0 || parsed > 65535)
+            {
+                error = $"invalid --port value '{value}' (expected 0-65535).";
+                return false;
+            }
+            port = parsed;
+        }
+        return true;
     }
 
     private static int UnknownSubcommand(string subcommand)
@@ -57,7 +101,7 @@ internal static class Program
         Console.Error.WriteLine();
         Console.Error.WriteLine("Subcommands:");
         Console.Error.WriteLine("  local              Run as a stdio MCP server (stdin/stdout = JSON-RPC, stderr = logs).");
-        Console.Error.WriteLine("  serve [--port N]   Run as an HTTP MCP server (not implemented yet).");
+        Console.Error.WriteLine("  serve [--port N]   Run as an HTTP MCP server on 127.0.0.1:N (default 41300).");
         Console.Error.WriteLine();
         Console.Error.WriteLine("Common options:");
         Console.Error.WriteLine("  --verbose          Enable Debug-level logging on stderr.");
