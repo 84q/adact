@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Adact.Engine.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="FlaUI.UIA3" Version="5.0.0" />
     <PackageReference Include="FlaUI.UIA2" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />

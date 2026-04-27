@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+
 using Adact.Engine.Exceptions;
+
 using ModelContextProtocol.Protocol;
 
 namespace Adact.Mcp.Stdio;
@@ -12,47 +14,47 @@ namespace Adact.Mcp.Stdio;
 /// </summary>
 internal static class ToolErrors
 {
-  public const string InvalidArgument = "INVALID_ARGUMENT";
-  public const string WindowNotFound = "WINDOW_NOT_FOUND";
-  public const string AmbiguousAttach = "AMBIGUOUS_ATTACH";
-  public const string RefNotFound = "REF_NOT_FOUND";
-  public const string ElementInteractionFailed = "ELEMENT_INTERACTION_FAILED";
-  public const string SnapshotFailed = "SNAPSHOT_FAILED";
-  public const string FilterStrategyNotFound = "FILTER_STRATEGY_NOT_FOUND";
-  public const string NoActiveSession = "NO_ACTIVE_SESSION";
+    public const string InvalidArgument = "INVALID_ARGUMENT";
+    public const string WindowNotFound = "WINDOW_NOT_FOUND";
+    public const string AmbiguousAttach = "AMBIGUOUS_ATTACH";
+    public const string RefNotFound = "REF_NOT_FOUND";
+    public const string ElementInteractionFailed = "ELEMENT_INTERACTION_FAILED";
+    public const string SnapshotFailed = "SNAPSHOT_FAILED";
+    public const string FilterStrategyNotFound = "FILTER_STRATEGY_NOT_FOUND";
+    public const string NoActiveSession = "NO_ACTIVE_SESSION";
 
-  /// <summary>業務例外なら <see cref="CallToolResult"/> を返し、それ以外は null。</summary>
-  public static CallToolResult? TryMap(Exception ex)
-  {
-    return ex switch
+    /// <summary>業務例外なら <see cref="CallToolResult"/> を返し、それ以外は null。</summary>
+    public static CallToolResult? TryMap(Exception ex)
     {
-      WindowNotFoundException w => Error(WindowNotFound, w.Message),
-      AmbiguousAttachException a => Error(AmbiguousAttach, a.Message,
-          new JsonObject { ["candidateCount"] = a.Candidates.Count }),
-      RefNotFoundException r => Error(RefNotFound, r.Message,
-          new JsonObject { ["refId"] = r.RefId }),
-      ElementInteractionException e => Error(ElementInteractionFailed, e.Message),
-      SnapshotException s => Error(SnapshotFailed, s.Message),
-      FilterStrategyNotFoundException f => Error(FilterStrategyNotFound, f.Message),
-      _ => null,
-    };
-  }
+        return ex switch
+        {
+            WindowNotFoundException w => Error(WindowNotFound, w.Message),
+            AmbiguousAttachException a => Error(AmbiguousAttach, a.Message,
+                new JsonObject { ["candidateCount"] = a.Candidates.Count }),
+            RefNotFoundException r => Error(RefNotFound, r.Message,
+                new JsonObject { ["refId"] = r.RefId }),
+            ElementInteractionException e => Error(ElementInteractionFailed, e.Message),
+            SnapshotException s => Error(SnapshotFailed, s.Message),
+            FilterStrategyNotFoundException f => Error(FilterStrategyNotFound, f.Message),
+            _ => null,
+        };
+    }
 
-  public static CallToolResult Error(string code, string message, JsonObject? details = null)
-  {
-    var text = $"{code}: {message}";
-    var structured = new JsonObject
+    public static CallToolResult Error(string code, string message, JsonObject? details = null)
     {
-      ["code"] = code,
-      ["message"] = message,
-    };
-    if (details is not null) structured["details"] = details;
+        var text = $"{code}: {message}";
+        var structured = new JsonObject
+        {
+            ["code"] = code,
+            ["message"] = message,
+        };
+        if (details is not null) structured["details"] = details;
 
-    return new CallToolResult
-    {
-      IsError = true,
-      Content = [new TextContentBlock { Text = text }],
-      StructuredContent = JsonSerializer.SerializeToElement(structured),
-    };
-  }
+        return new CallToolResult
+        {
+            IsError = true,
+            Content = [new TextContentBlock { Text = text }],
+            StructuredContent = JsonSerializer.SerializeToElement(structured),
+        };
+    }
 }
