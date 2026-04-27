@@ -1,4 +1,4 @@
-using Adact.Cli;
+using Adact.Cli.Server;
 
 using Microsoft.AspNetCore.Builder;
 
@@ -24,7 +24,8 @@ public sealed class AdactHttpServerFixture : IAsyncLifetime
         // IServerAddressesFeature 経由 (app.Urls) で取得できる。
         var url = _app.Urls.FirstOrDefault()
             ?? throw new InvalidOperationException("Failed to determine bound URL for the test HTTP server.");
-        BaseAddress = new Uri(url);
+        // Phase 5: MCP は /mcp にマップされている (009 §2.2)。クライアントの Endpoint も /mcp 付きにする。
+        BaseAddress = new Uri(new Uri(url), HttpHost.McpPath);
     }
 
     public async Task DisposeAsync()

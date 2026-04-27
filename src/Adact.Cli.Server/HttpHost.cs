@@ -4,19 +4,25 @@ using Adact.Engine;
 using Adact.Mcp.Common;
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 
-namespace Adact.Cli;
+namespace Adact.Cli.Server;
 
 /// <summary>
 /// HTTP MCP サーバー (Streamable HTTP / Stateless) のホスト構築・起動。
-/// 設計: discussion/006_Phase4_設計.md §3-§5。
+/// 設計: discussion/006_Phase4_設計.md §3-§5、Phase 5 は /mcp エンドポイント (009 §2.2)。
 /// 127.0.0.1 にのみバインドし、ログは stderr に統一する。
 /// </summary>
-internal static class HttpHost
+public static class HttpHost
 {
+    /// <summary>HTTP MCP のエンドポイントパス (009 §2.2)。</summary>
+    public const string McpPath = "/mcp";
+
     public static async Task<int> RunAsync(int port, CancellationToken ct)
     {
         var app = BuildApplication(port);
@@ -31,7 +37,7 @@ internal static class HttpHost
     {
         var builder = WebApplication.CreateBuilder();
 
-        // Phase 4 は localhost 限定: 127.0.0.1:<port> のみリッスン。
+        // localhost 既定でバインド: 127.0.0.1:<port> のみリッスン (009 §2)。
         builder.WebHost.ConfigureKestrel(options =>
         {
             options.Listen(IPAddress.Loopback, port);
@@ -68,7 +74,7 @@ internal static class HttpHost
             .WithTools<WindowsTools>();
 
         var app = builder.Build();
-        app.MapMcp(); // 既定で "/" にマップ
+        app.MapMcp(McpPath); // Phase 5: /mcp にマップ (009 §2.2)
         return app;
     }
 

@@ -17,9 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- HttpHost.BuildApplication を直接呼び出すため Adact.Cli を参照する。
-         HttpHost は internal static のため Adact.Cli 側で InternalsVisibleTo を指定する。 -->
-    <ProjectReference Include="..\..\src\Adact.Cli\Adact.Cli.csproj" />
+    <ProjectReference Include="..\..\src\Adact.Cli.Server\Adact.Cli.Server.csproj" />
   </ItemGroup>
 
 </Project>

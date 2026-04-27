@@ -1,5 +1,7 @@
+using Adact.Cli.Server;
 using Adact.Mcp.Stdio;
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 
