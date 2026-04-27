@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta5.25306.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Adact.Cli.Server\Adact.Cli.Server.csproj" />
     <ProjectReference Include="..\Adact.Engine\Adact.Engine.csproj" />
     <ProjectReference Include="..\Adact.Mcp.Common\Adact.Mcp.Common.csproj" />
