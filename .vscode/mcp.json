@@ -1,0 +1,20 @@
+{
+  "servers": {
+    "adact-stdio": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "${workspaceFolder}/src/Adact.Cli",
+        "--no-build",
+        "--",
+        "local"
+      ]
+    },
+    "adact-http": {
+      "type": "http",
+      "url": "http://127.0.0.1:41300/"
+    }
+  }
+}
