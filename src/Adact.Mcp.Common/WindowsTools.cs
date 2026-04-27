@@ -26,12 +26,14 @@ public sealed class WindowsTools
 
     private readonly SessionStore _store;
     private readonly WindowRefStore _refStore;
+    private readonly IDaemonControl _daemonControl;
     private readonly ILogger<WindowsTools> _logger;
 
-    public WindowsTools(SessionStore store, WindowRefStore refStore, ILogger<WindowsTools>? logger = null)
+    public WindowsTools(SessionStore store, WindowRefStore refStore, IDaemonControl daemonControl, ILogger<WindowsTools>? logger = null)
     {
         _store = store;
         _refStore = refStore;
+        _daemonControl = daemonControl;
         _logger = logger ?? NullLogger<WindowsTools>.Instance;
     }
 
@@ -338,5 +340,223 @@ public sealed class WindowsTools
             _logger.LogError(ex, "windows_fill failed unexpectedly");
             throw;
         }
+    }
+
+    [McpServerTool(Name = "windows_detach")]
+    [Description("Release the session record without affecting the window or process. The session ID becomes invalid.")]
+    public async Task<CallToolResult> DetachAsync(
+        [Description("Session ID like 's1'. Omit to detach the active session.")]
+        string? sessionId = null,
+        CancellationToken ct = default)
+    {
+        using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
+
+        if (!TryResolveSessionId(sessionId, out var sid, out var error))
+            return error!;
+
+        if (!_store.TryRemove(sid, out var session))
+            return ToolErrors.Error(ToolErrors.NotFound, $"Session '{sid}' not found.");
+
+        DetachSession(sid, session);
+        return SuccessJson(new JsonObject
+        {
+            ["sessionId"] = sid,
+            ["detached"] = true,
+        });
+    }
+
+    [McpServerTool(Name = "windows_close")]
+    [Description("Close the attached window via UIA WindowPattern.Close() / WM_CLOSE. On success, the session is automatically detached.")]
+    public async Task<CallToolResult> CloseAsync(
+        [Description("Session ID like 's1'. Omit for active session.")]
+        string? sessionId = null,
+        CancellationToken ct = default)
+    {
+        using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
+
+        if (!TryResolveSessionId(sessionId, out var sid, out var error))
+            return error!;
+        if (!_store.TryGet(sid, out var session))
+            return ToolErrors.Error(ToolErrors.NotFound, $"Session '{sid}' not found.");
+
+        try
+        {
+            await session.CloseAsync(ct).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            var mapped = ToolErrors.TryMap(ex);
+            if (mapped is not null) return mapped;
+            _logger.LogError(ex, "windows_close failed unexpectedly");
+            throw;
+        }
+
+        if (_store.TryRemove(sid, out var removed))
+        {
+            DetachSession(sid, removed);
+        }
+        return SuccessJson(new JsonObject
+        {
+            ["sessionId"] = sid,
+            ["closed"] = true,
+            ["detached"] = true,
+        });
+    }
+
+    [McpServerTool(Name = "windows_kill")]
+    [Description("Forcefully terminate the process backing the attached window via Process.Kill. On success, the session is automatically detached.")]
+    public async Task<CallToolResult> KillAsync(
+        [Description("Session ID like 's1'. Omit for active session.")]
+        string? sessionId = null,
+        CancellationToken ct = default)
+    {
+        using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
+
+        if (!TryResolveSessionId(sessionId, out var sid, out var error))
+            return error!;
+        if (!_store.TryGet(sid, out var session))
+            return ToolErrors.Error(ToolErrors.NotFound, $"Session '{sid}' not found.");
+
+        try
+        {
+            await session.KillAsync(ct).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            var mapped = ToolErrors.TryMap(ex);
+            if (mapped is not null) return mapped;
+            _logger.LogError(ex, "windows_kill failed unexpectedly");
+            throw;
+        }
+
+        if (_store.TryRemove(sid, out var removed))
+        {
+            DetachSession(sid, removed);
+        }
+        return SuccessJson(new JsonObject
+        {
+            ["sessionId"] = sid,
+            ["killed"] = true,
+            ["detached"] = true,
+        });
+    }
+
+    [McpServerTool(Name = "windows_close_all")]
+    [Description("Close every attached window. Returns a per-session result array. Partial failure is reported, not thrown.")]
+    public async Task<CallToolResult> CloseAllAsync(CancellationToken ct = default)
+    {
+        using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
+
+        var snapshot = _store.ListAll();
+        var results = new JsonArray();
+
+        foreach (var kv in snapshot)
+        {
+            var sid = kv.Key;
+            var session = kv.Value;
+            var entry = new JsonObject { ["sessionId"] = sid };
+
+            try
+            {
+                await session.CloseAsync(ct).ConfigureAwait(false);
+                if (_store.TryRemove(sid, out var removed))
+                {
+                    DetachSession(sid, removed);
+                }
+                entry["result"] = "ok";
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (CloseFailedException ex)
+            {
+                entry["result"] = "fail";
+                entry["error"] = ToolErrors.CloseFailed;
+                entry["message"] = ex.Message;
+                _logger.LogDebug(ex, "windows_close_all: closing session {Sid} failed", sid);
+            }
+
+            results.Add(entry);
+        }
+
+        return SuccessJson(new JsonObject { ["results"] = results });
+    }
+
+    [McpServerTool(Name = "daemon_stop")]
+    [Description("Stop the daemon (HTTP listener). All sessions are detached first. Only available in HTTP mode.")]
+    public async Task<CallToolResult> DaemonStopAsync(CancellationToken ct = default)
+    {
+        if (!_daemonControl.IsSupported)
+        {
+            return ToolErrors.Error(ToolErrors.LocalOnly,
+                "daemon_stop is not supported in this mode.");
+        }
+
+        using (var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false))
+        {
+            // 全 session を detach (close ではない: 設計 §4.5)。
+            foreach (var kv in _store.ListAll())
+            {
+                if (_store.TryRemove(kv.Key, out var removed))
+                {
+                    DetachSession(kv.Key, removed);
+                }
+            }
+        }
+
+        try
+        {
+            await _daemonControl.StopAsync(ct).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "daemon_stop: StopAsync failed");
+            return ToolErrors.Error(ToolErrors.InternalError, ex.Message);
+        }
+
+        return SuccessJson(new JsonObject { ["stopped"] = true });
+    }
+
+    private bool TryResolveSessionId(string? sessionId, out string resolvedId, out CallToolResult? error)
+    {
+        if (sessionId is null)
+        {
+            var active = _store.ActiveSessionId;
+            if (active is null)
+            {
+                error = ToolErrors.Error(ToolErrors.NoActiveSession,
+                    "No active session. Call windows_attach first or specify sessionId explicitly.");
+                resolvedId = string.Empty;
+                return false;
+            }
+            resolvedId = active;
+        }
+        else
+        {
+            resolvedId = sessionId;
+        }
+        error = null;
+        return true;
+    }
+
+    private void DetachSession(string sessionId, WindowSession session)
+    {
+        if (_refStore.TryFindBySessionId(sessionId, out var entry))
+        {
+            try { _refStore.ClearSession(entry.WindowRef); }
+            catch (Exception ex) { _logger.LogDebug(ex, "ClearSession failed for {WindowRef}", entry.WindowRef); }
+        }
+        try { session.Dispose(); }
+        catch (Exception ex) { _logger.LogDebug(ex, "Disposing session {Sid} failed", sessionId); }
+    }
+
+    private static CallToolResult SuccessJson(JsonObject obj)
+    {
+        return new CallToolResult
+        {
+            Content = [new TextContentBlock { Text = obj.ToJsonString() }],
+            StructuredContent = JsonSerializer.SerializeToElement(obj),
+        };
     }
 }

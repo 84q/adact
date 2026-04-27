@@ -178,4 +178,49 @@ public class WindowRefStoreTests
         Assert.Equal(assigned.WindowRef, found.WindowRef);
         Assert.True(found.Retired);
     }
+
+    [Fact]
+    public void TryFindBySessionId_ReturnsMatchingEntry()
+    {
+        var store = new WindowRefStore();
+        var k = Key(100, 0x1000);
+        var entry = store.SyncOrAssign(k, Info(100, 0x1000));
+        store.AssociateSession(entry.WindowRef, "s1");
+
+        Assert.True(store.TryFindBySessionId("s1", out var found));
+        Assert.Equal(entry.WindowRef, found.WindowRef);
+        Assert.Equal("s1", found.SessionId);
+    }
+
+    [Fact]
+    public void TryFindBySessionId_AfterClearSession_ReturnsFalse()
+    {
+        var store = new WindowRefStore();
+        var k = Key(100, 0x1000);
+        var entry = store.SyncOrAssign(k, Info(100, 0x1000));
+        store.AssociateSession(entry.WindowRef, "s1");
+        store.ClearSession(entry.WindowRef);
+
+        Assert.False(store.TryFindBySessionId("s1", out _));
+    }
+
+    [Fact]
+    public void TryFindBySessionId_RetiredEntryExcluded()
+    {
+        var store = new WindowRefStore();
+        var k = Key(100, 0x1000);
+        var entry = store.SyncOrAssign(k, Info(100, 0x1000));
+        store.AssociateSession(entry.WindowRef, "s1");
+
+        store.RetireMissing(Array.Empty<WindowKey>());
+
+        Assert.False(store.TryFindBySessionId("s1", out _));
+    }
+
+    [Fact]
+    public void TryFindBySessionId_UnknownSession_ReturnsFalse()
+    {
+        var store = new WindowRefStore();
+        Assert.False(store.TryFindBySessionId("s99", out _));
+    }
 }

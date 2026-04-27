@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 using Adact.Engine;
 using Adact.Engine.Snapshot;
@@ -65,6 +66,31 @@ public sealed class SessionStore : IDisposable
         if (!RefId.TryParse(refId, out var sid, out _, out _)) return null;
         var key = $"s{sid}";
         return _sessions.TryGetValue(key, out var s) ? s : null;
+    }
+
+    /// <summary>
+    /// dictionary から該当 sessionId を削除する。<paramref name="sessionId"/> が active session の場合は
+    /// active を null に戻す。Session の Dispose は呼び出し側で行う。
+    /// </summary>
+    public bool TryRemove(string sessionId, [NotNullWhen(true)] out WindowSession? session)
+    {
+        if (_sessions.TryRemove(sessionId, out var removed))
+        {
+            if (string.Equals(_activeSessionId, sessionId, StringComparison.Ordinal))
+            {
+                _activeSessionId = null;
+            }
+            session = removed;
+            return true;
+        }
+        session = null;
+        return false;
+    }
+
+    /// <summary>現在保持しているすべての (sessionId, WindowSession) のスナップショット。</summary>
+    public IReadOnlyList<KeyValuePair<string, WindowSession>> ListAll()
+    {
+        return _sessions.ToArray();
     }
 
     public void Dispose()

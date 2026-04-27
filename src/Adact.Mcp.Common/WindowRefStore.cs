@@ -112,7 +112,7 @@ public sealed class WindowRefStore
         }
     }
 
-    /// <summary>detach 時に sessionId をクリアする (Phase 5 #7 で利用予定)。</summary>
+    /// <summary>detach 時に sessionId をクリアする (Phase 5 #7 で利用)。</summary>
     public void ClearSession(string windowRef)
     {
         lock (_lock)
@@ -151,6 +151,28 @@ public sealed class WindowRefStore
         {
             return _entries.Values.Where(e => !e.Retired).ToArray();
         }
+    }
+
+    /// <summary>
+    /// 指定 sessionId に紐付く生存エントリを返す。引退済みは対象外。線形スキャン (エントリ数は通常少数)。
+    /// </summary>
+    public bool TryFindBySessionId(string sessionId, out WindowRefEntry entry)
+    {
+        ArgumentNullException.ThrowIfNull(sessionId);
+        lock (_lock)
+        {
+            foreach (var e in _entries.Values)
+            {
+                if (e.Retired) continue;
+                if (string.Equals(e.SessionId, sessionId, StringComparison.Ordinal))
+                {
+                    entry = e;
+                    return true;
+                }
+            }
+        }
+        entry = default!;
+        return false;
     }
 }
 

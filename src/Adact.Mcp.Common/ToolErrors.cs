@@ -23,6 +23,11 @@ internal static class ToolErrors
     public const string SnapshotFailed = "SNAPSHOT_FAILED";
     public const string FilterStrategyNotFound = "FILTER_STRATEGY_NOT_FOUND";
     public const string NoActiveSession = "NO_ACTIVE_SESSION";
+    public const string NotFound = "NOT_FOUND";
+    public const string CloseFailed = "CLOSE_FAILED";
+    public const string KillFailed = "KILL_FAILED";
+    public const string LocalOnly = "LOCAL_ONLY";
+    public const string InternalError = "INTERNAL_ERROR";
 
     /// <summary>業務例外なら <see cref="CallToolResult"/> を返し、それ以外は null。</summary>
     public static CallToolResult? TryMap(Exception ex)
@@ -37,6 +42,8 @@ internal static class ToolErrors
             ElementInteractionException e => Error(ElementInteractionFailed, e.Message),
             SnapshotException s => Error(SnapshotFailed, s.Message),
             FilterStrategyNotFoundException f => Error(FilterStrategyNotFound, f.Message),
+            CloseFailedException c => Error(CloseFailed, c.Message),
+            KillFailedException k => Error(KillFailed, k.Message),
             _ => null,
         };
     }

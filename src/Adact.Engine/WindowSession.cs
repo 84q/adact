@@ -63,6 +63,21 @@ public sealed class WindowSession : IDisposable
     public string Title => _title;
     public nint NativeWindowHandle => _nativeWindowHandle;
 
+    /// <summary>
+    /// テスト専用: FlaUI 依存を持たない最小限の <see cref="WindowSession"/> を生成する。
+    /// Snapshot / Click / Fill / Close / Kill 等の操作は呼び出してはならない (NRE になる)。
+    /// </summary>
+    internal static WindowSession CreateForTest(int sessionId, WindowInfo info)
+        => new(
+            automation: null!,
+            window: null!,
+            sessionId: sessionId,
+            info: info,
+            filters: null!,
+            gate: new SemaphoreSlim(1, 1),
+            logger: null,
+            ownsAutomation: false);
+
     public Task<SnapshotResult> SnapshotAsync(SnapshotOptions? options = null, CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -196,6 +211,92 @@ public sealed class WindowSession : IDisposable
     }
 
     public void Detach() => Dispose();
+
+    /// <summary>
+    /// UIA <c>WindowPattern.Close()</c> でウィンドウを閉じる。Pattern が取れなければ
+    /// WM_CLOSE PostMessage にフォールバックする。失敗時は <see cref="CloseFailedException"/>。
+    /// 成功・失敗に関わらず本メソッドはセッションの Dispose は行わない (呼び出し側が管理する)。
+    /// </summary>
+    public Task CloseAsync(CancellationToken ct = default)
+    {
+        ThrowIfDisposed();
+        ct.ThrowIfCancellationRequested();
+        return RunSerializedAsync(c =>
+        {
+            c.ThrowIfCancellationRequested();
+            try
+            {
+                var windowPattern = _window.Patterns.Window.PatternOrDefault;
+                if (windowPattern is not null)
+                {
+                    windowPattern.Close();
+                    return Task.CompletedTask;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "WindowPattern.Close() failed; falling back to WM_CLOSE");
+            }
+
+            var hwnd = _nativeWindowHandle;
+            if (hwnd == IntPtr.Zero)
+                throw new CloseFailedException("Window does not expose a native handle; WindowPattern was unavailable.");
+
+            try
+            {
+                if (!NativeMethods.PostMessage(hwnd, NativeMethods.WM_CLOSE, IntPtr.Zero, IntPtr.Zero))
+                {
+                    var err = System.Runtime.InteropServices.Marshal.GetLastWin32Error();
+                    throw new CloseFailedException($"PostMessage(WM_CLOSE) failed with Win32 error {err}.");
+                }
+            }
+            catch (CloseFailedException) { throw; }
+            catch (Exception ex)
+            {
+                throw new CloseFailedException("Window close failed.", ex);
+            }
+            return Task.CompletedTask;
+        }, ct);
+    }
+
+    /// <summary>
+    /// 対応プロセスを <see cref="Process.Kill(bool)"/> (entireProcessTree:true) で強制終了する。
+    /// 失敗時は <see cref="KillFailedException"/>。本メソッドはセッションの Dispose は行わない。
+    /// </summary>
+    // TODO(post-Phase5): PID 再利用対策として ProcessStartTime での同一性検証を追加する余地あり。
+    public Task KillAsync(CancellationToken ct = default)
+    {
+        ThrowIfDisposed();
+        ct.ThrowIfCancellationRequested();
+        return RunSerializedAsync(c =>
+        {
+            c.ThrowIfCancellationRequested();
+            try
+            {
+                using var p = Process.GetProcessById(_processId);
+                p.Kill(entireProcessTree: true);
+            }
+            // プロセスが既に終了している場合も KILL_FAILED として返す (auto-detach はしない)。
+            // 判断は設計 §4.5 を参照。
+            catch (ArgumentException ex)
+            {
+                throw new KillFailedException($"Process {_processId} is no longer running.", ex);
+            }
+            catch (System.ComponentModel.Win32Exception ex)
+            {
+                throw new KillFailedException($"Process.Kill failed (Win32): {ex.Message}", ex);
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new KillFailedException($"Process.Kill failed (invalid state): {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new KillFailedException("Process kill failed.", ex);
+            }
+            return Task.CompletedTask;
+        }, ct);
+    }
 
     public void Dispose()
     {

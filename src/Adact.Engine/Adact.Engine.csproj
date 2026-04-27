@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Adact.Engine.Tests" />
+    <InternalsVisibleTo Include="Adact.Mcp.Common.Tests" />
   </ItemGroup>
 
   <ItemGroup>

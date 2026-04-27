@@ -23,7 +23,12 @@ internal static class NativeMethods
     [DllImport("user32.dll", SetLastError = true)]
     internal static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
+    [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
     internal const uint GW_OWNER = 4;
+    internal const uint WM_CLOSE = 0x0010;
 
     internal delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 }
