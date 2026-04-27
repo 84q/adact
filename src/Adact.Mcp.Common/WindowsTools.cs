@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 
-namespace Adact.Mcp.Stdio;
+namespace Adact.Mcp.Common;
 
 /// <summary>
 /// Phase 3 で公開する MCP ツール 5 種。

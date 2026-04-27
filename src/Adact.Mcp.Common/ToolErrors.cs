@@ -5,7 +5,7 @@ using Adact.Engine.Exceptions;
 
 using ModelContextProtocol.Protocol;
 
-namespace Adact.Mcp.Stdio;
+namespace Adact.Mcp.Common;
 
 /// <summary>
 /// 業務例外 → MCP <see cref="CallToolResult"/> (isError:true) への変換を担うヘルパー。

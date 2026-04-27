@@ -6,7 +6,7 @@ using Adact.Engine.Snapshot;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace Adact.Mcp.Stdio;
+namespace Adact.Mcp.Common;
 
 /// <summary>
 /// MCP 層が保持する Session ストア。複数 <see cref="WindowSession"/> を sessionId (例: "s1") で管理し、
