@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -35,7 +36,8 @@ internal static class CliProcess
   public static CliResult Run(
       string arguments,
       string? workingDirectory = null,
-      TimeSpan? timeout = null)
+      TimeSpan? timeout = null,
+      IReadOnlyDictionary<string, string?>? environment = null)
   {
     var to = timeout ?? TimeSpan.FromSeconds(30);
     var psi = new ProcessStartInfo
@@ -48,6 +50,21 @@ internal static class CliProcess
       CreateNoWindow = true,
       WorkingDirectory = workingDirectory ?? Path.GetDirectoryName(ExePath)!,
     };
+
+    if (environment is not null)
+    {
+      foreach (var (key, value) in environment)
+      {
+        if (value is null)
+        {
+          psi.Environment.Remove(key);
+        }
+        else
+        {
+          psi.Environment[key] = value;
+        }
+      }
+    }
 
     using var p = Process.Start(psi)
         ?? throw new InvalidOperationException("Failed to start adact.exe.");

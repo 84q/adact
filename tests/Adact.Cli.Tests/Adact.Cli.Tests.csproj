@@ -19,4 +19,15 @@
     <ProjectReference Include="..\..\src\Adact.Cli\Adact.Cli.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Skill ファイルを test bin にも展開する。
+         Adact.Cli の出力ディレクトリと test 出力ディレクトリは別物のため、
+         test bin 内 adact.exe が AppContext.BaseDirectory 起点で Skill を解決できるように
+         同じ相対構造でリンクする。設計 013 §4.3。 -->
+    <None Include="..\..\src\Adact.Cli\Skills\**\*.md">
+      <Link>Skills\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

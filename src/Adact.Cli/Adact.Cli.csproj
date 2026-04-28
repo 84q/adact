@@ -25,4 +25,11 @@
     <InternalsVisibleTo Include="Adact.Cli.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Skills\**\*.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Skills\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </None>
+  </ItemGroup>
+
 </Project>

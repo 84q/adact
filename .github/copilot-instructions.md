@@ -46,6 +46,13 @@ cd web/backend && npm run dev -- --run
 - 可能な限り `dotnet format adact.sln` で整形した状態を維持する。
 - 可能な限り `dotnet build adact.sln` で警告・エラーを確認してから完了とする。
 
+## ADACT Skill 同期 (`adact install --skills`)
+
+- ADACT の CLI/MCP サブコマンドを追加・削除・改名した場合、`src/Adact.Cli/Skills/adact-cli/` 配下の Skill ファイル (`SKILL.md` および `references/<cmd>.md`) も同じコミット内で更新する。
+- `references/<cmd>.md` の basename は CLI サブコマンド名と完全一致させる (例: `list-apps.md`)。
+- Skill が説明対象とする CLI サブコマンド集合は `tests/Adact.Cli.Tests/Unit/InstallCommandTests.cs` の `ExpectedDocumentedCommands` でも管理する。Skill 化対象を変更したら同テストも更新する。
+- Skill 内容は英語で執筆する (agentskills.io 仕様)。frontmatter の `name` はディレクトリ名 `adact-cli` と一致させる。
+
 ## 用語集
 
 | 用語                      | 意味                                                         |
