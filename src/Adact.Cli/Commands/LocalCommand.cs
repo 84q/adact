@@ -22,8 +22,7 @@ internal static class LocalCommand
       using var loggerFactory = LoggerFactoryHelper.Create(v);
       using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
       Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
-      await McpStdioServer.RunAsync(loggerFactory, cts.Token).ConfigureAwait(false);
-      return 0;
+      return await McpStdioServer.RunAsync(loggerFactory, cts.Token).ConfigureAwait(false);
     });
 
     return cmd;

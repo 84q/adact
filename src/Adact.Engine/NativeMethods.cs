@@ -27,6 +27,22 @@ internal static class NativeMethods
   [return: MarshalAs(UnmanagedType.Bool)]
   internal static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
+  // 対話セッション判定 (InteractiveSessionGuard) で使用する WindowStation 名取得用 API。
+  // 設計: discussion/018_対話セッション判定.md §5.1。
+  [DllImport("user32.dll", SetLastError = true)]
+  internal static extern IntPtr GetProcessWindowStation();
+
+  [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "GetUserObjectInformationW")]
+  [return: MarshalAs(UnmanagedType.Bool)]
+  internal static extern bool GetUserObjectInformation(
+      IntPtr hObj,
+      int nIndex,
+      IntPtr pvInfo,
+      uint nLength,
+      out uint lpnLengthNeeded);
+
+  internal const int UOI_NAME = 2;
+
   internal const uint GW_OWNER = 4;
   internal const uint WM_CLOSE = 0x0010;
 
