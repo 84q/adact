@@ -13,56 +13,56 @@ namespace Adact.Mcp.Stdio;
 /// </summary>
 public static class McpStdioServer
 {
-    /// <summary>
-    /// stdio MCP サーバーを起動し、CancellationToken で終了するまで実行する。
-    /// </summary>
-    /// <param name="loggerFactory">CLI 側で stderr 出力に構成済の LoggerFactory。null なら DI 既定 (stderr 出力で再構成)。</param>
-    public static async Task RunAsync(ILoggerFactory? loggerFactory, CancellationToken ct)
+  /// <summary>
+  /// stdio MCP サーバーを起動し、CancellationToken で終了するまで実行する。
+  /// </summary>
+  /// <param name="loggerFactory">CLI 側で stderr 出力に構成済の LoggerFactory。null なら DI 既定 (stderr 出力で再構成)。</param>
+  public static async Task RunAsync(ILoggerFactory? loggerFactory, CancellationToken ct)
+  {
+    var settings = new HostApplicationBuilderSettings
     {
-        var settings = new HostApplicationBuilderSettings
-        {
-            DisableDefaults = true,
-        };
-        var builder = Host.CreateEmptyApplicationBuilder(settings);
+      DisableDefaults = true,
+    };
+    var builder = Host.CreateEmptyApplicationBuilder(settings);
 
-        if (loggerFactory is not null)
-        {
-            builder.Services.AddSingleton(loggerFactory);
-            builder.Services.AddSingleton(typeof(ILogger<>), typeof(Microsoft.Extensions.Logging.Logger<>));
-        }
-        else
-        {
-            builder.Logging.AddConsole(o =>
-            {
-                o.LogToStandardErrorThreshold = LogLevel.Trace;
-            });
-        }
-
-        builder.Services.AddSingleton<UiaEngine>(sp =>
-            new UiaEngine(sp.GetRequiredService<ILoggerFactory>()));
-        builder.Services.AddSingleton<SessionStore>();
-        builder.Services.AddSingleton<WindowRefStore>();
-        builder.Services.AddSingleton<IDaemonControl, StdioDaemonControl>();
-
-        builder.Services
-            .AddMcpServer(o =>
-            {
-                o.ServerInfo = new ModelContextProtocol.Protocol.Implementation
-                {
-                    Name = "adact",
-                    Version = ThisAssemblyVersion(),
-                };
-            })
-            .WithStdioServerTransport()
-            .WithTools<WindowsTools>();
-
-        using var host = builder.Build();
-        await host.RunAsync(ct).ConfigureAwait(false);
+    if (loggerFactory is not null)
+    {
+      builder.Services.AddSingleton(loggerFactory);
+      builder.Services.AddSingleton(typeof(ILogger<>), typeof(Microsoft.Extensions.Logging.Logger<>));
+    }
+    else
+    {
+      builder.Logging.AddConsole(o =>
+      {
+        o.LogToStandardErrorThreshold = LogLevel.Trace;
+      });
     }
 
-    private static string ThisAssemblyVersion()
-    {
-        var v = typeof(McpStdioServer).Assembly.GetName().Version;
-        return v?.ToString() ?? "0.0.0";
-    }
+    builder.Services.AddSingleton<UiaEngine>(sp =>
+        new UiaEngine(sp.GetRequiredService<ILoggerFactory>()));
+    builder.Services.AddSingleton<SessionStore>();
+    builder.Services.AddSingleton<WindowRefStore>();
+    builder.Services.AddSingleton<IDaemonControl, StdioDaemonControl>();
+
+    builder.Services
+        .AddMcpServer(o =>
+        {
+          o.ServerInfo = new ModelContextProtocol.Protocol.Implementation
+          {
+            Name = "adact",
+            Version = ThisAssemblyVersion(),
+          };
+        })
+        .WithStdioServerTransport()
+        .WithTools<WindowsTools>();
+
+    using var host = builder.Build();
+    await host.RunAsync(ct).ConfigureAwait(false);
+  }
+
+  private static string ThisAssemblyVersion()
+  {
+    var v = typeof(McpStdioServer).Assembly.GetName().Version;
+    return v?.ToString() ?? "0.0.0";
+  }
 }

@@ -5,6 +5,6 @@ namespace Adact.Cli.Output;
 /// </summary>
 internal static class KeyValueWriter
 {
-    public static void Write(string key, string value)
-        => Console.Out.WriteLine($"{key} {value}");
+  public static void Write(string key, string value)
+      => Console.Out.WriteLine($"{key} {value}");
 }

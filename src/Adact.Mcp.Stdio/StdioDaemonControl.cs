@@ -7,8 +7,8 @@ namespace Adact.Mcp.Stdio;
 /// </summary>
 internal sealed class StdioDaemonControl : IDaemonControl
 {
-    public bool IsSupported => false;
+  public bool IsSupported => false;
 
-    public Task StopAsync(CancellationToken ct)
-        => throw new InvalidOperationException("daemon_stop is not supported in stdio mode.");
+  public Task StopAsync(CancellationToken ct)
+      => throw new InvalidOperationException("daemon_stop is not supported in stdio mode.");
 }

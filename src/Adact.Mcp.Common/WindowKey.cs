@@ -11,23 +11,23 @@ namespace Adact.Mcp.Common;
 /// </summary>
 public readonly record struct WindowKey(nint Hwnd, int ProcessId, DateTime ProcessStartTime)
 {
-    /// <summary>
-    /// <see cref="WindowInfo"/> から WindowKey を構築する。
-    /// プロセスへのアクセス権がない等で StartTime を取得できない場合は
-    /// <see cref="DateTime.MinValue"/> でフォールバックする。
-    /// </summary>
-    public static WindowKey From(WindowInfo info)
+  /// <summary>
+  /// <see cref="WindowInfo"/> から WindowKey を構築する。
+  /// プロセスへのアクセス権がない等で StartTime を取得できない場合は
+  /// <see cref="DateTime.MinValue"/> でフォールバックする。
+  /// </summary>
+  public static WindowKey From(WindowInfo info)
+  {
+    DateTime startTime;
+    try
     {
-        DateTime startTime;
-        try
-        {
-            using var p = Process.GetProcessById(info.ProcessId);
-            startTime = p.StartTime;
-        }
-        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception)
-        {
-            startTime = DateTime.MinValue;
-        }
-        return new WindowKey(info.NativeWindowHandle, info.ProcessId, startTime);
+      using var p = Process.GetProcessById(info.ProcessId);
+      startTime = p.StartTime;
     }
+    catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception)
+    {
+      startTime = DateTime.MinValue;
+    }
+    return new WindowKey(info.NativeWindowHandle, info.ProcessId, startTime);
+  }
 }

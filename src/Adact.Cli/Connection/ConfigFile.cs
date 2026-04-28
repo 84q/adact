@@ -7,6 +7,6 @@ namespace Adact.Cli.Connection;
 /// </summary>
 internal sealed record ConfigFile
 {
-    [JsonPropertyName("server")]
-    public string? Server { get; init; }
+  [JsonPropertyName("server")]
+  public string? Server { get; init; }
 }

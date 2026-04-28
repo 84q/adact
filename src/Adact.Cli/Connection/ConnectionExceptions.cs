@@ -6,7 +6,7 @@ namespace Adact.Cli.Connection;
 /// </summary>
 internal sealed class InvalidUrlException : Exception
 {
-    public InvalidUrlException(string message) : base(message) { }
+  public InvalidUrlException(string message) : base(message) { }
 }
 
 /// <summary>
@@ -15,5 +15,5 @@ internal sealed class InvalidUrlException : Exception
 /// </summary>
 internal sealed class ConfigParseException : Exception
 {
-    public ConfigParseException(string message, Exception? inner = null) : base(message, inner) { }
+  public ConfigParseException(string message, Exception? inner = null) : base(message, inner) { }
 }

@@ -7,12 +7,12 @@ namespace Adact.Mcp.Common;
 /// </summary>
 public interface IDaemonControl
 {
-    /// <summary>このモードで <c>daemon_stop</c> が機能するか。stdio モードでは false。</summary>
-    bool IsSupported { get; }
+  /// <summary>このモードで <c>daemon_stop</c> が機能するか。stdio モードでは false。</summary>
+  bool IsSupported { get; }
 
-    /// <summary>
-    /// daemon の HTTP listener を停止し graceful shutdown を要求する。
-    /// stdio モードでは <see cref="InvalidOperationException"/> を throw する。
-    /// </summary>
-    Task StopAsync(CancellationToken ct);
+  /// <summary>
+  /// daemon の HTTP listener を停止し graceful shutdown を要求する。
+  /// stdio モードでは <see cref="InvalidOperationException"/> を throw する。
+  /// </summary>
+  Task StopAsync(CancellationToken ct);
 }

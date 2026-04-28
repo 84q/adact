@@ -10,19 +10,19 @@ namespace Adact.Cli.Server;
 /// </summary>
 internal sealed class HttpDaemonControl : IDaemonControl
 {
-    private readonly IHostApplicationLifetime _lifetime;
+  private readonly IHostApplicationLifetime _lifetime;
 
-    public HttpDaemonControl(IHostApplicationLifetime lifetime)
-    {
-        _lifetime = lifetime;
-    }
+  public HttpDaemonControl(IHostApplicationLifetime lifetime)
+  {
+    _lifetime = lifetime;
+  }
 
-    public bool IsSupported => true;
+  public bool IsSupported => true;
 
-    public Task StopAsync(CancellationToken ct)
-    {
-        _ = ct; // StopApplication() does not support cancellation
-        _lifetime.StopApplication();
-        return Task.CompletedTask;
-    }
+  public Task StopAsync(CancellationToken ct)
+  {
+    _ = ct; // StopApplication() does not support cancellation
+    _lifetime.StopApplication();
+    return Task.CompletedTask;
+  }
 }

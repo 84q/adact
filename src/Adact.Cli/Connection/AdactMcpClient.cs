@@ -12,51 +12,51 @@ namespace Adact.Cli.Connection;
 /// </summary>
 internal sealed class AdactMcpClient : IAsyncDisposable
 {
-    private readonly McpClient _client;
+  private readonly McpClient _client;
 
-    public ServerEndpoint Endpoint { get; }
+  public ServerEndpoint Endpoint { get; }
 
-    private AdactMcpClient(McpClient client, ServerEndpoint endpoint)
+  private AdactMcpClient(McpClient client, ServerEndpoint endpoint)
+  {
+    _client = client;
+    Endpoint = endpoint;
+  }
+
+  /// <summary>
+  /// HTTP (Streamable) transport で daemon に接続する。
+  /// </summary>
+  public static async Task<AdactMcpClient> ConnectAsync(
+      ServerEndpoint endpoint,
+      ILoggerFactory? loggerFactory,
+      CancellationToken cancellationToken)
+  {
+    ArgumentNullException.ThrowIfNull(endpoint);
+
+    var transport = new HttpClientTransport(new HttpClientTransportOptions
     {
-        _client = client;
-        Endpoint = endpoint;
-    }
+      Endpoint = endpoint.Url,
+      TransportMode = HttpTransportMode.StreamableHttp,
+      Name = "adact-cli",
+    });
 
-    /// <summary>
-    /// HTTP (Streamable) transport で daemon に接続する。
-    /// </summary>
-    public static async Task<AdactMcpClient> ConnectAsync(
-        ServerEndpoint endpoint,
-        ILoggerFactory? loggerFactory,
-        CancellationToken cancellationToken)
-    {
-        ArgumentNullException.ThrowIfNull(endpoint);
+    var client = await McpClient.CreateAsync(
+        transport,
+        loggerFactory: loggerFactory,
+        cancellationToken: cancellationToken).ConfigureAwait(false);
 
-        var transport = new HttpClientTransport(new HttpClientTransportOptions
-        {
-            Endpoint = endpoint.Url,
-            TransportMode = HttpTransportMode.StreamableHttp,
-            Name = "adact-cli",
-        });
+    return new AdactMcpClient(client, endpoint);
+  }
 
-        var client = await McpClient.CreateAsync(
-            transport,
-            loggerFactory: loggerFactory,
-            cancellationToken: cancellationToken).ConfigureAwait(false);
+  /// <summary>
+  /// 指定 tool を呼び出す。<paramref name="arguments"/> が null なら引数なしで呼ぶ。
+  /// </summary>
+  public ValueTask<CallToolResult> CallToolAsync(
+      string name,
+      IReadOnlyDictionary<string, object?>? arguments,
+      CancellationToken cancellationToken)
+  {
+    return _client.CallToolAsync(name, arguments, cancellationToken: cancellationToken);
+  }
 
-        return new AdactMcpClient(client, endpoint);
-    }
-
-    /// <summary>
-    /// 指定 tool を呼び出す。<paramref name="arguments"/> が null なら引数なしで呼ぶ。
-    /// </summary>
-    public ValueTask<CallToolResult> CallToolAsync(
-        string name,
-        IReadOnlyDictionary<string, object?>? arguments,
-        CancellationToken cancellationToken)
-    {
-        return _client.CallToolAsync(name, arguments, cancellationToken: cancellationToken);
-    }
-
-    public ValueTask DisposeAsync() => _client.DisposeAsync();
+  public ValueTask DisposeAsync() => _client.DisposeAsync();
 }

@@ -9,39 +9,39 @@ namespace Adact.Cli.Commands;
 /// </summary>
 internal static class LifecycleCommandImpl
 {
-    public static async Task<int> ExecuteAsync(
-        AdactMcpClient client,
-        string toolName,
-        string? sessionId,
-        IReadOnlyList<string> literalLines,
-        CancellationToken ct)
+  public static async Task<int> ExecuteAsync(
+      AdactMcpClient client,
+      string toolName,
+      string? sessionId,
+      IReadOnlyList<string> literalLines,
+      CancellationToken ct)
+  {
+    ArgumentNullException.ThrowIfNull(client);
+    ArgumentNullException.ThrowIfNull(toolName);
+    ArgumentNullException.ThrowIfNull(literalLines);
+
+    IReadOnlyDictionary<string, object?>? args = string.IsNullOrEmpty(sessionId)
+        ? null
+        : new Dictionary<string, object?> { ["sessionId"] = sessionId };
+
+    var result = await client.CallToolAsync(toolName, args, ct).ConfigureAwait(false);
+
+    var errorExit = McpResponse.TryReportError(result);
+    if (errorExit is { } code) return code;
+
+    var info = McpResponse.GetJson(result);
+    var resolvedSid = JsonHelpers.GetStringOrNull(info, "sessionId") ?? sessionId;
+    if (string.IsNullOrEmpty(resolvedSid))
     {
-        ArgumentNullException.ThrowIfNull(client);
-        ArgumentNullException.ThrowIfNull(toolName);
-        ArgumentNullException.ThrowIfNull(literalLines);
-
-        IReadOnlyDictionary<string, object?>? args = string.IsNullOrEmpty(sessionId)
-            ? null
-            : new Dictionary<string, object?> { ["sessionId"] = sessionId };
-
-        var result = await client.CallToolAsync(toolName, args, ct).ConfigureAwait(false);
-
-        var errorExit = McpResponse.TryReportError(result);
-        if (errorExit is { } code) return code;
-
-        var info = McpResponse.GetJson(result);
-        var resolvedSid = JsonHelpers.GetStringOrNull(info, "sessionId") ?? sessionId;
-        if (string.IsNullOrEmpty(resolvedSid))
-        {
-            CliError.Write(ErrorCodes.InternalError, $"{toolName} response missing 'sessionId'.");
-            return ExitCodes.CommandFailed;
-        }
-
-        KeyValueWriter.Write("sessionId", resolvedSid);
-        foreach (var line in literalLines)
-        {
-            Console.Out.WriteLine(line);
-        }
-        return ExitCodes.Success;
+      CliError.Write(ErrorCodes.InternalError, $"{toolName} response missing 'sessionId'.");
+      return ExitCodes.CommandFailed;
     }
+
+    KeyValueWriter.Write("sessionId", resolvedSid);
+    foreach (var line in literalLines)
+    {
+      Console.Out.WriteLine(line);
+    }
+    return ExitCodes.Success;
+  }
 }
