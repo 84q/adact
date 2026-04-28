@@ -1,5 +1,8 @@
 using System.CommandLine;
 
+using Adact.Cli.Connection;
+using Adact.Cli.Output;
+
 namespace Adact.Cli.Commands;
 
 internal static class DetachCommand
@@ -7,17 +10,22 @@ internal static class DetachCommand
     public static Command Build()
     {
         var sid = new Option<string?>("--sid") { Description = "Target session ID (default: active session)." };
-        var server = new Option<string?>("--server") { Description = "Connection target URL." };
+        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("detach", "Release a session (window stays intact).");
         cmd.Options.Add(sid);
         cmd.Options.Add(server);
 
-        cmd.SetAction(parseResult =>
+        cmd.SetAction((parseResult, ct) =>
         {
-            _ = parseResult.GetValue(sid);
-            _ = parseResult.GetValue(server);
-            return CommandHelpers.NotYetImplemented("detach");
+            var sidArg = parseResult.GetValue(sid);
+            var serverArg = parseResult.GetValue(server);
+
+            return CommandHelpers.RunWithClientAsync(
+                serverArg,
+                (client, token) => LifecycleCommandImpl.ExecuteAsync(
+                    client, "windows_detach", sidArg, ["detached"], token),
+                ct);
         });
 
         return cmd;
