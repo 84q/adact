@@ -97,7 +97,7 @@ public class SnapshotBuilderTests
         Walk(doc.RootElement.GetProperty("tree"), refs);
         // Window + Pane + Button(x) + Button(y) = 4 ノード
         Assert.Equal(4, refs.Count);
-        Assert.Contains("s1g1e1", refs);
+        Assert.Contains("s1e1", refs);
     }
 
     private static void Walk(JsonElement node, HashSet<string> refs)
@@ -108,30 +108,17 @@ public class SnapshotBuilderTests
     }
 
     [Fact]
-    public void OldGenerationRef_AfterRebuild_IsRejected()
+    public void SameElement_AcrossSnapshots_ReusesRef()
     {
         var registry = new RefRegistry(1);
         var filter = new FilterStrategyRegistry().Get("operable");
         var builder = new SnapshotBuilder(registry);
 
-        var root1 = FakeElement.Window("T", FakeElement.Button("a"));
-        builder.Build(new SnapshotBuildInput(
-            root1, Array.Empty<Adact.Engine.Elements.IElement>(), filter,
-            new SnapshotOptions(), "T", "Fake", 1, DateTimeOffset.UnixEpoch));
+        // 同一 RuntimeId を持つ要素ツリーを 2 回 Build する。RuntimeId が同一なら ref は再利用される。
+        var firstRefs = BuildAndCollectRefs(builder, filter, MakeWindowWithButton());
+        var secondRefs = BuildAndCollectRefs(builder, filter, MakeWindowWithButton());
 
-        // この時点では g1 解決可能
-        Assert.NotNull(registry.Resolve("s1g1e1"));
-
-        // 再 Build → 旧 refId は無効
-        builder.Build(new SnapshotBuildInput(
-            root1, Array.Empty<Adact.Engine.Elements.IElement>(), filter,
-            new SnapshotOptions(), "T", "Fake", 1, DateTimeOffset.UnixEpoch));
-
-        var ex = Assert.Throws<Exceptions.RefNotFoundException>(() => registry.Resolve("s1g1e1"));
-        Assert.Contains("generation mismatch", ex.Message);
-
-        // 新世代の refId は解決可能
-        Assert.NotNull(registry.Resolve("s1g2e1"));
+        Assert.Equal(firstRefs, secondRefs);
     }
 
     [Fact]
@@ -141,8 +128,50 @@ public class SnapshotBuilderTests
         var (_, r2) = Build(FakeElement.Window("B", FakeElement.Button("y")), sessionId: 2);
         Assert.Equal("s1", r1.SessionId);
         Assert.Equal("s2", r2.SessionId);
-        Assert.Contains("s1g1", r1.Json);
-        Assert.Contains("s2g1", r2.Json);
-        Assert.DoesNotContain("s2g1", r1.Json);
+        Assert.Contains("s1e", r1.Json, StringComparison.Ordinal);
+        Assert.Contains("s2e", r2.Json, StringComparison.Ordinal);
+        Assert.DoesNotContain("s2e", r1.Json, StringComparison.Ordinal);
+    }
+
+    private static FakeElement MakeWindowWithButton()
+    {
+        var w = new FakeElement
+        {
+            ControlType = "Window",
+            Name = "T",
+            RuntimeId = new[] { 100 },
+        };
+        var b = new FakeElement
+        {
+            ControlType = "Button",
+            Name = "a",
+            RuntimeId = new[] { 200 },
+        };
+        w.ChildList.Add(b);
+        return w;
+    }
+
+    private static string[] BuildAndCollectRefs(
+        SnapshotBuilder builder, IFilterStrategy filter, FakeElement root)
+    {
+        var input = new SnapshotBuildInput(
+            root, Array.Empty<Adact.Engine.Elements.IElement>(), filter,
+            new SnapshotOptions(),
+            WindowTitle: root.Name ?? "",
+            ProcessName: "Fake",
+            ProcessId: 1,
+            GeneratedAt: DateTimeOffset.UnixEpoch);
+        var built = builder.Build(input);
+        using var doc = JsonDocument.Parse(built.Json);
+        var list = new List<string>();
+        Collect(doc.RootElement.GetProperty("tree"), list);
+        return list.ToArray();
+    }
+
+    private static void Collect(JsonElement node, List<string> refs)
+    {
+        refs.Add(node.GetProperty("ref").GetString()!);
+        if (node.TryGetProperty("children", out var c))
+            foreach (var ch in c.EnumerateArray()) Collect(ch, refs);
     }
 }

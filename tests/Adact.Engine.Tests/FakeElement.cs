@@ -16,6 +16,7 @@ internal sealed class FakeElement : IElement
     public Rect BoundingRectangle { get; set; }
     public bool IsKeyboardFocusable { get; set; }
     public bool HasKeyboardFocus { get; set; }
+    public IReadOnlyList<int>? RuntimeId { get; init; }
     public List<IElement> ChildList { get; } = new();
     public IReadOnlyList<IElement> Children => ChildList;
 

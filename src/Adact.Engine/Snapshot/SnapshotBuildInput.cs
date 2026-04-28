@@ -17,5 +17,4 @@ public sealed record SnapshotBuildInput(
 /// <summary>SnapshotBuilder.Build の戻り値。</summary>
 public sealed record SnapshotBuildResult(
     string Json,
-    int Generation,
     string SessionId);

@@ -37,17 +37,17 @@ public class ExceptionTests
     [Fact]
     public void RefNotFoundException_GivenRefIdAndReason_PreservesBothInProperties()
     {
-        var ex = new RefNotFoundException("s1g3e7", "generation mismatch");
-        Assert.Equal("s1g3e7", ex.RefId);
-        Assert.Equal("generation mismatch", ex.Reason);
-        Assert.Contains("s1g3e7", ex.Message);
-        Assert.Contains("generation mismatch", ex.Message);
+        var ex = new RefNotFoundException("s1e7", "not found in current snapshot");
+        Assert.Equal("s1e7", ex.RefId);
+        Assert.Equal("not found in current snapshot", ex.Reason);
+        Assert.Contains("s1e7", ex.Message);
+        Assert.Contains("not found in current snapshot", ex.Message);
     }
 
     [Fact]
     public void ElementInteractionException_GivenOperationName_PreservesOperationProperty()
     {
-        var ex = new ElementInteractionException("s1g1e2", "click", "boom");
+        var ex = new ElementInteractionException("s1e2", "click", "boom");
         Assert.Equal("click", ex.Operation);
         Assert.Contains("click", ex.Message);
         Assert.Contains("boom", ex.Message);

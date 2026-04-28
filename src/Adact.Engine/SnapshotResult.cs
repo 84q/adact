@@ -4,7 +4,6 @@ namespace Adact.Engine;
 public sealed record SnapshotResult(
     string Json,
     string SessionId,
-    int Generation,
     string FilterName,
     string WindowTitle,
     string ProcessName,

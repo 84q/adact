@@ -31,7 +31,7 @@ public class SnapshotJsonTests
         var meta = doc.RootElement.GetProperty("_meta");
         Assert.Equal("operable", meta.GetProperty("filter").GetString());
         Assert.Equal("s1", meta.GetProperty("sessionId").GetString());
-        Assert.Equal(1, meta.GetProperty("generation").GetInt32());
+        Assert.False(meta.TryGetProperty("generation", out _));
         Assert.Equal("Test", meta.GetProperty("windowTitle").GetString());
         Assert.Equal("FakeProcess", meta.GetProperty("processName").GetString());
         Assert.Equal(1234, meta.GetProperty("processId").GetInt32());
@@ -77,7 +77,7 @@ public class SnapshotJsonTests
         using var doc = BuildAndParse(root);
         var children = doc.RootElement.GetProperty("tree").GetProperty("children");
         var refs = children.EnumerateArray().Select(c => c.GetProperty("ref").GetString()).ToArray();
-        Assert.Equal(new[] { "s1g1e2", "s1g1e3", "s1g1e4" }, refs);
+        Assert.Equal(new[] { "s1e2", "s1e3", "s1e4" }, refs);
     }
 
     [Fact]

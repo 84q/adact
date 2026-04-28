@@ -16,6 +16,7 @@ public interface IElement
     Rect BoundingRectangle { get; }
     bool IsKeyboardFocusable { get; }
     bool HasKeyboardFocus { get; }
+    IReadOnlyList<int>? RuntimeId { get; }
     IReadOnlyList<IElement> Children { get; }
     void Click();
     void Fill(string text);

@@ -43,6 +43,13 @@ internal sealed class FlaUiElement : IElement
     public bool IsKeyboardFocusable => Safe(() => _el.Properties.IsKeyboardFocusable.ValueOrDefault, false);
     public bool HasKeyboardFocus => Safe(() => _el.Properties.HasKeyboardFocus.ValueOrDefault, false);
 
+    public IReadOnlyList<int>? RuntimeId => Safe(() =>
+    {
+        if (_el.Properties.RuntimeId.TryGetValue(out var rid) && rid is not null && rid.Length > 0)
+            return (IReadOnlyList<int>)rid;
+        return null;
+    });
+
     public IReadOnlyList<IElement> Children
     {
         get
