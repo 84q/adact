@@ -34,12 +34,14 @@ All flags must combine to match **exactly one** window.
 ```
 sessionId s1
 windowRef w1
-snapshot .adact/session-1-20260428T180000000.json
+snapshot .adact/session-1-20260428T180000000.txt
 ```
 
 - `sessionId` is needed for follow-up calls to `snapshot` (`--sid`).
 - `windowRef` lets you re-attach later without rediscovering the window.
-- `snapshot` is the path to the JSON file containing the UIA tree.
+- `snapshot` is the path to the Playwright-style snapshot text file
+  (`.txt`) containing the UIA tree. See [`snapshot.md`](snapshot.md) for the
+  format details.
 
 With `--no-snapshot`, only the first two lines are printed.
 

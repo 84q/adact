@@ -21,7 +21,7 @@ adact click <ref> [--no-snapshot] [--snapshot-dir <dir>] [--server <url>]
 
 ```
 sessionId s1
-snapshot .adact/session-1-20260428T180002500.json
+snapshot .adact/session-1-20260428T180002500.txt
 ```
 
 With `--no-snapshot`, only `sessionId` is printed.

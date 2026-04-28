@@ -55,7 +55,7 @@ valid as the first positional argument of `attach`.
 
 - **stdout** — line-oriented `key value` pairs, or TSV from `list-apps`. The
   fields you typically need are `sessionId`, `windowRef` and `snapshot` (path
-  to the JSON snapshot file written under `.adact/` by default).
+  to the snapshot text file written under `.adact/` by default).
 - **stderr** — error reports as:
 
   ```

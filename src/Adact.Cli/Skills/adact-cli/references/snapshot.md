@@ -13,25 +13,68 @@ only need to call `snapshot` explicitly when:
 ## Synopsis
 
 ```
-adact snapshot [--sid <sessionId>] [--snapshot-dir <dir>] [--server <url>]
+adact snapshot [--sid <sessionId>] [--snapshot-dir <dir>] [--filter <name>] [--server <url>]
 ```
 
 | Flag              | Purpose                                                                  |
 | ----------------- | ------------------------------------------------------------------------ |
 | `--sid`           | Target session id (e.g. `s1`). Defaults to the active session.           |
 | `--snapshot-dir`  | Output directory (default `./.adact/`).                                  |
+| `--filter`        | Tree filter: `operable` (default, AI-friendly) or `raw` (full UIA tree). |
 | `--server`        | Daemon endpoint URL.                                                     |
 
 ## Output
 
 ```
 sessionId s1
-snapshot .adact/session-1-20260428T180001234.json
+snapshot .adact/session-1-20260428T180001234.txt
 ```
 
-Filenames are `session-<sid>-<UTC timestamp>.json`. Older files are not
-cleaned up automatically — older snapshots in the same directory remain valid
-historical artifacts but their refs may be stale.
+Filenames are `session-<sid>-<UTC timestamp>.txt`. The file content is a
+Playwright-style indented text representation of the UIA tree (UTF-8, LF
+newlines, no BOM). Older files are not cleaned up automatically.
+
+### File format
+
+```
+---
+filter: operable
+sessionId: s1
+processName: notepad
+processId: 1234
+generatedAt: "2025-01-01T00:00:00Z"
+---
+- Window "メモ帳" [ref=s1e1]
+  - MenuBar [ref=s1e2]
+    - MenuItem "ファイル" [ref=s1e3]
+  - Edit [aid="15.Edit"] [value="hello"] [focused] [ref=s1e7]
+```
+
+Frontmatter values are bare YAML scalars when they contain only alphanumerics,
+spaces, `_`, or `-`; otherwise they are wrapped in double quotes (e.g.
+ISO-8601 timestamps and Japanese strings).
+
+Each body line follows:
+
+```
+<indent>- <ControlType> ["<Name>"] [aid="<id>"] [value="<v>"] [<state-flags>] [ref=<refId>]
+```
+
+Attribute order is fixed: **aid → value → state-flags (`disabled` /
+`focused` / `modal`) → ref**. Indent is 2 spaces per depth. Strings (`name`,
+`aid`, `value`) are quoted; `"`, `\`, LF, TAB are escaped (`\"`, `\\`, `\n`,
+`\t`); other control characters become `\uXXXX`; Unicode (e.g. Japanese) is
+emitted verbatim.
+
+### Filters
+
+- `operable` (default): AI-friendly subset. Keeps interactive controls
+  (`Window`, `Button`, `MenuItem`, `Edit`, `CheckBox`, `Tab`, `ListItem`, …).
+  Structural containers (`Pane`, `Group`, `Custom`, `Image`, `Separator`) are
+  flattened unless they have a `Name` or `AutomationId`. Off-screen elements
+  are excluded together with their descendants.
+- `raw`: includes every UIA element, including off-screen and structural
+  nodes. Useful when an element you need is being filtered out by `operable`.
 
 ## Element refs are stable across snapshots
 
@@ -58,11 +101,18 @@ Snapshot a specific session, writing the file to a custom directory:
 adact snapshot --sid s1 --snapshot-dir ./out/snapshots
 ```
 
+Get the full UIA tree (including structural / off-screen elements):
+
+```
+adact snapshot --filter raw
+```
+
 ## Error recovery
 
 - `NO_ACTIVE_SESSION` — no session is attached and `--sid` was omitted. Run
   `adact attach` first, or pass `--sid` explicitly.
 - `INVALID_ARGUMENT` — `--sid` referred to a session that no longer exists
-  (the window was closed) or was never created. Re-attach.
+  (the window was closed) or was never created, or `--filter` was not
+  `operable` / `raw`.
 - `SNAPSHOT_FAILED` — UIA could not capture the tree. The window may be
   closing or unresponsive; retry once, then re-attach if it persists.
