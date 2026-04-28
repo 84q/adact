@@ -1,35 +1,38 @@
 {
   "Ref": "w14",
   "Role": "Window",
-  "Name": "004_Phase1A_MCP_SDK\u8ABF\u67FB.md - adact - Visual Studio Code",
+  "Name": "\u30C4\u30FC\u30EB\u8A2D\u8A08\u30FB\u5B9F\u88C5\u306E\u9032\u6357\u78BA\u8A8D\u4F9D\u983C - adact - Visual Studio Code",
   "ClassName": "Chrome_WidgetWin_1",
+  "RuntimeId": "42-3409484",
   "Rect": [
-    -7,
-    -7,
-    1933,
-    977
+    1083,
+    2,
+    838,
+    964
   ],
   "Children": [
     {
       "Ref": "w1",
       "Role": "Pane",
       "ClassName": "Intermediate D3D Window",
+      "RuntimeId": "42-1639804",
       "Rect": [
-        0,
-        0,
-        1920,
+        1083,
+        2,
+        838,
         964
       ]
     },
     {
       "Ref": "w13",
       "Role": "Pane",
-      "Name": "004_Phase1A_MCP_SDK\u8ABF\u67FB.md - adact - Visual Studio Code",
+      "Name": "\u30C4\u30FC\u30EB\u8A2D\u8A08\u30FB\u5B9F\u88C5\u306E\u9032\u6357\u78BA\u8A8D\u4F9D\u983C - adact - Visual Studio Code",
       "ClassName": "RootView",
+      "RuntimeId": "42-3409484-4-0-0-14775",
       "Rect": [
-        0,
-        0,
-        1920,
+        1082,
+        2,
+        838,
         964
       ],
       "Children": [
@@ -37,10 +40,11 @@
           "Ref": "w12",
           "Role": "Pane",
           "ClassName": "NonClientView",
+          "RuntimeId": "42-3409484-4-0-0-14778",
           "Rect": [
-            0,
-            0,
-            1920,
+            1082,
+            2,
+            838,
             964
           ],
           "Children": [
@@ -48,10 +52,11 @@
               "Ref": "w11",
               "Role": "Pane",
               "ClassName": "WinFrameView",
+              "RuntimeId": "42-3409484-4-0-0-14779",
               "Rect": [
-                0,
-                0,
-                1920,
+                1082,
+                2,
+                838,
                 964
               ],
               "Children": [
@@ -59,11 +64,12 @@
                   "Ref": "w5",
                   "Role": "Pane",
                   "ClassName": "WinCaptionButtonContainer",
+                  "RuntimeId": "42-3409484-4-0-0-14782",
                   "Rect": [
                     1783,
-                    0,
-                    137,
-                    34
+                    3,
+                    136,
+                    28
                   ],
                   "Children": [
                     {
@@ -71,23 +77,25 @@
                       "Role": "Button",
                       "Name": "Minimize",
                       "ClassName": "WinCaptionButton",
+                      "RuntimeId": "42-3409484-4-0-0-14780",
                       "Rect": [
-                        1783,
-                        0,
+                        1782,
+                        3,
                         45,
-                        34
+                        28
                       ]
                     },
                     {
                       "Ref": "w3",
                       "Role": "Button",
-                      "Name": "Restore",
+                      "Name": "Maximize",
                       "ClassName": "WinCaptionButton",
+                      "RuntimeId": "42-3409484-4-0-0-14783",
                       "Rect": [
-                        1828,
-                        0,
+                        1827,
+                        3,
                         46,
-                        34
+                        28
                       ]
                     },
                     {
@@ -95,11 +103,12 @@
                       "Role": "Button",
                       "Name": "Close",
                       "ClassName": "WinCaptionButton",
+                      "RuntimeId": "42-3409484-4-0-0-14787",
                       "Rect": [
-                        1874,
-                        0,
+                        1873,
+                        3,
                         46,
-                        34
+                        28
                       ]
                     }
                   ]
@@ -108,10 +117,11 @@
                   "Ref": "w10",
                   "Role": "Pane",
                   "ClassName": "ClientView",
+                  "RuntimeId": "42-3409484-4-0-0-14777",
                   "Rect": [
-                    0,
-                    0,
-                    1920,
+                    1082,
+                    2,
+                    838,
                     964
                   ],
                   "Children": [
@@ -119,10 +129,11 @@
                       "Ref": "w9",
                       "Role": "Pane",
                       "ClassName": "View",
+                      "RuntimeId": "42-3409484-4-0-0-14773",
                       "Rect": [
-                        0,
-                        0,
-                        1920,
+                        1082,
+                        2,
+                        838,
                         964
                       ],
                       "Children": [
@@ -130,10 +141,11 @@
                           "Ref": "w8",
                           "Role": "Pane",
                           "ClassName": "View",
+                          "RuntimeId": "42-3409484-4-0-0-14774",
                           "Rect": [
-                            0,
-                            0,
-                            1920,
+                            1082,
+                            2,
+                            838,
                             964
                           ],
                           "Children": [
@@ -141,10 +153,11 @@
                               "Ref": "w6",
                               "Role": "Pane",
                               "ClassName": "View",
+                              "RuntimeId": "42-3409484-4-0-0-14772",
                               "Rect": [
-                                0,
-                                0,
-                                1920,
+                                1082,
+                                2,
+                                838,
                                 964
                               ]
                             },
@@ -152,10 +165,11 @@
                               "Ref": "w7",
                               "Role": "Pane",
                               "ClassName": "View",
+                              "RuntimeId": "42-3409484-4-0-0-14790",
                               "Rect": [
-                                0,
-                                0,
-                                1920,
+                                1082,
+                                2,
+                                838,
                                 964
                               ]
                             }

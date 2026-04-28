@@ -1,0 +1,660 @@
+{
+  "Ref": "w48",
+  "Role": "Window",
+  "Name": "\u30BF\u30A4\u30C8\u30EB\u306A\u3057 - \u30E1\u30E2\u5E33",
+  "ClassName": "Notepad",
+  "RuntimeId": "42-15139746",
+  "Rect": [
+    294,
+    183,
+    1440,
+    705
+  ],
+  "Children": [
+    {
+      "Ref": "w2",
+      "Role": "Pane",
+      "ClassName": "NotepadTextBox",
+      "RuntimeId": "42-8651972",
+      "Rect": [
+        300,
+        257,
+        1428,
+        593
+      ],
+      "Children": [
+        {
+          "Ref": "w1",
+          "Role": "Document",
+          "Name": "\u30C6\u30AD\u30B9\u30C8 \u30A8\u30C7\u30A3\u30BF\u30FC",
+          "ClassName": "RichEditD2DPT",
+          "RuntimeId": "42-3212968",
+          "Rect": [
+            300,
+            257,
+            1428,
+            593
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w12",
+      "Role": "Pane",
+      "ClassName": "Microsoft.UI.Content.DesktopChildSiteBridge",
+      "RuntimeId": "42-39192230",
+      "Rect": [
+        340,
+        192,
+        527,
+        32
+      ],
+      "Children": [
+        {
+          "Ref": "w11",
+          "Role": "Pane",
+          "ClassName": "InputSiteWindowClass",
+          "RuntimeId": "42-39126354",
+          "Rect": [
+            340,
+            192,
+            527,
+            32
+          ],
+          "Children": [
+            {
+              "Ref": "w10",
+              "Role": "Tab",
+              "AutomationId": "Tabs",
+              "ClassName": "Microsoft.UI.Xaml.Controls.TabView",
+              "RuntimeId": "42-39126354-4-1",
+              "Rect": [
+                340,
+                192,
+                527,
+                32
+              ],
+              "Children": [
+                {
+                  "Ref": "w8",
+                  "Role": "List",
+                  "AutomationId": "TabListView",
+                  "ClassName": "ListView",
+                  "RuntimeId": "42-39126354-4-2",
+                  "Rect": [
+                    342,
+                    192,
+                    488,
+                    32
+                  ],
+                  "Children": [
+                    {
+                      "Ref": "w4",
+                      "Role": "TabItem",
+                      "Name": "\u30BF\u30A4\u30C8\u30EB\u306A\u3057. \u672A\u5909\u66F4\u3002",
+                      "ClassName": "ListViewItem",
+                      "RuntimeId": "42-39126354-4-4",
+                      "Rect": [
+                        348,
+                        192,
+                        239,
+                        32
+                      ],
+                      "Children": [
+                        {
+                          "Ref": "w3",
+                          "Role": "Text",
+                          "Name": "\u30BF\u30A4\u30C8\u30EB\u306A\u3057",
+                          "ClassName": "TextBlock",
+                          "RuntimeId": "42-39126354-4-6",
+                          "Rect": [
+                            357,
+                            200,
+                            54,
+                            16
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "Ref": "w7",
+                      "Role": "TabItem",
+                      "Name": "\u30BF\u30A4\u30C8\u30EB\u306A\u3057. \u672A\u5909\u66F4\u3002",
+                      "ClassName": "ListViewItem",
+                      "RuntimeId": "42-39126354-4-5",
+                      "Rect": [
+                        583,
+                        192,
+                        247,
+                        32
+                      ],
+                      "Children": [
+                        {
+                          "Ref": "w5",
+                          "Role": "Text",
+                          "Name": "\u30BF\u30A4\u30C8\u30EB\u306A\u3057",
+                          "ClassName": "TextBlock",
+                          "RuntimeId": "42-39126354-4-7",
+                          "Rect": [
+                            596,
+                            200,
+                            56,
+                            16
+                          ]
+                        },
+                        {
+                          "Ref": "w6",
+                          "Role": "Button",
+                          "Name": "\u30BF\u30D6\u3092\u9589\u3058\u308B",
+                          "AutomationId": "CloseButton",
+                          "ClassName": "Button",
+                          "RuntimeId": "42-39126354-4-8",
+                          "Rect": [
+                            789,
+                            196,
+                            32,
+                            24
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Ref": "w9",
+                  "Role": "Button",
+                  "Name": "\u65B0\u3057\u3044\u30BF\u30D6\u306E\u8FFD\u52A0",
+                  "AutomationId": "AddButton",
+                  "ClassName": "Button",
+                  "RuntimeId": "42-39126354-4-3",
+                  "Rect": [
+                    833,
+                    197,
+                    32,
+                    24
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w33",
+      "Role": "Pane",
+      "ClassName": "Microsoft.UI.Content.DesktopChildSiteBridge",
+      "RuntimeId": "42-59901448",
+      "Rect": [
+        300,
+        224,
+        1428,
+        33
+      ],
+      "Children": [
+        {
+          "Ref": "w32",
+          "Role": "Pane",
+          "ClassName": "InputSiteWindowClass",
+          "RuntimeId": "42-6555018",
+          "Rect": [
+            300,
+            224,
+            1428,
+            33
+          ],
+          "Children": [
+            {
+              "Ref": "w16",
+              "Role": "MenuBar",
+              "AutomationId": "MenuBar",
+              "RuntimeId": "42-6555018-4-11",
+              "Rect": [
+                300,
+                224,
+                180,
+                32
+              ],
+              "Children": [
+                {
+                  "Ref": "w13",
+                  "Role": "MenuItem",
+                  "Name": "\u30D5\u30A1\u30A4\u30EB",
+                  "AutomationId": "File",
+                  "ClassName": "Microsoft.UI.Xaml.Controls.MenuBarItem",
+                  "RuntimeId": "42-6555018-4-29",
+                  "Rect": [
+                    304,
+                    224,
+                    60,
+                    32
+                  ]
+                },
+                {
+                  "Ref": "w14",
+                  "Role": "MenuItem",
+                  "Name": "\u7DE8\u96C6",
+                  "AutomationId": "Edit",
+                  "ClassName": "Microsoft.UI.Xaml.Controls.MenuBarItem",
+                  "RuntimeId": "42-6555018-4-30",
+                  "Rect": [
+                    372,
+                    224,
+                    48,
+                    32
+                  ]
+                },
+                {
+                  "Ref": "w15",
+                  "Role": "MenuItem",
+                  "Name": "\u8868\u793A",
+                  "AutomationId": "View",
+                  "ClassName": "Microsoft.UI.Xaml.Controls.MenuBarItem",
+                  "RuntimeId": "42-6555018-4-31",
+                  "Rect": [
+                    428,
+                    224,
+                    48,
+                    32
+                  ]
+                }
+              ]
+            },
+            {
+              "Ref": "w17",
+              "Role": "Button",
+              "Name": "\u898B\u51FA\u3057",
+              "ClassName": "Microsoft.UI.Xaml.Controls.DropDownButton",
+              "RuntimeId": "42-6555018-4-12",
+              "Rect": [
+                850,
+                224,
+                56,
+                32
+              ]
+            },
+            {
+              "Ref": "w18",
+              "Role": "Button",
+              "Name": "\u30EA\u30B9\u30C8",
+              "ClassName": "Microsoft.UI.Xaml.Controls.DropDownButton",
+              "RuntimeId": "42-6555018-4-13",
+              "Rect": [
+                906,
+                224,
+                56,
+                32
+              ]
+            },
+            {
+              "Ref": "w19",
+              "Role": "Button",
+              "Name": "\u592A\u5B57 (Ctrl\u002BB)",
+              "ClassName": "ToggleButton",
+              "RuntimeId": "42-6555018-4-14",
+              "Rect": [
+                962,
+                224,
+                32,
+                32
+              ]
+            },
+            {
+              "Ref": "w20",
+              "Role": "Button",
+              "Name": "\u659C\u4F53 (Ctrl\u002BI)",
+              "ClassName": "ToggleButton",
+              "RuntimeId": "42-6555018-4-15",
+              "Rect": [
+                994,
+                224,
+                32,
+                32
+              ]
+            },
+            {
+              "Ref": "w21",
+              "Role": "Button",
+              "Name": "\u53D6\u308A\u6D88\u3057\u7DDA (Ctrl\u002BShift\u002BX)",
+              "ClassName": "ToggleButton",
+              "RuntimeId": "42-6555018-4-16",
+              "Rect": [
+                1026,
+                224,
+                32,
+                32
+              ]
+            },
+            {
+              "Ref": "w22",
+              "Role": "Button",
+              "Name": "\u30EA\u30F3\u30AF (Ctrl\u002BK)",
+              "ClassName": "ToggleButton",
+              "RuntimeId": "42-6555018-4-17",
+              "Rect": [
+                1058,
+                224,
+                32,
+                32
+              ]
+            },
+            {
+              "Ref": "w23",
+              "Role": "Button",
+              "Name": "\u8868",
+              "ClassName": "Microsoft.UI.Xaml.Controls.DropDownButton",
+              "RuntimeId": "42-6555018-4-18",
+              "Rect": [
+                1090,
+                224,
+                56,
+                32
+              ]
+            },
+            {
+              "Ref": "w24",
+              "Role": "Button",
+              "Name": "\u66F8\u5F0F\u8A2D\u5B9A\u306E\u30AF\u30EA\u30A2 (Ctrl\u002BSpace)",
+              "ClassName": "ToggleButton",
+              "RuntimeId": "42-6555018-4-19",
+              "Rect": [
+                1146,
+                224,
+                32,
+                32
+              ]
+            },
+            {
+              "Ref": "w25",
+              "Role": "Button",
+              "Name": "\u624B\u66F8\u304D\u30C4\u30FC\u30EB",
+              "AutomationId": "RewriteDropDownButton",
+              "ClassName": "Microsoft.UI.Xaml.Controls.DropDownButton",
+              "RuntimeId": "42-6555018-4-20",
+              "Rect": [
+                1562,
+                224,
+                56,
+                32
+              ]
+            },
+            {
+              "Ref": "w26",
+              "Role": "Button",
+              "Name": "\u65B0\u7740\u60C5\u5831",
+              "AutomationId": "FREButton",
+              "ClassName": "Button",
+              "RuntimeId": "42-6555018-4-21",
+              "Rect": [
+                1622,
+                225,
+                30,
+                30
+              ]
+            },
+            {
+              "Ref": "w27",
+              "Role": "Button",
+              "Name": "\u30E6\u30FC\u30B6\u30FC \u30A2\u30D0\u30BF\u30FC",
+              "AutomationId": "AvatarButton",
+              "ClassName": "Button",
+              "RuntimeId": "42-6555018-4-22",
+              "Rect": [
+                1656,
+                224,
+                30,
+                32
+              ]
+            },
+            {
+              "Ref": "w28",
+              "Role": "Button",
+              "Name": "\u8A2D\u5B9A",
+              "AutomationId": "SettingsButton",
+              "ClassName": "Button",
+              "RuntimeId": "42-6555018-4-25",
+              "Rect": [
+                1690,
+                224,
+                30,
+                32
+              ]
+            },
+            {
+              "Ref": "w29",
+              "Role": "Window",
+              "AutomationId": "PrivacyTeachingTip",
+              "ClassName": "Microsoft.UI.Xaml.Controls.TeachingTip",
+              "RuntimeId": "42-6555018-4-26",
+              "Rect": [
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "Ref": "w30",
+              "Role": "Pane",
+              "AutomationId": "PsDownloadDetailTeachingTip",
+              "ClassName": "Microsoft.UI.Xaml.Controls.TeachingTip",
+              "RuntimeId": "42-6555018-4-27",
+              "Rect": [
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "Ref": "w31",
+              "Role": "Pane",
+              "Name": "\u3053\u306E\u6A5F\u80FD\u3092\u4F7F\u7528\u3059\u308B\u306B\u306F\u3001\u30B5\u30A4\u30F3\u30A2\u30A6\u30C8\u4E2D\u306B\u30ED\u30FC\u30AB\u30EB AI \u30E2\u30C7\u30EB\u306E\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9\u304C\u5B8C\u4E86\u3059\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002",
+              "AutomationId": "PsDownloadLightTeachingTip",
+              "ClassName": "Microsoft.UI.Xaml.Controls.TeachingTip",
+              "RuntimeId": "42-6555018-4-28",
+              "Rect": [
+                0,
+                0,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w41",
+      "Role": "Pane",
+      "ClassName": "Microsoft.UI.Content.DesktopChildSiteBridge",
+      "RuntimeId": "42-23856166",
+      "Rect": [
+        300,
+        850,
+        1428,
+        32
+      ],
+      "Children": [
+        {
+          "Ref": "w40",
+          "Role": "Pane",
+          "ClassName": "InputSiteWindowClass",
+          "RuntimeId": "42-8390278",
+          "Rect": [
+            300,
+            850,
+            1428,
+            32
+          ],
+          "Children": [
+            {
+              "Ref": "w34",
+              "Role": "Text",
+              "Name": "\u884C 1,\n \u5217 1",
+              "AutomationId": "ContentTextBlock",
+              "ClassName": "TextBlock",
+              "RuntimeId": "42-8390278-4-50",
+              "Rect": [
+                316,
+                858,
+                59,
+                16
+              ]
+            },
+            {
+              "Ref": "w35",
+              "Role": "Text",
+              "Name": "0 \u6587\u5B57",
+              "AutomationId": "ContentTextBlock",
+              "ClassName": "TextBlock",
+              "RuntimeId": "42-8390278-4-51",
+              "Rect": [
+                405,
+                858,
+                34,
+                16
+              ]
+            },
+            {
+              "Ref": "w36",
+              "Role": "Text",
+              "Name": "\u30C6\u30AD\u30B9\u30C8",
+              "AutomationId": "ContentTextBlock",
+              "ClassName": "TextBlock",
+              "RuntimeId": "42-8390278-4-52",
+              "Rect": [
+                607,
+                850,
+                48,
+                32
+              ]
+            },
+            {
+              "Ref": "w37",
+              "Role": "Text",
+              "Name": "\u30BA\u30FC\u30E0",
+              "AutomationId": "ContentTextBlock",
+              "ClassName": "TextBlock",
+              "RuntimeId": "42-8390278-4-53",
+              "Rect": [
+                1357,
+                858,
+                33,
+                16
+              ]
+            },
+            {
+              "Ref": "w38",
+              "Role": "Text",
+              "Name": " Windows (CRLF)",
+              "AutomationId": "ContentTextBlock",
+              "ClassName": "TextBlock",
+              "RuntimeId": "42-8390278-4-54",
+              "Rect": [
+                1425,
+                858,
+                89,
+                16
+              ]
+            },
+            {
+              "Ref": "w39",
+              "Role": "Text",
+              "Name": " UTF-8",
+              "AutomationId": "ContentTextBlock",
+              "ClassName": "TextBlock",
+              "RuntimeId": "42-8390278-4-55",
+              "Rect": [
+                1593,
+                858,
+                35,
+                16
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Ref": "w47",
+      "Role": "TitleBar",
+      "AutomationId": "TitleBar",
+      "RuntimeId": "42-15139746-3--2147483647-15139746--2-0",
+      "Rect": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "Children": [
+        {
+          "Ref": "w43",
+          "Role": "MenuBar",
+          "Name": "\u30B7\u30B9\u30C6\u30E0",
+          "AutomationId": "SystemMenuBar",
+          "RuntimeId": "42-15139746-3--2147483646-804-262309-0",
+          "Rect": [
+            301,
+            190,
+            22,
+            22
+          ],
+          "Children": [
+            {
+              "Ref": "w42",
+              "Role": "MenuItem",
+              "Name": "\u30B7\u30B9\u30C6\u30E0",
+              "RuntimeId": "42-15139746-3--2147483646-804-262309-1",
+              "Rect": [
+                301,
+                190,
+                22,
+                22
+              ]
+            }
+          ]
+        },
+        {
+          "Ref": "w44",
+          "Role": "Button",
+          "Name": "\u6700\u5C0F\u5316",
+          "AutomationId": "Minimize-Restore",
+          "RuntimeId": "42-15139746-3--2147483647-15139746--2-2",
+          "Rect": [
+            1589,
+            184,
+            47,
+            29
+          ]
+        },
+        {
+          "Ref": "w45",
+          "Role": "Button",
+          "Name": "\u6700\u5927\u5316",
+          "AutomationId": "Maximize-Restore",
+          "RuntimeId": "42-15139746-3--2147483647-15139746--2-3",
+          "Rect": [
+            1636,
+            184,
+            46,
+            29
+          ]
+        },
+        {
+          "Ref": "w46",
+          "Role": "Button",
+          "Name": "\u9589\u3058\u308B",
+          "AutomationId": "Close",
+          "RuntimeId": "42-15139746-3--2147483647-15139746--2-5",
+          "Rect": [
+            1682,
+            184,
+            47,
+            29
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -224,8 +224,17 @@ internal static class Program
     public string? Name { get; set; }
     public string? AutomationId { get; set; }
     public string? ClassName { get; set; }
+    public string? RuntimeId { get; set; }
     public int[]? Rect { get; set; }
     public List<SnapshotNode>? Children { get; set; }
+  }
+
+  private sealed class MeasureStats
+  {
+    public int Total;
+    public int WithRuntimeId;
+    public int EmptyRuntimeId;
+    public int ExceptionRuntimeId;
   }
 
   private enum FilterLevel { L0, L1, L2 }
@@ -293,11 +302,16 @@ internal static class Program
             ("L2",   el => IsL2(el)),
     };
 
+    var report = new StringBuilder();
+    report.AppendLine($"# RuntimeId / AutomationId duplication report for: {key}");
+    report.AppendLine();
+
     foreach (var (label, include) in levels)
     {
       var sw = Stopwatch.StartNew();
       int counter = 0;
-      var roots = BuildFiltered(window, include, ref counter, depth: 0, maxDepth: 64, isRoot: true);
+      var stats = new MeasureStats();
+      var roots = BuildFiltered(window, include, ref counter, depth: 0, maxDepth: 64, isRoot: true, stats: stats);
       sw.Stop();
       var root = roots.Count == 1 ? roots[0] : new SnapshotNode { Ref = "w0", Role = "Root", Children = roots };
       int nodes = CountNodes(root);
@@ -306,8 +320,70 @@ internal static class Program
       var path = System.IO.Path.Combine(outDir, $"measure-{safe}-{label}.json");
       System.IO.File.WriteAllText(path, json, new UTF8Encoding(false));
       Console.WriteLine($"{label,-5} {nodes,6} {bytes,8} {bytes / 1024.0,6:F1}  {sw.ElapsedMilliseconds}  -> {path}");
+
+      // RuntimeId stats
+      double pct = stats.Total == 0 ? 0 : 100.0 * stats.WithRuntimeId / stats.Total;
+      int without = stats.Total - stats.WithRuntimeId;
+      var line1 = $"{safe}-{label}: total={stats.Total}, withRuntimeId={stats.WithRuntimeId} ({pct:F1}%), withoutRuntimeId={without}";
+      var line2 = $"           empty={stats.EmptyRuntimeId}, exception={stats.ExceptionRuntimeId}";
+      Console.WriteLine(line1);
+      Console.WriteLine(line2);
+      report.AppendLine(line1);
+      report.AppendLine(line2);
+
+      // AutomationId duplicate detection
+      var dupResult = DetectAidDuplicates(root);
+      if (dupResult.cases == 0)
+      {
+        var line3 = $"{safe}-{label}: AutomationId duplicates within same parent: duplicates: none";
+        Console.WriteLine(line3);
+        report.AppendLine(line3);
+      }
+      else
+      {
+        var line3 = $"{safe}-{label}: AutomationId duplicates within same parent: {dupResult.cases} cases";
+        var line4 = $"           ex: {dupResult.example}";
+        Console.WriteLine(line3);
+        Console.WriteLine(line4);
+        report.AppendLine(line3);
+        report.AppendLine(line4);
+      }
+      report.AppendLine();
     }
+
+    var reportPath = System.IO.Path.Combine(outDir, $"measure-{safe}-report.txt");
+    System.IO.File.WriteAllText(reportPath, report.ToString(), new UTF8Encoding(false));
+    Console.WriteLine($"report -> {reportPath}");
     return 0;
+  }
+
+  private static (int cases, string example) DetectAidDuplicates(SnapshotNode root)
+  {
+    int cases = 0;
+    string? firstExample = null;
+    void Walk(SnapshotNode n)
+    {
+      if (n.Children != null && n.Children.Count > 0)
+      {
+        var groups = n.Children
+          .Where(c => !string.IsNullOrEmpty(c.AutomationId))
+          .GroupBy(c => (c.Role ?? "", c.AutomationId ?? ""))
+          .Where(g => g.Count() > 1)
+          .ToList();
+        if (groups.Count > 0)
+        {
+          cases += groups.Count;
+          if (firstExample == null)
+          {
+            var parts = groups.Select(g => $"{g.Key.Item1}:{g.Key.Item2}\u00d7{g.Count()}");
+            firstExample = $"parent={n.Ref} children=[{string.Join(", ", parts)}]";
+          }
+        }
+        foreach (var c in n.Children) Walk(c);
+      }
+    }
+    Walk(root);
+    return (cases, firstExample ?? "");
   }
 
   private static int CountNodes(SnapshotNode n)
@@ -331,7 +407,7 @@ internal static class Program
 
   private static List<SnapshotNode> BuildFiltered(
       AutomationElement el, Func<AutomationElement, bool> include, ref int counter,
-      int depth, int maxDepth, bool isRoot)
+      int depth, int maxDepth, bool isRoot, MeasureStats stats)
   {
     var childNodes = new List<SnapshotNode>();
     if (depth < maxDepth)
@@ -341,7 +417,7 @@ internal static class Program
       catch { children = Array.Empty<AutomationElement>(); }
       foreach (var c in children)
       {
-        try { childNodes.AddRange(BuildFiltered(c, include, ref counter, depth + 1, maxDepth, false)); }
+        try { childNodes.AddRange(BuildFiltered(c, include, ref counter, depth + 1, maxDepth, false, stats)); }
         catch { }
       }
     }
@@ -358,6 +434,27 @@ internal static class Program
       AutomationId = SafeStr(() => el.Properties.AutomationId.ValueOrDefault),
       ClassName = SafeStr(() => el.Properties.ClassName.ValueOrDefault),
     };
+
+    // RuntimeId acquisition + stats
+    stats.Total++;
+    try
+    {
+      var rid = el.Properties.RuntimeId.Value;
+      if (rid == null || rid.Length == 0)
+      {
+        stats.EmptyRuntimeId++;
+      }
+      else
+      {
+        node.RuntimeId = string.Join("-", rid);
+        stats.WithRuntimeId++;
+      }
+    }
+    catch
+    {
+      stats.ExceptionRuntimeId++;
+    }
+
     try
     {
       var r = el.Properties.BoundingRectangle.ValueOrDefault;

@@ -1,0 +1,20 @@
+# RuntimeId / AutomationId duplication report for: explorer
+
+explorer-L0: total=119, withRuntimeId=119 (100.0%), withoutRuntimeId=0
+           empty=0, exception=0
+explorer-L0: AutomationId duplicates within same parent: duplicates: none
+
+explorer-L1: total=83, withRuntimeId=83 (100.0%), withoutRuntimeId=0
+           empty=0, exception=0
+explorer-L1: AutomationId duplicates within same parent: 1 cases
+           ex: parent=w83 children=[Edit:TextBox×2]
+
+explorer-L1_5: total=98, withRuntimeId=98 (100.0%), withoutRuntimeId=0
+           empty=0, exception=0
+explorer-L1_5: AutomationId duplicates within same parent: duplicates: none
+
+explorer-L2: total=83, withRuntimeId=83 (100.0%), withoutRuntimeId=0
+           empty=0, exception=0
+explorer-L2: AutomationId duplicates within same parent: 1 cases
+           ex: parent=w83 children=[Edit:TextBox×2]
+

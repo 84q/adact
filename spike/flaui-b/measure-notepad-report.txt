@@ -1,0 +1,22 @@
+# RuntimeId / AutomationId duplication report for: notepad
+
+notepad-L0: total=48, withRuntimeId=48 (100.0%), withoutRuntimeId=0
+           empty=0, exception=0
+notepad-L0: AutomationId duplicates within same parent: 1 cases
+           ex: parent=w40 children=[Text:ContentTextBlock×6]
+
+notepad-L1: total=35, withRuntimeId=35 (100.0%), withoutRuntimeId=0
+           empty=0, exception=0
+notepad-L1: AutomationId duplicates within same parent: 1 cases
+           ex: parent=w35 children=[Text:ContentTextBlock×6]
+
+notepad-L1_5: total=41, withRuntimeId=41 (100.0%), withoutRuntimeId=0
+           empty=0, exception=0
+notepad-L1_5: AutomationId duplicates within same parent: 1 cases
+           ex: parent=w41 children=[Text:ContentTextBlock×6]
+
+notepad-L2: total=35, withRuntimeId=35 (100.0%), withoutRuntimeId=0
+           empty=0, exception=0
+notepad-L2: AutomationId duplicates within same parent: 1 cases
+           ex: parent=w35 children=[Text:ContentTextBlock×6]
+

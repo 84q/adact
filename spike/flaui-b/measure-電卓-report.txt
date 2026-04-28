@@ -1,0 +1,18 @@
+# RuntimeId / AutomationId duplication report for: 電卓
+
+電卓-L0: total=54, withRuntimeId=54 (100.0%), withoutRuntimeId=0
+           empty=0, exception=0
+電卓-L0: AutomationId duplicates within same parent: duplicates: none
+
+電卓-L1: total=45, withRuntimeId=45 (100.0%), withoutRuntimeId=0
+           empty=0, exception=0
+電卓-L1: AutomationId duplicates within same parent: duplicates: none
+
+電卓-L1_5: total=52, withRuntimeId=52 (100.0%), withoutRuntimeId=0
+           empty=0, exception=0
+電卓-L1_5: AutomationId duplicates within same parent: duplicates: none
+
+電卓-L2: total=45, withRuntimeId=45 (100.0%), withoutRuntimeId=0
+           empty=0, exception=0
+電卓-L2: AutomationId duplicates within same parent: duplicates: none
+

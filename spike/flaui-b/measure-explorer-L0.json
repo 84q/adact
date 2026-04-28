@@ -1,8 +1,9 @@
 {
   "Ref": "w119",
   "Role": "Window",
-  "Name": "adact - \u30A8\u30AF\u30B9\u30D7\u30ED\u30FC\u30E9\u30FC",
+  "Name": "skills - \u30A8\u30AF\u30B9\u30D7\u30ED\u30FC\u30E9\u30FC",
   "ClassName": "CabinetWClass",
+  "RuntimeId": "42-459958",
   "Rect": [
     306,
     107,
@@ -14,6 +15,7 @@
       "Ref": "w1",
       "Role": "Pane",
       "ClassName": "TITLE_BAR_SCAFFOLDING_WINDOW_CLASS",
+      "RuntimeId": "42-263398",
       "Rect": [
         600,
         107,
@@ -22,10 +24,11 @@
       ]
     },
     {
-      "Ref": "w55",
+      "Ref": "w50",
       "Role": "Pane",
-      "Name": "adact",
+      "Name": "skills",
       "ClassName": "ShellTabWindowClass",
+      "RuntimeId": "42-721994",
       "Rect": [
         313,
         243,
@@ -34,9 +37,10 @@
       ],
       "Children": [
         {
-          "Ref": "w54",
+          "Ref": "w49",
           "Role": "Pane",
           "ClassName": "DUIViewWndClassName",
+          "RuntimeId": "42-525338",
           "Rect": [
             313,
             243,
@@ -50,6 +54,7 @@
               "Name": "\u30B9\u30C6\u30FC\u30BF\u30B9 \u30D0\u30FC",
               "AutomationId": "StatusBarModuleInner",
               "ClassName": "StatusBarModuleInner",
+              "RuntimeId": "1800-26525552-0",
               "Rect": [
                 313,
                 717,
@@ -63,6 +68,7 @@
                   "Name": "\u30D7\u30ED\u30D1\u30C6\u30A3 \u30D5\u30A3\u30FC\u30EB\u30C9",
                   "AutomationId": "System.StatusBarViewItemCount",
                   "ClassName": "Element",
+                  "RuntimeId": "1800-283830288-0",
                   "Rect": [
                     320,
                     717,
@@ -73,9 +79,10 @@
                     {
                       "Ref": "w2",
                       "Role": "Text",
-                      "Name": "3 \u500B\u306E\u9805\u76EE",
+                      "Name": "2 \u500B\u306E\u9805\u76EE",
                       "AutomationId": "PropertyValue",
                       "ClassName": "MetadataLabel",
+                      "RuntimeId": "1800-283829664-0",
                       "Rect": [
                         325,
                         717,
@@ -91,6 +98,7 @@
                   "Name": "\u8868\u793A\u30E2\u30FC\u30C9",
                   "AutomationId": "ViewButtonsGroup",
                   "ClassName": "SelectorNoDefault",
+                  "RuntimeId": "1800-29235328-0",
                   "Rect": [
                     1385,
                     717,
@@ -104,6 +112,7 @@
                       "Name": "\u8A73\u7D30",
                       "AutomationId": "ViewMode_Details",
                       "ClassName": "SelectorButton",
+                      "RuntimeId": "1800-29237616-0",
                       "Rect": [
                         1385,
                         717,
@@ -117,6 +126,7 @@
                       "Name": "\u5927\u304D\u3044\u30A2\u30A4\u30B3\u30F3",
                       "AutomationId": "ViewMode_LargeIcons",
                       "ClassName": "SelectorButton",
+                      "RuntimeId": "1800-29234080-0",
                       "Rect": [
                         1410,
                         717,
@@ -134,6 +144,7 @@
               "Name": "\u30B3\u30F3\u30C8\u30ED\u30FC\u30EB \u30DB\u30B9\u30C8",
               "AutomationId": "ProperTreeHost",
               "ClassName": "ProperTreeHost",
+              "RuntimeId": "42-394454",
               "Rect": [
                 315,
                 243,
@@ -147,6 +158,7 @@
                   "Name": "\u30CA\u30D3\u30B2\u30FC\u30B7\u30E7\u30F3 \u30A6\u30A3\u30F3\u30C9\u30A6",
                   "AutomationId": "100",
                   "ClassName": "SysTreeView32",
+                  "RuntimeId": "42-2294938",
                   "Rect": [
                     315,
                     243,
@@ -159,6 +171,7 @@
                       "Role": "ScrollBar",
                       "Name": "\u5782\u76F4",
                       "AutomationId": "NonClientVerticalScrollBar",
+                      "RuntimeId": "42-2294938-3--2147483647-2294938--5-0",
                       "Rect": [
                         452,
                         243,
@@ -171,6 +184,7 @@
                           "Role": "Button",
                           "Name": "1 \u884C\u4E0A",
                           "AutomationId": "UpButton",
+                          "RuntimeId": "42-2294938-3--2147483647-2294938--5-1",
                           "Rect": [
                             452,
                             243,
@@ -183,6 +197,7 @@
                           "Role": "Thumb",
                           "Name": "\u8868\u793A\u4F4D\u7F6E",
                           "AutomationId": "ScrollbarThumb",
+                          "RuntimeId": "42-2294938-3--2147483647-2294938--5-3",
                           "Rect": [
                             452,
                             260,
@@ -195,6 +210,7 @@
                           "Role": "Button",
                           "Name": "\u4E0B\u3078\u30C9\u30E9\u30C3\u30B0",
                           "AutomationId": "DownPageButton",
+                          "RuntimeId": "42-2294938-3--2147483647-2294938--5-4",
                           "Rect": [
                             0,
                             0,
@@ -207,6 +223,7 @@
                           "Role": "Button",
                           "Name": "1 \u884C\u4E0B",
                           "AutomationId": "DownButton",
+                          "RuntimeId": "42-2294938-3--2147483647-2294938--5-5",
                           "Rect": [
                             452,
                             700,
@@ -220,6 +237,7 @@
                       "Ref": "w25",
                       "Role": "TreeItem",
                       "Name": "\u30C7\u30B9\u30AF\u30C8\u30C3\u30D7",
+                      "RuntimeId": "42-2294938-4-27031760-0",
                       "Rect": [
                         0,
                         0,
@@ -231,6 +249,7 @@
                           "Ref": "w13",
                           "Role": "TreeItem",
                           "Name": "\u30DB\u30FC\u30E0",
+                          "RuntimeId": "42-2294938-4-269981376-0",
                           "Rect": [
                             364,
                             249,
@@ -242,6 +261,7 @@
                           "Ref": "w14",
                           "Role": "TreeItem",
                           "Name": "\u30AE\u30E3\u30E9\u30EA\u30FC",
+                          "RuntimeId": "42-2294938-4-269981856-0",
                           "Rect": [
                             364,
                             281,
@@ -253,6 +273,7 @@
                           "Ref": "w15",
                           "Role": "TreeItem",
                           "Name": "\u30AF\u30A4\u30C3\u30AF \u30A2\u30AF\u30BB\u30B9\u306E\u958B\u59CB - yuta_ (\u30D4\u30F3\u7559\u3081)",
+                          "RuntimeId": "42-2294938-4-269978400-0",
                           "Rect": [
                             364,
                             345,
@@ -264,6 +285,7 @@
                           "Ref": "w16",
                           "Role": "TreeItem",
                           "Name": "\u30C7\u30B9\u30AF\u30C8\u30C3\u30D7 (\u30D4\u30F3\u7559\u3081)",
+                          "RuntimeId": "42-2294938-4-269979264-0",
                           "Rect": [
                             364,
                             377,
@@ -275,6 +297,7 @@
                           "Ref": "w17",
                           "Role": "TreeItem",
                           "Name": "\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9 (\u30D4\u30F3\u7559\u3081)",
+                          "RuntimeId": "42-2294938-4-269975232-0",
                           "Rect": [
                             364,
                             409,
@@ -286,6 +309,7 @@
                           "Ref": "w18",
                           "Role": "TreeItem",
                           "Name": "\u30D4\u30AF\u30C1\u30E3 (\u30D4\u30F3\u7559\u3081)",
+                          "RuntimeId": "42-2294938-4-269971008-0",
                           "Rect": [
                             364,
                             441,
@@ -297,6 +321,7 @@
                           "Ref": "w19",
                           "Role": "TreeItem",
                           "Name": "\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8 (\u30D4\u30F3\u7559\u3081)",
+                          "RuntimeId": "42-2294938-4-269969952-0",
                           "Rect": [
                             364,
                             473,
@@ -308,6 +333,7 @@
                           "Ref": "w20",
                           "Role": "TreeItem",
                           "Name": "\u30DF\u30E5\u30FC\u30B8\u30C3\u30AF (\u30D4\u30F3\u7559\u3081)",
+                          "RuntimeId": "42-2294938-4-269966592-0",
                           "Rect": [
                             364,
                             505,
@@ -319,6 +345,7 @@
                           "Ref": "w21",
                           "Role": "TreeItem",
                           "Name": "\u30AF\u30A4\u30C3\u30AF \u30A2\u30AF\u30BB\u30B9\u306E\u7D42\u4E86 - \u30D3\u30C7\u30AA (\u30D4\u30F3\u7559\u3081)",
+                          "RuntimeId": "42-2294938-4-269962848-0",
                           "Rect": [
                             364,
                             537,
@@ -330,6 +357,7 @@
                           "Ref": "w22",
                           "Role": "TreeItem",
                           "Name": "PC",
+                          "RuntimeId": "42-2294938-4-27027056-0",
                           "Rect": [
                             364,
                             601,
@@ -341,6 +369,7 @@
                           "Ref": "w23",
                           "Role": "TreeItem",
                           "Name": "DVD \u30C9\u30E9\u30A4\u30D6 (D:) Windows11_26100.4349_Professiona",
+                          "RuntimeId": "42-2294938-4-269964672-0",
                           "Rect": [
                             364,
                             633,
@@ -352,6 +381,7 @@
                           "Ref": "w24",
                           "Role": "TreeItem",
                           "Name": "\u30CD\u30C3\u30C8\u30EF\u30FC\u30AF",
+                          "RuntimeId": "42-2294938-4-269958816-0",
                           "Rect": [
                             364,
                             665,
@@ -366,11 +396,12 @@
               ]
             },
             {
-              "Ref": "w53",
+              "Ref": "w48",
               "Role": "Pane",
               "Name": "\u30B7\u30A7\u30EB \u30D5\u30A9\u30EB\u30C0\u30FC \u30D3\u30E5\u30FC",
               "AutomationId": "listview",
               "ClassName": "DUIListView",
+              "RuntimeId": "42-394808",
               "Rect": [
                 473,
                 243,
@@ -379,10 +410,11 @@
               ],
               "Children": [
                 {
-                  "Ref": "w52",
+                  "Ref": "w47",
                   "Role": "List",
                   "Name": "\u9805\u76EE\u30D3\u30E5\u30FC",
                   "ClassName": "UIItemsView",
+                  "RuntimeId": "42-984216",
                   "Rect": [
                     473,
                     243,
@@ -395,6 +427,7 @@
                       "Role": "Header",
                       "Name": "\u30D8\u30C3\u30C0\u30FC",
                       "ClassName": "UIViewHeader",
+                      "RuntimeId": "1800-363432432-0",
                       "Rect": [
                         473,
                         243,
@@ -408,6 +441,7 @@
                           "Name": "\u540D\u524D",
                           "AutomationId": "System.ItemNameDisplay",
                           "ClassName": "UIColumnHeader",
+                          "RuntimeId": "1800-359076304-0",
                           "Rect": [
                             473,
                             243,
@@ -421,6 +455,7 @@
                               "Name": "\u30D5\u30A3\u30EB\u30BF\u30FC \u30C9\u30ED\u30C3\u30D7\u30C0\u30A6\u30F3",
                               "AutomationId": "DropDown",
                               "ClassName": "Button",
+                              "RuntimeId": "1800-353936352-0",
                               "Rect": [
                                 763,
                                 243,
@@ -436,6 +471,7 @@
                           "Name": "\u66F4\u65B0\u65E5\u6642",
                           "AutomationId": "System.DateModified",
                           "ClassName": "UIColumnHeader",
+                          "RuntimeId": "1800-359070048-0",
                           "Rect": [
                             779,
                             243,
@@ -449,6 +485,7 @@
                               "Name": "\u30D5\u30A3\u30EB\u30BF\u30FC \u30C9\u30ED\u30C3\u30D7\u30C0\u30A6\u30F3",
                               "AutomationId": "DropDown",
                               "ClassName": "Button",
+                              "RuntimeId": "1800-353937808-0",
                               "Rect": [
                                 925,
                                 243,
@@ -464,6 +501,7 @@
                           "Name": "\u7A2E\u985E",
                           "AutomationId": "System.ItemTypeText",
                           "ClassName": "UIColumnHeader",
+                          "RuntimeId": "1800-359078752-0",
                           "Rect": [
                             941,
                             243,
@@ -477,6 +515,7 @@
                               "Name": "\u30D5\u30A3\u30EB\u30BF\u30FC \u30C9\u30ED\u30C3\u30D7\u30C0\u30A6\u30F3",
                               "AutomationId": "DropDown",
                               "ClassName": "Button",
+                              "RuntimeId": "1800-353968800-0",
                               "Rect": [
                                 1060,
                                 243,
@@ -492,6 +531,7 @@
                           "Name": "\u30B5\u30A4\u30BA",
                           "AutomationId": "System.Size",
                           "ClassName": "UIColumnHeader",
+                          "RuntimeId": "1800-359078480-0",
                           "Rect": [
                             1076,
                             243,
@@ -505,6 +545,7 @@
                               "Name": "\u30D5\u30A3\u30EB\u30BF\u30FC \u30C9\u30ED\u30C3\u30D7\u30C0\u30A6\u30F3",
                               "AutomationId": "DropDown",
                               "ClassName": "Button",
+                              "RuntimeId": "1800-268734832-0",
                               "Rect": [
                                 1150,
                                 243,
@@ -519,9 +560,10 @@
                     {
                       "Ref": "w41",
                       "Role": "ListItem",
-                      "Name": "discussion",
+                      "Name": "review-loop",
                       "AutomationId": "0",
                       "ClassName": "UIItem",
+                      "RuntimeId": "1800-359081472-0",
                       "Rect": [
                         487,
                         275,
@@ -535,6 +577,7 @@
                           "Name": "\u540D\u524D",
                           "AutomationId": "System.ItemNameDisplay",
                           "ClassName": "UIProperty",
+                          "RuntimeId": "1800-271267520-0",
                           "Rect": [
                             509,
                             278,
@@ -548,6 +591,7 @@
                           "Name": "\u66F4\u65B0\u65E5\u6642",
                           "AutomationId": "System.DateModified",
                           "ClassName": "UIProperty",
+                          "RuntimeId": "1800-271259648-0",
                           "Rect": [
                             779,
                             278,
@@ -561,6 +605,7 @@
                           "Name": "\u7A2E\u985E",
                           "AutomationId": "System.ItemTypeText",
                           "ClassName": "UIProperty",
+                          "RuntimeId": "1800-271265552-0",
                           "Rect": [
                             941,
                             278,
@@ -574,6 +619,7 @@
                           "Name": "\u30B5\u30A4\u30BA",
                           "AutomationId": "System.Size",
                           "ClassName": "UIProperty",
+                          "RuntimeId": "1800-271266208-0",
                           "Rect": [
                             1076,
                             278,
@@ -586,9 +632,10 @@
                     {
                       "Ref": "w46",
                       "Role": "ListItem",
-                      "Name": "spike",
+                      "Name": "testing-strategy",
                       "AutomationId": "1",
                       "ClassName": "UIItem",
+                      "RuntimeId": "1800-359077664-0",
                       "Rect": [
                         487,
                         303,
@@ -602,6 +649,7 @@
                           "Name": "\u540D\u524D",
                           "AutomationId": "System.ItemNameDisplay",
                           "ClassName": "UIProperty",
+                          "RuntimeId": "1800-271266864-0",
                           "Rect": [
                             509,
                             306,
@@ -615,6 +663,7 @@
                           "Name": "\u66F4\u65B0\u65E5\u6642",
                           "AutomationId": "System.DateModified",
                           "ClassName": "UIProperty",
+                          "RuntimeId": "1800-271258336-0",
                           "Rect": [
                             779,
                             306,
@@ -628,6 +677,7 @@
                           "Name": "\u7A2E\u985E",
                           "AutomationId": "System.ItemTypeText",
                           "ClassName": "UIProperty",
+                          "RuntimeId": "1800-27085792-0",
                           "Rect": [
                             941,
                             306,
@@ -641,76 +691,10 @@
                           "Name": "\u30B5\u30A4\u30BA",
                           "AutomationId": "System.Size",
                           "ClassName": "UIProperty",
+                          "RuntimeId": "1800-27087104-0",
                           "Rect": [
                             1076,
                             306,
-                            90,
-                            19
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "Ref": "w51",
-                      "Role": "ListItem",
-                      "Name": ".gitignore",
-                      "AutomationId": "2",
-                      "ClassName": "UIItem",
-                      "Rect": [
-                        487,
-                        331,
-                        675,
-                        24
-                      ],
-                      "Children": [
-                        {
-                          "Ref": "w47",
-                          "Role": "Edit",
-                          "Name": "\u540D\u524D",
-                          "AutomationId": "System.ItemNameDisplay",
-                          "ClassName": "UIProperty",
-                          "Rect": [
-                            509,
-                            334,
-                            270,
-                            19
-                          ]
-                        },
-                        {
-                          "Ref": "w48",
-                          "Role": "Edit",
-                          "Name": "\u66F4\u65B0\u65E5\u6642",
-                          "AutomationId": "System.DateModified",
-                          "ClassName": "UIProperty",
-                          "Rect": [
-                            779,
-                            334,
-                            162,
-                            19
-                          ]
-                        },
-                        {
-                          "Ref": "w49",
-                          "Role": "Edit",
-                          "Name": "\u7A2E\u985E",
-                          "AutomationId": "System.ItemTypeText",
-                          "ClassName": "UIProperty",
-                          "Rect": [
-                            941,
-                            334,
-                            135,
-                            19
-                          ]
-                        },
-                        {
-                          "Ref": "w50",
-                          "Role": "Edit",
-                          "Name": "\u30B5\u30A4\u30BA",
-                          "AutomationId": "System.Size",
-                          "ClassName": "UIProperty",
-                          "Rect": [
-                            1076,
-                            334,
                             90,
                             19
                           ]
@@ -729,6 +713,7 @@
       "Ref": "w112",
       "Role": "Pane",
       "ClassName": "Microsoft.UI.Content.DesktopChildSiteBridge",
+      "RuntimeId": "42-263436",
       "Rect": [
         313,
         109,
@@ -740,6 +725,7 @@
           "Ref": "w111",
           "Role": "Pane",
           "ClassName": "InputSiteWindowClass",
+          "RuntimeId": "42-197892",
           "Rect": [
             313,
             109,
@@ -748,10 +734,11 @@
           ],
           "Children": [
             {
-              "Ref": "w62",
+              "Ref": "w57",
               "Role": "Tab",
               "AutomationId": "TabView",
               "ClassName": "Microsoft.UI.Xaml.Controls.TabView",
+              "RuntimeId": "42-197892-4-1",
               "Rect": [
                 313,
                 109,
@@ -760,10 +747,11 @@
               ],
               "Children": [
                 {
-                  "Ref": "w60",
+                  "Ref": "w55",
                   "Role": "List",
                   "AutomationId": "TabListView",
                   "ClassName": "ListView",
+                  "RuntimeId": "42-197892-4-9",
                   "Rect": [
                     315,
                     109,
@@ -772,10 +760,11 @@
                   ],
                   "Children": [
                     {
-                      "Ref": "w59",
+                      "Ref": "w54",
                       "Role": "TabItem",
-                      "Name": "adact",
+                      "Name": "skills",
                       "ClassName": "ListViewItem",
+                      "RuntimeId": "42-197892-4-11",
                       "Rect": [
                         317,
                         115,
@@ -784,9 +773,10 @@
                       ],
                       "Children": [
                         {
-                          "Ref": "w56",
+                          "Ref": "w51",
                           "Role": "Image",
                           "ClassName": "Image",
+                          "RuntimeId": "42-197892-4-107",
                           "Rect": [
                             330,
                             123,
@@ -795,23 +785,25 @@
                           ]
                         },
                         {
-                          "Ref": "w57",
+                          "Ref": "w52",
                           "Role": "Text",
-                          "Name": "adact",
+                          "Name": "skills",
                           "ClassName": "TextBlock",
+                          "RuntimeId": "42-197892-4-13",
                           "Rect": [
                             356,
                             123,
-                            30,
+                            26,
                             16
                           ]
                         },
                         {
-                          "Ref": "w58",
+                          "Ref": "w53",
                           "Role": "Button",
                           "Name": "\u30BF\u30D6\u3092\u9589\u3058\u308B",
                           "AutomationId": "CloseButton",
                           "ClassName": "Button",
+                          "RuntimeId": "42-197892-4-14",
                           "Rect": [
                             524,
                             119,
@@ -824,11 +816,12 @@
                   ]
                 },
                 {
-                  "Ref": "w61",
+                  "Ref": "w56",
                   "Role": "Button",
                   "Name": "\u65B0\u3057\u3044\u30BF\u30D6\u306E\u8FFD\u52A0",
                   "AutomationId": "AddButton",
                   "ClassName": "Button",
+                  "RuntimeId": "42-197892-4-10",
                   "Rect": [
                     568,
                     120,
@@ -839,10 +832,11 @@
               ]
             },
             {
-              "Ref": "w67",
+              "Ref": "w62",
               "Role": "AppBar",
               "AutomationId": "NavigationCommands",
               "ClassName": "ApplicationBar",
+              "RuntimeId": "42-197892-4-2",
               "Rect": [
                 316,
                 147,
@@ -851,11 +845,12 @@
               ],
               "Children": [
                 {
-                  "Ref": "w63",
+                  "Ref": "w58",
                   "Role": "Button",
                   "Name": "\u623B\u308B",
                   "AutomationId": "backButton",
                   "ClassName": "AppBarButton",
+                  "RuntimeId": "42-197892-4-17",
                   "Rect": [
                     324,
                     155,
@@ -864,11 +859,12 @@
                   ]
                 },
                 {
-                  "Ref": "w64",
+                  "Ref": "w59",
                   "Role": "Button",
                   "Name": "\u9032\u3080",
                   "AutomationId": "forwardButton",
                   "ClassName": "AppBarButton",
+                  "RuntimeId": "42-197892-4-18",
                   "Rect": [
                     372,
                     155,
@@ -877,11 +873,12 @@
                   ]
                 },
                 {
-                  "Ref": "w65",
+                  "Ref": "w60",
                   "Role": "Button",
-                  "Name": "\u0022dev\u0022 \u3078 (Alt\u002B\u4E0A\u77E2\u5370)",
+                  "Name": "\u0022.github\u0022 \u3078 (Alt\u002B\u4E0A\u77E2\u5370)",
                   "AutomationId": "upButton",
                   "ClassName": "AppBarButton",
+                  "RuntimeId": "42-197892-4-19",
                   "Rect": [
                     420,
                     155,
@@ -890,11 +887,12 @@
                   ]
                 },
                 {
-                  "Ref": "w66",
+                  "Ref": "w61",
                   "Role": "Button",
-                  "Name": "\u0022adact\u0022 \u3092\u6700\u65B0\u306E\u60C5\u5831\u306B\u66F4\u65B0(F5)",
+                  "Name": "\u0022skills\u0022 \u3092\u6700\u65B0\u306E\u60C5\u5831\u306B\u66F4\u65B0(F5)",
                   "AutomationId": "refreshButton",
                   "ClassName": "AppBarButton",
+                  "RuntimeId": "42-197892-4-20",
                   "Rect": [
                     468,
                     155,
@@ -905,10 +903,11 @@
               ]
             },
             {
-              "Ref": "w69",
+              "Ref": "w64",
               "Role": "Group",
               "AutomationId": "PART_AutoSuggestBox",
               "ClassName": "AutoSuggestBox",
+              "RuntimeId": "42-197892-4-3",
               "Rect": [
                 514,
                 155,
@@ -917,11 +916,12 @@
               ],
               "Children": [
                 {
-                  "Ref": "w68",
+                  "Ref": "w63",
                   "Role": "Edit",
                   "Name": "\u30A2\u30C9\u30EC\u30B9 \u30D0\u30FC",
                   "AutomationId": "TextBox",
                   "ClassName": "TextBox",
+                  "RuntimeId": "42-197892-4-25",
                   "Rect": [
                     514,
                     155,
@@ -932,11 +932,12 @@
               ]
             },
             {
-              "Ref": "w71",
+              "Ref": "w66",
               "Role": "SplitButton",
               "Name": "PC",
               "AutomationId": "FirstCrumbStackPanel",
               "ClassName": "FileExplorerExtensions.FirstCrumbStackPanelControl",
+              "RuntimeId": "42-197892-4-4",
               "Rect": [
                 527,
                 159,
@@ -945,9 +946,10 @@
               ],
               "Children": [
                 {
-                  "Ref": "w70",
+                  "Ref": "w65",
                   "Role": "Image",
                   "ClassName": "Image",
+                  "RuntimeId": "42-197892-4-28",
                   "Rect": [
                     527,
                     163,
@@ -962,6 +964,7 @@
               "Role": "Group",
               "AutomationId": "PART_BreadcrumbBar",
               "ClassName": "LandmarkTarget",
+              "RuntimeId": "42-197892-4-5",
               "Rect": [
                 578,
                 159,
@@ -970,76 +973,95 @@
               ],
               "Children": [
                 {
-                  "Ref": "w73",
+                  "Ref": "w67",
                   "Role": "SplitButton",
-                  "Name": "PC",
+                  "Name": "\u8A73\u7D30",
                   "ClassName": "FileExplorerExtensions.BreadcrumbBarItemControl",
+                  "RuntimeId": "42-197892-4-108",
                   "Rect": [
                     578,
                     159,
-                    58,
+                    31,
                     24
+                  ]
+                },
+                {
+                  "Ref": "w69",
+                  "Role": "SplitButton",
+                  "Name": "PC",
+                  "ClassName": "FileExplorerExtensions.BreadcrumbBarItemControl",
+                  "RuntimeId": "42-197892-4-109",
+                  "Rect": [
+                    0,
+                    0,
+                    0,
+                    0
                   ],
                   "Children": [
                     {
-                      "Ref": "w72",
+                      "Ref": "w68",
                       "Role": "Text",
                       "Name": "PC",
                       "ClassName": "TextBlock",
+                      "RuntimeId": "42-197892-4-149",
                       "Rect": [
-                        587,
-                        161,
-                        17,
-                        19
+                        0,
+                        0,
+                        0,
+                        0
                       ]
                     }
                   ]
                 },
                 {
-                  "Ref": "w75",
+                  "Ref": "w71",
                   "Role": "SplitButton",
                   "Name": "\u30ED\u30FC\u30AB\u30EB \u30C7\u30A3\u30B9\u30AF (C:)",
                   "ClassName": "FileExplorerExtensions.BreadcrumbBarItemControl",
+                  "RuntimeId": "42-197892-4-110",
                   "Rect": [
-                    636,
-                    159,
-                    151,
-                    24
+                    0,
+                    0,
+                    0,
+                    0
                   ],
                   "Children": [
                     {
-                      "Ref": "w74",
+                      "Ref": "w70",
                       "Role": "Text",
                       "Name": "\u30ED\u30FC\u30AB\u30EB \u30C7\u30A3\u30B9\u30AF (C:)",
                       "ClassName": "TextBlock",
+                      "RuntimeId": "42-197892-4-154",
                       "Rect": [
-                        645,
-                        161,
-                        110,
-                        19
+                        0,
+                        0,
+                        0,
+                        0
                       ]
                     }
                   ]
                 },
                 {
-                  "Ref": "w77",
+                  "Ref": "w73",
                   "Role": "SplitButton",
                   "Name": "\u30E6\u30FC\u30B6\u30FC",
                   "ClassName": "FileExplorerExtensions.BreadcrumbBarItemControl",
+                  "RuntimeId": "42-197892-4-111",
                   "Rect": [
-                    786,
+                    609,
                     159,
                     83,
                     24
                   ],
                   "Children": [
                     {
-                      "Ref": "w76",
+                      "Ref": "w72",
                       "Role": "Text",
                       "Name": "\u30E6\u30FC\u30B6\u30FC",
                       "ClassName": "TextBlock",
+                      "RuntimeId": "42-197892-4-120",
                       "Rect": [
-                        795,
+                        618,
                         161,
                         42,
                         19
@@ -1048,24 +1070,26 @@
                   ]
                 },
                 {
-                  "Ref": "w79",
+                  "Ref": "w75",
                   "Role": "SplitButton",
                   "Name": "yuta_",
                   "ClassName": "FileExplorerExtensions.BreadcrumbBarItemControl",
+                  "RuntimeId": "42-197892-4-112",
                   "Rect": [
-                    869,
+                    691,
                     159,
                     74,
                     24
                   ],
                   "Children": [
                     {
-                      "Ref": "w78",
+                      "Ref": "w74",
                       "Role": "Text",
                       "Name": "yuta_",
                       "ClassName": "TextBlock",
+                      "RuntimeId": "42-197892-4-125",
                       "Rect": [
-                        878,
+                        700,
                         161,
                         33,
                         19
@@ -1074,24 +1098,26 @@
                   ]
                 },
                 {
-                  "Ref": "w81",
+                  "Ref": "w77",
                   "Role": "SplitButton",
                   "Name": "dev",
                   "ClassName": "FileExplorerExtensions.BreadcrumbBarItemControl",
+                  "RuntimeId": "42-197892-4-113",
                   "Rect": [
-                    942,
+                    765,
                     159,
                     64,
                     24
                   ],
                   "Children": [
                     {
-                      "Ref": "w80",
+                      "Ref": "w76",
                       "Role": "Text",
                       "Name": "dev",
                       "ClassName": "TextBlock",
+                      "RuntimeId": "42-197892-4-130",
                       "Rect": [
-                        951,
+                        774,
                         161,
                         23,
                         19
@@ -1100,26 +1126,84 @@
                   ]
                 },
                 {
-                  "Ref": "w83",
+                  "Ref": "w79",
                   "Role": "SplitButton",
                   "Name": "adact",
                   "ClassName": "FileExplorerExtensions.BreadcrumbBarItemControl",
+                  "RuntimeId": "42-197892-4-114",
                   "Rect": [
-                    1006,
+                    828,
                     159,
-                    76,
+                    75,
+                    24
+                  ],
+                  "Children": [
+                    {
+                      "Ref": "w78",
+                      "Role": "Text",
+                      "Name": "adact",
+                      "ClassName": "TextBlock",
+                      "RuntimeId": "42-197892-4-135",
+                      "Rect": [
+                        837,
+                        161,
+                        34,
+                        19
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Ref": "w81",
+                  "Role": "SplitButton",
+                  "Name": ".github",
+                  "ClassName": "FileExplorerExtensions.BreadcrumbBarItemControl",
+                  "RuntimeId": "42-197892-4-115",
+                  "Rect": [
+                    903,
+                    159,
+                    85,
+                    24
+                  ],
+                  "Children": [
+                    {
+                      "Ref": "w80",
+                      "Role": "Text",
+                      "Name": ".github",
+                      "ClassName": "TextBlock",
+                      "RuntimeId": "42-197892-4-140",
+                      "Rect": [
+                        912,
+                        161,
+                        44,
+                        19
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Ref": "w83",
+                  "Role": "SplitButton",
+                  "Name": "skills",
+                  "ClassName": "FileExplorerExtensions.BreadcrumbBarItemControl",
+                  "RuntimeId": "42-197892-4-116",
+                  "Rect": [
+                    988,
+                    159,
+                    72,
                     24
                   ],
                   "Children": [
                     {
                       "Ref": "w82",
                       "Role": "Text",
-                      "Name": "adact",
+                      "Name": "skills",
                       "ClassName": "TextBlock",
+                      "RuntimeId": "42-197892-4-145",
                       "Rect": [
-                        1015,
+                        997,
                         161,
-                        34,
+                        30,
                         19
                       ]
                     }
@@ -1132,6 +1216,7 @@
               "Role": "Group",
               "AutomationId": "FileExplorerSearchBox",
               "ClassName": "AutoSuggestBox",
+              "RuntimeId": "42-197892-4-6",
               "Rect": [
                 1167,
                 155,
@@ -1142,9 +1227,10 @@
                 {
                   "Ref": "w86",
                   "Role": "Edit",
-                  "Name": " adact\u306E\u691C\u7D22",
+                  "Name": " skills\u306E\u691C\u7D22",
                   "AutomationId": "TextBox",
                   "ClassName": "TextBox",
+                  "RuntimeId": "42-197892-4-72",
                   "Rect": [
                     1167,
                     155,
@@ -1155,12 +1241,13 @@
                     {
                       "Ref": "w85",
                       "Role": "Text",
-                      "Name": " adact\u306E\u691C\u7D22",
+                      "Name": " skills\u306E\u691C\u7D22",
                       "ClassName": "TextBlock",
+                      "RuntimeId": "42-197892-4-75",
                       "Rect": [
                         1178,
                         161,
-                        77,
+                        73,
                         19
                       ]
                     }
@@ -1173,6 +1260,7 @@
               "Role": "AppBar",
               "AutomationId": "FileExplorerCommandBar",
               "ClassName": "ApplicationBar",
+              "RuntimeId": "42-197892-4-7",
               "Rect": [
                 313,
                 196,
@@ -1185,6 +1273,7 @@
                   "Role": "Button",
                   "Name": "\u65B0\u898F\u4F5C\u6210",
                   "ClassName": "AppBarButton",
+                  "RuntimeId": "42-197892-4-78",
                   "Rect": [
                     319,
                     196,
@@ -1196,6 +1285,7 @@
                       "Ref": "w88",
                       "Role": "Image",
                       "ClassName": "Image",
+                      "RuntimeId": "42-197892-4-88",
                       "Rect": [
                         331,
                         212,
@@ -1210,6 +1300,7 @@
                   "Role": "Button",
                   "Name": "\u5207\u308A\u53D6\u308A",
                   "ClassName": "AppBarButton",
+                  "RuntimeId": "42-197892-4-79",
                   "Rect": [
                     439,
                     196,
@@ -1221,6 +1312,7 @@
                       "Ref": "w90",
                       "Role": "Image",
                       "ClassName": "Image",
+                      "RuntimeId": "42-197892-4-91",
                       "Rect": [
                         451,
                         212,
@@ -1235,6 +1327,7 @@
                   "Role": "Button",
                   "Name": "\u30B3\u30D4\u30FC\u200B\u200B",
                   "ClassName": "AppBarButton",
+                  "RuntimeId": "42-197892-4-80",
                   "Rect": [
                     487,
                     196,
@@ -1246,6 +1339,7 @@
                       "Ref": "w92",
                       "Role": "Image",
                       "ClassName": "Image",
+                      "RuntimeId": "42-197892-4-92",
                       "Rect": [
                         499,
                         212,
@@ -1260,6 +1354,7 @@
                   "Role": "Button",
                   "Name": "\u8CBC\u308A\u4ED8\u3051\u200B\u200B",
                   "ClassName": "AppBarButton",
+                  "RuntimeId": "42-197892-4-81",
                   "Rect": [
                     535,
                     196,
@@ -1271,6 +1366,7 @@
                       "Ref": "w94",
                       "Role": "Image",
                       "ClassName": "Image",
+                      "RuntimeId": "42-197892-4-93",
                       "Rect": [
                         547,
                         212,
@@ -1285,6 +1381,7 @@
                   "Role": "Button",
                   "Name": "\u540D\u524D\u306E\u5909\u66F4",
                   "ClassName": "AppBarButton",
+                  "RuntimeId": "42-197892-4-82",
                   "Rect": [
                     583,
                     196,
@@ -1296,6 +1393,7 @@
                       "Ref": "w96",
                       "Role": "Image",
                       "ClassName": "Image",
+                      "RuntimeId": "42-197892-4-94",
                       "Rect": [
                         595,
                         212,
@@ -1310,6 +1408,7 @@
                   "Role": "Button",
                   "Name": "\u5171\u6709",
                   "ClassName": "AppBarButton",
+                  "RuntimeId": "42-197892-4-83",
                   "Rect": [
                     631,
                     196,
@@ -1321,6 +1420,7 @@
                       "Ref": "w98",
                       "Role": "Image",
                       "ClassName": "Image",
+                      "RuntimeId": "42-197892-4-95",
                       "Rect": [
                         643,
                         212,
@@ -1335,6 +1435,7 @@
                   "Role": "Button",
                   "Name": "\u524A\u9664\u200B\u200B",
                   "ClassName": "AppBarButton",
+                  "RuntimeId": "42-197892-4-84",
                   "Rect": [
                     679,
                     196,
@@ -1346,6 +1447,7 @@
                       "Ref": "w100",
                       "Role": "Image",
                       "ClassName": "Image",
+                      "RuntimeId": "42-197892-4-96",
                       "Rect": [
                         691,
                         212,
@@ -1361,6 +1463,7 @@
                   "Name": "\u4E26\u3079\u66FF\u3048",
                   "AutomationId": "SortAndGroupButton",
                   "ClassName": "AppBarButton",
+                  "RuntimeId": "42-197892-4-85",
                   "Rect": [
                     730,
                     196,
@@ -1372,6 +1475,7 @@
                       "Ref": "w102",
                       "Role": "Image",
                       "ClassName": "Image",
+                      "RuntimeId": "42-197892-4-97",
                       "Rect": [
                         742,
                         212,
@@ -1386,6 +1490,7 @@
                   "Role": "Button",
                   "Name": "\u8868\u793A",
                   "ClassName": "AppBarButton",
+                  "RuntimeId": "42-197892-4-86",
                   "Rect": [
                     838,
                     196,
@@ -1397,6 +1502,7 @@
                       "Ref": "w104",
                       "Role": "Image",
                       "ClassName": "Image",
+                      "RuntimeId": "42-197892-4-100",
                       "Rect": [
                         850,
                         212,
@@ -1412,6 +1518,7 @@
                   "Name": "\u305D\u306E\u4ED6\u306E\u30AA\u30D7\u30B7\u30E7\u30F3",
                   "AutomationId": "MoreButton",
                   "ClassName": "Button",
+                  "RuntimeId": "42-197892-4-87",
                   "Rect": [
                     930,
                     196,
@@ -1426,6 +1533,7 @@
               "Role": "AppBar",
               "AutomationId": "FileExplorerSecondaryCommandBar",
               "ClassName": "ApplicationBar",
+              "RuntimeId": "42-197892-4-8",
               "Rect": [
                 1349,
                 196,
@@ -1439,6 +1547,7 @@
                   "Name": "\u8A73\u7D30",
                   "AutomationId": "DetailsPaneToggleButton",
                   "ClassName": "AppBarButton",
+                  "RuntimeId": "42-197892-4-104",
                   "Rect": [
                     1357,
                     196,
@@ -1450,6 +1559,7 @@
                       "Ref": "w108",
                       "Role": "Image",
                       "ClassName": "Image",
+                      "RuntimeId": "42-197892-4-105",
                       "Rect": [
                         1369,
                         212,
@@ -1469,6 +1579,7 @@
       "Ref": "w118",
       "Role": "TitleBar",
       "AutomationId": "TitleBar",
+      "RuntimeId": "42-459958-3--2147483647-459958--2-0",
       "Rect": [
         0,
         0,
@@ -1481,6 +1592,7 @@
           "Role": "MenuBar",
           "Name": "\u30B7\u30B9\u30C6\u30E0",
           "AutomationId": "SystemMenuBar",
+          "RuntimeId": "42-459958-3--2147483646-1800-262309-0",
           "Rect": [
             313,
             114,
@@ -1492,6 +1604,7 @@
               "Ref": "w113",
               "Role": "MenuItem",
               "Name": "\u30B7\u30B9\u30C6\u30E0",
+              "RuntimeId": "42-459958-3--2147483646-804-262309-1",
               "Rect": [
                 313,
                 114,
@@ -1506,6 +1619,7 @@
           "Role": "Button",
           "Name": "\u6700\u5C0F\u5316",
           "AutomationId": "Minimize-Restore",
+          "RuntimeId": "42-459958-3--2147483647-459958--2-2",
           "Rect": [
             1299,
             108,
@@ -1518,6 +1632,7 @@
           "Role": "Button",
           "Name": "\u6700\u5927\u5316",
           "AutomationId": "Maximize-Restore",
+          "RuntimeId": "42-459958-3--2147483647-459958--2-3",
           "Rect": [
             1346,
             108,
@@ -1530,6 +1645,7 @@
           "Role": "Button",
           "Name": "\u9589\u3058\u308B",
           "AutomationId": "Close",
+          "RuntimeId": "42-459958-3--2147483647-459958--2-5",
           "Rect": [
             1392,
             108,
