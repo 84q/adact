@@ -1,6 +1,5 @@
 using System.Text.Json;
 
-using Adact.Engine.Filters;
 using Adact.Engine.Snapshot;
 
 using Xunit;
@@ -11,16 +10,15 @@ namespace Adact.Engine.Tests.Integration;
 public class SnapshotBuilderTests
 {
     private static (JsonDocument doc, SnapshotBuildResult result) Build(
-        FakeElement root, string filterName = "operable",
+        FakeElement root,
         IReadOnlyList<Adact.Engine.Elements.IElement>? modals = null,
         int sessionId = 1)
     {
         var registry = new RefRegistry(sessionId);
-        var filter = new FilterStrategyRegistry().Get(filterName);
         var builder = new SnapshotBuilder(registry);
         var input = new SnapshotBuildInput(
-            root, modals ?? Array.Empty<Adact.Engine.Elements.IElement>(), filter,
-            new SnapshotOptions(filterName),
+            root, modals ?? Array.Empty<Adact.Engine.Elements.IElement>(),
+            new SnapshotOptions(),
             WindowTitle: root.Name ?? "",
             ProcessName: "Fake",
             ProcessId: 99,
@@ -30,35 +28,23 @@ public class SnapshotBuilderTests
     }
 
     [Fact]
-    public void Operable_FlattensUnnamedPane_AndPromotesGrandchildren()
+    public void Raw_IncludesUnnamedPaneAndItsChildren()
     {
+        // Phase 7: SnapshotBuilder は raw 全要素出力。flatten / Exclude は CLI 側に移譲。
         var btn = FakeElement.Button("inner");
         var root = FakeElement.Window("T", FakeElement.Pane(null, btn));
         var (doc, _) = Build(root);
 
         var children = doc.RootElement.GetProperty("tree").GetProperty("children");
         Assert.Equal(1, children.GetArrayLength());
-        Assert.Equal("Button", children[0].GetProperty("role").GetString());
-        Assert.Equal("inner", children[0].GetProperty("name").GetString());
-    }
-
-    [Fact]
-    public void Operable_NamedPane_IsKeptAsContainer()
-    {
-        var root = FakeElement.Window("T",
-            FakeElement.Pane("Named",
-                FakeElement.Button("inner")));
-        var (doc, _) = Build(root);
-
-        var children = doc.RootElement.GetProperty("tree").GetProperty("children");
-        Assert.Equal(1, children.GetArrayLength());
         Assert.Equal("Pane", children[0].GetProperty("role").GetString());
-        Assert.Equal("Named", children[0].GetProperty("name").GetString());
-        Assert.Equal("Button", children[0].GetProperty("children")[0].GetProperty("role").GetString());
+        var grand = children[0].GetProperty("children");
+        Assert.Equal(1, grand.GetArrayLength());
+        Assert.Equal("Button", grand[0].GetProperty("role").GetString());
     }
 
     [Fact]
-    public void Operable_OffscreenElement_IsExcluded()
+    public void Raw_OffscreenElement_IsStillIncluded()
     {
         var hidden = FakeElement.Button("hidden");
         hidden.IsOffscreen = true;
@@ -67,22 +53,8 @@ public class SnapshotBuilderTests
         var (doc, _) = Build(root);
 
         var children = doc.RootElement.GetProperty("tree").GetProperty("children");
-        Assert.Equal(1, children.GetArrayLength());
-        Assert.Equal("visible", children[0].GetProperty("name").GetString());
-    }
-
-    [Fact]
-    public void Operable_NestedUnnamedPanes_AreFlattened()
-    {
-        var btn = FakeElement.Button("deep");
-        var root = FakeElement.Window("T",
-            FakeElement.Pane(null,
-                FakeElement.Pane(null, btn)));
-        var (doc, _) = Build(root);
-
-        var children = doc.RootElement.GetProperty("tree").GetProperty("children");
-        Assert.Equal(1, children.GetArrayLength());
-        Assert.Equal("Button", children[0].GetProperty("role").GetString());
+        Assert.Equal(2, children.GetArrayLength());
+        Assert.True(children[0].GetProperty("isOffscreen").GetBoolean());
     }
 
     [Fact]
@@ -111,12 +83,11 @@ public class SnapshotBuilderTests
     public void SameElement_AcrossSnapshots_ReusesRef()
     {
         var registry = new RefRegistry(1);
-        var filter = new FilterStrategyRegistry().Get("operable");
         var builder = new SnapshotBuilder(registry);
 
         // 同一 RuntimeId を持つ要素ツリーを 2 回 Build する。RuntimeId が同一なら ref は再利用される。
-        var firstRefs = BuildAndCollectRefs(builder, filter, MakeWindowWithButton());
-        var secondRefs = BuildAndCollectRefs(builder, filter, MakeWindowWithButton());
+        var firstRefs = BuildAndCollectRefs(builder, MakeWindowWithButton());
+        var secondRefs = BuildAndCollectRefs(builder, MakeWindowWithButton());
 
         Assert.Equal(firstRefs, secondRefs);
     }
@@ -151,11 +122,10 @@ public class SnapshotBuilderTests
         return w;
     }
 
-    private static string[] BuildAndCollectRefs(
-        SnapshotBuilder builder, IFilterStrategy filter, FakeElement root)
+    private static string[] BuildAndCollectRefs(SnapshotBuilder builder, FakeElement root)
     {
         var input = new SnapshotBuildInput(
-            root, Array.Empty<Adact.Engine.Elements.IElement>(), filter,
+            root, Array.Empty<Adact.Engine.Elements.IElement>(),
             new SnapshotOptions(),
             WindowTitle: root.Name ?? "",
             ProcessName: "Fake",

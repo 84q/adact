@@ -1,7 +1,6 @@
 using System.Diagnostics;
 
 using Adact.Engine.Exceptions;
-using Adact.Engine.Filters;
 
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
@@ -20,7 +19,6 @@ namespace Adact.Engine;
 public sealed class UiaEngine : IDisposable
 {
   private readonly AutomationBase _automation;
-  private readonly FilterStrategyRegistry _filters;
   private readonly ILoggerFactory _loggerFactory;
   private readonly ILogger<UiaEngine> _logger;
   // UIA はマシン全体で前面ウィンドウを取り合うため、Engine と Engine が払い出す
@@ -30,8 +28,8 @@ public sealed class UiaEngine : IDisposable
   private int _nextSessionId;
   private bool _disposed;
 
-  public UiaEngine(ILoggerFactory? loggerFactory = null, FilterStrategyRegistry? filters = null)
-      : this(new UIA3Automation(), loggerFactory, filters)
+  public UiaEngine(ILoggerFactory? loggerFactory = null)
+      : this(new UIA3Automation(), loggerFactory)
   {
   }
 
@@ -39,15 +37,12 @@ public sealed class UiaEngine : IDisposable
   /// テスト容易性および将来の UIA2 fallback のため、外部から <see cref="AutomationBase"/> を注入可能。
   /// 渡された automation は本インスタンスが Dispose する。
   /// </summary>
-  internal UiaEngine(AutomationBase automation, ILoggerFactory? loggerFactory = null, FilterStrategyRegistry? filters = null)
+  internal UiaEngine(AutomationBase automation, ILoggerFactory? loggerFactory = null)
   {
     _automation = automation;
-    _filters = filters ?? new FilterStrategyRegistry();
     _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
     _logger = _loggerFactory.CreateLogger<UiaEngine>();
   }
-
-  public FilterStrategyRegistry Filters => _filters;
 
   public Task<IReadOnlyList<WindowInfo>> ListWindowsAsync(CancellationToken ct = default)
   {
@@ -129,7 +124,6 @@ public sealed class UiaEngine : IDisposable
               raw.AsWindow(),
               sessionId,
               target,
-              _filters,
               _gate,
               _loggerFactory.CreateLogger<WindowSession>(),
               ownsAutomation: false);
@@ -190,7 +184,6 @@ public sealed class UiaEngine : IDisposable
               raw.AsWindow(),
               sessionId,
               target,
-              _filters,
               _gate,
               _loggerFactory.CreateLogger<WindowSession>(),
               ownsAutomation: false);

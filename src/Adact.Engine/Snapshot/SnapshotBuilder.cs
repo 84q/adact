@@ -2,14 +2,16 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 
 using Adact.Engine.Elements;
-using Adact.Engine.Filters;
 
 namespace Adact.Engine.Snapshot;
 
 /// <summary>
-/// IElement のツリーを Snapshot JSON へ変換するビルダ。
-/// FilterStrategy.Decide の 3 値 (Include/Flatten/Exclude) を尊重し、
-/// モーダル兄弟ノード ( <c>isModalDialog: true</c> ) を root window の追加子として挿入する。
+/// IElement のツリーを raw 全要素・全フィールドの JSON に変換するビルダ。
+///
+/// Phase 7 でフィルタ (operable/raw 切替・フィールド選別) は CLI 側へ移譲したため、
+/// ここでは原則すべての子要素を含め、UIA から取得できるプロパティを欠落なく出力する。
+/// モーダル兄弟ノード ( <c>isModalDialog: true</c> ) は引き続き root window の追加子として
+/// 挿入する (Architecture §6.5)。
 /// </summary>
 public sealed class SnapshotBuilder
 {
@@ -27,24 +29,20 @@ public sealed class SnapshotBuilder
     {
         _registry.BeginSnapshot();
 
-        // SnapshotOptions.MaxDepth を実際の再帰深度ガードとして用いる。0 以下の場合は既定値にフォールバック。
         var maxDepth = input.Options.MaxDepth > 0 ? input.Options.MaxDepth : DefaultMaxDepth;
 
         // DFS 出現順カウンタ。RuntimeId 取得不可な要素の StableKey フォールバックに用いる。
         var positionalIndex = 0;
 
-        // tree のルートは常にメインウィンドウを Include 強制 (filter の判定に依らない)
-        var rootNode = BuildIncludeNode(input.RootWindow, input.Filter, depth: 0, maxDepth, isModalDialog: false, ref positionalIndex);
+        var rootNode = BuildNode(input.RootWindow, depth: 0, maxDepth, isModalDialog: false, ref positionalIndex);
 
-        // モーダル兄弟は root window の追加子として isModalDialog: true 付きで挿入する。
-        // (Architecture §6.5 の「Snapshot tree に兄弟ノードとして」を、単一 tree 構造に展開した実装)
         var modalSummaries = new JsonArray();
         if (input.ModalSiblings.Count > 0)
         {
             var children = (rootNode["children"] as JsonArray) ?? new JsonArray();
             foreach (var modal in input.ModalSiblings)
             {
-                var modalNode = BuildIncludeNode(modal, input.Filter, depth: 0, maxDepth, isModalDialog: true, ref positionalIndex);
+                var modalNode = BuildNode(modal, depth: 0, maxDepth, isModalDialog: true, ref positionalIndex);
                 children.Add(modalNode);
                 modalSummaries.Add(new JsonObject
                 {
@@ -57,7 +55,6 @@ public sealed class SnapshotBuilder
 
         var meta = new JsonObject
         {
-            ["filter"] = input.Filter.Name,
             ["options"] = new JsonObject { ["maxDepth"] = input.Options.MaxDepth },
             ["generatedAt"] = input.GeneratedAt.UtcDateTime.ToString("O"),
             ["sessionId"] = $"s{_registry.SessionId}",
@@ -81,26 +78,32 @@ public sealed class SnapshotBuilder
         return new SnapshotBuildResult(json, $"s{_registry.SessionId}");
     }
 
-    /// <summary>Include 確定の要素から JSON ノードを構築する (root / 通常子 共通)。</summary>
-    private JsonObject BuildIncludeNode(
-        IElement el, IFilterStrategy filter, int depth, int maxDepth, bool isModalDialog, ref int positionalIndex)
+    /// <summary>raw 全フィールドを JSON ノードとして出力する (フィルタなし、すべての子を再帰)。</summary>
+    private JsonObject BuildNode(
+        IElement el, int depth, int maxDepth, bool isModalDialog, ref int positionalIndex)
     {
         var refId = _registry.Register(el, positionalIndex);
         positionalIndex++;
+
         var node = new JsonObject
         {
             ["ref"] = refId,
             ["role"] = el.ControlType,
         };
 
-        var props = filter.ExtractProperties(el);
-        foreach (var kv in props)
-        {
-            if (kv.Key is "ref" or "role" or "children" or "isModalDialog") continue;
-            if (kv.Value is null) continue;
-            node[kv.Key] = ToJsonNode(kv.Value);
-        }
-
+        if (!string.IsNullOrEmpty(el.Name)) node["name"] = el.Name;
+        if (!string.IsNullOrEmpty(el.AutomationId)) node["automationId"] = el.AutomationId;
+        if (!string.IsNullOrEmpty(el.ClassName)) node["className"] = el.ClassName;
+        node["isEnabled"] = el.IsEnabled;
+        node["isOffscreen"] = el.IsOffscreen;
+        if (!string.IsNullOrEmpty(el.Value)) node["value"] = el.Value;
+        if (!string.IsNullOrEmpty(el.HelpText)) node["helpText"] = el.HelpText;
+        var r = el.BoundingRectangle;
+        node["boundingRect"] = new JsonArray(
+            JsonValue.Create(r.X), JsonValue.Create(r.Y),
+            JsonValue.Create(r.Width), JsonValue.Create(r.Height));
+        node["isKeyboardFocusable"] = el.IsKeyboardFocusable;
+        node["hasKeyboardFocus"] = el.HasKeyboardFocus;
         if (isModalDialog) node["isModalDialog"] = true;
 
         var childNodes = new JsonArray();
@@ -108,49 +111,10 @@ public sealed class SnapshotBuilder
         {
             foreach (var child in el.Children)
             {
-                BuildChildInto(child, filter, depth + 1, maxDepth, childNodes, ref positionalIndex);
+                childNodes.Add(BuildNode(child, depth + 1, maxDepth, isModalDialog: false, ref positionalIndex));
             }
         }
         if (childNodes.Count > 0) node["children"] = childNodes;
         return node;
-    }
-
-    /// <summary>子要素を再帰処理し、Include なら単独ノード、Flatten なら子群を、親 children に追加する。</summary>
-    private void BuildChildInto(
-        IElement child, IFilterStrategy filter, int depth, int maxDepth, JsonArray parentChildren, ref int positionalIndex)
-    {
-        var decision = filter.Decide(child, new FilterContext(depth));
-
-        switch (decision)
-        {
-            case NodeDecision.Exclude:
-                return;
-            case NodeDecision.Include:
-                parentChildren.Add(BuildIncludeNode(child, filter, depth, maxDepth, isModalDialog: false, ref positionalIndex));
-                return;
-            case NodeDecision.Flatten:
-                if (depth < maxDepth)
-                {
-                    foreach (var grand in child.Children)
-                    {
-                        BuildChildInto(grand, filter, depth + 1, maxDepth, parentChildren, ref positionalIndex);
-                    }
-                }
-                return;
-        }
-    }
-
-    private static JsonNode ToJsonNode(object value)
-    {
-        return value switch
-        {
-            JsonNode n => n,
-            string s => JsonValue.Create(s)!,
-            int i => JsonValue.Create(i)!,
-            long l => JsonValue.Create(l)!,
-            bool b => JsonValue.Create(b)!,
-            int[] ints => new JsonArray(ints.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()),
-            _ => JsonSerializer.SerializeToNode(value)!,
-        };
     }
 }

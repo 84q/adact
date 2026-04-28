@@ -1,13 +1,14 @@
 using Adact.Engine.Elements;
-using Adact.Engine.Filters;
 
 namespace Adact.Engine.Snapshot;
 
-/// <summary>SnapshotBuilder.Build に渡す入力 (Engine 内部のメタ情報)。</summary>
+/// <summary>
+/// SnapshotBuilder.Build に渡す入力 (Engine 内部のメタ情報)。
+/// Phase 7 でフィルタは CLI 側に移譲したため、フィールドからは除外している。
+/// </summary>
 public sealed record SnapshotBuildInput(
     IElement RootWindow,
     IReadOnlyList<IElement> ModalSiblings,
-    IFilterStrategy Filter,
     SnapshotOptions Options,
     string WindowTitle,
     string ProcessName,

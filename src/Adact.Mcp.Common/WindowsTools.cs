@@ -225,12 +225,10 @@ public sealed class WindowsTools
   }
 
   [McpServerTool(Name = "windows_snapshot")]
-  [Description("Take a UIA snapshot of the attached window. When sessionId is omitted, the active session (last attached) is used. filter selects 'operable' (default, AI-friendly) or 'raw' (full UIA tree).")]
+  [Description("Take a UIA snapshot of the attached window. Returns the raw UIA tree as JSON with all elements and properties; filtering and field selection are performed client-side. When sessionId is omitted, the active session (last attached) is used.")]
   public async Task<CallToolResult> SnapshotAsync(
       [Description("Session ID (e.g. 's1'). Omit to use the active session.")]
       string? sessionId = null,
-      [Description("Filter strategy: 'operable' (default) or 'raw'.")]
-      string? filter = null,
       CancellationToken ct = default)
   {
     using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
@@ -253,8 +251,7 @@ public sealed class WindowsTools
 
     try
     {
-      var options = new SnapshotOptions(FilterName: filter ?? "operable");
-      var result = await session.SnapshotAsync(options, ct).ConfigureAwait(false);
+      var result = await session.SnapshotAsync(options: null, ct).ConfigureAwait(false);
       return new CallToolResult
       {
         Content = [new TextContentBlock { Text = result.Json }],

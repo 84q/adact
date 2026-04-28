@@ -21,7 +21,6 @@ internal static class ToolErrors
   public const string RefNotFound = "REF_NOT_FOUND";
   public const string ElementInteractionFailed = "ELEMENT_INTERACTION_FAILED";
   public const string SnapshotFailed = "SNAPSHOT_FAILED";
-  public const string FilterStrategyNotFound = "FILTER_STRATEGY_NOT_FOUND";
   public const string NoActiveSession = "NO_ACTIVE_SESSION";
   public const string NotFound = "NOT_FOUND";
   public const string CloseFailed = "CLOSE_FAILED";
@@ -41,7 +40,6 @@ internal static class ToolErrors
           new JsonObject { ["refId"] = r.RefId }),
       ElementInteractionException e => Error(ElementInteractionFailed, e.Message),
       SnapshotException s => Error(SnapshotFailed, s.Message),
-      FilterStrategyNotFoundException f => Error(FilterStrategyNotFound, f.Message),
       CloseFailedException c => Error(CloseFailed, c.Message),
       KillFailedException k => Error(KillFailed, k.Message),
       _ => null,

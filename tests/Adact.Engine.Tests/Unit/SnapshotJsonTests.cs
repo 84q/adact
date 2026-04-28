@@ -1,6 +1,5 @@
 using System.Text.Json;
 
-using Adact.Engine.Filters;
 using Adact.Engine.Snapshot;
 
 using Xunit;
@@ -10,14 +9,13 @@ namespace Adact.Engine.Tests.Unit;
 [Trait("Layer", "Unit")]
 public class SnapshotJsonTests
 {
-    private static JsonDocument BuildAndParse(FakeElement root, string filterName = "operable")
+    private static JsonDocument BuildAndParse(FakeElement root)
     {
         var registry = new RefRegistry(1);
-        var filter = new FilterStrategyRegistry().Get(filterName);
         var builder = new SnapshotBuilder(registry);
         var input = new SnapshotBuildInput(
-            root, Array.Empty<Adact.Engine.Elements.IElement>(), filter,
-            new SnapshotOptions(filterName), root.Name ?? "", "FakeProcess", 1234,
+            root, Array.Empty<Adact.Engine.Elements.IElement>(),
+            new SnapshotOptions(), root.Name ?? "", "FakeProcess", 1234,
             DateTimeOffset.UnixEpoch);
         var result = builder.Build(input);
         return JsonDocument.Parse(result.Json);
@@ -29,8 +27,8 @@ public class SnapshotJsonTests
         var root = FakeElement.Window("Test", FakeElement.Button("OK"));
         using var doc = BuildAndParse(root);
         var meta = doc.RootElement.GetProperty("_meta");
-        Assert.Equal("operable", meta.GetProperty("filter").GetString());
         Assert.Equal("s1", meta.GetProperty("sessionId").GetString());
+        Assert.False(meta.TryGetProperty("filter", out _));
         Assert.False(meta.TryGetProperty("generation", out _));
         Assert.Equal("Test", meta.GetProperty("windowTitle").GetString());
         Assert.Equal("FakeProcess", meta.GetProperty("processName").GetString());
@@ -81,11 +79,12 @@ public class SnapshotJsonTests
     }
 
     [Fact]
-    public void Build_RawFilter_IncludesUnnamedPane()
+    public void Build_RawAllElements_IncludesUnnamedPane()
     {
+        // Phase 7: raw 全要素 JSON 出力。Pane (Name 無し) も flatten せずそのまま出る。
         var root = FakeElement.Window("T",
             FakeElement.Pane(null, FakeElement.Button("inner")));
-        using var doc = BuildAndParse(root, "raw");
+        using var doc = BuildAndParse(root);
         var children = doc.RootElement.GetProperty("tree").GetProperty("children");
         Assert.Equal(1, children.GetArrayLength());
         Assert.Equal("Pane", children[0].GetProperty("role").GetString());

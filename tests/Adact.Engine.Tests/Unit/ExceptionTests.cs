@@ -52,12 +52,4 @@ public class ExceptionTests
         Assert.Contains("click", ex.Message);
         Assert.Contains("boom", ex.Message);
     }
-
-    [Fact]
-    public void FilterStrategyNotFoundException_GivenStrategyName_PreservesNameProperty()
-    {
-        var ex = new FilterStrategyNotFoundException("foo");
-        Assert.Equal("foo", ex.Name);
-        Assert.Contains("foo", ex.Message);
-    }
 }

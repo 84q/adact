@@ -2,7 +2,6 @@ using System.Diagnostics;
 
 using Adact.Engine.Elements;
 using Adact.Engine.Exceptions;
-using Adact.Engine.Filters;
 using Adact.Engine.Snapshot;
 
 using FlaUI.Core;
@@ -23,7 +22,6 @@ public sealed class WindowSession : IDisposable
   private readonly Window _window;
   private readonly IElement _rootElement;
   private readonly RefRegistry _registry;
-  private readonly FilterStrategyRegistry _filters;
   private readonly SemaphoreSlim _gate;
   private readonly ILogger<WindowSession> _logger;
   private readonly bool _ownsAutomation;
@@ -38,7 +36,6 @@ public sealed class WindowSession : IDisposable
       Window window,
       int sessionId,
       WindowInfo info,
-      FilterStrategyRegistry filters,
       SemaphoreSlim gate,
       ILogger<WindowSession>? logger = null,
       bool ownsAutomation = false)
@@ -47,7 +44,6 @@ public sealed class WindowSession : IDisposable
     _window = window;
     _rootElement = new FlaUiElement(window);
     _registry = new RefRegistry(sessionId);
-    _filters = filters;
     _gate = gate;
     _logger = logger ?? NullLogger<WindowSession>.Instance;
     _ownsAutomation = ownsAutomation;
@@ -73,7 +69,6 @@ public sealed class WindowSession : IDisposable
           window: null!,
           sessionId: sessionId,
           info: info,
-          filters: null!,
           gate: new SemaphoreSlim(1, 1),
           logger: null,
           ownsAutomation: false);
@@ -86,12 +81,11 @@ public sealed class WindowSession : IDisposable
     {
       c.ThrowIfCancellationRequested();
       var opt = options ?? new SnapshotOptions();
-      var filter = _filters.Get(opt.FilterName);
 
       var modals = DetectModalElements();
       var now = DateTimeOffset.UtcNow;
       var input = new SnapshotBuildInput(
-              _rootElement, modals, filter, opt,
+              _rootElement, modals, opt,
               WindowTitle: Title,
               ProcessName: ProcessName,
               ProcessId: ProcessId,
@@ -104,7 +98,6 @@ public sealed class WindowSession : IDisposable
         return Task.FromResult(new SnapshotResult(
                 Json: built.Json,
                 SessionId: built.SessionId,
-                FilterName: filter.Name,
                 WindowTitle: Title,
                 ProcessName: ProcessName,
                 ProcessId: ProcessId,

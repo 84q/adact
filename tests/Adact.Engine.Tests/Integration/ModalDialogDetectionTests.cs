@@ -1,6 +1,5 @@
 using System.Text.Json;
 
-using Adact.Engine.Filters;
 using Adact.Engine.Snapshot;
 
 using Xunit;
@@ -19,10 +18,9 @@ public class ModalDialogDetectionTests
             FakeElement.Button("No"));
 
         var registry = new RefRegistry(1);
-        var filter = new FilterStrategyRegistry().Get("operable");
         var builder = new SnapshotBuilder(registry);
         var input = new SnapshotBuildInput(
-            root, new Adact.Engine.Elements.IElement[] { modal }, filter,
+            root, new Adact.Engine.Elements.IElement[] { modal },
             new SnapshotOptions(), "Main", "Fake", 1, DateTimeOffset.UnixEpoch);
         var result = builder.Build(input);
 
@@ -49,10 +47,9 @@ public class ModalDialogDetectionTests
     {
         var root = FakeElement.Window("Main", FakeElement.Button("OK"));
         var registry = new RefRegistry(1);
-        var filter = new FilterStrategyRegistry().Get("operable");
         var builder = new SnapshotBuilder(registry);
         var input = new SnapshotBuildInput(
-            root, Array.Empty<Adact.Engine.Elements.IElement>(), filter,
+            root, Array.Empty<Adact.Engine.Elements.IElement>(),
             new SnapshotOptions(), "Main", "Fake", 1, DateTimeOffset.UnixEpoch);
         var result = builder.Build(input);
 
