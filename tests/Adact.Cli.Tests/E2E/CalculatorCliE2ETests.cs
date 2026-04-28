@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 using Xunit;
@@ -68,7 +68,7 @@ public class CalculatorCliE2ETests
       Assert.True(File.Exists(resolvedSnapshot),
           $"snapshot file not found: {resolvedSnapshot}");
 
-      // (3) snapshot JSON から電卓ボタンの ref を抽出 → click
+      // (3) snapshot text から電卓ボタンの ref を抽出 → click
       var buttonRef = FindCalculatorButtonRef(resolvedSnapshot);
       Assert.False(string.IsNullOrEmpty(buttonRef),
           $"Calculator Button ref not found in snapshot file: {resolvedSnapshot}");
@@ -187,49 +187,24 @@ public class CalculatorCliE2ETests
   }
 
   /// <summary>
-  /// snapshot JSON ファイルから電卓のボタン要素の ref を探す。
+  /// Phase 7 snapshot text 形式の 1 行分を表す。設計 016 §2.5 (CLI 出力フォーマット)。
+  /// 例: <c>  - Button "1" [aid="num1Button"] [ref=s1e7]</c>
+  /// </summary>
+  private sealed record SnapshotLine(string Role, string? Name, string? AutomationId, string? Ref);
+
+  /// <summary>
+  /// snapshot text ファイルから電卓のボタン要素の ref を探す。
   /// 優先度: AutomationId == "num1Button" > role == "Button" の最初。
   /// </summary>
   private static string? FindCalculatorButtonRef(string snapshotFilePath)
   {
-    using var doc = JsonDocument.Parse(File.ReadAllText(snapshotFilePath));
-    if (!doc.RootElement.TryGetProperty("tree", out var tree))
+    foreach (var line in ReadSnapshotLines(snapshotFilePath))
     {
-      return null;
+      if (line.AutomationId == "num1Button") return line.Ref;
     }
-
-    // まず AutomationId 一致を優先。
-    var byAutomationId = FindRefRecursive(tree, n =>
-        n.TryGetProperty("automationId", out var aid)
-        && aid.ValueKind == JsonValueKind.String
-        && aid.GetString() == "num1Button");
-    if (byAutomationId is not null) return byAutomationId;
-
-    // フォールバック: role == "Button" の最初。
-    return FindRefRecursive(tree, n =>
-        n.TryGetProperty("role", out var r)
-        && r.ValueKind == JsonValueKind.String
-        && r.GetString() == "Button");
-  }
-
-  private static string? FindRefRecursive(JsonElement node, Func<JsonElement, bool> predicate)
-  {
-    if (node.ValueKind != JsonValueKind.Object) return null;
-
-    if (predicate(node) && node.TryGetProperty("ref", out var refProp)
-        && refProp.ValueKind == JsonValueKind.String)
+    foreach (var line in ReadSnapshotLines(snapshotFilePath))
     {
-      return refProp.GetString();
-    }
-
-    if (node.TryGetProperty("children", out var children)
-        && children.ValueKind == JsonValueKind.Array)
-    {
-      foreach (var child in children.EnumerateArray())
-      {
-        var found = FindRefRecursive(child, predicate);
-        if (found is not null) return found;
-      }
+      if (line.Role == "Button" && !string.IsNullOrEmpty(line.Ref)) return line.Ref;
     }
     return null;
   }
@@ -237,37 +212,92 @@ public class CalculatorCliE2ETests
   /// <summary>snapshot から ref に対応するノードの (Name, AutomationId) を抽出する。</summary>
   private static (string? name, string? automationId) FindNodeIdentity(string snapshotFilePath, string targetRef)
   {
-    using var doc = JsonDocument.Parse(File.ReadAllText(snapshotFilePath));
-    if (!doc.RootElement.TryGetProperty("tree", out var tree)) return (null, null);
-
-    string? foundName = null;
-    string? foundAutomationId = null;
-    FindRefRecursive(tree, n =>
+    foreach (var line in ReadSnapshotLines(snapshotFilePath))
     {
-      if (n.TryGetProperty("ref", out var r)
-          && r.ValueKind == JsonValueKind.String
-          && r.GetString() == targetRef)
+      if (string.Equals(line.Ref, targetRef, StringComparison.Ordinal))
       {
-        foundName = n.TryGetProperty("name", out var na) && na.ValueKind == JsonValueKind.String ? na.GetString() : null;
-        foundAutomationId = n.TryGetProperty("automationId", out var aid) && aid.ValueKind == JsonValueKind.String ? aid.GetString() : null;
-        return true;
+        return (line.Name, line.AutomationId);
       }
-      return false;
-    });
-    return (foundName, foundAutomationId);
+    }
+    return (null, null);
   }
 
   /// <summary>(Name, AutomationId) 一致するノードの ref を snapshot から返す。</summary>
   private static string? FindRefByIdentity(string snapshotFilePath, string? name, string? automationId)
   {
-    using var doc = JsonDocument.Parse(File.ReadAllText(snapshotFilePath));
-    if (!doc.RootElement.TryGetProperty("tree", out var tree)) return null;
-    return FindRefRecursive(tree, n =>
+    foreach (var line in ReadSnapshotLines(snapshotFilePath))
     {
-      var nName = n.TryGetProperty("name", out var na) && na.ValueKind == JsonValueKind.String ? na.GetString() : null;
-      var nAid = n.TryGetProperty("automationId", out var aid) && aid.ValueKind == JsonValueKind.String ? aid.GetString() : null;
-      return string.Equals(nName, name, StringComparison.Ordinal)
-          && string.Equals(nAid, automationId, StringComparison.Ordinal);
-    });
+      if (string.Equals(line.Name, name, StringComparison.Ordinal)
+          && string.Equals(line.AutomationId, automationId, StringComparison.Ordinal))
+      {
+        return line.Ref;
+      }
+    }
+    return null;
+  }
+
+  private static IEnumerable<SnapshotLine> ReadSnapshotLines(string snapshotFilePath)
+  {
+    var text = File.ReadAllText(snapshotFilePath);
+    var inFrontmatter = false;
+    var sawFrontmatterStart = false;
+    foreach (var rawLine in text.Split('\n'))
+    {
+      var line = rawLine.TrimEnd('\r');
+      if (line == "---")
+      {
+        if (!sawFrontmatterStart) { sawFrontmatterStart = true; inFrontmatter = true; continue; }
+        if (inFrontmatter) { inFrontmatter = false; continue; }
+      }
+      if (inFrontmatter || string.IsNullOrEmpty(line)) continue;
+
+      var parsed = ParseLine(line);
+      if (parsed is not null) yield return parsed;
+    }
+  }
+
+  private static readonly Regex LineRegex = new(
+      @"^\s*-\s+(?<role>\S+)(?:\s+""(?<name>(?:\\.|[^""\\])*)"")?(?<rest>.*)$",
+      RegexOptions.Compiled);
+  private static readonly Regex AidRegex = new(
+      @"\[aid=""(?<aid>(?:\\.|[^""\\])*)""\]", RegexOptions.Compiled);
+  private static readonly Regex RefRegex = new(
+      @"\[ref=(?<ref>[^\]]+)\]", RegexOptions.Compiled);
+
+  private static SnapshotLine? ParseLine(string line)
+  {
+    var m = LineRegex.Match(line);
+    if (!m.Success) return null;
+    var role = m.Groups["role"].Value;
+    var name = m.Groups["name"].Success ? Unescape(m.Groups["name"].Value) : null;
+    var rest = m.Groups["rest"].Value;
+    var aidM = AidRegex.Match(rest);
+    var aid = aidM.Success ? Unescape(aidM.Groups["aid"].Value) : null;
+    var refM = RefRegex.Match(rest);
+    var refId = refM.Success ? refM.Groups["ref"].Value : null;
+    return new SnapshotLine(role, name, aid, refId);
+  }
+
+  private static string Unescape(string s)
+  {
+    var sb = new System.Text.StringBuilder(s.Length);
+    for (int i = 0; i < s.Length; i++)
+    {
+      var c = s[i];
+      if (c == '\\' && i + 1 < s.Length)
+      {
+        var n = s[++i];
+        sb.Append(n switch
+        {
+          '"' => '"',
+          '\\' => '\\',
+          'n' => '\n',
+          't' => '\t',
+          _ => n,
+        });
+      }
+      else sb.Append(c);
+    }
+    return sb.ToString();
   }
 }

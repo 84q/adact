@@ -73,8 +73,9 @@ internal static class CommandHelpers
       };
 
   /// <summary>
-  /// MCP <c>windows_snapshot</c> を呼び、結果を <see cref="SnapshotFileWriter"/> でファイルに書き出して
-  /// stdout に <c>sessionId / snapshot</c> を出力する。設計 009 §5.2、011 §4.5。
+  /// MCP <c>windows_snapshot</c> を呼び、結果を CLI 側で operable / raw フィルタを適用した上で
+  /// テキスト整形して <see cref="SnapshotFileWriter"/> でファイルに書き出し、stdout に
+  /// <c>sessionId / snapshot</c> を出力する。設計 009 §5.2、011 §4.5、016 §2。
   /// </summary>
   /// <param name="client">接続済み MCP クライアント。</param>
   /// <param name="sessionId">対象 session ID (例 "s1")。null なら active session。</param>
@@ -82,15 +83,26 @@ internal static class CommandHelpers
   /// <param name="ct">cancellation token。</param>
   /// <param name="writeSessionId">true の場合 stdout に sessionId 行を書き出す。
   /// 呼び出し側で既に出力済みの場合 (例: attach コマンド) は false を指定する。</param>
+  /// <param name="filter">"operable" / "raw" を指定する CLI フィルタ。null/省略時は operable。</param>
   /// <returns>exit code (成功時 0)。エラー時は <see cref="McpResponse.TryReportError"/> 経由で stderr 出力 + 1。</returns>
   public static async Task<int> WriteSnapshotResultAsync(
       AdactMcpClient client,
       string? sessionId,
       string? snapshotDir,
       CancellationToken ct,
-      bool writeSessionId = true)
+      bool writeSessionId = true,
+      string? filter = null)
   {
     ArgumentNullException.ThrowIfNull(client);
+
+    var resolvedFilter = string.IsNullOrEmpty(filter) ? SnapshotTreeFilter.FilterOperable : filter;
+    if (!SnapshotTreeFilter.IsKnownFilter(resolvedFilter))
+    {
+      CliError.Write(ErrorCodes.InvalidArgument,
+          $"Unknown filter '{resolvedFilter}'. Use 'operable' or 'raw'.");
+      return ExitCodes.UserError;
+    }
+    resolvedFilter = SnapshotTreeFilter.Normalize(resolvedFilter);
 
     IReadOnlyDictionary<string, object?>? snapArgs = string.IsNullOrEmpty(sessionId)
         ? null
@@ -116,8 +128,22 @@ internal static class CommandHelpers
     }
 
     var raw = ExtractSnapshotJsonText(snapResult, snapJson);
+    string text;
+    try
+    {
+      var (parsedMeta, parsedRoot) = SnapshotJsonParser.Parse(raw);
+      var filtered = SnapshotTreeFilter.Apply(parsedRoot, resolvedFilter);
+      text = SnapshotTextFormatter.Format(parsedMeta, filtered, resolvedFilter);
+    }
+    catch (JsonException ex)
+    {
+      CliError.Write(ErrorCodes.InternalError,
+          $"Failed to parse snapshot response: {ex.Message}");
+      return ExitCodes.CommandFailed;
+    }
+
     var sidNum = ParseSidNumber(resolvedSid);
-    var path = SnapshotFileWriter.Write(raw, sidNum, snapshotDir);
+    var path = SnapshotFileWriter.Write(text, sidNum, snapshotDir);
 
     if (writeSessionId)
     {

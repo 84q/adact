@@ -30,28 +30,29 @@ public class SnapshotFileWriterTests : IDisposable
   [Fact]
   public void Write_DefaultsToAdactDir_ProducesFile()
   {
-    var json = """{"_meta":{"sessionId":"s1"}}""";
-    var path = SnapshotFileWriter.Write(json, sid: 1);
+    var text = "---\nsessionId: s1\n---\n- Window\n";
+    var path = SnapshotFileWriter.Write(text, sid: 1);
 
     Assert.StartsWith(".adact/session-1-", path);
     Assert.DoesNotContain("gen-", path, StringComparison.Ordinal);
-    Assert.EndsWith(".json", path);
+    Assert.EndsWith(".txt", path);
     Assert.DoesNotContain('\\', path);
 
     var fullPath = Path.Combine(_tempRoot, path.Replace('/', Path.DirectorySeparatorChar));
     Assert.True(File.Exists(fullPath));
     var content = File.ReadAllText(fullPath);
-    Assert.Equal(json, content);
+    Assert.Equal(text, content);
   }
 
   [Fact]
   public void Write_DirOverride_UsesGivenDirectory()
   {
-    var json = """{"x":1}""";
+    var text = "---\n- A\n";
     var customDir = Path.Combine(_tempRoot, "out");
-    var path = SnapshotFileWriter.Write(json, sid: 2, dir: customDir);
+    var path = SnapshotFileWriter.Write(text, sid: 2, dir: customDir);
 
     Assert.Contains("session-2-", path, StringComparison.Ordinal);
+    Assert.EndsWith(".txt", path);
     Assert.DoesNotContain("gen-", path, StringComparison.Ordinal);
     Assert.True(File.Exists(Path.Combine(customDir,
         Path.GetFileName(path.Replace('/', Path.DirectorySeparatorChar)))));
@@ -60,15 +61,12 @@ public class SnapshotFileWriterTests : IDisposable
   [Fact]
   public void Write_WritesUtf8WithoutBom()
   {
-    var json = """{"jp":"電卓"}""";
-    var path = SnapshotFileWriter.Write(json, sid: 1);
+    var text = "- Window \"電卓\"\n";
+    var path = SnapshotFileWriter.Write(text, sid: 1);
     var bytes = File.ReadAllBytes(Path.Combine(_tempRoot, path.Replace('/', Path.DirectorySeparatorChar)));
 
     // No UTF-8 BOM
     Assert.False(bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF);
-
-    // Valid JSON parse round-trip
-    using var doc = JsonDocument.Parse(bytes);
-    Assert.Equal("電卓", doc.RootElement.GetProperty("jp").GetString());
+    Assert.Contains("電卓", System.Text.Encoding.UTF8.GetString(bytes), StringComparison.Ordinal);
   }
 }
