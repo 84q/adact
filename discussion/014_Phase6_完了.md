@@ -93,10 +93,12 @@ src/Adact.Cli/Skills/adact-cli/
 
 ***
 
-## 7. 残タスク
+## 7. 完了判定
 
-- [ ] **Skill 内容の人間レビュー** (完了判定の一部、Phase 6 受入条件)
-- [ ] **手動スモーク**: 3 クライアント (copilot は確認済み、claude / codex は未実施) で `adact install --skills <client>` 後に AI クライアントが ADACT を認識し、5 サブコマンドの組み合わせでタスクを達成できることを確認
+- [x] **Skill 内容の人間レビュー** 完了
+- [x] **3 クライアント手動スモーク** 完了 (copilot / claude / codex すべて、`adact install --skills <client>` 後に AI クライアントが ADACT を認識し 5 サブコマンドの組み合わせでタスク達成できることを確認)
+
+Phase 6 受入条件すべて充足。
 
 ***
 
