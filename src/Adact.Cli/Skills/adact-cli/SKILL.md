@@ -53,6 +53,10 @@ the reference for the command you are about to run.
 | `adact focus`          | Set keyboard focus to an element.                     | [`references/focus.md`](references/focus.md)         |
 | `adact clear`          | Clear the value of an input element.                  | [`references/clear.md`](references/clear.md)         |
 | `adact scroll-into-view` | Scroll an element into view.                        | [`references/scroll-into-view.md`](references/scroll-into-view.md) |
+| `adact resize`         | Resize the attached window.                           | [`references/resize.md`](references/resize.md)       |
+| `adact minimize`       | Minimize the attached window.                         | [`references/minimize.md`](references/minimize.md)   |
+| `adact maximize`       | Maximize the attached window.                         | [`references/maximize.md`](references/maximize.md)   |
+| `adact restore`        | Restore the attached window to normal state.          | [`references/restore.md`](references/restore.md)     |
 
 ## Element refs
 

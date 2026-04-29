@@ -51,6 +51,10 @@ internal static class Program
         root.Subcommands.Add(FocusCommand.Build());
         root.Subcommands.Add(ClearCommand.Build());
         root.Subcommands.Add(ScrollIntoViewCommand.Build());
+        root.Subcommands.Add(ResizeCommand.Build());
+        root.Subcommands.Add(MinimizeCommand.Build());
+        root.Subcommands.Add(MaximizeCommand.Build());
+        root.Subcommands.Add(RestoreCommand.Build());
         root.Subcommands.Add(DetachCommand.Build());
         root.Subcommands.Add(CloseCommand.Build());
         root.Subcommands.Add(KillCommand.Build());

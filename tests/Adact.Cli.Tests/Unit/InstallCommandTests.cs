@@ -23,6 +23,7 @@ public class InstallCommandTests
     "dblclick", "hover", "mouse-move", "mouse-down", "mouse-up", "mouse-wheel",
     "press", "key-down", "key-up", "type",
     "check", "uncheck", "select", "focus", "clear", "scroll-into-view",
+    "resize", "minimize", "maximize", "restore",
       };
 
     /// <summary>

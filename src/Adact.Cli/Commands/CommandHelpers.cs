@@ -208,6 +208,50 @@ internal static class CommandHelpers
         return await WriteSnapshotResultAsync(client, sessionRef, snapshotDir, ct).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// session id ベースの操作 (resize/minimize/maximize/restore 等) を呼び、成功時に auto-snapshot を取得する共通フロー。
+    /// </summary>
+    /// <param name="client">接続済み MCP クライアント。</param>
+    /// <param name="operationToolName">"windows_resize" など操作 MCP ツール名。</param>
+    /// <param name="operationArgs">操作ツールに渡す引数 (sessionId は呼び出し側で詰めること)。</param>
+    /// <param name="sessionId">対象 session ID (例 "s1")。null は active session。</param>
+    /// <param name="noSnapshot">true なら snapshot 取得をスキップし、sessionId のみ出力する。</param>
+    /// <param name="snapshotDir">snapshot 保存先 (null なら既定 .adact/)。</param>
+    /// <param name="ct">cancellation token。</param>
+    /// <returns>exit code。</returns>
+    public static async Task<int> RunSessionOperationAndAutoSnapshotAsync(
+        AdactMcpClient client,
+        string operationToolName,
+        Dictionary<string, object?> operationArgs,
+        string? sessionId,
+        bool noSnapshot,
+        string? snapshotDir,
+        CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(operationToolName);
+        ArgumentNullException.ThrowIfNull(operationArgs);
+
+        var opResult = await client.CallToolAsync(operationToolName, operationArgs, ct).ConfigureAwait(false);
+        var opErrorExit = McpResponse.TryReportError(opResult);
+        if (opErrorExit is { } code) return code;
+
+        if (noSnapshot)
+        {
+            // snapshot 抑制時は手掛かりとして sessionId のみ出力する (明示指定があれば)。
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                KeyValueWriter.Write("sessionId", sessionId);
+            }
+            return ExitCodes.Success;
+        }
+
+        // minimize 後は座標取得が失敗し snapshot 自体が SNAPSHOT_FAILED を返し得るが、
+        // ツール側で invalid 化した snapshot レスポンスはエラーマップ済みなので CLI は通常通り扱う。
+        // ユーザは --no-snapshot を併用することで snapshot をスキップ可能。
+        return await WriteSnapshotResultAsync(client, sessionId, snapshotDir, ct).ConfigureAwait(false);
+    }
+
     /// <summary>セッション ID 文字列 (<c>s1</c> など) から数値部分 (1) を取り出す。不正形式は 0 を返す。</summary>
     /// <param name="sessionId">セッション ID (例: <c>s1</c>)。</param>
     /// <returns>セッション ID の数値部分。不正形式の場合は 0。</returns>
