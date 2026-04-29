@@ -8,8 +8,14 @@ using ModelContextProtocol.Protocol;
 
 namespace Adact.Cli.Commands;
 
+/// <summary>
+/// <c>daemon-stop</c> コマンド。ローカルの HTTP MCP daemon を graceful に停止する。
+/// localhost 以外への適用は LOCAL_ONLY として拒否される (設計 009 §3.4 / §6.3)。
+/// </summary>
 internal static class DaemonStopCommand
 {
+    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
+    /// <returns>daemon-stop サブコマンド。</returns>
     public static Command Build()
     {
         var server = CommandHelpers.CreateServerOption();
@@ -26,6 +32,10 @@ internal static class DaemonStopCommand
         return cmd;
     }
 
+    /// <summary>daemon-stop 本体の実行。接続解決と localhost ガードの後、<c>daemon_stop</c> tool を呼び出す。</summary>
+    /// <param name="serverArg"><c>--server</c> の値。null なら <c>.adact/config.json</c> / 既定エンドポイントを試行する。</param>
+    /// <param name="ct">cancellation token。</param>
+    /// <returns>exit code。</returns>
     private static async Task<int> RunAsync(string? serverArg, CancellationToken ct)
     {
         ServerEndpoint endpoint;
@@ -108,6 +118,8 @@ internal static class DaemonStopCommand
     /// CancellationToken 系 (OperationCanceledException / TaskCanceledException) はユーザの
     /// Ctrl+C 由来で発生しうるため除外する (設計 009 §6.x、Phase5 #8 m2 指摘)。
     /// </summary>
+    /// <param name="ex">判定対象の例外。</param>
+    /// <returns>HTTP セッション切断とみなせる例外チェーンなら true。</returns>
     internal static bool IsConnectionDropException(Exception ex)
     {
         for (var cur = ex; cur is not null; cur = cur.InnerException)

@@ -9,6 +9,9 @@ using ModelContextProtocol.Protocol;
 
 namespace Adact.Cli.Commands;
 
+/// <summary>
+/// CLI サブコマンドが共通で使う接続・エラー処理・<c>--server</c> Option・snapshot 取得 フローヘルパー。
+/// </summary>
 internal static class CommandHelpers
 {
     /// <summary>
@@ -16,6 +19,10 @@ internal static class CommandHelpers
     /// 解決失敗 → INVALID_ARGUMENT (exit 2)、接続失敗 → CONNECTION_FAILED (exit 3)、
     /// その他 → INTERNAL_ERROR (exit 1)。
     /// </summary>
+    /// <param name="serverArg"><c>--server</c> の値。null なら <c>.adact/config.json</c> / 既定エンドポイントを試行する。</param>
+    /// <param name="exec">接続済みクライアントを受け取り、MCP を呼び出して exit code を返すコマンド実装。</param>
+    /// <param name="ct">cancellation token。</param>
+    /// <returns>exit code。</returns>
     public static async Task<int> RunWithClientAsync(
         string? serverArg,
         Func<AdactMcpClient, CancellationToken, Task<int>> exec,
@@ -49,9 +56,11 @@ internal static class CommandHelpers
     }
 
     /// <summary>
-    /// Phase 5 #3 (CLI 骨格) のスタブ用ヘルパ。各コマンドの本実装は #4-#8 で順次差し替わるため、
-    /// それまでの暫定として ErrorCodes.InternalError + "not implemented yet" メッセージを返す。
+    /// 将来コマンド追加時の暫定スタブ。INTERNAL_ERROR + "not implemented yet" を stderr に出力し、
+    /// <see cref="ExitCodes.CommandFailed"/> を返す。
     /// </summary>
+    /// <param name="commandName">未実装として報告するコマンド名。</param>
+    /// <returns>常に <see cref="ExitCodes.CommandFailed"/>。</returns>
     public static int NotYetImplemented(string commandName)
     {
         CliError.Write(
@@ -64,6 +73,7 @@ internal static class CommandHelpers
     /// 共通 <c>--server</c> Option。設計 009 §3 / §4.2。
     /// 各コマンドはこのヘルパで Option を生成し、AddOption で root に登録する。
     /// </summary>
+    /// <returns>全コマンド共用の <c>--server</c> Option。</returns>
     public static Option<string?> CreateServerOption() =>
         new("--server")
         {
@@ -84,6 +94,7 @@ internal static class CommandHelpers
     /// 呼び出し側で既に出力済みの場合 (例: attach コマンド) は false を指定する。</param>
     /// <param name="filter">"operable" / "raw" を指定する CLI フィルタ。null/省略時は operable。</param>
     /// <returns>exit code (成功時 0)。エラー時は <see cref="McpResponse.TryReportError"/> 経由で stderr 出力 + 1。</returns>
+    /// <exception cref="ArgumentNullException">client が null。</exception>
     public static async Task<int> WriteSnapshotResultAsync(
         AdactMcpClient client,
         string? sessionId,
@@ -197,6 +208,9 @@ internal static class CommandHelpers
         return await WriteSnapshotResultAsync(client, sessionRef, snapshotDir, ct).ConfigureAwait(false);
     }
 
+    /// <summary>セッション ID 文字列 (<c>s1</c> など) から数値部分 (1) を取り出す。不正形式は 0 を返す。</summary>
+    /// <param name="sessionId">セッション ID (例: <c>s1</c>)。</param>
+    /// <returns>セッション ID の数値部分。不正形式の場合は 0。</returns>
     private static int ParseSidNumber(string sessionId)
     {
         if (sessionId.Length >= 2 && sessionId[0] == 's'
@@ -207,6 +221,10 @@ internal static class CommandHelpers
         return 0;
     }
 
+    /// <summary>MCP <see cref="CallToolResult"/> から snapshot JSON 生文字列を取り出す。Content[0].Text を優先、なければ parsed の <see cref="JsonElement.GetRawText"/>。</summary>
+    /// <param name="result">MCP ツール呼び出しの生レスポンス。</param>
+    /// <param name="parsed">事前に parse 済みの <see cref="JsonElement"/>。Content に text がない場合の fallback として使用する。</param>
+    /// <returns>snapshot JSON の生文字列。</returns>
     private static string ExtractSnapshotJsonText(CallToolResult result, JsonElement parsed)
     {
         if (result.Content is { Count: > 0 } content

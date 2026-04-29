@@ -2,8 +2,13 @@ using System.CommandLine;
 
 namespace Adact.Cli.Commands;
 
+/// <summary>
+/// <c>kill</c> コマンド。session に紐づくプロセスを Process.Kill で強制終了し、session も detach される。
+/// </summary>
 internal static class KillCommand
 {
+    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
+    /// <returns>kill サブコマンド。</returns>
     public static Command Build()
     {
         var sid = new Option<string?>("--sid") { Description = "Target session ID (default: active session)." };

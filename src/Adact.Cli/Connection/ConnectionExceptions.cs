@@ -6,6 +6,8 @@ namespace Adact.Cli.Connection;
 /// </summary>
 internal sealed class InvalidUrlException : Exception
 {
+    /// <summary><see cref="InvalidUrlException"/> を作成する。</summary>
+    /// <param name="message">人間向けメッセージ。</param>
     public InvalidUrlException(string message) : base(message) { }
 }
 
@@ -15,5 +17,8 @@ internal sealed class InvalidUrlException : Exception
 /// </summary>
 internal sealed class ConfigParseException : Exception
 {
+    /// <summary><see cref="ConfigParseException"/> を作成する。</summary>
+    /// <param name="message">人間向けメッセージ。</param>
+    /// <param name="inner">元例外 (JSON parse / IO 例外など)。</param>
     public ConfigParseException(string message, Exception? inner = null) : base(message, inner) { }
 }

@@ -6,8 +6,13 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
+/// <summary>
+/// <c>list-apps</c> コマンド。<c>windows_list_apps</c> tool を呼び、一覧を TSV で stdout に出力する。
+/// </summary>
 internal static class ListAppsCommand
 {
+    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
+    /// <returns>list-apps サブコマンド。</returns>
     public static Command Build()
     {
         var server = CommandHelpers.CreateServerOption();
@@ -24,6 +29,10 @@ internal static class ListAppsCommand
         return cmd;
     }
 
+    /// <summary><c>windows_list_apps</c> を呼び TSV として stdout に出力する。</summary>
+    /// <param name="client">接続済み MCP クライアント。</param>
+    /// <param name="ct">cancellation token。</param>
+    /// <returns>exit code。</returns>
     private static async Task<int> ExecuteAsync(AdactMcpClient client, CancellationToken ct)
     {
         var result = await client.CallToolAsync("windows_list_apps", arguments: null, ct).ConfigureAwait(false);

@@ -6,6 +6,7 @@ namespace Adact.Cli.Connection;
 /// </summary>
 internal static class ConnectionResolver
 {
+    /// <summary>何も指定がないときに使われる既定接続先。ローカル HTTP daemon。</summary>
     public const string DefaultUrl = "http://127.0.0.1:41300/mcp";
 
     /// <summary>

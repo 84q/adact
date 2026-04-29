@@ -15,6 +15,7 @@ internal static class ConfigLoader
     /// <paramref name="startDir"/> から親ディレクトリへ向かって <c>.adact/config.json</c> を再帰探索し、
     /// 最初に見つかった file の <c>server</c> フィールドを返す。
     /// </summary>
+    /// <param name="startDir">探索開始ディレクトリ (通常は cwd)。</param>
     /// <returns>
     /// 見つかった server 文字列。<c>.adact/</c> が存在しない、ファイルが存在しない、
     /// もしくは <c>server</c> が null/空文字なら null。
@@ -44,6 +45,12 @@ internal static class ConfigLoader
         return null;
     }
 
+    /// <summary>
+    /// 指定パスの config.json を読み、<c>server</c> フィールドを取り出す。
+    /// </summary>
+    /// <param name="configPath">読み込み対象のファイル絶対パス。</param>
+    /// <returns><c>server</c> フィールドの値。未設定/空文字列のときは null。</returns>
+    /// <exception cref="ConfigParseException">IO もしくは JSON parse に失敗した場合。</exception>
     private static string? ReadServerField(string configPath)
     {
         string text;

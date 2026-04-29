@@ -4,8 +4,13 @@ using Adact.Mcp.Stdio;
 
 namespace Adact.Cli.Commands;
 
+/// <summary>
+/// <c>local</c> サブコマンド。stdio を transport として MCP server を起動する (stdin/stdout = JSON-RPC)。
+/// </summary>
 internal static class LocalCommand
 {
+    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
+    /// <returns>local サブコマンド。</returns>
     public static Command Build()
     {
         var verbose = new Option<bool>("--verbose")

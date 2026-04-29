@@ -9,6 +9,11 @@ namespace Adact.Cli.Commands;
 /// </summary>
 internal static class LoggerFactoryHelper
 {
+    /// <summary>
+    /// コンソール出力を stderr に設定した <see cref="ILoggerFactory"/> を生成する。
+    /// </summary>
+    /// <param name="verbose">true なら Debug 以上、false なら Warning 以上を出力対象とする。</param>
+    /// <returns>設定済み LoggerFactory。呼び出し側で Dispose すること。</returns>
     public static ILoggerFactory Create(bool verbose)
     {
         return LoggerFactory.Create(b =>

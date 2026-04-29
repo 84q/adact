@@ -4,8 +4,16 @@ using Adact.Cli.Commands;
 
 namespace Adact.Cli;
 
+/// <summary>
+/// adact CLI のエントリポイント。サブコマンドをルートに集約して System.CommandLine に委譲する。
+/// </summary>
 internal static class Program
 {
+    /// <summary>
+    /// CLI の Main エントリ。引数を parse し <see cref="BuildRoot"/> で生成したルートコマンドを実行する。
+    /// </summary>
+    /// <param name="args">コマンドライン引数。</param>
+    /// <returns>サブコマンドが返した exit code (設計 docs/spec/errors-and-output.md)。</returns>
     public static async Task<int> Main(string[] args)
     {
         var root = BuildRoot();

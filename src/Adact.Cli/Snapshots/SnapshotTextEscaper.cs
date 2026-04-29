@@ -20,6 +20,8 @@ namespace Adact.Cli.Snapshots;
 internal static class SnapshotTextEscaper
 {
     /// <summary>name / aid / value を表示用に escape する。<c>null</c> はそのまま <c>null</c>。</summary>
+    /// <param name="value">エスケープ対象文字列。</param>
+    /// <returns>エスケープ済み文字列。<paramref name="value"/> が null なら null。</returns>
     public static string? Escape(string? value)
     {
         if (value is null) return null;
@@ -51,6 +53,8 @@ internal static class SnapshotTextEscaper
     }
 
     /// <summary>name / aid / value を <c>"..."</c> で囲んだ表示形に整形する。<c>null</c>/空は <c>null</c>。</summary>
+    /// <param name="value">クオート対象文字列。</param>
+    /// <returns><c>"escaped"</c> 形式の文字列、または <paramref name="value"/> が null/空の場合は null。</returns>
     public static string? Quote(string? value)
     {
         if (string.IsNullOrEmpty(value)) return null;

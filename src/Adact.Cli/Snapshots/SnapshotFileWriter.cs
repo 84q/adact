@@ -10,6 +10,13 @@ namespace Adact.Cli.Snapshots;
 /// </summary>
 internal static class SnapshotFileWriter
 {
+    /// <summary>
+    /// 与えられた snapshot テキストを UTF-8 (BOM なし) でファイルに書き出す。保存先は存在しなければ作成される。
+    /// </summary>
+    /// <param name="snapshotText">書き出す snapshot テキスト本体。</param>
+    /// <param name="sid">セッション番号 (例: <c>s1</c> の <c>1</c>)。ファイル名生成に利用する。</param>
+    /// <param name="dir">保存先ディレクトリ。null/空なら <c>.adact</c>。</param>
+    /// <returns>CWD からの相対パス (slash 区切り)。stdout 出力用。</returns>
     public static string Write(string snapshotText, int sid, string? dir = null)
     {
         ArgumentNullException.ThrowIfNull(snapshotText);

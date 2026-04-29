@@ -14,6 +14,10 @@ internal static class McpResponse
     /// <see cref="CallToolResult.StructuredContent"/> を優先して取得し、なければ
     /// <see cref="CallToolResult.Content"/> 先頭の <see cref="TextContentBlock"/> を JSON parse する。
     /// </summary>
+    /// <param name="result">MCP ツール呼び出し結果。</param>
+    /// <returns>取り出した <see cref="JsonElement"/>。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="result"/> が null。</exception>
+    /// <exception cref="InvalidOperationException">structured / text どちらも取得できない場合。</exception>
     public static JsonElement GetJson(CallToolResult result)
     {
         ArgumentNullException.ThrowIfNull(result);
@@ -37,8 +41,10 @@ internal static class McpResponse
     /// IsError の場合、構造化された <c>{code, message, details}</c> を読み取って
     /// stderr (CliError 形式) に書き出し、対応する exit code を返す。エラーでなければ null。
     /// </summary>
+    /// <param name="result">MCP ツール呼び出し結果。</param>
+    /// <returns>エラー時は <see cref="ExitCodes.CommandFailed"/>、それ以外は null。</returns>
     /// <remarks>
-    /// 現状 daemon 側 <see cref="ToolErrors"/> でマップされるコードはすべて exit 1 (CommandFailed)。
+    /// 現状 daemon 側 <c>ToolErrors</c> でマップされるコードはすべて exit 1 (CommandFailed)。
     /// CLI 段階で検出すべき INVALID_ARGUMENT / INVALID_REF_FORMAT は呼び出し側で先にチェックする。
     /// </remarks>
     public static int? TryReportError(CallToolResult result)

@@ -5,10 +5,16 @@ using Adact.Cli.Server;
 
 namespace Adact.Cli.Commands;
 
+/// <summary>
+/// <c>serve</c> サブコマンド。HTTP transport で MCP daemon を 127.0.0.1:&lt;port&gt; (既定 41300) 上で起動する。
+/// </summary>
 internal static class ServeCommand
 {
+    /// <summary>--port 未指定時の既定ポート。</summary>
     private const int DefaultPort = 41300;
 
+    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
+    /// <returns>serve サブコマンド。</returns>
     public static Command Build()
     {
         var port = new Option<int>("--port")

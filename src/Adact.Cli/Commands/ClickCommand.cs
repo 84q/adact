@@ -4,8 +4,14 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
+/// <summary>
+/// <c>click</c> コマンド。Element Ref で指定された要素をクリックし、
+/// 成功時は後続 snapshot を自動取得する。設計 docs/spec/cli.md click 項。
+/// </summary>
 internal static class ClickCommand
 {
+    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
+    /// <returns>click サブコマンド。</returns>
     public static Command Build()
     {
         var refArg = new Argument<string>("ref")

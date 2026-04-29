@@ -5,12 +5,21 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
+/// <summary>
+/// <c>attach</c> コマンド。Window Ref もしくは matching flags で window に attach し、
+/// session を作成する。設計 docs/spec/cli.md attach 項。
+/// </summary>
 internal static class AttachCommand
 {
     /// <summary>
     /// attach コマンドの引数バリデーション対象。Unit テストから直接呼び出すため
-    /// snapshot 関連の補助オプションは含めない (Mi6)。
+    /// snapshot 関連の補助オプション (--no-snapshot/--snapshot-dir) は含めない。
     /// </summary>
+    /// <param name="Ref">位置引数として与えられた Window Ref (例: <c>w1</c>)。</param>
+    /// <param name="ProcessName">--process-name。</param>
+    /// <param name="Title">--title。</param>
+    /// <param name="ProcessId">--process-id。</param>
+    /// <param name="ClassName">--class-name。</param>
     internal sealed record AttachArgs(
         string? Ref,
         string? ProcessName,
@@ -18,6 +27,8 @@ internal static class AttachCommand
         int? ProcessId,
         string? ClassName);
 
+    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
+    /// <returns>attach サブコマンド。</returns>
     public static Command Build()
     {
         var refArg = new Argument<string?>("ref")
@@ -78,6 +89,9 @@ internal static class AttachCommand
     /// attach 引数のバリデーションのみ実施する (MCP 呼び出しは行わない)。
     /// 不正なら <c>(errorCode, errorMessage)</c>、正常なら <c>(null, null)</c> を返す。
     /// </summary>
+    /// <param name="args">attach 引数。</param>
+    /// <returns>(エラーコード, メッセージ) のタプル。有効なら両方 null。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="args"/> が null。</exception>
     internal static (string? errorCode, string? errorMessage) ValidateAttachArgs(AttachArgs args)
     {
         ArgumentNullException.ThrowIfNull(args);
@@ -111,6 +125,12 @@ internal static class AttachCommand
         return (null, null);
     }
 
+    /// <summary>
+    /// <see cref="AttachArgs"/> を MCP <c>windows_attach</c> に渡す辞書引数に変換する。
+    /// Ref と matching flags は互いに排他使用されるため、Ref があれば windowRef のみを指定する。
+    /// </summary>
+    /// <param name="args">バリデーション済み attach 引数。</param>
+    /// <returns>MCP <c>windows_attach</c> に渡す辞書。</returns>
     private static Dictionary<string, object?> BuildArguments(AttachArgs args)
     {
         if (!string.IsNullOrEmpty(args.Ref))
@@ -126,6 +146,13 @@ internal static class AttachCommand
         return dict;
     }
 
+    /// <summary>接続済みクライアントに対し <c>windows_attach</c> を呼び、成功時は sessionId ・ windowRef ・ snapshot を出力する。</summary>
+    /// <param name="client">接続済み MCP クライアント。</param>
+    /// <param name="arguments"><c>windows_attach</c> に渡す引数。</param>
+    /// <param name="noSnapshot">true なら attach 成功後の snapshot 取得をスキップする。</param>
+    /// <param name="snapshotDir">snapshot 保存先 (null なら既定 <c>.adact/</c>)。</param>
+    /// <param name="ct">cancellation token。</param>
+    /// <returns>exit code。</returns>
     private static async Task<int> ExecuteAsync(
         AdactMcpClient client,
         Dictionary<string, object?> arguments,
