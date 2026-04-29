@@ -16,7 +16,7 @@ namespace Adact.Engine;
 /// 1 ウィンドウへの操作セッション。Snapshot / Click / Fill を提供する。
 /// Session ID は <see cref="UiaEngine"/> が採番し、Detach 後も再利用しない。
 /// </summary>
-public sealed class WindowSession : IDisposable
+public sealed partial class WindowSession : IDisposable
 {
     /// <summary>UIA オートメーション。Engine と共有される (<see cref="_ownsAutomation"/> が true のときのみ Dispose する)。</summary>
     private readonly AutomationBase _automation;

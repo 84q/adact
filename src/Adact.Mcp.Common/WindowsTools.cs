@@ -20,7 +20,7 @@ namespace Adact.Mcp.Common;
 /// 詳細は docs/spec/mcp-tools.md および discussion/002_アーキテクチャ設計.md §4.1 / §6 / §8 を参照。
 /// </summary>
 [McpServerToolType]
-public sealed class WindowsTools
+public sealed partial class WindowsTools
 {
     /// <summary><see cref="AttachAsync"/> で受け取る <c>windowRef</c> の文法 (<c>w</c> + 1 桁以上の数字) を検証する正規表現。</summary>
     private static readonly Regex WindowRefPattern = new("^w\\d+$", RegexOptions.Compiled);
