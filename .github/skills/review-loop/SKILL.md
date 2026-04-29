@@ -24,17 +24,23 @@ typo 修正や軽微な変更であってもレビューは必ず実施する。
 ```
 メインエージェント
   ├─ (1) Implementation を起動 → 実装
-  ├─ (2) Research を起動 → レビュー
-  ├─ (3) 指摘あり: Implementation を再起動 → 修正 → (2) に戻る
-  └─ (4) 指摘なし: 完了
+  ├─ (2) メインが get_errors で Problems を確認 (必須)
+  ├─ (3) Research を起動 → レビュー
+  ├─ (4) 指摘あり: Implementation を再起動 → 修正 → (2) に戻る
+  └─ (5) 指摘なし: 完了
 ```
 
 1. メインがタスク内容と設計を確認する
 2. Implementation サブエージェントに実装を依頼する
-3. Implementation 完了後、メインが Research サブエージェントにレビューを依頼する
-4. Research の報告を受け、指摘があれば Implementation に修正を依頼する
-5. 指摘がゼロになるまで 3〜4 を繰り返す
-6. 10 回に達したら強制停止し、ユーザに報告する
+3. **Implementation 完了直後、メインは `get_errors` で対象ファイルの VS Code Problems を必ず確認する**。Implementation 自身の自己報告 (ビルド OK / フォーマット済み等) は信用しすぎず、Problems が空であることをメイン側で再検証する。Problems があれば Research を起動する前に Implementation を再起動して修正する。
+4. メインが Research サブエージェントにレビューを依頼する
+5. Research の報告を受け、指摘があれば Implementation に修正を依頼する (修正後も再度 `get_errors` を走らせる)
+6. 指摘がゼロになるまで 4〜5 を繰り返す
+7. 10 回に達したら強制停止し、ユーザに報告する
+
+### get_errors を必ず使う理由
+
+Implementation サブエージェントは `dotnet format` / `dotnet build` を実行したと報告しても、実際には反映されていない / 実行に失敗している / 一部ファイルのみ走らせて全体には適用されていない、といった齟齬が発生し得る。`get_errors` は VS Code の言語サーバが現に検出している error/warning を直接読むため、メイン側の独立検証として最も確実。Research に渡す前にこれを通すことで、フォーマット違反のような「Research が観点 5 で見ても遅い」問題を早期に潰せる。
 
 ## ループ停止条件
 
