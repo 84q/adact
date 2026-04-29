@@ -8,12 +8,20 @@ using Xunit;
 
 namespace Adact.Mcp.Http.Tests.E2E;
 
+/// <summary>
+/// HTTP daemon 経由で実 calc.exe に attach し、snapshot まで一連の MCP ツールを E2E で検証するテスト群。
+/// HTTP トランスポートと UIA 操作パイプライン全体の回帰を E2E レイヤーで防ぐため。
+/// </summary>
 [Trait("Layer", "E2E")]
 [Collection("AdactHttp")]
 public class CalculatorHttpE2ETests
 {
     private readonly AdactHttpServerFixture _fixture;
 
+    /// <summary>
+    /// 共有 HTTP サーバーフィクスチャを受け取る xUnit コンストラクタ。
+    /// </summary>
+    /// <param name="fixture">テスト全体で共有される <see cref="AdactHttpServerFixture"/>。</param>
     public CalculatorHttpE2ETests(AdactHttpServerFixture fixture)
     {
         _fixture = fixture;
@@ -29,6 +37,12 @@ public class CalculatorHttpE2ETests
         });
     }
 
+    /// <summary>
+    /// 電卓 (calc.exe) を起動し HTTP MCP 経由で windows_attach → windows_snapshot を実行し、
+    /// snapshot tree に複数の Button ノードが含まれることを確認する。
+    /// HTTP トランスポート + UIA + ref 採番の E2E 通しシナリオの回帰防止。
+    /// </summary>
+    /// <returns>テスト完了タスク。</returns>
     [Fact]
     public async Task AttachAndSnapshot_OnCalculator_ReturnsTreeWithButtons()
     {

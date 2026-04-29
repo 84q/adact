@@ -4,9 +4,15 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Unit;
 
+/// <summary>
+/// RefRegistry の ref 安定性 (RuntimeId / positionalIndex フォールバック) をずらしたシナリオで集中検証する Unit テスト。
+/// </summary>
 [Trait("Layer", "Unit")]
 public class RefStabilityTests
 {
+    /// <summary>
+    /// 同じ RuntimeId なら positionalIndex が変わっても eid が復元されることを確認する。
+    /// </summary>
     [Fact]
     public void SameRuntimeId_AcrossSnapshots_ReusesEid()
     {
@@ -23,6 +29,9 @@ public class RefStabilityTests
         Assert.Equal(first, second);
     }
 
+    /// <summary>
+    /// 異なる RuntimeId には新しい eid が振られることを確認する。
+    /// </summary>
     [Fact]
     public void NewRuntimeId_GetsNewEid()
     {
@@ -34,6 +43,9 @@ public class RefStabilityTests
         Assert.NotEqual(a, b);
     }
 
+    /// <summary>
+    /// RuntimeId 未設定のときは positionalIndex ごとに ref が安定化されることを確認する。
+    /// </summary>
     [Fact]
     public void RuntimeIdMissing_FallsBackToPositionalIndex()
     {
@@ -51,6 +63,9 @@ public class RefStabilityTests
         Assert.Equal(atIndex0, atIndex0Again);
     }
 
+    /// <summary>
+    /// 空の RuntimeId (Length=0) は未設定と同等に扱われ、positionalIndex フォールバックされることを確認する。
+    /// </summary>
     [Fact]
     public void EmptyRuntimeId_IsTreatedAsMissing()
     {

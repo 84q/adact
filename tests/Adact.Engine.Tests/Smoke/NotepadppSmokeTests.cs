@@ -5,6 +5,10 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Smoke;
 
+/// <summary>
+/// Notepad++ を起動し、snapshot に MenuBar / 「ファイル」メニューが見えることを確認する L4 Smoke テスト。
+/// Win32 アプリ (電卓の UWP と違うケース) でも UIA 探索が成り立つことの回帰防止。
+/// </summary>
 [Trait("Layer", "Smoke")]
 [Collection("UiaSerial")]
 public class NotepadppSmokeTests : IAsyncLifetime
@@ -19,6 +23,10 @@ public class NotepadppSmokeTests : IAsyncLifetime
     private Process? _process;
     private string? _exePath;
 
+    /// <summary>
+    /// Notepad++ を見つけて起動し、メインウィンドウが見えるまで待機する。未インストール機はテスト本体で skip される。
+    /// </summary>
+    /// <returns>起動完了タスク。</returns>
     public async Task InitializeAsync()
     {
         foreach (var p in CandidatePaths)
@@ -43,6 +51,10 @@ public class NotepadppSmokeTests : IAsyncLifetime
         await Task.Delay(800);
     }
 
+    /// <summary>
+    /// Notepad++ をクリーンアップする。
+    /// </summary>
+    /// <returns>解放完了タスク。</returns>
     public Task DisposeAsync()
     {
         foreach (var p in Process.GetProcessesByName(ProcessName))
@@ -53,6 +65,11 @@ public class NotepadppSmokeTests : IAsyncLifetime
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Notepad++ に attach して snapshot したとき、MenuBar ロールまたは File / ファイル メニューが見つかることを確認する。
+    /// Win32 アプリの探索動作の回帰を Smoke で検出するため。
+    /// </summary>
+    /// <returns>テスト完了タスク。</returns>
     [Fact]
     public async Task Snapshot_OnNotepadpp_ContainsMenuBarOrFileMenu()
     {

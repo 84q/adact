@@ -15,6 +15,10 @@ public class AttachQueryClassNameDisambiguationTests
         new WindowInfo(1234, "App", "Tooltip", "Window", "AppPopupClass", new IntPtr(0x2)),
     };
 
+    /// <summary>
+    /// 同一 PID に複数クラスのウィンドウがあるとき、ProcessId+ClassName 指定で 1 つに絞り込めることを確認する。
+    /// AmbiguousAttach をクラス名で回避できる仕様 (Phase6) の回帰防止。
+    /// </summary>
     [Fact]
     public void Filter_GivenSamePidTwoClasses_NarrowsToSingleByClassName()
     {
@@ -27,6 +31,10 @@ public class AttachQueryClassNameDisambiguationTests
         Assert.Equal(new IntPtr(0x1), matches[0].NativeWindowHandle);
     }
 
+    /// <summary>
+    /// ClassName を指定しないと PID それだけでは複数マッチしてしまうこと (AmbiguousAttach 相当) を確認する。
+    /// AmbiguousAttach を起こすべきケースをドキュメントし、誤って一件に絞られないよう防ぐため。
+    /// </summary>
     [Fact]
     public void Filter_GivenSamePidWithoutClassName_YieldsMultipleCandidates()
     {
@@ -39,6 +47,10 @@ public class AttachQueryClassNameDisambiguationTests
         Assert.Equal(2, matches.Count);
     }
 
+    /// <summary>
+    /// ClassName のみ指定でも一件に絞り込めることを確認する。
+    /// PID 未知でも ClassName だけで attach できる仕様の回帰防止。
+    /// </summary>
     [Fact]
     public void Filter_GivenClassNameOnly_StillNarrowsCorrectly()
     {

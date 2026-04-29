@@ -50,6 +50,10 @@ public class WindowsToolsLifecycleTests
             doc.GetProperty("message").GetString()!);
     }
 
+    /// <summary>
+    /// sessionId 未指定かつアクティブセッションも無い状態で detach を呼ぶと NoActiveSession エラーになることを確認する。
+    /// 暗黙のアクティブセッション解決が失敗した時のエラーコード仕様の回帰防止。
+    /// </summary>
     [Fact]
     public async Task Detach_NoSessionIdAndNoActive_ReturnsNoActiveSession()
     {
@@ -63,6 +67,10 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
+    /// <summary>
+    /// 未登録の sessionId を指定して detach すると NotFound エラーとメッセージ中の sessionId が返ることを確認する。
+    /// 誤った sessionId に対するエラー応答契約の回帰防止。
+    /// </summary>
     [Fact]
     public async Task Detach_UnknownSessionId_ReturnsNotFound()
     {
@@ -77,6 +85,10 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
+    /// <summary>
+    /// アクティブセッションが無い状態で close を呼ぶと NoActiveSession エラーになることを確認する。
+    /// detach 系と同じ暗黙解決失敗エラー仕様の回帰防止。
+    /// </summary>
     [Fact]
     public async Task Close_NoActiveSession_ReturnsNoActiveSession()
     {
@@ -90,6 +102,9 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
+    /// <summary>
+    /// 未登録の sessionId で close を呼ぶと NotFound エラーになることを確認する。
+    /// </summary>
     [Fact]
     public async Task Close_UnknownSessionId_ReturnsNotFound()
     {
@@ -103,6 +118,9 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
+    /// <summary>
+    /// 未登録の sessionId で kill を呼ぶと NotFound エラーになることを確認する。
+    /// </summary>
     [Fact]
     public async Task Kill_UnknownSessionId_ReturnsNotFound()
     {
@@ -116,6 +134,10 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
+    /// <summary>
+    /// セッションが 1 つも無い状態で close_all を呼ぶと、エラー無しで空 results が返ることを確認する。
+    /// 「セッション無し」が異常終了ではなく正常応答として扱われる契約の回帰防止。
+    /// </summary>
     [Fact]
     public async Task CloseAll_EmptyStore_ReturnsEmptyResults()
     {
@@ -132,6 +154,10 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
+    /// <summary>
+    /// IDaemonControl が未対応 (stdio モード相当) の場合、daemon_stop が LocalOnly エラーを返し StopAsync を呼ばないことを確認する。
+    /// stdio 経由では HTTP daemon を停止できない仕様の回帰防止。
+    /// </summary>
     [Fact]
     public async Task DaemonStop_StdioMode_ReturnsLocalOnly()
     {
@@ -146,6 +172,10 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
+    /// <summary>
+    /// HTTP モードで daemon_stop を呼ぶと IDaemonControl.StopAsync が 1 回起動され、stopped=true が返ることを確認する。
+    /// HTTP 経由の daemon 停止フロー (Phase5) の回帰防止。
+    /// </summary>
     [Fact]
     public async Task DaemonStop_HttpMode_InvokesControlStop()
     {
@@ -161,6 +191,10 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
+    /// <summary>
+    /// daemon_stop が StopAsync を呼ぶ時点までに全セッションが detach され、WindowRefStore の SessionId も全クリアされていることを確認する。
+    /// listener 停止前にセッションを掃除する順序契約 (Phase5 §daemon_stop) の回帰防止。
+    /// </summary>
     [Fact]
     public async Task DaemonStop_DetachesAllSessionsBeforeStoppingListener()
     {

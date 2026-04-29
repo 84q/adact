@@ -4,9 +4,14 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
+/// <summary>
+/// <see cref="SnapshotJsonParser.Parse"/> の _meta / tree デシリアライゼションを検証する Unit テスト。
+/// snapshot コマンドの JSON 読み込み仕様の回帰防止。
+/// </summary>
 [Trait("Layer", "Unit")]
 public class SnapshotJsonParserTests
 {
+    /// <summary>_meta のフィールドと tree.children[0] の各属性 (role/name/aid/ref) が正しくマッピングされることを確認する。</summary>
     [Fact]
     public void Parse_ExtractsMetaAndTree()
     {
@@ -56,6 +61,7 @@ public class SnapshotJsonParserTests
         Assert.Equal("s1e2", root.Children[0].Ref);
     }
 
+    /// <summary>children キーが存在しないときも NRE ではなく空コレクションとして処理されることを確認する。</summary>
     [Fact]
     public void Parse_MissingChildrenKey_ReturnsEmptyList()
     {
@@ -69,6 +75,7 @@ public class SnapshotJsonParserTests
         Assert.Empty(root.Children);
     }
 
+    /// <summary>isModalDialog=true のノードが SnapshotElement.IsModalDialog に伝播されることを確認する。</summary>
     [Fact]
     public void Parse_ModalDialogFlag_PropagatesToElement()
     {

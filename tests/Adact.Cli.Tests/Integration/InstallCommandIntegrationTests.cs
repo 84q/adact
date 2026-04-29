@@ -23,6 +23,12 @@ public class InstallCommandIntegrationTests
     "references/snapshot.md",
   };
 
+    /// <summary>
+    /// cwd モードで install した際、クライアント別の期待パスに SKILL ファイル一式が展開されることを確認する。
+    /// 設計 013 §5.1 のクライアント対応マトリクスの回帰防止。
+    /// </summary>
+    /// <param name="client">クライアント名 (copilot / claude / codex)。</param>
+    /// <param name="relativeTail">cwd からの期待サブパス。</param>
     [Theory]
     [InlineData("copilot", ".github/skills/adact-cli")]
     [InlineData("claude", ".claude/skills/adact-cli")]
@@ -40,6 +46,13 @@ public class InstallCommandIntegrationTests
         Assert.Contains(targetDir, result.Stdout);
     }
 
+    /// <summary>
+    /// --global モードで install した際、USERPROFILE オーバーライド先に SKILL ファイルが展開され、
+    /// cwd には全く何も書き込まれないことを確認する。
+    /// USERPROFILE オーバーライドが効かず本物のホームへ出てしまう事故を防ぐため。
+    /// </summary>
+    /// <param name="client">クライアント名。</param>
+    /// <param name="relativeTail">USERPROFILE からの期待サブパス。</param>
     [Theory]
     [InlineData("copilot", ".copilot/skills/adact-cli")]
     [InlineData("claude", ".claude/skills/adact-cli")]
@@ -74,6 +87,10 @@ public class InstallCommandIntegrationTests
         Assert.False(Directory.Exists(Path.Combine(cwd.Path, ".agents")));
     }
 
+    /// <summary>
+    /// 2 回目の install で既存ファイルが上書きされ、人為的に書き換えたプレースホルダーが消えることを確認する。
+    /// install の idempotent 仕様 (古い SKILL を残さない) の回帰防止。
+    /// </summary>
     [Fact]
     public void Install_Twice_OverwritesExistingFiles()
     {
@@ -119,8 +136,10 @@ public class InstallCommandIntegrationTests
 /// </summary>
 internal sealed class TempDirectory : System.IDisposable
 {
+    /// <summary>一時ディレクトリの絶対パス。</summary>
     public string Path { get; }
 
+    /// <summary>一時ディレクトリを GUID 付きで作成する。</summary>
     public TempDirectory()
     {
         Path = System.IO.Path.Combine(
@@ -129,6 +148,7 @@ internal sealed class TempDirectory : System.IDisposable
         Directory.CreateDirectory(Path);
     }
 
+    /// <summary>一時ディレクトリを再帰削除する。</summary>
     public void Dispose()
     {
         try

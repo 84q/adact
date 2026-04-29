@@ -4,11 +4,16 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
+/// <summary>
+/// <see cref="ConnectionResolver.Resolve"/> の --server / config.json / デフォルトの優先順位・エラー伝播を検証する Unit テスト。
+/// CLI 接続先解決仕様 (cli.md §--server) の回帰防止。
+/// </summary>
 [Trait("Layer", "Unit")]
 public class ConnectionResolverTests : IDisposable
 {
     private readonly string _tempRoot;
 
+    /// <summary>テスト用一時ディレクトリを作成する。</summary>
     public ConnectionResolverTests()
     {
         _tempRoot = Path.Combine(
@@ -17,6 +22,7 @@ public class ConnectionResolverTests : IDisposable
         Directory.CreateDirectory(_tempRoot);
     }
 
+    /// <summary>テスト終了時に一時ディレクトリを再帰削除する。</summary>
     public void Dispose()
     {
         try { Directory.Delete(_tempRoot, recursive: true); } catch { }
@@ -30,6 +36,7 @@ public class ConnectionResolverTests : IDisposable
         File.WriteAllText(Path.Combine(adact, "config.json"), json);
     }
 
+    /// <summary>--server 明示指定が config.json よりも優先されることを確認する。</summary>
     [Fact]
     public void Resolve_ExplicitServer_TakesPrecedenceOverConfig()
     {
@@ -40,6 +47,7 @@ public class ConnectionResolverTests : IDisposable
         Assert.Equal("http://explicit:41300/mcp", ep.Url.ToString().TrimEnd('/'));
     }
 
+    /// <summary>--server 未指定のとき config.json の server を使用することを確認する。</summary>
     [Fact]
     public void Resolve_NoExplicit_UsesConfig()
     {
@@ -50,6 +58,7 @@ public class ConnectionResolverTests : IDisposable
         Assert.Equal("http://from-config:41300/mcp", ep.Url.ToString().TrimEnd('/'));
     }
 
+    /// <summary>--server も config も無いとき DefaultUrl (localhost) にフォールバックし、IsLocalhost=true となることを確認する。</summary>
     [Fact]
     public void Resolve_NoExplicitNoConfig_UsesDefault()
     {
@@ -60,6 +69,7 @@ public class ConnectionResolverTests : IDisposable
         Assert.True(ep.IsLocalhost);
     }
 
+    /// <summary>--server が空白のみという未指定相当のとき config.json にフォールバックすることを確認する。</summary>
     [Fact]
     public void Resolve_EmptyExplicit_FallsBackToConfig()
     {
@@ -70,12 +80,14 @@ public class ConnectionResolverTests : IDisposable
         Assert.Equal("http://from-config:41300/mcp", ep.Url.ToString().TrimEnd('/'));
     }
 
+    /// <summary>明示指定された --server が不正な URL のとき InvalidUrlException を伝播することを確認する。</summary>
     [Fact]
     public void Resolve_InvalidExplicit_Throws()
     {
         Assert.Throws<InvalidUrlException>(() => ConnectionResolver.Resolve("not-a-url", _tempRoot));
     }
 
+    /// <summary>config.json 側の server が不正 URL のときも InvalidUrlException を伝播することを確認する。</summary>
     [Fact]
     public void Resolve_InvalidConfig_Throws()
     {

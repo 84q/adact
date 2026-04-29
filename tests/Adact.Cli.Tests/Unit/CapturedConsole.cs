@@ -5,6 +5,11 @@ namespace Adact.Cli.Tests.Unit;
 /// </summary>
 internal static class CapturedConsole
 {
+    /// <summary>
+    /// <paramref name="action"/> 実行中の Console.Out / Console.Error を捕捉し、文字列として返す。
+    /// </summary>
+    /// <param name="action">出力を捕捉したい処理。</param>
+    /// <returns>(stdout, stderr) の組。</returns>
     public static (string stdout, string stderr) Run(Action action)
     {
         ArgumentNullException.ThrowIfNull(action);

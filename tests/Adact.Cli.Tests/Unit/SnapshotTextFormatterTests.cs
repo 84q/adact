@@ -4,6 +4,10 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
+/// <summary>
+/// <see cref="SnapshotTextFormatter.Format"/> の frontmatter / 属性順序 / インデント / エスケープを検証する Unit テスト。
+/// snapshot.md のテキスト出力フォーマット仕様の回帰防止。
+/// </summary>
 [Trait("Layer", "Unit")]
 public class SnapshotTextFormatterTests
 {
@@ -19,6 +23,7 @@ public class SnapshotTextFormatterTests
     private static SnapshotMeta Meta() =>
         new("s1", "notepad", 1234, "2025-01-01T00:00:00Z");
 
+    /// <summary>frontmatter 先頭に filter・sessionId・processName・processId・generatedAt が期待順で出力されることを確認する。</summary>
     [Fact]
     public void Format_EmitsFrontmatterWithFilter()
     {
@@ -31,6 +36,7 @@ public class SnapshotTextFormatterTests
         Assert.Contains("generatedAt: \"2025-01-01T00:00:00Z\"\n", text);
     }
 
+    /// <summary>属性の出力順序が [aid=...] → [value=...] → [disabled] → [focused] → [ref=...] という仕様順を保つことを確認する。</summary>
     [Fact]
     public void Format_AttributeOrder_IsAidValueStateRef()
     {
@@ -49,6 +55,7 @@ public class SnapshotTextFormatterTests
             && idxFocused > idxDisabled && idxRef > idxFocused, line);
     }
 
+    /// <summary>aid/value/disabled/focused が無いとき該当属性を出力しず、ref のみ出すことを確認する。</summary>
     [Fact]
     public void Format_OmitsAttributesWhenAbsent()
     {
@@ -62,6 +69,7 @@ public class SnapshotTextFormatterTests
         Assert.Contains("[ref=s1e2]", line, StringComparison.Ordinal);
     }
 
+    /// <summary>階層ツリーを 1 階層あたり 2 スペースでインデントして出力することを確認する。</summary>
     [Fact]
     public void Format_IndentsByDepthTwoSpaces()
     {
@@ -75,6 +83,7 @@ public class SnapshotTextFormatterTests
         Assert.Contains("\n    - Button \"x\" [ref=s1e3]\n", text);
     }
 
+    /// <summary>name にダブルクオートが含まれるとき \" としてエスケープされることを確認する。</summary>
     [Fact]
     public void Format_EscapesQuotesInName()
     {
@@ -83,6 +92,7 @@ public class SnapshotTextFormatterTests
         Assert.Contains("- Button \"He said \\\"hi\\\"\" [ref=s1e1]", text, StringComparison.Ordinal);
     }
 
+    /// <summary>モーダルダイアログとしてマークされたウィンドウに [modal] フラグが付与されることを確認する。</summary>
     [Fact]
     public void Format_ModalFlag_IsEmitted()
     {
@@ -91,6 +101,7 @@ public class SnapshotTextFormatterTests
         Assert.Contains("[modal]", text, StringComparison.Ordinal);
     }
 
+    /// <summary>processName に日本語を含むとき、frontmatter でダブルクオートで囲むことを確認する (YAML 互換性)。</summary>
     [Fact]
     public void Format_Frontmatter_QuotesProcessNameWithJapanese()
     {
@@ -100,6 +111,7 @@ public class SnapshotTextFormatterTests
         Assert.Contains("processName: \"電卓\"\n", text, StringComparison.Ordinal);
     }
 
+    /// <summary>processName に ":" が含まれるときクォートされることを確認する (YAML ポイズング防止)。</summary>
     [Fact]
     public void Format_Frontmatter_QuotesProcessNameWithColon()
     {
@@ -109,6 +121,7 @@ public class SnapshotTextFormatterTests
         Assert.Contains("processName: \"foo:bar\"\n", text, StringComparison.Ordinal);
     }
 
+    /// <summary>generatedAt は常にダブルクオートで囲まれることを確認する (コロンを含む ISO 8601 のポイズング防止)。</summary>
     [Fact]
     public void Format_Frontmatter_AlwaysQuotesGeneratedAt()
     {
@@ -118,6 +131,7 @@ public class SnapshotTextFormatterTests
         Assert.Contains("generatedAt: \"2026-04-28T03:42:20.900Z\"\n", text, StringComparison.Ordinal);
     }
 
+    /// <summary>ASCII のシンプルな processName はクォートせずそのまま出力されることを確認する。</summary>
     [Fact]
     public void Format_Frontmatter_LeavesPlainProcessNameBare()
     {

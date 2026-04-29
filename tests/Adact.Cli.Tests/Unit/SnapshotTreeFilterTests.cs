@@ -4,6 +4,10 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
+/// <summary>
+/// <see cref="SnapshotTreeFilter.Apply"/> の raw / operable フィルタ処理 (名無し Pane のフラット・offscreen 除外・未知 ControlType フラット等) を検証する Unit テスト。
+/// snapshot.md §filter のツリー整形仕様の回帰防止。
+/// </summary>
 [Trait("Layer", "Unit")]
 public class SnapshotTreeFilterTests
 {
@@ -17,6 +21,7 @@ public class SnapshotTreeFilterTests
             IsEnabled: true, IsOffscreen: isOffscreen, HasKeyboardFocus: false,
             IsModalDialog: false, Ref: $"s1e{role}{name}", Children: children);
 
+    /// <summary>raw フィルタではツリーを一切加工せずそのまま返すことを確認する。</summary>
     [Fact]
     public void Apply_Raw_KeepsTreeIntact()
     {
@@ -28,6 +33,7 @@ public class SnapshotTreeFilterTests
         Assert.Equal("Pane", result.Children[0].Role);
     }
 
+    /// <summary>operable では name/aid を持たない Pane をフラットして子を持ち上げることを確認する。</summary>
     [Fact]
     public void Apply_Operable_FlattensUnnamedPane()
     {
@@ -40,6 +46,7 @@ public class SnapshotTreeFilterTests
         Assert.Equal("Button", result.Children[0].Role);
     }
 
+    /// <summary>name を持つ Pane は operable でも保持されることを確認する。</summary>
     [Fact]
     public void Apply_Operable_KeepsNamedPane()
     {
@@ -53,6 +60,7 @@ public class SnapshotTreeFilterTests
         Assert.Equal("inner", result.Children[0].Children[0].Name);
     }
 
+    /// <summary>aid を持つ Pane は name が無くても operable で保持されることを確認する。</summary>
     [Fact]
     public void Apply_Operable_KeepsPaneWithAutomationId()
     {
@@ -65,6 +73,7 @@ public class SnapshotTreeFilterTests
         Assert.Equal("Pane", result.Children[0].Role);
     }
 
+    /// <summary>isOffscreen=true の要素は operable で除外され、visible 要素のみ残ることを確認する。</summary>
     [Fact]
     public void Apply_Operable_ExcludesOffscreen()
     {
@@ -76,6 +85,7 @@ public class SnapshotTreeFilterTests
         Assert.Equal("visible", result.Children[0].Name);
     }
 
+    /// <summary>未知 ControlType の要素は operable でフラットされ、子要素が持ち上げられることを確認する (不要ノード除去の回帰防止)。</summary>
     [Fact]
     public void Apply_Operable_FlattensUnknownControlType()
     {
@@ -88,6 +98,7 @@ public class SnapshotTreeFilterTests
         Assert.Equal("Button", result.Children[0].Role);
     }
 
+    /// <summary>多重にネストした名無し Pane も再帰的にフラットされることを確認する。</summary>
     [Fact]
     public void Apply_Operable_NestedUnnamedPanes_AreFlattened()
     {
@@ -103,6 +114,7 @@ public class SnapshotTreeFilterTests
         Assert.Equal("Button", result.Children[0].Role);
     }
 
+    /// <summary>IsKnownFilter が "operable"/"RAW" (大文字含む) に true、未知名に false を返すことを確認する。</summary>
     [Fact]
     public void IsKnownFilter_AcceptsBothCases()
     {

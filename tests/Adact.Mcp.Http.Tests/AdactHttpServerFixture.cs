@@ -14,8 +14,15 @@ public sealed class AdactHttpServerFixture : IAsyncLifetime
 {
     private WebApplication? _app;
 
+    /// <summary>
+    /// テスト中に MCP クライアントから接続する HTTP エンドポイント (/mcp 付き)。
+    /// </summary>
     public Uri BaseAddress { get; private set; } = null!;
 
+    /// <summary>
+    /// HTTP サーバーを起動して <see cref="BaseAddress"/> を解決する。
+    /// </summary>
+    /// <returns>初期化完了タスク。</returns>
     public async Task InitializeAsync()
     {
         _app = HttpHost.BuildApplication(port: 0);
@@ -28,6 +35,10 @@ public sealed class AdactHttpServerFixture : IAsyncLifetime
         BaseAddress = new Uri(new Uri(url), HttpHost.McpPath);
     }
 
+    /// <summary>
+    /// 起動中の HTTP サーバーを停止し、リソースを解放する。
+    /// </summary>
+    /// <returns>解放完了タスク。</returns>
     public async Task DisposeAsync()
     {
         if (_app is not null)

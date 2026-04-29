@@ -8,6 +8,10 @@ using Xunit;
 
 namespace Adact.Mcp.Stdio.Tests;
 
+/// <summary>
+/// adact.exe を stdio MCP サーバーとして起動し、list-apps / attach / snapshot を E2E で検証するテスト群。
+/// stdio トランスポート + プロセス境界 + UIA 操作の通しシナリオで回帰を防ぐため。
+/// </summary>
 [Trait("Layer", "E2E")]
 [Collection("UiaSerial")]
 public class WindowsToolsE2ETests
@@ -22,6 +26,11 @@ public class WindowsToolsE2ETests
         });
     }
 
+    /// <summary>
+    /// adact.exe を stdio で起動し、windows_list_apps が生存ウィンドウを 1 件以上返すことを確認する。
+    /// stdio MCP の最小疎通を E2E で担保するため。
+    /// </summary>
+    /// <returns>テスト完了タスク。</returns>
     [Fact]
     public async Task ListApps_OnRunningSystem_ReturnsNonEmpty()
     {
@@ -37,6 +46,12 @@ public class WindowsToolsE2ETests
             "windows_list_apps should return at least one window on a running desktop session.");
     }
 
+    /// <summary>
+    /// 電卓 (calc.exe) を起動し stdio MCP 経由で windows_attach → windows_snapshot を実行し、
+    /// snapshot tree に複数の Button ノードが含まれることを確認する。
+    /// stdio トランスポート + UIA + ref 採番の E2E 通しシナリオの回帰防止。
+    /// </summary>
+    /// <returns>テスト完了タスク。</returns>
     [Fact]
     public async Task AttachAndSnapshot_OnCalculator_ReturnsTreeWithButtons()
     {

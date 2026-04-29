@@ -8,10 +8,15 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
+/// <summary>
+/// <see cref="McpResponse"/> の structured/text content 処理とエラー出力 (stderr) を検証する Unit テスト。
+/// errors-and-output.md の CLI エラー表示仕様 (error / message / hint) の回帰防止。
+/// </summary>
 [Trait("Layer", "Unit")]
 [Collection(ConsoleCollection.Name)]
 public class McpResponseTests
 {
+    /// <summary>StructuredContent があるときは Content.Text より structured を優先することを確認する。</summary>
     [Fact]
     public void GetJson_PrefersStructuredContent()
     {
@@ -28,6 +33,7 @@ public class McpResponseTests
         Assert.Equal("bar", json.GetProperty("foo").GetString());
     }
 
+    /// <summary>StructuredContent が無いとき Content.Text の JSON 文字列をパースして出力することを確認する (フォールバックパスの回帰防止)。</summary>
     [Fact]
     public void GetJson_FallsBackToContentText_WhenStructuredAbsent()
     {
@@ -42,6 +48,7 @@ public class McpResponseTests
         Assert.Equal(1, json[0].GetProperty("a").GetInt32());
     }
 
+    /// <summary>IsError が未設定の成功レスポンスでは null を返し、エラー出力を行わないことを確認する。</summary>
     [Fact]
     public void TryReportError_OnSuccess_ReturnsNull()
     {
@@ -53,6 +60,7 @@ public class McpResponseTests
         Assert.Null(McpResponse.TryReportError(result));
     }
 
+    /// <summary>IsError=true のとき structured の code/message を stderr に error/message 行として出し、CommandFailed exit を返すことを確認する。</summary>
     [Fact]
     public void TryReportError_OnError_WritesStderrAndReturnsExitCode()
     {
@@ -79,6 +87,7 @@ public class McpResponseTests
         Assert.Contains("message two windows match", stderr);
     }
 
+    /// <summary>structured が無いエラーレスポンスでは INTERNAL_ERROR として raw text を表示することを確認する。</summary>
     [Fact]
     public void TryReportError_OnError_WithoutStructured_FallsBackToText()
     {
@@ -98,6 +107,7 @@ public class McpResponseTests
         Assert.Contains("raw error text", stderr);
     }
 
+    /// <summary>structured に hint があるとき stderr に hint 行も出力されることを確認する。</summary>
     [Fact]
     public void TryReportError_OnError_WithHint_WritesHintLine()
     {

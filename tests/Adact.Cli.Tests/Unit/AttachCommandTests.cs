@@ -5,9 +5,16 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
+/// <summary>
+/// <see cref="AttachCommand.ValidateAttachArgs"/> の入力検証ロジックを検証する Unit テスト。
+/// CLI の --ref / --process / --title etc. の排他・必須ルール (cli.md §attach) の回帰防止。
+/// </summary>
 [Trait("Layer", "Unit")]
 public class AttachCommandTests
 {
+    /// <summary>
+    /// 全フィールド未指定のとき INVALID_ARGUMENT エラーと、説明メッセージが返ることを確認する。
+    /// </summary>
     [Fact]
     public void ValidateAttachArgs_AllNull_ReturnsInvalidArgument()
     {
@@ -18,6 +25,9 @@ public class AttachCommandTests
         Assert.NotNull(message);
     }
 
+    /// <summary>
+    /// --ref とフラグ系オプションを同時指定したとき INVALID_ARGUMENT となり、"mutually exclusive" メッセージを返すことを確認する。
+    /// </summary>
     [Fact]
     public void ValidateAttachArgs_RefAndFlag_ReturnsInvalidArgument()
     {
@@ -28,6 +38,9 @@ public class AttachCommandTests
         Assert.Contains("mutually exclusive", message, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// --ref の値が "w&lt;n&gt;" フォーマットでないときエラーとなり、フォーマットヒントを出すことを確認する。
+    /// </summary>
     [Fact]
     public void ValidateAttachArgs_InvalidRefFormat_ReturnsInvalidArgument()
     {
@@ -38,6 +51,9 @@ public class AttachCommandTests
         Assert.Contains("w<n>", message);
     }
 
+    /// <summary>
+    /// --ref のみ指定は有効でありエラーにならないことを確認する。
+    /// </summary>
     [Fact]
     public void ValidateAttachArgs_RefOnly_Succeeds()
     {
@@ -48,6 +64,9 @@ public class AttachCommandTests
         Assert.Null(message);
     }
 
+    /// <summary>
+    /// --process のみ指定は有効であることを確認する。
+    /// </summary>
     [Fact]
     public void ValidateAttachArgs_ProcessNameOnly_Succeeds()
     {
@@ -58,6 +77,9 @@ public class AttachCommandTests
         Assert.Null(message);
     }
 
+    /// <summary>
+    /// --process と --title の併用は AND 条件として受け付けられることを確認する (排他ではない)。
+    /// </summary>
     [Fact]
     public void ValidateAttachArgs_ProcessNameAndTitle_Succeeds()
     {

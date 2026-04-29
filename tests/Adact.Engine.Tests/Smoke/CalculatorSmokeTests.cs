@@ -5,10 +5,18 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Smoke;
 
+/// <summary>
+/// 電卓 (CalculatorApp) を起動し、snapshot → click → snapshot の Smoke シナリオを検証する L4 テスト。
+/// AttachAsync・SnapshotAsync・ClickAsync の連携動作の回帰を実アプリで担保するため。
+/// </summary>
 [Trait("Layer", "Smoke")]
 [Collection("UiaSerial")]
 public class CalculatorSmokeTests : IAsyncLifetime
 {
+    /// <summary>
+    /// 既存電卓を終了したうえで calc.exe を起動し、CalculatorApp.exe が現れるまで待機する。
+    /// </summary>
+    /// <returns>起動完了タスク。</returns>
     public async Task InitializeAsync()
     {
         // 既存の電卓プロセスを終了させ、「電卓」タイトルのウィンドウが複数存在する瞬間を回避する。
@@ -28,6 +36,10 @@ public class CalculatorSmokeTests : IAsyncLifetime
         await Task.Delay(1000);
     }
 
+    /// <summary>
+    /// 電卓プロセスをクリーンアップする。
+    /// </summary>
+    /// <returns>解放完了タスク。</returns>
     public Task DisposeAsync()
     {
         foreach (var p in Process.GetProcessesByName("CalculatorApp"))
@@ -47,6 +59,11 @@ public class CalculatorSmokeTests : IAsyncLifetime
         }
     }
 
+    /// <summary>
+    /// 電卓の "7" ボタンを ClickAsync で押し、表示領域に "7" が反映されることを確認する。
+    /// click → snapshot のやり取りと ref 介した要素操作の Smoke 検証。
+    /// </summary>
+    /// <returns>テスト完了タスク。</returns>
     [Fact]
     public async Task Click_Seven_DisplayShowsSeven()
     {

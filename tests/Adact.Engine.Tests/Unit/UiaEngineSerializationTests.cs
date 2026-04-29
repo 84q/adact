@@ -4,6 +4,10 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Unit;
 
+/// <summary>
+/// <see cref="UiaEngine.RunSerializedAsync{T}"/> の直列化ゲートを検証する Unit テスト。
+/// UIA 読み取りを並列しない仕様 (snapshot-pipeline.md) の回帰防止。
+/// </summary>
 [Trait("Layer", "Unit")]
 public class UiaEngineSerializationTests
 {
@@ -12,6 +16,7 @@ public class UiaEngineSerializationTests
     /// 開始されないことを検証する。SemaphoreSlim(1, 1) ベースの直列化が機能していれば
     /// 2 つ目の開始時刻 ≧ 1 つ目の完了時刻 となる。
     /// </summary>
+    /// <returns>テスト完了タスク。</returns>
     [Fact]
     public async Task RunSerializedAsync_TwoConcurrentCalls_AreSerialized()
     {
@@ -56,6 +61,11 @@ public class UiaEngineSerializationTests
             $"second start ({secondStartTicks}) must be >= first end ({firstEndTicks})");
     }
 
+    /// <summary>
+    /// gate 待機中の CancellationToken を以てキャンセルすると OperationCanceledException が伝播し、以後の呼び出しも正常動作することを確認する。
+    /// gate 詳細を token キャンセルさせたときに semaphore がリークしない NRE の回帰防止。
+    /// </summary>
+    /// <returns>テスト完了タスク。</returns>
     [Fact]
     public async Task RunSerializedAsync_Cancellation_HonoursCancellationToken()
     {
@@ -84,6 +94,11 @@ public class UiaEngineSerializationTests
         await t1;
     }
 
+    /// <summary>
+    /// action が例外を投げても gate が解放され、次の呼び出しがデッドロックしないことを確認する。
+    /// snapshot 中の UIA 例外で engine がスタックしないよう保証するため。
+    /// </summary>
+    /// <returns>テスト完了タスク。</returns>
     [Fact]
     public async Task RunSerializedAsync_Exception_ReleasesGate()
     {

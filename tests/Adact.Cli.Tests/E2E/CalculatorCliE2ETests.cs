@@ -15,11 +15,20 @@ public class CalculatorCliE2ETests
 {
     private readonly AdactDaemonFixture _fixture;
 
+    /// <summary>
+    /// 共有 daemon フィクスチャを受け取る xUnit コンストラクタ。
+    /// </summary>
+    /// <param name="fixture">テスト全体で共有される <see cref="AdactDaemonFixture"/>。</param>
     public CalculatorCliE2ETests(AdactDaemonFixture fixture)
     {
         _fixture = fixture;
     }
 
+    /// <summary>
+    /// 実 calc.exe に対して list-apps → attach → click → close の一連の CLI コマンドを逓次実行し、
+    /// stdout の key/value ・snapshot ファイル・ref 安定性・close 出力まで含めて検証する。
+    /// CLI と daemon と UIA を含む E2E テスト (設計 009 §9.2) のテスト。
+    /// </summary>
     [Fact]
     public void ListAttachSnapshotClickCloseFlow_OnCalculator_Succeeds()
     {

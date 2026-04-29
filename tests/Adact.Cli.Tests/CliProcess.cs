@@ -3,13 +3,17 @@ using System.Diagnostics;
 namespace Adact.Cli.Tests;
 
 /// <summary>
-/// adact.exe をサブプロセス起動するヘルパー。
-/// AssemblyName=adact なので、Adact.Cli の出力ディレクトリに <c>adact.exe</c> (apphost) が存在する。
+/// CliProcess 実行結果 (exit code / stdout / stderr) を保持する record。
 /// </summary>
 internal sealed record CliResult(int ExitCode, string Stdout, string Stderr);
 
+/// <summary>
+/// adact.exe をサブプロセス起動して結果を回収するテスト用ヘルパー。
+/// AssemblyName=adact なので、Adact.Cli の出力ディレクトリに <c>adact.exe</c> (apphost) が存在する。
+/// </summary>
 internal static class CliProcess
 {
+    /// <summary>adact.exe の実行パス。</summary>
     public static string ExePath { get; } = ResolveExePath();
 
     private static string ResolveExePath()

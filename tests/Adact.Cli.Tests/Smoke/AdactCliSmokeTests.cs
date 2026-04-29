@@ -12,11 +12,19 @@ public class AdactCliSmokeTests
 {
     private readonly AdactDaemonFixture _fixture;
 
+    /// <summary>
+    /// 共有 daemon フィクスチャを受け取る xUnit コンストラクタ。
+    /// </summary>
+    /// <param name="fixture">共有される <see cref="AdactDaemonFixture"/>。</param>
     public AdactCliSmokeTests(AdactDaemonFixture fixture)
     {
         _fixture = fixture;
     }
 
+    /// <summary>
+    /// list-apps の stdout 先頭行が設計 §5.2 で規定された TSV ヘッダ (windowRef\tsessionId\t...) と一致することを確認する。
+    /// CLI 出力スキーマの回帰を Smoke で検出するため。
+    /// </summary>
     [Fact]
     public void ListApps_ReturnsTabSeparatedHeader()
     {
@@ -36,10 +44,14 @@ public class AdactCliSmokeTests
             firstLine);
     }
 
+    /// <summary>
+    /// 非ローカル URL を --server で渡した daemon-stop が CLI 段階で LOCAL_ONLY exit=2 となることを確認する。
+    /// 設計 §3.4 / §6.3 の localhost ガードの回帰防止。
+    /// </summary>
     [Fact]
     public void DaemonStop_NonLocalhostUrl_ReturnsLocalOnlyExit2()
     {
-        // 設計 §3.4 / §6.3: 非ローカル URL を指定した daemon-stop は CLI 段で reject。
+        // 設計 §3.4 / §6.3: 非ローカル URL を指定した daemon-stop は CLI 段階で reject。
         // RFC 5737 の TEST-NET-1 (192.0.2.0/24) を使用 → 実通信は発生しない。
         var result = CliProcess.Run("daemon-stop --server http://192.0.2.1:41300/mcp");
 
@@ -47,6 +59,10 @@ public class AdactCliSmokeTests
         Assert.Contains("error " + Adact.Cli.Output.ErrorCodes.LocalOnly, result.Stderr, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// 未知タイトルに対する attach が、daemon から NOT_FOUND エラーを受け取って exit=1 となることを確認する。
+    /// daemon の windows_attach 失敗パスと CLI のエラー伝達の低コスト検出。
+    /// </summary>
     [Fact]
     public void Attach_UnknownTitle_ReturnsExit1WithError()
     {
@@ -68,6 +84,10 @@ public class AdactCliSmokeTests
 [Trait("Layer", "Smoke")]
 public class AdactCliHelpTests
 {
+    /// <summary>
+    /// adact --help が exit=0 となり、主要サブコマンド名 (list-apps / attach) がヘルプに含まれることを確認する。
+    /// CommandLine ヒエラルキーの回帰 (コマンド未登録など) の Smoke 検出。
+    /// </summary>
     [Fact]
     public void Help_ReturnsZeroAndPrintsUsage()
     {

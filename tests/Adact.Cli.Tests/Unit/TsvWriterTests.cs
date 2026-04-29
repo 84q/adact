@@ -4,10 +4,15 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
+/// <summary>
+/// <see cref="TsvWriter"/> のタブ区切りヘッダ・行出力と null/空のダッシュ代替を検証する Unit テスト。
+/// list-apps 出力フォーマットの回帰防止。
+/// </summary>
 [Trait("Layer", "Unit")]
 [Collection(ConsoleCollection.Name)]
 public class TsvWriterTests
 {
+    /// <summary>WriteHeader が任意個数の列をタブで連結し、末尾に改行を付けることを確認する。</summary>
     [Fact]
     public void WriteHeader_JoinsColumnsWithTab()
     {
@@ -19,6 +24,7 @@ public class TsvWriterTests
         Assert.Equal("a\tb\tc" + Environment.NewLine, stdout);
     }
 
+    /// <summary>WriteRow がセルをタブで連結し、日本語を含む値もそのまま出すことを確認する。</summary>
     [Fact]
     public void WriteRow_JoinsCellsWithTab()
     {
@@ -30,6 +36,7 @@ public class TsvWriterTests
         Assert.Equal("w1\ts1\tcalc.exe\t1234\tFrame\t電卓" + Environment.NewLine, stdout);
     }
 
+    /// <summary>null / 空文字列セルが "-" として描画され、TSV のカラム数を保つことを確認する。</summary>
     [Fact]
     public void WriteRow_NullOrEmpty_RenderedAsDash()
     {

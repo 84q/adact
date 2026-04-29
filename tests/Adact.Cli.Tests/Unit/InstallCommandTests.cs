@@ -22,6 +22,10 @@ public class InstallCommandTests
     "list-apps", "attach", "snapshot", "click", "fill",
       };
 
+    /// <summary>
+    /// references/*.md のファイル名集合と、Skill 対象の期待 CLI コマンド集合が一致することを確認する。
+    /// CLI コマンド追加・削除・改名時の Skill ドキュメント更新漏れ検出。
+    /// </summary>
     [Fact]
     public void ReferenceFiles_MatchExpectedDocumentedSet()
     {
@@ -33,6 +37,10 @@ public class InstallCommandTests
         Assert.Equal(ExpectedDocumentedCommands.OrderBy(x => x), actual!.OrderBy(x => x));
     }
 
+    /// <summary>
+    /// Skill 対象として期待されるコマンド名が、全て実際に CLI に登録されていることを確認する。
+    /// Skill だけ残って CLI から消えたという逆位相ケースの検出。
+    /// </summary>
     [Fact]
     public void ExpectedDocumentedCommands_AreAllRegisteredSubcommands()
     {
@@ -46,6 +54,13 @@ public class InstallCommandTests
         }
     }
 
+    /// <summary>
+    /// client × global の組み合わせで ResolveTargetDirectory が設計 013 §5.1 のマトリクスと一致することを確認する。
+    /// install 出力先の判定ロジックの回帰防止。
+    /// </summary>
+    /// <param name="client">クライアント名。</param>
+    /// <param name="global">--global フラグ。</param>
+    /// <param name="expectedTail">期待される相対パス。</param>
     [Theory]
     [InlineData("copilot", false, ".github/skills/adact-cli")]
     [InlineData("claude", false, ".claude/skills/adact-cli")]
@@ -65,6 +80,7 @@ public class InstallCommandTests
         Assert.Equal(expected, resolved);
     }
 
+    /// <summary>未知クライアント名を渡したとき ArgumentException が伝播されることを確認する。</summary>
     [Fact]
     public void ResolveTargetDirectory_UnknownClient_Throws()
     {

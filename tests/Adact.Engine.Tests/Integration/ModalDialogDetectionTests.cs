@@ -6,9 +6,16 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Integration;
 
+/// <summary>
+/// SnapshotBuilder のモーダルダイアログ検出ロジックを検証する Integration テスト。
+/// modal をルートの兄弟として受け取り、JSON 出力と _meta に反映される仕様 (snapshot.md) の回帰防止。
+/// </summary>
 [Trait("Layer", "Integration")]
 public class ModalDialogDetectionTests
 {
+    /// <summary>
+    /// modal シブリングを与えると、ルートノードの子として isModalDialog=true で追加され、_meta.modalDialog が埋まることを確認する。
+    /// </summary>
     [Fact]
     public void ModalSiblings_AreAddedAsChildrenOfRoot_WithIsModalDialogTrue()
     {
@@ -42,6 +49,10 @@ public class ModalDialogDetectionTests
         Assert.Equal(2, modalNode.GetProperty("children").GetArrayLength());
     }
 
+    /// <summary>
+    /// modal が無い場合、_meta.modalDialog は null として出力されることを確認する。
+    /// modal なしケースでプロパティが欠落したり異なる型になったりしない仕様の回帰防止。
+    /// </summary>
     [Fact]
     public void Build_GivenNoModals_ProducesNullModalDialogMeta()
     {

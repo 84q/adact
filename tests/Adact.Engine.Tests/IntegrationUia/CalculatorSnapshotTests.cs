@@ -4,12 +4,20 @@ using Xunit;
 
 namespace Adact.Engine.Tests.IntegrationUia;
 
+/// <summary>
+/// 実電卓 (CalculatorApp) を起動し、UiaEngine.AttachAsync → SnapshotAsync の一連動作を検証する L3 テスト。
+/// 実 UIA スタックとの結合退行を防ぐため、実アプリを必要とする。
+/// </summary>
 [Trait("Layer", "IntegrationUia")]
 [Collection("UiaSerial")]
 public class CalculatorSnapshotTests : IAsyncLifetime
 {
     private Process? _process;
 
+    /// <summary>
+    /// 既存電卓を終了したうえで calc.exe を起動し、CalculatorApp.exe が現れるまで待機する。
+    /// </summary>
+    /// <returns>起動完了タスク。</returns>
     public async Task InitializeAsync()
     {
         // 既存の電卓プロセスを終了させ、「電卓」タイトルのウィンドウが複数存在する瞬間を回避する。
@@ -34,6 +42,10 @@ public class CalculatorSnapshotTests : IAsyncLifetime
         await Task.Delay(800); // ウィンドウ描画安定待ち
     }
 
+    /// <summary>
+    /// 電卓プロセスをクリーンアップする。
+    /// </summary>
+    /// <returns>解放完了タスク。</returns>
     public async Task DisposeAsync()
     {
         foreach (var p in Process.GetProcessesByName("CalculatorApp"))
@@ -57,6 +69,11 @@ public class CalculatorSnapshotTests : IAsyncLifetime
         }
     }
 
+    /// <summary>
+    /// 電卓ウィンドウに attach して snapshot した際、sessionId 採番 / タイトル / Button ノードが含まれることを確認する。
+    /// 実 UIA ツリーと RefRegistry の結合動作の回帰を L3 で検出するため。
+    /// </summary>
+    /// <returns>テスト完了タスク。</returns>
     [Fact]
     public async Task Snapshot_OnCalculator_ContainsExpectedNodes()
     {

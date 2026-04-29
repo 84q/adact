@@ -10,7 +10,7 @@ namespace Adact.Cli.Tests;
 /// <summary>
 /// <c>adact.exe serve</c> をサブプロセスとして一度だけ起動し、test collection 全体で共有する fixture。
 /// ephemeral port (TcpListener.Start(0)) を OS から確保し、HEAD リクエストで起動完了をポーリングする。
-/// Dispose 時はまず <c>adact daemon-stop</c> で graceful 停止を試み、失敗時は <see cref="Process.Kill"/> へフォールバック。
+/// Dispose 時はまず <c>adact daemon-stop</c> で graceful 停止を試み、失敗時は <see cref="Process.Kill()"/> へフォールバック。
 /// </summary>
 /// <remarks>
 /// 本 fixture の前提: <c>xunit.runner.json</c> で <c>parallelizeAssembly: false</c> が設定されていること。
@@ -29,10 +29,16 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
     private Task? _stdoutPump;
     private Task? _stderrPump;
 
+    /// <summary>fixture が確保した ephemeral port。</summary>
     public int Port { get; private set; }
 
+    /// <summary>起動した daemon の MCP エンドポイント (http://127.0.0.1:&lt;port&gt;/mcp)。</summary>
     public string BaseUrl { get; private set; } = null!;
 
+    /// <summary>
+    /// サブプロセスとして <c>adact serve</c> を起動し、HTTP ready 状態になるまでポーリングする。
+    /// </summary>
+    /// <returns>起動完了タスク。</returns>
     public async Task InitializeAsync()
     {
         Port = GetFreePort();
@@ -76,6 +82,10 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
         }
     }
 
+    /// <summary>
+    /// daemon-stop で graceful 停止を試み、失敗・タイムアウト時は Kill にフォールバックし、診断ログを stderr へ出力する。
+    /// </summary>
+    /// <returns>解放完了タスク。</returns>
     public async Task DisposeAsync()
     {
         if (_serveProcess is null) return;

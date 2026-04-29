@@ -6,6 +6,10 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Integration;
 
+/// <summary>
+/// <see cref="SnapshotBuilder"/> の raw JSON 生成・ref 採番・セッション間独立性を検証する Integration テスト。
+/// FakeElement ツリーを使い、snapshot.md / ref-ids.md の仕様の回帰を防ぐ。
+/// </summary>
 [Trait("Layer", "Integration")]
 public class SnapshotBuilderTests
 {
@@ -27,6 +31,10 @@ public class SnapshotBuilderTests
         return (JsonDocument.Parse(result.Json), result);
     }
 
+    /// <summary>
+    /// Phase 7 の raw 出力で Name なし Pane やその子要素が flatten されずそのまま tree に出ることを確認する。
+    /// flatten/Exclude を CLI 側に移譲した仕様変更の回帰防止。
+    /// </summary>
     [Fact]
     public void Raw_IncludesUnnamedPaneAndItsChildren()
     {
@@ -43,6 +51,10 @@ public class SnapshotBuilderTests
         Assert.Equal("Button", grand[0].GetProperty("role").GetString());
     }
 
+    /// <summary>
+    /// IsOffscreen=true の要素も raw 出力に含まれ、isOffscreen フラグ付きで出ることを確認する。
+    /// 画面外要素を builder が勝手に除外しない仕様の回帰防止。
+    /// </summary>
     [Fact]
     public void Raw_OffscreenElement_IsStillIncluded()
     {
@@ -57,6 +69,9 @@ public class SnapshotBuilderTests
         Assert.True(children[0].GetProperty("isOffscreen").GetBoolean());
     }
 
+    /// <summary>
+    /// 単一 snapshot 内で全ノードの ref がユニークで連番採番 (s1e1, s1e2, ...) されることを確認する。
+    /// </summary>
     [Fact]
     public void RefIds_WithinSingleSnapshot_AreUniqueAndSequential()
     {
@@ -79,6 +94,10 @@ public class SnapshotBuilderTests
             foreach (var ch in c.EnumerateArray()) Walk(ch, refs);
     }
 
+    /// <summary>
+    /// 同じ RuntimeId の要素ツリーを 2 回ビルドすると同じ ref セットが復元されることを確認する。
+    /// snapshot 間で要素 ref が安定していること (ref-ids.md) の回帰防止。
+    /// </summary>
     [Fact]
     public void SameElement_AcrossSnapshots_ReusesRef()
     {
@@ -92,6 +111,10 @@ public class SnapshotBuilderTests
         Assert.Equal(firstRefs, secondRefs);
     }
 
+    /// <summary>
+    /// 異なる sessionId 間では ref 名前空間が独立 (s1e* / s2e*) して衝突しないことを確認する。
+    /// 複数 attach 並行時に ref が混在しない仕様の回帰防止。
+    /// </summary>
     [Fact]
     public void RefIds_AcrossMultipleSessions_DoNotCollide()
     {
