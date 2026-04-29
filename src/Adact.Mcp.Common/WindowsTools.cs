@@ -29,6 +29,7 @@ public sealed class WindowsTools
     private readonly IDaemonControl _daemonControl;
     private readonly ILogger<WindowsTools> _logger;
 
+
     public WindowsTools(SessionStore store, WindowRefStore refStore, IDaemonControl daemonControl, ILogger<WindowsTools>? logger = null)
     {
         _store = store;
@@ -108,100 +109,55 @@ public sealed class WindowsTools
 
         try
         {
-            WindowSession session;
-            string assignedWindowRef;
+            // 入力経路を「(existingEntry?, key, info)」に正規化
+            WindowRefEntry? existingEntry;
+            WindowKey key;
+            WindowInfo info;
 
             if (windowRef is not null)
             {
                 if (!WindowRefPattern.IsMatch(windowRef))
-                {
                     return ToolErrors.Error(ToolErrors.InvalidArgument,
                         $"Invalid windowRef format: '{windowRef}'. Expected pattern: w<n>.");
-                }
-
-                if (!_refStore.TryResolve(windowRef, out var entry))
-                {
+                if (!_refStore.TryResolve(windowRef, out var resolved))
                     return ToolErrors.Error(ToolErrors.InvalidWindowRef,
                         $"Window Ref '{windowRef}' is unknown or has been retired. Re-run windows_list_apps.");
-                }
-
-                // idempotent: 既存 session が生きていればそれを返す
-                if (entry.SessionId is not null
-                    && _store.TryGet(entry.SessionId, out var existing))
-                {
-                    var existingInfo = new JsonObject
-                    {
-                        ["sessionId"] = entry.SessionId,
-                        ["windowRef"] = entry.WindowRef,
-                        ["windowInfo"] = new JsonObject
-                        {
-                            ["processName"] = existing.ProcessName,
-                            ["windowTitle"] = existing.Title,
-                            ["processId"] = existing.ProcessId,
-                        },
-                    };
-                    return new CallToolResult
-                    {
-                        Content = [new TextContentBlock { Text = existingInfo.ToJsonString() }],
-                        StructuredContent = JsonSerializer.SerializeToElement(existingInfo),
-                    };
-                }
-
-                session = await _store.Engine.AttachByHandleAsync(entry.Key.Hwnd, ct).ConfigureAwait(false);
-                _store.Register(session);
-                assignedWindowRef = entry.WindowRef;
-                _refStore.AssociateSession(assignedWindowRef, $"s{session.SessionId}");
+                existingEntry = resolved;
+                key = resolved.Key;
+                info = resolved.Info;
             }
             else
             {
                 var query = new AttachQuery(processName, windowTitle, className, processId);
-
-                // attach 前にマッチング対象を確定し、WindowKey で既存 entry を検索することで idempotent 化する。
                 var matches = await _store.Engine.FindMatchesAsync(query, ct).ConfigureAwait(false);
-                if (matches.Count == 0)
-                    throw new WindowNotFoundException(query);
-                if (matches.Count > 1)
-                    throw new AmbiguousAttachException(query, matches);
-
-                var target = matches[0];
-                var key = WindowKey.From(target);
-
-                // 既存 entry が生きている session を持っていれば idempotent: 既存 sessionId/windowRef を返す
-                if (_refStore.TryFindByKey(key, out var found)
-                    && !found.Retired
-                    && found.SessionId is not null
-                    && _store.TryGet(found.SessionId, out var existingSession))
-                {
-                    var existingInfo = new JsonObject
-                    {
-                        ["sessionId"] = found.SessionId,
-                        ["windowRef"] = found.WindowRef,
-                        ["windowInfo"] = new JsonObject
-                        {
-                            ["processName"] = existingSession.ProcessName,
-                            ["windowTitle"] = existingSession.Title,
-                            ["processId"] = existingSession.ProcessId,
-                        },
-                    };
-                    return new CallToolResult
-                    {
-                        Content = [new TextContentBlock { Text = existingInfo.ToJsonString() }],
-                        StructuredContent = JsonSerializer.SerializeToElement(existingInfo),
-                    };
-                }
-
-                session = await _store.Engine.AttachByHandleAsync(key.Hwnd, ct).ConfigureAwait(false);
-                _store.Register(session);
-
-                var entry = _refStore.SyncOrAssign(key, target);
-                assignedWindowRef = entry.WindowRef;
-                _refStore.AssociateSession(assignedWindowRef, $"s{session.SessionId}");
+                if (matches.Count == 0) throw new WindowNotFoundException(query);
+                if (matches.Count > 1) throw new AmbiguousAttachException(query, matches);
+                info = matches[0];
+                key = WindowKey.From(info);
+                existingEntry = _refStore.TryFindByKey(key, out var found) && !found.Retired ? found : null;
             }
 
-            var info = new JsonObject
+            // session 確保: 既存があれば再利用、なければ新規 attach
+            WindowSession session;
+            WindowRefEntry entry;
+            if (existingEntry is { SessionId: { } sid } && _store.TryGet(sid, out var live))
+            {
+                session = live;
+                entry = existingEntry;
+            }
+            else
+            {
+                session = await _store.Engine.AttachByHandleAsync(key.Hwnd, ct).ConfigureAwait(false);
+                _store.Register(session);
+                entry = existingEntry ?? _refStore.SyncOrAssign(key, info);
+                _refStore.AssociateSession(entry.WindowRef, $"s{session.SessionId}");
+            }
+
+            // 結果構築
+            var result = new JsonObject
             {
                 ["sessionId"] = $"s{session.SessionId}",
-                ["windowRef"] = assignedWindowRef,
+                ["windowRef"] = entry.WindowRef,
                 ["windowInfo"] = new JsonObject
                 {
                     ["processName"] = session.ProcessName,
@@ -211,8 +167,8 @@ public sealed class WindowsTools
             };
             return new CallToolResult
             {
-                Content = [new TextContentBlock { Text = info.ToJsonString() }],
-                StructuredContent = JsonSerializer.SerializeToElement(info),
+                Content = [new TextContentBlock { Text = result.ToJsonString() }],
+                StructuredContent = JsonSerializer.SerializeToElement(result),
             };
         }
         catch (Exception ex)
