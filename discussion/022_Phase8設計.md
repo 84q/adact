@@ -104,7 +104,7 @@ CLI コマンドはすべて kebab-case、MCP は `windows_` prefix の snake_ca
 | `inspect` | ref |
 | `screenshot` | `--ref <ref>` (任意。未指定はウィンドウ全体)、その他 (`--out` 等) は既存 `snapshot` コマンドの該当オプションと揃える。`--highlight` (対象 ref をハイライト) は **将来拡張**として今回は実装しない |
 | `wait-for` | `--ref <ref>` または検索条件 (`--name`, `--control-type`, `--automation-id` 等)、`--state attached/detached/visible/hidden/enabled/disabled`, `--timeout <ms>` |
-| `wait-for-window` | `--window-key`, `--title`, `--class-name`, `--process-name`, `--exe`（既存 attach クエリと互換）, `--timeout <ms>` |
+| `wait-for-window` | `--title`, `--class-name`, `--process-name`, `--exe` (case-insensitive 正規表現)、`--timeout <ms>` |
 | `resize` | `--width <w>`, `--height <h>` |
 | `minimize` / `maximize` / `restore` | (引数なし。アタッチ済ウィンドウに対して操作) |
 

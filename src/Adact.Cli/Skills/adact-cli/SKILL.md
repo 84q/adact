@@ -60,6 +60,8 @@ the reference for the command you are about to run.
 | `adact inspect`        | Print detailed UIA properties of an element as JSON.  | [`references/inspect.md`](references/inspect.md)     |
 | `adact screenshot`     | Save a PNG screenshot of the window or an element.    | [`references/screenshot.md`](references/screenshot.md) |
 | `adact launch`         | Start a Windows process (Win32 / .NET / UWP).         | [`references/launch.md`](references/launch.md)       |
+| `adact wait-for`       | Wait until an element reaches a target state.         | [`references/wait-for.md`](references/wait-for.md)   |
+| `adact wait-for-window`| Wait until a top-level window appears (no attach).    | [`references/wait-for-window.md`](references/wait-for-window.md) |
 
 ## Element refs
 
@@ -103,6 +105,7 @@ valid as the first positional argument of `attach`.
 | `NO_ACTIVE_SESSION`   | `snapshot` was called without an attached session.    | Call `adact attach` first, or pass `--sid` explicitly.                                            |
 | `CONNECTION_FAILED`   | Could not reach the ADACT daemon.                     | Start the daemon with `adact serve`, or pass `--server <url>`.                                    |
 | `LOCAL_ONLY`          | Operation only valid against a localhost daemon.      | Run the command on the same host as the daemon.                                                   |
+| `WAIT_TIMEOUT`        | `wait-for` / `wait-for-window` timed out.             | Increase `--timeout`, verify the app reaches the expected state, or relax the search conditions.  |
 
 `REF_NOT_FOUND` is the most frequent error during automation. It means the
 element the ref pointed to has gone (replaced, virtualized, dialog closed,

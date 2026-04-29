@@ -26,6 +26,7 @@ public class InstallCommandTests
     "resize", "minimize", "maximize", "restore",
     "inspect", "screenshot",
     "launch",
+    "wait-for", "wait-for-window",
       };
 
     /// <summary>

@@ -42,6 +42,8 @@ internal static class ToolErrors
     public const string LocalOnly = "LOCAL_ONLY";
     /// <summary>業務例外として提示したい不規則例外を包んだケース (例: daemon 停止失敗)。</summary>
     public const string InternalError = "INTERNAL_ERROR";
+    /// <summary><c>windows_wait_for</c> / <c>windows_wait_for_window</c> がタイムアウト内に成功条件を満たせなかった。</summary>
+    public const string WaitTimeout = "WAIT_TIMEOUT";
 
     /// <summary>業務例外なら <see cref="CallToolResult"/> を返し、それ以外は null。</summary>
     /// <param name="ex">マッピング対象の例外。</param>
@@ -58,6 +60,7 @@ internal static class ToolErrors
             CloseFailedException c => Error(CloseFailed, c.Message),
             KillFailedException k => Error(KillFailed, k.Message),
             LaunchFailedException l => Error(LaunchFailed, l.Message),
+            WaitTimeoutException t => Error(WaitTimeout, t.Message),
             _ => null,
         };
     }

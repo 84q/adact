@@ -97,4 +97,17 @@ public sealed class RefRegistry
             return "rid:" + string.Join("-", rid);
         return "unstable:" + positionalIndex.ToString(CultureInfo.InvariantCulture);
     }
+
+    /// <summary>
+    /// 現 snapshot で登録された <c>(refId, IElement)</c> 列を列挙する。<see cref="WindowSession"/> の wait-for 検索条件モード
+    /// で snapshot 後に一致要素を探すために使う。snapshot を跨いだ呼び出しは想定しない。
+    /// </summary>
+    /// <returns>現スナップショット中の <c>(ref, element)</c> ペア列。</returns>
+    internal IEnumerable<(string Ref, IElement Element)> EnumerateCurrent()
+    {
+        foreach (var (eid, el) in _byElementIdInCurrentSnapshot)
+        {
+            yield return (RefId.Format(_sessionId, eid), el);
+        }
+    }
 }

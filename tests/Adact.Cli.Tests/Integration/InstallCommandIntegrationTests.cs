@@ -44,6 +44,8 @@ public class InstallCommandIntegrationTests
     "references/snapshot.md",
     "references/type.md",
     "references/uncheck.md",
+    "references/wait-for.md",
+    "references/wait-for-window.md",
   };
 
     /// <summary>
