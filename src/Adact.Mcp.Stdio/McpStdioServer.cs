@@ -23,6 +23,7 @@ public static class McpStdioServer
     /// stdio MCP サーバーを起動し、CancellationToken で終了するまで実行する。
     /// </summary>
     /// <param name="loggerFactory">CLI 側で stderr 出力に構成済の LoggerFactory。null なら DI 既定 (stderr 出力で再構成)。</param>
+    /// <param name="ct">サーバーの実行を停止するためのキャンセルトークン。</param>
     /// <returns>正常終了は 0、対話デスクトップ非所属の場合は <see cref="ExitCodeEnvironmentNotSupported"/>。</returns>
     public static async Task<int> RunAsync(ILoggerFactory? loggerFactory, CancellationToken ct)
     {
@@ -76,9 +77,13 @@ public static class McpStdioServer
     }
 
     /// <summary>
-    /// 対話セッション判定を行い、NG なら stderr に既定のエラーフォーマット (009 §6.2 / 018 §5.3) で出力して false を返す。
-    /// OK なら観測値を info ログとして stderr に1行記録する。
+    /// 現在のプロセスが対話デスクトップ (WinSta0/Default) に所属しているかを判定し、NG なら stderr に既定のエラーフォーマット (009 §6.2 / 018 §5.3) で出力する。
     /// </summary>
+    /// <returns>OK なら true、NG なら false。</returns>
+    /// <remarks>
+    /// stdio モードでは stdout が MCP プロトコル専用のため、ユーザー向けメッセージは必ず stderr に書き出す。
+    /// OK 時も観測した SessionId / WindowStation を info ログとして 1 行残す。
+    /// </remarks>
     private static bool EnsureInteractiveSession()
     {
         var probe = InteractiveSessionGuard.Probe();
@@ -95,6 +100,10 @@ public static class McpStdioServer
         return true;
     }
 
+    /// <summary>
+    /// 現在のアセンブリ バージョン文字列を返す。MCP <c>ServerInfo.Version</c> として通知される。
+    /// </summary>
+    /// <returns><see cref="System.Reflection.AssemblyName.Version"/> を文字列化したもの。未設定なら "0.0.0"。</returns>
     private static string ThisAssemblyVersion()
     {
         var v = typeof(McpStdioServer).Assembly.GetName().Version;
