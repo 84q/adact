@@ -28,6 +28,19 @@ public static class HttpHost
     /// </summary>
     public const int ExitCodeEnvironmentNotSupported = 4;
 
+    /// <summary>
+    /// HTTP MCP サーバーをフォアグラウンドで起動し、<paramref name="ct"/> がキャンセルされるまで待機する。
+    /// </summary>
+    /// <param name="port">バインドする TCP ポート番号。常に 127.0.0.1 (loopback) のみを listen する。</param>
+    /// <param name="ct">サーバー停止を要求するキャンセルトークン。</param>
+    /// <returns>
+    /// プロセス終了コード。正常終了時は <c>0</c>。対話セッション判定 (018 §5.2) で NG だった場合は
+    /// <see cref="ExitCodeEnvironmentNotSupported"/> (=4) を返し、HTTP listener は起動しない。
+    /// </returns>
+    /// <remarks>
+    /// 起動前に <see cref="InteractiveSessionGuard.Probe"/> による対話デスクトップ判定を行う。
+    /// NG の場合のエラーフォーマットは 009 §6.2 / 018 §5.3 に従い stderr に出力される。
+    /// </remarks>
     public static async Task<int> RunAsync(int port, CancellationToken ct)
     {
         // listener 起動前に対話デスクトップ判定を行う (018 §5.2)。
@@ -42,9 +55,10 @@ public static class HttpHost
     }
 
     /// <summary>
-    /// 対話セッション判定を行い、NG なら stderr に既定のエラーフォーマット (009 §6.2 / 018 §5.3) で出力して false を返す。
+    /// 対話セッション判定を行い、NG なら stderr に既定のエラーフォーマット (009 §6.2 / 018 §5.3) で出力する。
     /// OK なら観測値を info ログとして stderr に1行記録する。
     /// </summary>
+    /// <returns>対話デスクトップ判定が OK なら <see langword="true"/>、NG なら <see langword="false"/>。</returns>
     private static bool EnsureInteractiveSession()
     {
         var probe = InteractiveSessionGuard.Probe();
@@ -64,6 +78,15 @@ public static class HttpHost
     /// <summary>
     /// WebApplication を構築する。テストから WebApplicationFactory 経由で再利用できるよう Build/Run を分離。
     /// </summary>
+    /// <param name="port">Kestrel が 127.0.0.1 で listen する TCP ポート番号。</param>
+    /// <returns>MCP エンドポイント (<see cref="McpPath"/>) がマップされた、未起動の <see cref="WebApplication"/>。</returns>
+    /// <remarks>
+    /// DI 登録: <see cref="UiaEngine"/>, <see cref="SessionStore"/>, <see cref="WindowRefStore"/>,
+    /// <see cref="IDaemonControl"/> はいずれも Singleton。UIA 呼び出しは <see cref="UiaEngine"/> 内部の
+    /// <c>SemaphoreSlim</c> で直列化される (Phase 4 サブタスク #2)。MCP サーバーは Streamable HTTP /
+    /// Stateless モードで構築し、<see cref="WindowsTools"/> をツール実装として登録する。
+    /// ログは全プロバイダを除外したうえで stderr 出力の SimpleConsole に寄せる。
+    /// </remarks>
     public static WebApplication BuildApplication(int port)
     {
         var builder = WebApplication.CreateBuilder();
@@ -111,6 +134,11 @@ public static class HttpHost
         return app;
     }
 
+    /// <summary>
+    /// 現在のアセンブリ (<see cref="HttpHost"/> を含む) のバージョンを文字列化して返す。MCP サーバーの
+    /// <c>ServerInfo.Version</c> として通知される。バージョンが取得できない場合は <c>"0.0.0"</c> を返す。
+    /// </summary>
+    /// <returns>アセンブリバージョンの文字列表現。</returns>
     private static string ThisAssemblyVersion()
     {
         var v = typeof(HttpHost).Assembly.GetName().Version;
