@@ -10,18 +10,18 @@ namespace Adact.Cli.Snapshots;
 /// </summary>
 internal static class SnapshotFileWriter
 {
-  public static string Write(string snapshotText, int sid, string? dir = null)
-  {
-    ArgumentNullException.ThrowIfNull(snapshotText);
+    public static string Write(string snapshotText, int sid, string? dir = null)
+    {
+        ArgumentNullException.ThrowIfNull(snapshotText);
 
-    var ts = DateTime.UtcNow.ToString("yyyyMMddTHHmmssfff", CultureInfo.InvariantCulture);
-    var filename = $"session-{sid}-{ts}.txt";
-    var targetDir = string.IsNullOrEmpty(dir) ? ".adact" : dir;
-    Directory.CreateDirectory(targetDir);
-    var path = Path.Combine(targetDir, filename);
-    File.WriteAllText(path, snapshotText, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        var ts = DateTime.UtcNow.ToString("yyyyMMddTHHmmssfff", CultureInfo.InvariantCulture);
+        var filename = $"session-{sid}-{ts}.txt";
+        var targetDir = string.IsNullOrEmpty(dir) ? ".adact" : dir;
+        Directory.CreateDirectory(targetDir);
+        var path = Path.Combine(targetDir, filename);
+        File.WriteAllText(path, snapshotText, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
 
-    var rel = Path.GetRelativePath(Environment.CurrentDirectory, path);
-    return rel.Replace('\\', '/');
-  }
+        var rel = Path.GetRelativePath(Environment.CurrentDirectory, path);
+        return rel.Replace('\\', '/');
+    }
 }

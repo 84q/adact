@@ -5,25 +5,25 @@ namespace Adact.Cli.Tests.Unit;
 /// </summary>
 internal static class CapturedConsole
 {
-  public static (string stdout, string stderr) Run(Action action)
-  {
-    ArgumentNullException.ThrowIfNull(action);
+    public static (string stdout, string stderr) Run(Action action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
 
-    var origOut = Console.Out;
-    var origErr = Console.Error;
-    using var outWriter = new StringWriter();
-    using var errWriter = new StringWriter();
-    try
-    {
-      Console.SetOut(outWriter);
-      Console.SetError(errWriter);
-      action();
+        var origOut = Console.Out;
+        var origErr = Console.Error;
+        using var outWriter = new StringWriter();
+        using var errWriter = new StringWriter();
+        try
+        {
+            Console.SetOut(outWriter);
+            Console.SetError(errWriter);
+            action();
+        }
+        finally
+        {
+            Console.SetOut(origOut);
+            Console.SetError(origErr);
+        }
+        return (outWriter.ToString(), errWriter.ToString());
     }
-    finally
-    {
-      Console.SetOut(origOut);
-      Console.SetError(origErr);
-    }
-    return (outWriter.ToString(), errWriter.ToString());
-  }
 }

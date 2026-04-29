@@ -1,10 +1,7 @@
-using System;
 using System.Diagnostics;
 using System.Net;
-using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 
 using Xunit;
 
@@ -22,221 +19,221 @@ namespace Adact.Cli.Tests;
 /// </remarks>
 public sealed class AdactDaemonFixture : IAsyncLifetime
 {
-  private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(30);
-  private static readonly TimeSpan StopTimeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan StopTimeout = TimeSpan.FromSeconds(10);
 
-  private Process? _serveProcess;
-  private readonly StringBuilder _stdout = new();
-  private readonly StringBuilder _stderr = new();
-  private readonly StringBuilder _diagnostics = new();
-  private Task? _stdoutPump;
-  private Task? _stderrPump;
+    private Process? _serveProcess;
+    private readonly StringBuilder _stdout = new();
+    private readonly StringBuilder _stderr = new();
+    private readonly StringBuilder _diagnostics = new();
+    private Task? _stdoutPump;
+    private Task? _stderrPump;
 
-  public int Port { get; private set; }
+    public int Port { get; private set; }
 
-  public string BaseUrl { get; private set; } = null!;
+    public string BaseUrl { get; private set; } = null!;
 
-  public async Task InitializeAsync()
-  {
-    Port = GetFreePort();
-    BaseUrl = $"http://127.0.0.1:{Port}/mcp";
-
-    var psi = new ProcessStartInfo
+    public async Task InitializeAsync()
     {
-      FileName = CliProcess.ExePath,
-      Arguments = $"serve --port {Port}",
-      UseShellExecute = false,
-      RedirectStandardOutput = true,
-      RedirectStandardError = true,
-      CreateNoWindow = true,
-    };
-    _serveProcess = Process.Start(psi)
-        ?? throw new InvalidOperationException("Failed to start 'adact serve' subprocess.");
+        Port = GetFreePort();
+        BaseUrl = $"http://127.0.0.1:{Port}/mcp";
 
-    // 出力を読み続けないと PIPE が詰まるため、stdout/stderr を非同期に StringBuilder へ蓄積する。
-    // 蓄積した内容は WaitForReadyAsync タイムアウト時の例外メッセージや
-    // DisposeAsync の診断ログに利用する。
-    _stdoutPump = PumpAsync(_serveProcess.StandardOutput, _stdout);
-    _stderrPump = PumpAsync(_serveProcess.StandardError, _stderr);
+        var psi = new ProcessStartInfo
+        {
+            FileName = CliProcess.ExePath,
+            Arguments = $"serve --port {Port}",
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+        };
+        _serveProcess = Process.Start(psi)
+            ?? throw new InvalidOperationException("Failed to start 'adact serve' subprocess.");
 
-    try
-    {
-      await WaitForReadyAsync(BaseUrl, StartupTimeout).ConfigureAwait(false);
-    }
-    catch (TimeoutException ex)
-    {
-      // 起動失敗時は子プロセスを終了させ、蓄積したログをメッセージに含めて再 throw する。
-      try { _serveProcess.Kill(entireProcessTree: true); } catch { }
-      try { _serveProcess.WaitForExit(2000); } catch { }
-      string capturedStdout, capturedStderr;
-      lock (_stdout) capturedStdout = _stdout.ToString();
-      lock (_stderr) capturedStderr = _stderr.ToString();
-      throw new TimeoutException(
-          ex.Message
-          + $"\n--- serve stdout ---\n{capturedStdout}"
-          + $"\n--- serve stderr ---\n{capturedStderr}",
-          ex.InnerException);
-    }
-  }
+        // 出力を読み続けないと PIPE が詰まるため、stdout/stderr を非同期に StringBuilder へ蓄積する。
+        // 蓄積した内容は WaitForReadyAsync タイムアウト時の例外メッセージや
+        // DisposeAsync の診断ログに利用する。
+        _stdoutPump = PumpAsync(_serveProcess.StandardOutput, _stdout);
+        _stderrPump = PumpAsync(_serveProcess.StandardError, _stderr);
 
-  public async Task DisposeAsync()
-  {
-    if (_serveProcess is null) return;
-
-    // graceful: daemon-stop CLI 経由で停止依頼。失敗・タイムアウトしたら Kill。
-    CliResult? stopResult = null;
-    Exception? stopEx = null;
-    try
-    {
-      var stopTask = Task.Run(() =>
-      {
         try
         {
-          return CliProcess.RunWithServer("daemon-stop", BaseUrl, timeout: StopTimeout);
+            await WaitForReadyAsync(BaseUrl, StartupTimeout).ConfigureAwait(false);
+        }
+        catch (TimeoutException ex)
+        {
+            // 起動失敗時は子プロセスを終了させ、蓄積したログをメッセージに含めて再 throw する。
+            try { _serveProcess.Kill(entireProcessTree: true); } catch { }
+            try { _serveProcess.WaitForExit(2000); } catch { }
+            string capturedStdout, capturedStderr;
+            lock (_stdout) capturedStdout = _stdout.ToString();
+            lock (_stderr) capturedStderr = _stderr.ToString();
+            throw new TimeoutException(
+                ex.Message
+                + $"\n--- serve stdout ---\n{capturedStdout}"
+                + $"\n--- serve stderr ---\n{capturedStderr}",
+                ex.InnerException);
+        }
+    }
+
+    public async Task DisposeAsync()
+    {
+        if (_serveProcess is null) return;
+
+        // graceful: daemon-stop CLI 経由で停止依頼。失敗・タイムアウトしたら Kill。
+        CliResult? stopResult = null;
+        Exception? stopEx = null;
+        try
+        {
+            var stopTask = Task.Run(() =>
+            {
+                try
+                {
+                    return CliProcess.RunWithServer("daemon-stop", BaseUrl, timeout: StopTimeout);
+                }
+                catch (Exception ex)
+                {
+                    stopEx = ex;
+                    return null;
+                }
+            });
+            if (stopTask.Wait(StopTimeout))
+            {
+                stopResult = stopTask.Result;
+            }
+            else
+            {
+                _diagnostics.AppendLine("daemon-stop wait exceeded StopTimeout.");
+            }
         }
         catch (Exception ex)
         {
-          stopEx = ex;
-          return null;
+            stopEx = ex;
         }
-      });
-      if (stopTask.Wait(StopTimeout))
-      {
-        stopResult = stopTask.Result;
-      }
-      else
-      {
-        _diagnostics.AppendLine("daemon-stop wait exceeded StopTimeout.");
-      }
-    }
-    catch (Exception ex)
-    {
-      stopEx = ex;
-    }
 
-    if (stopResult is { } r)
-    {
-      _diagnostics.AppendLine($"daemon-stop exit={r.ExitCode}");
-      if (!string.IsNullOrEmpty(r.Stdout)) _diagnostics.AppendLine($"daemon-stop stdout: {r.Stdout.Trim()}");
-      if (!string.IsNullOrEmpty(r.Stderr)) _diagnostics.AppendLine($"daemon-stop stderr: {r.Stderr.Trim()}");
-    }
-    else if (stopEx is not null)
-    {
-      _diagnostics.AppendLine($"daemon-stop threw: {stopEx.GetType().Name}: {stopEx.Message}");
-    }
+        if (stopResult is { } r)
+        {
+            _diagnostics.AppendLine($"daemon-stop exit={r.ExitCode}");
+            if (!string.IsNullOrEmpty(r.Stdout)) _diagnostics.AppendLine($"daemon-stop stdout: {r.Stdout.Trim()}");
+            if (!string.IsNullOrEmpty(r.Stderr)) _diagnostics.AppendLine($"daemon-stop stderr: {r.Stderr.Trim()}");
+        }
+        else if (stopEx is not null)
+        {
+            _diagnostics.AppendLine($"daemon-stop threw: {stopEx.GetType().Name}: {stopEx.Message}");
+        }
 
-    try
-    {
-      if (!_serveProcess.WaitForExit(2000))
-      {
-        _diagnostics.AppendLine("serve did not exit within 2s after daemon-stop; falling back to Kill.");
-        try { _serveProcess.Kill(entireProcessTree: true); }
+        try
+        {
+            if (!_serveProcess.WaitForExit(2000))
+            {
+                _diagnostics.AppendLine("serve did not exit within 2s after daemon-stop; falling back to Kill.");
+                try { _serveProcess.Kill(entireProcessTree: true); }
+                catch (Exception ex)
+                {
+                    _diagnostics.AppendLine($"Kill threw: {ex.GetType().Name}: {ex.Message}");
+                }
+                try { _serveProcess.WaitForExit(3000); } catch { }
+            }
+
+            if (_serveProcess.HasExited)
+            {
+                _diagnostics.AppendLine($"serve exited with code {_serveProcess.ExitCode}.");
+            }
+            else
+            {
+                _diagnostics.AppendLine("serve still running after Kill fallback.");
+            }
+        }
         catch (Exception ex)
         {
-          _diagnostics.AppendLine($"Kill threw: {ex.GetType().Name}: {ex.Message}");
+            _diagnostics.AppendLine($"WaitForExit/Kill threw: {ex.GetType().Name}: {ex.Message}");
         }
-        try { _serveProcess.WaitForExit(3000); } catch { }
-      }
 
-      if (_serveProcess.HasExited)
-      {
-        _diagnostics.AppendLine($"serve exited with code {_serveProcess.ExitCode}.");
-      }
-      else
-      {
-        _diagnostics.AppendLine("serve still running after Kill fallback.");
-      }
+        // pump task の収束を待ち、stdout/stderr を確定させる。
+        try
+        {
+            if (_stdoutPump is not null) await Task.WhenAny(_stdoutPump, Task.Delay(2000)).ConfigureAwait(false);
+            if (_stderrPump is not null) await Task.WhenAny(_stderrPump, Task.Delay(2000)).ConfigureAwait(false);
+        }
+        catch { }
+
+        try { _serveProcess.Dispose(); } catch { }
+        _serveProcess = null;
+
+        string finalStdout, finalStderr;
+        lock (_stdout) finalStdout = _stdout.ToString();
+        lock (_stderr) finalStderr = _stderr.ToString();
+
+        // xUnit はテスト実行終了後にも Console.Error への出力を診断として表示する。
+        Console.Error.WriteLine(
+            $"[AdactDaemonFixture] {_diagnostics}"
+            + $"--- serve stdout ---\n{finalStdout}"
+            + $"--- serve stderr ---\n{finalStderr}");
     }
-    catch (Exception ex)
+
+    private static async Task PumpAsync(System.IO.StreamReader reader, StringBuilder sink)
     {
-      _diagnostics.AppendLine($"WaitForExit/Kill threw: {ex.GetType().Name}: {ex.Message}");
+        try
+        {
+            char[] buffer = new char[4096];
+            int read;
+            while ((read = await reader.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) > 0)
+            {
+                lock (sink) sink.Append(buffer, 0, read);
+            }
+        }
+        catch
+        {
+            // プロセス終了時の読み取り失敗は許容。
+        }
     }
 
-    // pump task の収束を待ち、stdout/stderr を確定させる。
-    try
+    private static int GetFreePort()
     {
-      if (_stdoutPump is not null) await Task.WhenAny(_stdoutPump, Task.Delay(2000)).ConfigureAwait(false);
-      if (_stderrPump is not null) await Task.WhenAny(_stderrPump, Task.Delay(2000)).ConfigureAwait(false);
+        // using で確実に Stop() し、bind を OS に返す。
+        // parallelizeAssembly:false 前提なので競合は発生しないが、安全側に倒す。
+        using var listener = new TcpListenerHandle(IPAddress.Loopback, 0);
+        return listener.Port;
     }
-    catch { }
 
-    try { _serveProcess.Dispose(); } catch { }
-    _serveProcess = null;
-
-    string finalStdout, finalStderr;
-    lock (_stdout) finalStdout = _stdout.ToString();
-    lock (_stderr) finalStderr = _stderr.ToString();
-
-    // xUnit はテスト実行終了後にも Console.Error への出力を診断として表示する。
-    Console.Error.WriteLine(
-        $"[AdactDaemonFixture] {_diagnostics}"
-        + $"--- serve stdout ---\n{finalStdout}"
-        + $"--- serve stderr ---\n{finalStderr}");
-  }
-
-  private static async Task PumpAsync(System.IO.StreamReader reader, StringBuilder sink)
-  {
-    try
+    private sealed class TcpListenerHandle : IDisposable
     {
-      char[] buffer = new char[4096];
-      int read;
-      while ((read = await reader.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) > 0)
-      {
-        lock (sink) sink.Append(buffer, 0, read);
-      }
+        private readonly TcpListener _listener;
+        public int Port { get; }
+
+        public TcpListenerHandle(IPAddress address, int port)
+        {
+            _listener = new TcpListener(address, port);
+            _listener.Start();
+            Port = ((IPEndPoint)_listener.LocalEndpoint).Port;
+        }
+
+        public void Dispose() => _listener.Stop();
     }
-    catch
+
+    private static async Task WaitForReadyAsync(string baseUrl, TimeSpan timeout)
     {
-      // プロセス終了時の読み取り失敗は許容。
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+        var sw = Stopwatch.StartNew();
+        Exception? last = null;
+        while (sw.Elapsed < timeout)
+        {
+            try
+            {
+                using var resp = await http.GetAsync(baseUrl).ConfigureAwait(false);
+                // どんな HTTP ステータスでも (405 等) Kestrel が応答していれば ready。
+                return;
+            }
+            catch (Exception ex)
+            {
+                last = ex;
+                await Task.Delay(200).ConfigureAwait(false);
+            }
+        }
+        throw new TimeoutException(
+            $"'adact serve' did not become ready within {timeout.TotalSeconds:F0}s on {baseUrl}.",
+            last);
     }
-  }
-
-  private static int GetFreePort()
-  {
-    // using で確実に Stop() し、bind を OS に返す。
-    // parallelizeAssembly:false 前提なので競合は発生しないが、安全側に倒す。
-    using var listener = new TcpListenerHandle(IPAddress.Loopback, 0);
-    return listener.Port;
-  }
-
-  private sealed class TcpListenerHandle : IDisposable
-  {
-    private readonly TcpListener _listener;
-    public int Port { get; }
-
-    public TcpListenerHandle(IPAddress address, int port)
-    {
-      _listener = new TcpListener(address, port);
-      _listener.Start();
-      Port = ((IPEndPoint)_listener.LocalEndpoint).Port;
-    }
-
-    public void Dispose() => _listener.Stop();
-  }
-
-  private static async Task WaitForReadyAsync(string baseUrl, TimeSpan timeout)
-  {
-    using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
-    var sw = Stopwatch.StartNew();
-    Exception? last = null;
-    while (sw.Elapsed < timeout)
-    {
-      try
-      {
-        using var resp = await http.GetAsync(baseUrl).ConfigureAwait(false);
-        // どんな HTTP ステータスでも (405 等) Kestrel が応答していれば ready。
-        return;
-      }
-      catch (Exception ex)
-      {
-        last = ex;
-        await Task.Delay(200).ConfigureAwait(false);
-      }
-    }
-    throw new TimeoutException(
-        $"'adact serve' did not become ready within {timeout.TotalSeconds:F0}s on {baseUrl}.",
-        last);
-  }
 }
 
 /// <summary>

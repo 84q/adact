@@ -11,7 +11,7 @@ public sealed record AttachQuery(
     string? ClassName = null,
     int? ProcessId = null)
 {
-  public static AttachQuery ByProcess(string processName) => new(ProcessName: processName);
-  public static AttachQuery ByTitle(string windowTitle) => new(WindowTitle: windowTitle);
-  public static AttachQuery ByPid(int pid) => new(ProcessId: pid);
+    public static AttachQuery ByProcess(string processName) => new(ProcessName: processName);
+    public static AttachQuery ByTitle(string windowTitle) => new(WindowTitle: windowTitle);
+    public static AttachQuery ByPid(int pid) => new(ProcessId: pid);
 }

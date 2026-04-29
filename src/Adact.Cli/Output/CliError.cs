@@ -5,13 +5,13 @@ namespace Adact.Cli.Output;
 /// </summary>
 internal sealed record CliError(string Code, string Message, string? Hint)
 {
-  public static void Write(string code, string message, string? hint = null)
-  {
-    Console.Error.WriteLine($"error {code}");
-    Console.Error.WriteLine($"message {message}");
-    if (!string.IsNullOrEmpty(hint))
+    public static void Write(string code, string message, string? hint = null)
     {
-      Console.Error.WriteLine($"hint {hint}");
+        Console.Error.WriteLine($"error {code}");
+        Console.Error.WriteLine($"message {message}");
+        if (!string.IsNullOrEmpty(hint))
+        {
+            Console.Error.WriteLine($"hint {hint}");
+        }
     }
-  }
 }

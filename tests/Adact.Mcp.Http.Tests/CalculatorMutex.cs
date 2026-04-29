@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-
 namespace Adact.Mcp.Http.Tests;
 
 /// <summary>
@@ -10,31 +7,31 @@ namespace Adact.Mcp.Http.Tests;
 /// </summary>
 internal sealed class CalculatorMutex : IDisposable
 {
-  private const string SemaphoreName = @"Global\AdactCalculatorE2E";
-  private static readonly TimeSpan WaitTimeout = TimeSpan.FromSeconds(60);
+    private const string SemaphoreName = @"Global\AdactCalculatorE2E";
+    private static readonly TimeSpan WaitTimeout = TimeSpan.FromSeconds(60);
 
-  private readonly Semaphore _semaphore;
-  private bool _owned;
+    private readonly Semaphore _semaphore;
+    private bool _owned;
 
-  public CalculatorMutex()
-  {
-    _semaphore = new Semaphore(initialCount: 1, maximumCount: 1, name: SemaphoreName);
-    _owned = _semaphore.WaitOne(WaitTimeout);
-    if (!_owned)
+    public CalculatorMutex()
     {
-      _semaphore.Dispose();
-      throw new TimeoutException(
-          $"Failed to acquire {SemaphoreName} within {WaitTimeout.TotalSeconds}s.");
+        _semaphore = new Semaphore(initialCount: 1, maximumCount: 1, name: SemaphoreName);
+        _owned = _semaphore.WaitOne(WaitTimeout);
+        if (!_owned)
+        {
+            _semaphore.Dispose();
+            throw new TimeoutException(
+                $"Failed to acquire {SemaphoreName} within {WaitTimeout.TotalSeconds}s.");
+        }
     }
-  }
 
-  public void Dispose()
-  {
-    if (_owned)
+    public void Dispose()
     {
-      try { _semaphore.Release(); } catch { }
-      _owned = false;
+        if (_owned)
+        {
+            try { _semaphore.Release(); } catch { }
+            _owned = false;
+        }
+        _semaphore.Dispose();
     }
-    _semaphore.Dispose();
-  }
 }
