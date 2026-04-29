@@ -7,7 +7,7 @@ ADACT の MCP tools は `src/Adact.Mcp.Common/WindowsTools.cs` に集約され�
 | Tool | 役割 | 主な引数 | 主な戻り値 |
 | --- | --- | --- | --- |
 | `windows_list_apps` | 現在の desktop の top-level window を列挙する | なし | `windows[]`。各要素に `windowRef`, `sessionId?`, `processName`, `processId`, `className?`, `windowTitle` |
-| `windows_attach` | 1 つの window に attach する | `windowRef?`, `processName?`, `windowTitle?`, `className?`, `processId?` | `sessionId`, `windowRef`, `windowInfo` |
+| `windows_attach` | 1 つの window に attach する | `windowRef` (required) | `sessionId`, `windowRef`, `windowInfo` |
 | `windows_snapshot` | attached window の raw UIA snapshot を返す | `sessionId?` | raw JSON (`_meta`, `tree`) |
 | `windows_click` | Element Ref の要素を click する | `ref` | 成功時 content 空 |
 | `windows_fill` | Element Ref の要素に値を入力する | `ref`, `value` | 成功時 content 空 |
@@ -32,12 +32,12 @@ ADACT の MCP tools は `src/Adact.Mcp.Common/WindowsTools.cs` に集約され�
 
 | 項目 | 内容 |
 | --- | --- |
-| 入力 | `windowRef`、または `processName` / `windowTitle` / `className` / `processId` の任意組み合わせ |
-| matching | 指定された項目は厳密一致。`processName` / `windowTitle` / `className` は case-insensitive |
+| 入力 | `windowRef` (required、`list-apps` で得た `w<n>`) |
+| 処理 | `WindowRefStore.TryResolve` で HWND を確定し、`UiaEngine.AttachByHandleAsync` で attach する |
 | 戻り値 | `sessionId` (`s<n>`), `windowRef` (`w<n>`), `windowInfo` |
-| 代表エラー | `INVALID_ARGUMENT`, `INVALID_WINDOW_REF`, `WINDOW_NOT_FOUND`, `AMBIGUOUS_ATTACH` |
+| 代表エラー | `INVALID_ARGUMENT`, `INVALID_WINDOW_REF`, `WINDOW_NOT_FOUND` |
 
-`windowRef` が指定された場合、他の matching 条件は不要です。既に同じ window に session が紐づいている場合は idempotent に既存 session を返します。
+同じ window に既に session が紐づいている場合は idempotent に既存 session を返します。
 
 ### `windows_snapshot`
 
@@ -96,8 +96,7 @@ transport/protocol/systemic な例外は SDK により JSON-RPC error として�
 | --- | --- |
 | `INVALID_ARGUMENT` | 引数不足、sessionId 不明、形式不正 |
 | `INVALID_WINDOW_REF` | `w<n>` が未登録または retired |
-| `WINDOW_NOT_FOUND` | matching 条件に一致する window がない |
-| `AMBIGUOUS_ATTACH` | matching 条件に複数 window が一致した |
+| `WINDOW_NOT_FOUND` | `windowRef` 解決後の HWND attach が失敗した |
 | `REF_NOT_FOUND` | Element Ref が malformed、session 不一致、現 snapshot に存在しない |
 | `ELEMENT_INTERACTION_FAILED` | click/fill が UIA 操作として失敗した |
 | `SNAPSHOT_FAILED` | snapshot 構築に失敗した |

@@ -47,7 +47,7 @@ flowchart LR
 
 | 型 | 所属 | 役割 |
 | --- | --- | --- |
-| `UiaEngine` | `Adact.Engine` | top-level window の列挙、AttachQuery による attach、HWND attach、Engine 全体の UIA 操作直列化を担う |
+| `UiaEngine` | `Adact.Engine` | top-level window の列挙、HWND attach、Engine 全体の UIA 操作直列化を担う |
 | `WindowSession` | `Adact.Engine` | 1 window に対する snapshot / click / fill / close / kill を提供し、session scope の `RefRegistry` を保持する |
 | `SessionStore` | `Adact.Mcp.Common` | MCP daemon process 内の `WindowSession` を `s<n>` で管理し、active session を保持する |
 | `WindowRefStore` | `Adact.Mcp.Common` | top-level window に `w<n>` を払い出し、window 一覧と attach をつなぐ |

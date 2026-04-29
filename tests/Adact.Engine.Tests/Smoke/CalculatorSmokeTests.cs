@@ -68,8 +68,12 @@ public class CalculatorSmokeTests : IAsyncLifetime
     public async Task Click_Seven_DisplayShowsSeven()
     {
         using var engine = new UiaEngine();
-        // UWP 電卓はタイトル経由でアタッチ
-        using var session = await engine.AttachAsync(AttachQuery.ByTitle("電卓"));
+        // UWP 電卓はタイトルで window を見つけ、HWND で attach する
+        var windows = await engine.ListWindowsAsync();
+        var target = windows.FirstOrDefault(w =>
+            string.Equals(w.Title, "電卓", StringComparison.OrdinalIgnoreCase));
+        Assert.NotNull(target);
+        using var session = await engine.AttachByHandleAsync(target!.NativeWindowHandle);
 
         var snap1 = await session.SnapshotAsync();
         var sevenRef = FindRefByAutomationId(snap1.Json, "num7Button")

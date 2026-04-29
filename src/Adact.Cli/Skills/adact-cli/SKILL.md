@@ -74,8 +74,7 @@ valid as the first positional argument of `attach`.
 | `INVALID_ARGUMENT`    | Missing or conflicting CLI arguments.                 | Reread the reference doc and supply the required argument combination.                           |
 | `INVALID_REF_FORMAT`  | Element ref does not match `s<sid>e<eid>`.            | Use a ref copied verbatim from the latest snapshot.                                               |
 | `INVALID_WINDOW_REF`  | Window ref is well-formed but unknown / retired.      | Re-run `adact list-apps` and use a freshly printed `windowRef`.                                   |
-| `WINDOW_NOT_FOUND`    | No window matched the supplied criteria.              | Double-check the window is open with `list-apps`; relax/correct the matching flags.               |
-| `AMBIGUOUS_ATTACH`    | Multiple windows matched the criteria.                | Add more flags (e.g. `--process-id`) so exactly one window matches.                               |
+| `WINDOW_NOT_FOUND`    | Daemon could not attach to the HWND for the given `windowRef`. | Re-run `adact list-apps` and confirm the target window is still open. |
 | `REF_NOT_FOUND`       | The element behind the ref is no longer reachable.    | Run `adact snapshot`, locate the element again from the new snapshot, then retry with the new ref. |
 | `ELEMENT_INTERACTION_FAILED` | Click/fill could not be performed on the element. | Make sure the window is foreground and the control is enabled and on-screen; re-snapshot and retry. |
 | `NO_ACTIVE_SESSION`   | `snapshot` was called without an attached session.    | Call `adact attach` first, or pass `--sid` explicitly.                                            |

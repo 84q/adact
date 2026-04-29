@@ -24,9 +24,6 @@ internal static class ErrorCodes
     /// <summary>active session が存在しないのに省略形の操作を要求された。</summary>
     public const string NoActiveSession = "NO_ACTIVE_SESSION";
 
-    /// <summary>attach のマッチング条件で複数 window がヒットした。</summary>
-    public const string AmbiguousAttach = "AMBIGUOUS_ATTACH";
-
     /// <summary>WindowPattern.Close が失敗した。</summary>
     public const string CloseFailed = "CLOSE_FAILED";
 

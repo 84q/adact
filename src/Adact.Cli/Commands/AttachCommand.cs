@@ -6,7 +6,7 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>attach</c> コマンド。Window Ref もしくは matching flags で window に attach し、
+/// <c>attach</c> コマンド。Window Ref を受け取り、対応する window に attach して
 /// session を作成する。設計 docs/spec/cli.md attach 項。
 /// </summary>
 internal static class AttachCommand
@@ -16,16 +16,7 @@ internal static class AttachCommand
     /// snapshot 関連の補助オプション (--no-snapshot/--snapshot-dir) は含めない。
     /// </summary>
     /// <param name="Ref">位置引数として与えられた Window Ref (例: <c>w1</c>)。</param>
-    /// <param name="ProcessName">--process-name。</param>
-    /// <param name="Title">--title。</param>
-    /// <param name="ProcessId">--process-id。</param>
-    /// <param name="ClassName">--class-name。</param>
-    internal sealed record AttachArgs(
-        string? Ref,
-        string? ProcessName,
-        string? Title,
-        int? ProcessId,
-        string? ClassName);
+    internal sealed record AttachArgs(string? Ref);
 
     /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
     /// <returns>attach サブコマンド。</returns>
@@ -33,35 +24,22 @@ internal static class AttachCommand
     {
         var refArg = new Argument<string?>("ref")
         {
-            Arity = ArgumentArity.ZeroOrOne,
+            Arity = ArgumentArity.ExactlyOne,
             Description = "Window Ref ID like 'w1' (from list-apps).",
         };
-        var processName = new Option<string?>("--process-name") { Description = "Process name (e.g. CalculatorApp)." };
-        var title = new Option<string?>("--title") { Description = "Window title (case-insensitive, exact match)." };
-        var processId = new Option<int?>("--process-id") { Description = "Process ID." };
-        var className = new Option<string?>("--class-name") { Description = "Win32 class name." };
         var noSnapshot = new Option<bool>("--no-snapshot") { Description = "Do not capture a snapshot on success." };
         var snapshotDir = new Option<string?>("--snapshot-dir") { Description = "Snapshot output directory (default '.adact/')." };
         var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("attach", "Attach to a window as a session.");
         cmd.Arguments.Add(refArg);
-        cmd.Options.Add(processName);
-        cmd.Options.Add(title);
-        cmd.Options.Add(processId);
-        cmd.Options.Add(className);
         cmd.Options.Add(noSnapshot);
         cmd.Options.Add(snapshotDir);
         cmd.Options.Add(server);
 
         cmd.SetAction((parseResult, ct) =>
         {
-            var args = new AttachArgs(
-                Ref: parseResult.GetValue(refArg),
-                ProcessName: parseResult.GetValue(processName),
-                Title: parseResult.GetValue(title),
-                ProcessId: parseResult.GetValue(processId),
-                ClassName: parseResult.GetValue(className));
+            var args = new AttachArgs(Ref: parseResult.GetValue(refArg));
 
             // 引数バリデーションは接続前に実施する。
             var (errorCode, errorMessage) = ValidateAttachArgs(args);
@@ -71,7 +49,7 @@ internal static class AttachCommand
                 return Task.FromResult(ExitCodes.UserError);
             }
 
-            var arguments = BuildArguments(args);
+            var arguments = new Dictionary<string, object?> { ["windowRef"] = args.Ref };
             var noSnap = parseResult.GetValue(noSnapshot);
             var dir = parseResult.GetValue(snapshotDir);
             var serverArg = parseResult.GetValue(server);
@@ -96,54 +74,19 @@ internal static class AttachCommand
     {
         ArgumentNullException.ThrowIfNull(args);
 
-        var hasFlags = args.ProcessName is not null
-            || args.Title is not null
-            || args.ProcessId is not null
-            || args.ClassName is not null;
-
-        if (!string.IsNullOrEmpty(args.Ref))
-        {
-            if (!RefValidator.IsWindowRef(args.Ref))
-            {
-                return (ErrorCodes.InvalidArgument,
-                    $"ref must be in 'w<n>' form, got '{args.Ref}'.");
-            }
-            if (hasFlags)
-            {
-                return (ErrorCodes.InvalidArgument,
-                    "Positional ref and matching flags (--process-name/--title/--process-id/--class-name) are mutually exclusive.");
-            }
-            return (null, null);
-        }
-
-        if (!hasFlags)
+        if (string.IsNullOrEmpty(args.Ref))
         {
             return (ErrorCodes.InvalidArgument,
-                "Specify either positional ref (w<n>) or at least one of --process-name/--title/--process-id/--class-name.");
+                "Specify a positional ref (w<n>) obtained from list-apps.");
+        }
+
+        if (!RefValidator.IsWindowRef(args.Ref))
+        {
+            return (ErrorCodes.InvalidArgument,
+                $"ref must be in 'w<n>' form, got '{args.Ref}'.");
         }
 
         return (null, null);
-    }
-
-    /// <summary>
-    /// <see cref="AttachArgs"/> を MCP <c>windows_attach</c> に渡す辞書引数に変換する。
-    /// Ref と matching flags は互いに排他使用されるため、Ref があれば windowRef のみを指定する。
-    /// </summary>
-    /// <param name="args">バリデーション済み attach 引数。</param>
-    /// <returns>MCP <c>windows_attach</c> に渡す辞書。</returns>
-    private static Dictionary<string, object?> BuildArguments(AttachArgs args)
-    {
-        if (!string.IsNullOrEmpty(args.Ref))
-        {
-            return new Dictionary<string, object?> { ["windowRef"] = args.Ref };
-        }
-
-        var dict = new Dictionary<string, object?>();
-        if (args.ProcessName is not null) dict["processName"] = args.ProcessName;
-        if (args.Title is not null) dict["windowTitle"] = args.Title;
-        if (args.ClassName is not null) dict["className"] = args.ClassName;
-        if (args.ProcessId is not null) dict["processId"] = args.ProcessId.Value;
-        return dict;
     }
 
     /// <summary>接続済みクライアントに対し <c>windows_attach</c> を呼び、成功時は sessionId ・ windowRef ・ snapshot を出力する。</summary>

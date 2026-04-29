@@ -5,7 +5,7 @@ using Xunit;
 namespace Adact.Engine.Tests.IntegrationUia;
 
 /// <summary>
-/// 実電卓 (CalculatorApp) を起動し、UiaEngine.AttachAsync → SnapshotAsync の一連動作を検証する L3 テスト。
+/// 実電卓 (CalculatorApp) を起動し、UiaEngine.AttachByHandleAsync → SnapshotAsync の一連動作を検証する L3 テスト。
 /// 実 UIA スタックとの結合退行を防ぐため、実アプリを必要とする。
 /// </summary>
 [Trait("Layer", "IntegrationUia")]
@@ -79,8 +79,12 @@ public class CalculatorSnapshotTests : IAsyncLifetime
     {
         using var engine = new UiaEngine();
         // UWP 電卓は ApplicationFrameHost が見えるウィンドウを所有するため、ProcessName でなく
-        // ウィンドウタイトル (日本語ロケール: "電卓") でアタッチする。
-        using var session = await engine.AttachAsync(AttachQuery.ByTitle("電卓"));
+        // ウィンドウタイトル (日本語ロケール: "電卓") で window を特定し、HWND で attach する。
+        var windows = await engine.ListWindowsAsync();
+        var target = windows.FirstOrDefault(w =>
+            string.Equals(w.Title, "電卓", StringComparison.OrdinalIgnoreCase));
+        Assert.NotNull(target);
+        using var session = await engine.AttachByHandleAsync(target!.NativeWindowHandle);
         var snap = await session.SnapshotAsync();
 
         Assert.StartsWith("s", snap.SessionId);

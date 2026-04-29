@@ -109,90 +109,55 @@ public sealed class WindowsTools
     }
 
     /// <summary>
-    /// 指定された <c>windowRef</c> もしくは属性条件 (processName / windowTitle / className / processId) に一致する
-    /// 単一 window へ attach し、sessionId / windowRef / windowInfo を返す。
+    /// 指定された <c>windowRef</c> に対応する単一 window へ attach し、sessionId / windowRef / windowInfo を返す。
     /// </summary>
-    /// <param name="windowRef"><see cref="ListAppsAsync"/> で得た <c>w&lt;n&gt;</c>。指定された場合は属性引数は無視する。</param>
-    /// <param name="processName">プロセス名 (大小無視・完全一致)。</param>
-    /// <param name="windowTitle">ウィンドウタイトル (大小無視・完全一致)。</param>
-    /// <param name="className">Win32 ClassName (大小無視・完全一致)。</param>
-    /// <param name="processId">Process ID (完全一致)。</param>
+    /// <param name="windowRef"><see cref="ListAppsAsync"/> で得た <c>w&lt;n&gt;</c>。必須。</param>
     /// <param name="ct">キャンセル トークン。</param>
     /// <returns>
-    /// <c>sessionId</c> / <c>windowRef</c> / <c>windowInfo</c> を含む <see cref="CallToolResult"/>。属性条件で複数 window が一致した場合は
-    /// <c>AMBIGUOUS_ATTACH</c>、0 件なら <c>WINDOW_NOT_FOUND</c>、retired な <c>w&lt;n&gt;</c> なら <c>INVALID_WINDOW_REF</c> を返す。
+    /// <c>sessionId</c> / <c>windowRef</c> / <c>windowInfo</c> を含む <see cref="CallToolResult"/>。
+    /// 形式不正は <c>INVALID_ARGUMENT</c>、未知 / 引退済みの <c>w&lt;n&gt;</c> は <c>INVALID_WINDOW_REF</c>、
+    /// HWND からの attach に失敗した場合は <c>WINDOW_NOT_FOUND</c> を返す。
     /// </returns>
     /// <remarks>
     /// 同じ window に対する再 attach は既存 session を返し、二重に sessionId を発行しない。
-    /// 引数がすべて未指定の場合は <c>INVALID_ARGUMENT</c>。
     /// </remarks>
     [McpServerTool(Name = "windows_attach")]
-    [Description("Attach to a single top-level window. Specify windowRef (from windows_list_apps) OR any combination of processName / windowTitle / className / processId for strict-equal matching; multiple matches yield AMBIGUOUS_ATTACH. Returns sessionId (e.g. 's1'), windowRef and windowInfo.")]
+    [Description("Attach to a single top-level window identified by a windowRef obtained from windows_list_apps. Returns sessionId (e.g. 's1'), windowRef and windowInfo.")]
     public async Task<CallToolResult> AttachAsync(
-        [Description("Window Ref (e.g. 'w1') obtained from windows_list_apps. When specified, other matching parameters are ignored.")]
-      string? windowRef = null,
-        [Description("Process name (case-insensitive, exact match). Example: 'CalculatorApp', 'notepad++'.")]
-      string? processName = null,
-        [Description("Window title (case-insensitive, exact match). Example: '電卓'.")]
-      string? windowTitle = null,
-        [Description("Win32 ClassName (case-insensitive, exact match).")]
-      string? className = null,
-        [Description("Process ID.")]
-      int? processId = null,
+        [Description("Window Ref (e.g. 'w1') obtained from windows_list_apps.")]
+      string windowRef,
         CancellationToken ct = default)
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
 
-        if (windowRef is null
-            && processName is null && windowTitle is null && className is null && processId is null)
+        if (string.IsNullOrEmpty(windowRef))
         {
             return ToolErrors.Error(ToolErrors.InvalidArgument,
-                "windowRef must be specified, or at least one of processName / windowTitle / className / processId.");
+                "windowRef must be a non-empty string in the form 'w<n>'.");
+        }
+        if (!WindowRefPattern.IsMatch(windowRef))
+        {
+            return ToolErrors.Error(ToolErrors.InvalidArgument,
+                $"Invalid windowRef format: '{windowRef}'. Expected pattern: w<n>.");
+        }
+        if (!_refStore.TryResolve(windowRef, out var entry))
+        {
+            return ToolErrors.Error(ToolErrors.InvalidWindowRef,
+                $"Window Ref '{windowRef}' is unknown or has been retired. Re-run windows_list_apps.");
         }
 
         try
         {
-            // 入力経路を「(existingEntry?, key, info)」に正規化
-            WindowRefEntry? existingEntry;
-            WindowKey key;
-            WindowInfo info;
-
-            if (windowRef is not null)
-            {
-                if (!WindowRefPattern.IsMatch(windowRef))
-                    return ToolErrors.Error(ToolErrors.InvalidArgument,
-                        $"Invalid windowRef format: '{windowRef}'. Expected pattern: w<n>.");
-                if (!_refStore.TryResolve(windowRef, out var resolved))
-                    return ToolErrors.Error(ToolErrors.InvalidWindowRef,
-                        $"Window Ref '{windowRef}' is unknown or has been retired. Re-run windows_list_apps.");
-                existingEntry = resolved;
-                key = resolved.Key;
-                info = resolved.Info;
-            }
-            else
-            {
-                var query = new AttachQuery(processName, windowTitle, className, processId);
-                var matches = await _store.Engine.FindMatchesAsync(query, ct).ConfigureAwait(false);
-                if (matches.Count == 0) throw new WindowNotFoundException(query);
-                if (matches.Count > 1) throw new AmbiguousAttachException(query, matches);
-                info = matches[0];
-                key = WindowKey.From(info);
-                existingEntry = _refStore.TryFindByKey(key, out var found) && !found.Retired ? found : null;
-            }
-
             // session 確保: 既存があれば再利用、なければ新規 attach
             WindowSession session;
-            WindowRefEntry entry;
-            if (existingEntry is { SessionId: { } sid } && _store.TryGet(sid, out var live))
+            if (entry.SessionId is { } sid && _store.TryGet(sid, out var live))
             {
                 session = live;
-                entry = existingEntry;
             }
             else
             {
-                session = await _store.Engine.AttachByHandleAsync(key.Hwnd, ct).ConfigureAwait(false);
+                session = await _store.Engine.AttachByHandleAsync(entry.Key.Hwnd, ct).ConfigureAwait(false);
                 _store.Register(session);
-                entry = existingEntry ?? _refStore.SyncOrAssign(key, info);
                 _refStore.AssociateSession(entry.WindowRef, $"s{session.SessionId}");
             }
 

@@ -75,7 +75,7 @@ public sealed class UiaEngine : IDisposable
 
     /// <summary>
     /// gate 内で同期的に現デスクトップのトップレベルウィンドウを列挙する内部実装。
-    /// 同 gate 内 (例: <see cref="AttachAsync"/>) からの再呼び出しで self-deadlock しないよう
+    /// 同 gate 内 (例: <see cref="AttachByHandleAsync"/>) からの再呼び出しで self-deadlock しないよう
     /// 公開 API ではなくこちらを直接呼ぶ。
     /// </summary>
     /// <returns>列挙されたウィンドウ情報のリスト。</returns>
@@ -113,7 +113,7 @@ public sealed class UiaEngine : IDisposable
     }
 
     /// <summary>
-    /// HWND 直指定で attach する。AttachQuery によるマッチングを経ず、HWND 一致で 1 件確定する。
+    /// HWND 直指定で attach する。HWND 一致で 1 件確定する。
     /// 該当 HWND が現在の列挙に含まれない、もしくは <c>FromHandle</c> が失敗した場合は
     /// <see cref="WindowNotFoundException"/> を throw する。
     /// </summary>
@@ -132,7 +132,7 @@ public sealed class UiaEngine : IDisposable
             var all = ListWindowsCore();
             var target = all.FirstOrDefault(w => w.NativeWindowHandle == hwnd);
             if (target is null)
-                throw new WindowNotFoundException(new AttachQuery(ProcessId: null));
+                throw new WindowNotFoundException(hwnd);
 
             AutomationElement? raw;
             try
@@ -145,86 +145,10 @@ public sealed class UiaEngine : IDisposable
                 {
                     _logger.LogDebug(ex, "FromHandle failed for hwnd {Hwnd}", target.NativeWindowHandle);
                 }
-                throw new WindowNotFoundException(new AttachQuery(ProcessId: null));
+                throw new WindowNotFoundException(hwnd);
             }
             if (raw is null)
-                throw new WindowNotFoundException(new AttachQuery(ProcessId: null));
-
-            var sessionId = Interlocked.Increment(ref _nextSessionId);
-            var session = new WindowSession(
-                _automation,
-                raw.AsWindow(),
-                sessionId,
-                target,
-                _gate,
-                _loggerFactory.CreateLogger<WindowSession>(),
-                ownsAutomation: false);
-            return Task.FromResult(session);
-        }, ct);
-    }
-
-    /// <summary>
-    /// 指定 <see cref="AttachQuery"/> にマッチする現在の top-level window 一覧を返す。
-    /// attach は行わない。WindowsTools 側で attach 前に WindowKey を確定するために使用する。
-    /// </summary>
-    /// <param name="query">マッチング条件。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns><paramref name="query"/> にマッチした候補ウィンドウのリスト。</returns>
-    /// <exception cref="ObjectDisposedException">本インスタンスが Dispose 済みの場合。</exception>
-    public Task<IReadOnlyList<WindowInfo>> FindMatchesAsync(AttachQuery query, CancellationToken ct = default)
-    {
-        ThrowIfDisposed();
-        ct.ThrowIfCancellationRequested();
-        return RunSerializedAsync(c =>
-        {
-            c.ThrowIfCancellationRequested();
-            var all = ListWindowsCore();
-            IReadOnlyList<WindowInfo> matches = all.Where(w => Matches(w, query)).ToList();
-            return Task.FromResult(matches);
-        }, ct);
-    }
-
-    /// <summary>
-    /// <see cref="AttachQuery"/> にマッチするトップレベルウィンドウへ attach する。マッチが 1 件のときのみ成功。
-    /// </summary>
-    /// <param name="query">マッチング条件。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>新規に生成された <see cref="WindowSession"/>。</returns>
-    /// <exception cref="ObjectDisposedException">本インスタンスが Dispose 済みの場合。</exception>
-    /// <exception cref="WindowNotFoundException">マッチが 0 件のとき。</exception>
-    /// <exception cref="AmbiguousAttachException">マッチが 2 件以上のとき。</exception>
-    public Task<WindowSession> AttachAsync(AttachQuery query, CancellationToken ct = default)
-    {
-        ThrowIfDisposed();
-        ct.ThrowIfCancellationRequested();
-        return RunSerializedAsync(c =>
-        {
-            c.ThrowIfCancellationRequested();
-            // 同 gate 内のため self-deadlock 回避目的に ListWindowsAsync ではなく Core を直接呼ぶ
-            var all = ListWindowsCore();
-            var matches = all.Where(w => Matches(w, query)).ToList();
-
-            if (matches.Count == 0)
-                throw new WindowNotFoundException(query);
-            if (matches.Count > 1)
-                throw new AmbiguousAttachException(query, matches);
-
-            var target = matches[0];
-            AutomationElement? raw;
-            try
-            {
-                raw = _automation.FromHandle(target.NativeWindowHandle);
-            }
-            catch (Exception ex)
-            {
-                if (_logger.IsEnabled(LogLevel.Debug))
-                {
-                    _logger.LogDebug(ex, "FromHandle failed for hwnd {Hwnd}", target.NativeWindowHandle);
-                }
-                throw new WindowNotFoundException(query);
-            }
-            if (raw is null)
-                throw new WindowNotFoundException(query);
+                throw new WindowNotFoundException(hwnd);
 
             var sessionId = Interlocked.Increment(ref _nextSessionId);
             var session = new WindowSession(
@@ -276,29 +200,6 @@ public sealed class UiaEngine : IDisposable
         {
             _gate.Release();
         }
-    }
-
-    /// <summary>
-    /// <see cref="WindowInfo"/> が <see cref="AttachQuery"/> にマッチするか判定する。
-    /// 指定された各フィールドは大文字小文字無視で完全一致比較する。すべてのフィールドが <c>null</c> の
-    /// クエリは誤用とみなしマッチさせない。
-    /// </summary>
-    /// <param name="w">判定対象のウィンドウ情報。</param>
-    /// <param name="q">マッチング条件。</param>
-    /// <returns>マッチすれば true。</returns>
-    internal static bool Matches(WindowInfo w, AttachQuery q)
-    {
-        if (q.ProcessId is not null && w.ProcessId != q.ProcessId.Value) return false;
-        if (q.ProcessName is not null
-            && !string.Equals(w.ProcessName, q.ProcessName, StringComparison.OrdinalIgnoreCase)) return false;
-        if (q.WindowTitle is not null
-            && !string.Equals(w.Title, q.WindowTitle, StringComparison.OrdinalIgnoreCase)) return false;
-        if (q.ClassName is not null
-            && !string.Equals(w.ClassName, q.ClassName, StringComparison.OrdinalIgnoreCase)) return false;
-
-        // 全フィールド null の AttachQuery はマッチさせない (誤用検知)
-        if (q.ProcessId is null && q.ProcessName is null && q.WindowTitle is null && q.ClassName is null) return false;
-        return true;
     }
 
     /// <summary>

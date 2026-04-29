@@ -44,12 +44,6 @@ Then attach by `windowRef`:
 adact attach w1
 ```
 
-…or by exact criteria from one of the columns:
-
-```
-adact attach --process-name Notepad --title "Untitled - Notepad"
-```
-
 ## Error recovery
 
 - `CONNECTION_FAILED` — the ADACT daemon is not running. Start it with

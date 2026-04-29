@@ -79,8 +79,7 @@ CLI client は `isError: true` を受けると stderr の `error` / `message` / 
 | `INVALID_ARGUMENT` | CLI / MCP | 引数不足、未知 filter、sessionId 不明 | 2 または 1 |
 | `INVALID_REF_FORMAT` | CLI | Element Ref が `s<sid>e<eid>` 形式ではない | 2 |
 | `INVALID_WINDOW_REF` | MCP | `w<n>` が unknown / retired | 1 |
-| `WINDOW_NOT_FOUND` | MCP | attach 条件に一致なし | 1 |
-| `AMBIGUOUS_ATTACH` | MCP | attach 条件が複数 window に一致 | 1 |
+| `WINDOW_NOT_FOUND` | MCP | `windowRef` 解決後の HWND attach が失敗 | 1 |
 | `REF_NOT_FOUND` | MCP | Element Ref が malformed、session 不一致、現 snapshot にない | 1 |
 | `ELEMENT_INTERACTION_FAILED` | MCP | click/fill が UIA 操作として失敗 | 1 |
 | `SNAPSHOT_FAILED` | MCP | snapshot 構築失敗 | 1 |
@@ -100,8 +99,8 @@ CLI client は `isError: true` を受けると stderr の `error` / `message` / 
 | `CONNECTION_FAILED` | `adact serve` が起動しているか、`--server` / `.adact/config.json` が `/mcp` を指しているか確認する |
 | `NO_INTERACTIVE_SESSION` | 対象 GUI が動く対話ログオン session 側で `adact serve` または `adact local` を起動する |
 | `REF_NOT_FOUND` | `adact snapshot` を再取得し、新しい `[ref=...]` を使う |
-| `AMBIGUOUS_ATTACH` | `list-apps` で `w<n>` を選ぶか、`--process-id` / `--class-name` で条件を絞る |
-| `WINDOW_NOT_FOUND` | window が表示されているか、title/process name が完全一致しているか確認する |
+| `INVALID_WINDOW_REF` | `adact list-apps` で `w<n>` を取り直して `adact attach <w<n>>` を使う |
+| `WINDOW_NOT_FOUND` | `windowRef` に対応する window が表示されているか確認し、必要なら `list-apps` を再実行する |
 
 ## 参照
 

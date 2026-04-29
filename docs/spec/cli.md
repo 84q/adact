@@ -34,7 +34,7 @@ ADACT の主インターフェースは `adact <subcommand>` CLI です。CLI �
 | コマンド | 主な引数・フラグ | 成功時出力 |
 | --- | --- | --- |
 | `list-apps` | `--server <url>` | TSV header + rows |
-| `attach` | `[w<n>]`、または `--process-name` / `--title` / `--process-id` / `--class-name`、`--no-snapshot`、`--snapshot-dir`、`--server` | `sessionId`, `windowRef`, 必要なら `snapshot` |
+| `attach` | `<w<n>>`、`--no-snapshot`、`--snapshot-dir`、`--server` | `sessionId`, `windowRef`, 必要なら `snapshot` |
 | `snapshot` | `--sid <s<n>>`、`--filter operable|raw`、`--snapshot-dir`、`--server` | `sessionId`, `snapshot` |
 | `click` | `<s<sid>e<eid>>`、`--no-snapshot`、`--snapshot-dir`、`--server` | 既定で `sessionId`, `snapshot`。`--no-snapshot` 時は `sessionId` のみ |
 | `fill` | `<s<sid>e<eid>> <text>`、`--no-snapshot`、`--snapshot-dir`、`--server` | 既定で `sessionId`, `snapshot`。`--no-snapshot` 時は `sessionId` のみ |
@@ -44,7 +44,7 @@ ADACT の主インターフェースは `adact <subcommand>` CLI です。CLI �
 | `close-all` | `--server` | TSV rows: `sessionId`, `result`, optional `error` |
 | `daemon-stop` | `--server` | `stopped` |
 
-`attach` は positional `windowRef` と matching flags を同時に指定できません。`windowRef` は `list-apps` で得た `w<n>` です。
+`attach` は positional `windowRef` (`list-apps` で得た `w<n>`) を必須とします。属性マッチングオプションは提供しません。
 
 ## 接続先解決
 

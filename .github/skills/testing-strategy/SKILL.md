@@ -40,7 +40,6 @@ ADACT のテストは以下の 5 レベルに分類する。レベルが上が�
   - `RefRegistry` の安定 ref 採番・失効管理 (`s<sid>e<eid>`、generation なし)
   - snapshot DTO / parser / formatter の境界表現
   - 独自例外型のメッセージ・コード
-  - `AttachQuery` のマッチングロジック (UIA を介さない部分)
 - **量**: ロジック分岐をすべて網羅する。1 メソッドあたり数本
 - **モック**: 不要。pure function 中心。UIA 要素が必要な構築ロジックは L2 で `Adact.Engine.Elements.IElement` / `FakeElement` を使う
 - **速度目標**: 全体で 1 秒以内

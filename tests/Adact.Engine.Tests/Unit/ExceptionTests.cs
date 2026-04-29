@@ -5,7 +5,7 @@ using Xunit;
 namespace Adact.Engine.Tests.Unit;
 
 /// <summary>
-/// Engine が投げる例外型 (WindowNotFound / AmbiguousAttach / RefNotFound / ElementInteraction) の
+/// Engine が投げる例外型 (WindowNotFound / RefNotFound / ElementInteraction) の
 /// プロパティ・メッセージ生成を検証する Unit テスト。
 /// errors-and-output.md のエラーメッセージ仕様の回帰防止。
 /// </summary>
@@ -13,39 +13,15 @@ namespace Adact.Engine.Tests.Unit;
 public class ExceptionTests
 {
     /// <summary>
-    /// ProcessName クエリで生成された WindowNotFoundException のメッセージにプロセス名が含まれることを確認する。
+    /// HWND 指定で生成された WindowNotFoundException のメッセージに HWND 値が 16 進で含まれることを確認する。
+    /// HWND ベース attach 失敗の診断情報がエラーメッセージから読めることの担保。
     /// </summary>
     [Fact]
-    public void WindowNotFoundException_GivenProcessNameQuery_MessageContainsProcessName()
+    public void WindowNotFoundException_GivenHwnd_MessageContainsHwndHex()
     {
-        var ex = new WindowNotFoundException(AttachQuery.ByProcess("notepad++"));
-        Assert.Contains("notepad++", ex.Message);
-    }
-
-    /// <summary>
-    /// 空の AttachQuery で生成されたメッセージに "(empty)" マーカーが含まれることを確認する。
-    /// </summary>
-    [Fact]
-    public void WindowNotFoundException_GivenEmptyQuery_MessageContainsEmptyMarker()
-    {
-        var ex = new WindowNotFoundException(new AttachQuery());
-        Assert.Contains("(empty)", ex.Message);
-    }
-
-    /// <summary>
-    /// AmbiguousAttachException のメッセージに候補件数が含まれ、Candidates プロパティで全件参照できることを確認する。
-    /// </summary>
-    [Fact]
-    public void AmbiguousAttachException_GivenTwoCandidates_MessageMentionsCount()
-    {
-        var c = new[]
-        {
-            new WindowInfo(1, "x", "t1", "Window", null, IntPtr.Zero),
-            new WindowInfo(2, "x", "t2", "Window", null, IntPtr.Zero),
-        };
-        var ex = new AmbiguousAttachException(AttachQuery.ByProcess("x"), c);
-        Assert.Contains("2", ex.Message);
-        Assert.Equal(2, ex.Candidates.Count);
+        var ex = new WindowNotFoundException(new IntPtr(0xABCD));
+        Assert.Equal((nint)0xABCD, ex.Hwnd);
+        Assert.Contains("ABCD", ex.Message);
     }
 
     /// <summary>

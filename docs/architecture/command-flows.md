@@ -52,7 +52,7 @@ flowchart LR
 
 ## `adact attach`
 
-`attach` は `windowRef` 指定と条件指定で daemon 側の分岐が異なります。どちらも成功時には `SessionStore` に `WindowSession` を登録し、`WindowRefStore` に `windowRef` と `sessionId` の関連を持たせます。
+`attach` は `windowRef` (`w<n>`) のみで対象 window を指定します。成功時には `SessionStore` に `WindowSession` を登録し、`WindowRefStore` に `windowRef` と `sessionId` の関連を持たせます。
 
 ```mermaid
 sequenceDiagram
@@ -65,16 +65,11 @@ sequenceDiagram
 	participant Engine as UiaEngine
 	participant Cmd as CommandHelpers
 
-	CLI->>CLI: validate windowRef or query
+	CLI->>CLI: validate windowRef
 	CLI->>Client: windows_attach
 	Client->>Host: MCP request
 	Host->>Tools: AttachAsync
-	alt windowRef specified
-		Tools->>Windows: resolve windowRef
-	else query specified
-		Tools->>Engine: find matching windows
-		Tools->>Windows: sync or assign windowRef
-	end
+	Tools->>Windows: resolve windowRef
 	Tools->>Sessions: find existing session
 	alt existing live session
 		Sessions-->>Tools: WindowSession
@@ -106,16 +101,6 @@ sequenceDiagram
 7. `WindowRefStore.AssociateSession()` が `w<n>` と `s<n>` を結びます。
 8. CLI は `sessionId` と `windowRef` を出力します。
 9. `--no-snapshot` がなければ、続けて `CommandHelpers.WriteSnapshotResultAsync()` が `windows_snapshot` を呼び、snapshot path を出力します。
-
-### 条件指定
-
-1. `AttachCommand` は `--process-name` / `--title` / `--process-id` / `--class-name` の少なくとも 1 つがあること、positional `ref` と同時指定でないことを検証します。
-2. CLI は MCP `windows_attach` に条件を渡します。
-3. `WindowsTools.AttachAsync()` は `AttachQuery` を作り、`UiaEngine.FindMatchesAsync()` で候補を確定します。
-4. 候補 0 件なら `WINDOW_NOT_FOUND`、複数件なら `AMBIGUOUS_ATTACH` になります。
-5. 1 件に絞れたら `WindowKey` を作り、`WindowRefStore.TryFindByKey()` で既存 entry と生存 session を探します。見つかれば idempotent に既存 session を返します。
-6. 新規の場合は `UiaEngine.AttachByHandleAsync()`、`SessionStore.Register()`、`WindowRefStore.SyncOrAssign()`、`AssociateSession()` の順に session と windowRef を作ります。
-7. CLI は `sessionId` / `windowRef` を出力し、必要に応じて自動 snapshot を取得します。
 
 ## `adact snapshot`
 

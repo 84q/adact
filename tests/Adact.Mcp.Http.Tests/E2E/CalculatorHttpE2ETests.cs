@@ -54,10 +54,32 @@ public class CalculatorHttpE2ETests
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
             await using var client = await McpClient.CreateAsync(CreateTransport(), cancellationToken: cts.Token);
 
-            // attach
+            // 電卓の windowRef を windows_list_apps から取得する
+            var listResult = await client.CallToolAsync("windows_list_apps", cancellationToken: cts.Token);
+            Assert.False(listResult.IsError ?? false,
+                $"windows_list_apps failed: {(listResult.Content.FirstOrDefault() as TextContentBlock)?.Text}");
+            var listText = (listResult.Content[0] as TextContentBlock)?.Text;
+            Assert.NotNull(listText);
+            string? windowRef = null;
+            using (var listDoc = JsonDocument.Parse(listText!))
+            {
+                foreach (var item in listDoc.RootElement.EnumerateArray())
+                {
+                    if (item.TryGetProperty("windowTitle", out var t)
+                        && t.ValueKind == JsonValueKind.String
+                        && string.Equals(t.GetString(), "電卓", StringComparison.Ordinal))
+                    {
+                        windowRef = item.GetProperty("windowRef").GetString();
+                        break;
+                    }
+                }
+            }
+            Assert.NotNull(windowRef);
+
+            // attach (windowRef 経由)
             var attach = await client.CallToolAsync(
                 "windows_attach",
-                new Dictionary<string, object?> { ["windowTitle"] = "電卓" },
+                new Dictionary<string, object?> { ["windowRef"] = windowRef! },
                 cancellationToken: cts.Token);
             Assert.False(attach.IsError ?? false,
                 $"windows_attach failed: {(attach.Content.FirstOrDefault() as TextContentBlock)?.Text}");

@@ -58,12 +58,12 @@ adact list-apps --server http://127.0.0.1:41300/mcp
 
 現行 ref は `s<sid>e<eid>` です。古い `s<sid>g<gen>e<eid>` は過去形式です。
 
-## `AMBIGUOUS_ATTACH` / `WINDOW_NOT_FOUND`
+## `INVALID_WINDOW_REF` / `WINDOW_NOT_FOUND`
 
 | Code | 原因 | 対処 |
 | --- | --- | --- |
-| `WINDOW_NOT_FOUND` | 指定した process name / title / class / process id に一致する window がない | `adact list-apps` で現状を確認し、完全一致する値を使う |
-| `AMBIGUOUS_ATTACH` | 条件に複数 window が一致した | `list-apps` の `windowRef` (`w<n>`) を positional に渡す、または `--process-id` / `--class-name` で絞る |
+| `INVALID_WINDOW_REF` | `w<n>` が未登録もしくは retired (window が閉じた / `list-apps` 後にずれた) | `adact list-apps` を再取得して新しい `w<n>` を渡す |
+| `WINDOW_NOT_FOUND` | `w<n>` 解決後の HWND attach が失敗した (window が閉じられた等) | `adact list-apps` を再取得し、対象 window が存在することを確認する |
 
 例:
 
@@ -72,7 +72,7 @@ adact list-apps
 adact attach w1
 ```
 
-`attach` の matching は指定された項目の厳密一致です。title の部分一致ではありません。
+`attach` は `w<n>` 形式の positional 引数のみ受け付けます。process name / title 等での matching は提供しません (`list-apps` で絞り込んでから `w<n>` を渡してください)。
 
 ## snapshot が大きい
 

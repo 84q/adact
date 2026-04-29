@@ -76,7 +76,11 @@ public class NotepadppSmokeTests : IAsyncLifetime
         if (_exePath is null) return; // Notepad++ 未インストールのマシンは事実上 skip
 
         using var engine = new UiaEngine();
-        using var session = await engine.AttachAsync(AttachQuery.ByProcess(ProcessName));
+        var windows = await engine.ListWindowsAsync();
+        var target = windows.FirstOrDefault(w =>
+            string.Equals(w.ProcessName, ProcessName, StringComparison.OrdinalIgnoreCase));
+        Assert.NotNull(target);
+        using var session = await engine.AttachByHandleAsync(target!.NativeWindowHandle);
         var snap = await session.SnapshotAsync();
 
         using var doc = JsonDocument.Parse(snap.Json);

@@ -25,7 +25,7 @@ Phase 7 実装と自動テストは完了していますが、AI クライアン
 
 | タスク | 内容 | 備考 |
 | --- | --- | --- |
-| `AttachQuery.Hwnd` / `--hwnd` | window handle 直接指定で attach できるようにする | 既存 `attach` flags に追加する想定 |
+| `--hwnd` 直接指定 attach | window handle (HWND) を CLI/MCP から直接指定して attach できるようにする | `attach` の補助フラグとして追加する想定 |
 | モーダルダイアログ追随 | modal dialog を検出し、操作対象として自然に追随する | 現行は snapshot への modal node 注入と一部テストがある |
 | 画面ロック検知 | lock 状態など操作不能な desktop 状態を明示する | 起動時非対話判定とは別の動的検知 |
 | 失敗時詳細ログ | click/fill/snapshot 失敗時に ref、要素情報、例外を追えるようにする | AI / 人間の復旧判断を助ける |

@@ -20,8 +20,6 @@ internal static class ToolErrors
     public const string InvalidWindowRef = "INVALID_WINDOW_REF";
     /// <summary>検索条件に一致する window が見つからなかった。</summary>
     public const string WindowNotFound = "WINDOW_NOT_FOUND";
-    /// <summary>検索条件に複数 window が一致してしまった。</summary>
-    public const string AmbiguousAttach = "AMBIGUOUS_ATTACH";
     /// <summary>element ref が不正 / 未知 / 現 snapshot に存在しない。</summary>
     public const string RefNotFound = "REF_NOT_FOUND";
     /// <summary>UIA を介した click / fill 他の要素操作が失敗した。</summary>
@@ -49,8 +47,6 @@ internal static class ToolErrors
         return ex switch
         {
             WindowNotFoundException w => Error(WindowNotFound, w.Message),
-            AmbiguousAttachException a => Error(AmbiguousAttach, a.Message,
-                new JsonObject { ["candidateCount"] = a.Candidates.Count }),
             RefNotFoundException r => Error(RefNotFound, r.Message,
                 new JsonObject { ["refId"] = r.RefId }),
             ElementInteractionException e => Error(ElementInteractionFailed, e.Message),
