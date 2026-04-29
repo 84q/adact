@@ -37,6 +37,22 @@ the reference for the command you are about to run.
 | `adact snapshot`       | Capture a fresh UIA snapshot of the active session.   | [`references/snapshot.md`](references/snapshot.md)   |
 | `adact click`          | Click an element identified by an element ref.        | [`references/click.md`](references/click.md)         |
 | `adact fill`           | Overwrite an input element with the given text.       | [`references/fill.md`](references/fill.md)           |
+| `adact dblclick`       | Double-click an element.                              | [`references/dblclick.md`](references/dblclick.md)   |
+| `adact hover`          | Move the cursor over an element.                      | [`references/hover.md`](references/hover.md)         |
+| `adact mouse-move`     | Move the cursor to an element ref or `x,y`.           | [`references/mouse-move.md`](references/mouse-move.md) |
+| `adact mouse-down`     | Press and hold a mouse button at a target.            | [`references/mouse-down.md`](references/mouse-down.md) |
+| `adact mouse-up`       | Release a mouse button at a target.                   | [`references/mouse-up.md`](references/mouse-up.md)   |
+| `adact mouse-wheel`    | Scroll the mouse wheel at a target.                   | [`references/mouse-wheel.md`](references/mouse-wheel.md) |
+| `adact press`          | Press a key combo (e.g. `Ctrl+C`).                    | [`references/press.md`](references/press.md)         |
+| `adact key-down`       | Press and hold a single key.                          | [`references/key-down.md`](references/key-down.md)   |
+| `adact key-up`         | Release a single key.                                 | [`references/key-up.md`](references/key-up.md)       |
+| `adact type`           | Type text character by character into an element.     | [`references/type.md`](references/type.md)           |
+| `adact check`          | Ensure a checkbox / toggle / radio is On.             | [`references/check.md`](references/check.md)         |
+| `adact uncheck`        | Ensure a checkbox / toggle is Off.                    | [`references/uncheck.md`](references/uncheck.md)     |
+| `adact select`         | Select a list / combo-box item by name / index / ref. | [`references/select.md`](references/select.md)       |
+| `adact focus`          | Set keyboard focus to an element.                     | [`references/focus.md`](references/focus.md)         |
+| `adact clear`          | Clear the value of an input element.                  | [`references/clear.md`](references/clear.md)         |
+| `adact scroll-into-view` | Scroll an element into view.                        | [`references/scroll-into-view.md`](references/scroll-into-view.md) |
 
 ## Element refs
 

@@ -13,19 +13,10 @@
 
 現行の単一 `adact.exe` / `src/Adact.Cli` は Windows target です。`serve` / `local` は UIA を使うため対象 GUI と同じ対話 Windows セッション側で動く必要があり、この制約は cross-platform CLI client 検討後も維持します。
 
-## Phase 7 受入残
-
-| タスク | 内容 | 優先度 |
-| --- | --- | --- |
-| AI クライアント手動スモーク | 新 `.txt` snapshot を Claude Code / Codex CLI / VS Code Copilot などが読み、ref を抽出して `click` / `fill` を発行できることを確認する | 高 |
-
-Phase 7 実装と自動テストは完了していますが、AI クライアント実利用での snapshot 読解はユーザー側手動確認として残っています。
-
 ## 旧 Phase 7 安定化の残タスク
 
 | タスク | 内容 | 備考 |
 | --- | --- | --- |
-| `--hwnd` 直接指定 attach | window handle (HWND) を CLI/MCP から直接指定して attach できるようにする | `attach` の補助フラグとして追加する想定 |
 | モーダルダイアログ追随 | modal dialog を検出し、操作対象として自然に追随する | 現行は snapshot への modal node 注入と一部テストがある |
 | 画面ロック検知 | lock 状態など操作不能な desktop 状態を明示する | 起動時非対話判定とは別の動的検知 |
 | 失敗時詳細ログ | click/fill/snapshot 失敗時に ref、要素情報、例外を追えるようにする | AI / 人間の復旧判断を助ける |
@@ -37,20 +28,13 @@ Phase 7 実装と自動テストは完了していますが、AI クライアン
 
 | タスク | 内容 | 出所 |
 | --- | --- | --- |
-| 接続先環境変数 | `.adact/config.json` と `--server` に加えて環境変数で daemon 接続先を指定する | Phase 5 |
 | 認証 / TLS / CORS | remote daemon 運用時の保護方針を決める | Phase 5 |
-| `--format` | CLI 出力の Markdown / JSON などの切替要否を検討する | Phase 5 |
 | `REF_NOT_FOUND` 時の再 snapshot 方針 | AI 側判断、CLI hint、自動再 snapshot の分担を決める | Phase 5 / 6 |
 | `.adact/config.json` 拡充 | 接続先以外の設定、個人設定と repo 共有設定の分離、探索 rule の拡張 | Phase 5 |
 | `KillAsync` の PID 再利用対策 | `Process.StartTime` 等で意図しない別 process kill を防ぐ | Phase 5 |
 | `CalculatorMutex` 共通化 | test assembly 間で重複する Calculator mutex を共有 helper に集約する | Phase 5 |
 | recipes | Calculator / Notepad など典型操作テンプレートを提供する | Phase 6 |
-| MCP tool description 強化 | MCP 接続のみでも AI client が ADACT を理解できるよう description を厚くする | Phase 6 |
 | Skill 対象拡張 | CLI/MCP サブコマンド追加時に `adact-cli` Skill と同期テストを更新する | Phase 6 |
-
-## Phase 8 候補
-
-Phase 5 で lifecycle 系は前倒し実装済みのため、Phase 8 の新規対象には `close` / `detach` / `kill` / `close-all` / `daemon-stop` を含めません。
 
 ### Phase 8-A: 操作基盤
 

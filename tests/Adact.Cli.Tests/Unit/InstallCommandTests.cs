@@ -20,6 +20,9 @@ public class InstallCommandTests
       new HashSet<string>(System.StringComparer.Ordinal)
       {
     "list-apps", "attach", "snapshot", "click", "fill",
+    "dblclick", "hover", "mouse-move", "mouse-down", "mouse-up", "mouse-wheel",
+    "press", "key-down", "key-up", "type",
+    "check", "uncheck", "select", "focus", "clear", "scroll-into-view",
       };
 
     /// <summary>

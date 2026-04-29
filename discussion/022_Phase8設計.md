@@ -87,7 +87,7 @@ CLI コマンドはすべて kebab-case、MCP は `windows_` prefix の snake_ca
 
 | コマンド | 引数・オプション |
 | --- | --- |
-| `click` (拡張) | `--ref <ref>`, `--button left/right/middle` (default: left), `--count N` (default: 1), `--modifier <keys>` (例: `Ctrl,Shift`), `--position x,y` (要素相対、default: 中央)。`--count` は **汎用 N 連打**であり、OS ダブルクリック判定の保証はしない。ダブルクリック判定が必要な場合は `dblclick` を使用する |
+| `click` (拡張) | `--ref <ref>`, `--button left/right/middle` (default: left), `--count N` (default: 1), `--modifier <key>` (繰り返し可、例: `--modifier Ctrl --modifier Shift`), `--position x,y` (要素相対、default: 中央)。`--count` は **汎用 N 連打**であり、OS ダブルクリック判定の保証はしない。ダブルクリック判定が必要な場合は `dblclick` を使用する |
 | `dblclick` | `--ref`, `--button`, `--modifier`, `--position` |
 | `hover` | `--ref`, `--modifier`, `--position` |
 | `type` | `--ref`, text, `--delay <ms>` |
@@ -100,7 +100,7 @@ CLI コマンドはすべて kebab-case、MCP は `windows_` prefix の snake_ca
 | `key-down` / `key-up` | key (単キー) |
 | `mouse-move` | target (`s1e2` または `20,30`) |
 | `mouse-down` / `mouse-up` | target, `--button` |
-| `mouse-wheel` | target, `--x <delta>`, `--y <delta>` (正値=下/右、負値=上/左) |
+| `mouse-wheel` | target, `--delta-x <delta>`, `--delta-y <delta>` (Playwright/DOM 流: 正値=下/右、負値=上/左) |
 | `inspect` | ref |
 | `screenshot` | `--ref <ref>` (任意。未指定はウィンドウ全体), `--highlight` (対象 ref をハイライト)、その他 (`--out` 等) は既存 `snapshot` コマンドの該当オプションと揃える |
 | `wait-for` | `--ref <ref>` または検索条件 (`--name`, `--control-type`, `--automation-id` 等)、`--state attached/detached/visible/hidden/enabled/disabled`, `--timeout <ms>` |
@@ -112,7 +112,7 @@ CLI コマンドはすべて kebab-case、MCP は `windows_` prefix の snake_ca
 
 - `press` は組合せ含めて 1 文字列: `"Ctrl+Shift+E"`, `"Control+o"`, `"Enter"`, `"F1"`
 - 修飾キー名: `Shift`, `Control`, `Alt`, `Meta`, `ControlOrMeta`
-- click / hover / dblclick の `--modifier` は CSV (`Ctrl,Shift`)
+- click / hover / dblclick の `--modifier` は **繰り返し可能オプション** (`--modifier Ctrl --modifier Shift`)。System.CommandLine 流に従い、修飾キー名は case-insensitive で受理 (`Shift` / `Control` / `Ctrl` / `Alt` / `Meta` / `ControlOrMeta`)
 
 ## 7. wait-for の動作モード
 

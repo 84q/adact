@@ -7,12 +7,18 @@ next step.
 ## Synopsis
 
 ```
-adact click <ref> [--no-snapshot] [--snapshot-dir <dir>] [--server <url>]
+adact click <ref> [--button <left|right|middle>] [--count <n>]
+                  [--modifier <key>]... [--position <x,y>]
+                  [--no-snapshot] [--snapshot-dir <dir>] [--server <url>]
 ```
 
 | Argument / Flag   | Purpose                                                                    |
 | ----------------- | -------------------------------------------------------------------------- |
 | `<ref>`           | Element ref in `s<sid>e<eid>` form, taken from a snapshot.                 |
+| `--button`        | Mouse button: `left` (default), `right`, or `middle`.                      |
+| `--count`         | Number of consecutive clicks (>= 1). Default: 1.                           |
+| `--modifier`      | Modifier key held during the click. Repeatable. Allowed: `Shift`, `Control`, `Ctrl`, `Alt`, `Meta`, `ControlOrMeta`. |
+| `--position`      | Click point relative to element top-left as `x,y`. Default: center.        |
 | `--no-snapshot`   | Skip the automatic post-click snapshot.                                    |
 | `--snapshot-dir`  | Output directory for the post-click snapshot (default `./.adact/`).        |
 | `--server`        | Daemon endpoint URL.                                                       |

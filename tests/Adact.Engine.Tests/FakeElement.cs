@@ -22,9 +22,11 @@ internal sealed class FakeElement : IElement
 
     public int ClickCount { get; private set; }
     public string? LastFilledText { get; private set; }
+    public int FocusCount { get; private set; }
 
     public void Click() => ClickCount++;
     public void Fill(string text) => LastFilledText = text;
+    public void Focus() => FocusCount++;
 
     public FakeElement AddChild(FakeElement child)
     {

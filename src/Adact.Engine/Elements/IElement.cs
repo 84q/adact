@@ -50,4 +50,7 @@ public interface IElement
     /// <summary>テキストを入力する。ValuePattern が利用可能ならそれで、不可の場合は Ctrl+A→Delete→Type にフォールバック。</summary>
     /// <param name="text">入力するテキスト。</param>
     void Fill(string text);
+
+    /// <summary>UIA <c>SetFocus</c> によりキーボードフォーカスを当てる。失敗時は best-effort。</summary>
+    void Focus();
 }

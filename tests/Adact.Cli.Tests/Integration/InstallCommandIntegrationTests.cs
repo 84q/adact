@@ -17,10 +17,26 @@ public class InstallCommandIntegrationTests
     {
     "SKILL.md",
     "references/attach.md",
+    "references/check.md",
+    "references/clear.md",
     "references/click.md",
+    "references/dblclick.md",
     "references/fill.md",
+    "references/focus.md",
+    "references/hover.md",
+    "references/key-down.md",
+    "references/key-up.md",
     "references/list-apps.md",
+    "references/mouse-down.md",
+    "references/mouse-move.md",
+    "references/mouse-up.md",
+    "references/mouse-wheel.md",
+    "references/press.md",
+    "references/scroll-into-view.md",
+    "references/select.md",
     "references/snapshot.md",
+    "references/type.md",
+    "references/uncheck.md",
   };
 
     /// <summary>

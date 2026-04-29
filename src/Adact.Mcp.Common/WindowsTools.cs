@@ -245,6 +245,11 @@ public sealed partial class WindowsTools
     /// 直近 snapshot で得た element ref が指す UIA 要素を click する。session は ref の prefix (<c>s&lt;sid&gt;</c>) から自動解決する。
     /// </summary>
     /// <param name="ref">snapshot 由来の element ref (例: <c>s1e7</c>)。</param>
+    /// <param name="button">"left"/"right"/"middle"。null は "left"。</param>
+    /// <param name="count">連打回数 (>=1)。null は 1。</param>
+    /// <param name="modifiers">押下する修飾キー名 (Shift/Control/Ctrl/Alt/Meta/ControlOrMeta)。</param>
+    /// <param name="positionX">要素左上基準 X オフセット (px)。null で中央。</param>
+    /// <param name="positionY">要素左上基準 Y オフセット (px)。null で中央。</param>
     /// <param name="ct">キャンセル トークン。</param>
     /// <returns>
     /// 成功時は空の content を持つ <see cref="CallToolResult"/>。ref が空・不正・未知 session prefix の場合は
@@ -255,6 +260,16 @@ public sealed partial class WindowsTools
     public async Task<CallToolResult> ClickAsync(
         [Description("Ref ID in the form 's<sid>e<eid>' obtained from a recent windows_snapshot.")]
       string @ref,
+        [Description("Mouse button: 'left' (default), 'right', or 'middle'.")]
+        string? button = null,
+        [Description("Number of consecutive clicks (>= 1). Defaults to 1.")]
+        int? count = null,
+        [Description("Modifier keys held during the click. Allowed: 'Shift', 'Control', 'Ctrl', 'Alt', 'Meta', 'ControlOrMeta'.")]
+        IReadOnlyList<string>? modifiers = null,
+        [Description("X offset (px) from the element's bounding-rectangle top-left. Omit to click center.")]
+        int? positionX = null,
+        [Description("Y offset (px) from the element's bounding-rectangle top-left. Omit to click center.")]
+        int? positionY = null,
         CancellationToken ct = default)
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
@@ -270,9 +285,33 @@ public sealed partial class WindowsTools
             return ToolErrors.Error(ToolErrors.RefNotFound,
                 $"Ref ID '{@ref}' does not match any known session.");
 
+        if (count is { } cnt && cnt < 1)
+            return ToolErrors.Error(ToolErrors.InvalidArgument, "count must be >= 1.");
+
+        if (!TryParseMouseButton(button, out var btn, out var btnError))
+            return ToolErrors.Error(ToolErrors.InvalidArgument, btnError);
+
         try
         {
-            await session.ClickAsync(@ref, options: null, ct).ConfigureAwait(false);
+            // 既存挙動を維持: 拡張パラメータが一切指定されていなければ ClickAsync(options:null) を呼ぶ。
+            bool hasExtensions = button is not null || count is not null
+                || (modifiers is { Count: > 0 })
+                || positionX is not null || positionY is not null;
+            if (!hasExtensions)
+            {
+                await session.ClickAsync(@ref, options: null, ct).ConfigureAwait(false);
+            }
+            else
+            {
+                var opts = new ClickOptions(
+                    Double: false,
+                    Button: btn,
+                    Count: count ?? 1,
+                    Modifiers: modifiers,
+                    PositionX: positionX,
+                    PositionY: positionY);
+                await session.ClickWithOptionsAsync(@ref, opts, ct).ConfigureAwait(false);
+            }
             return new CallToolResult { Content = [] };
         }
         catch (Exception ex)
@@ -281,6 +320,27 @@ public sealed partial class WindowsTools
             if (mapped is not null) return mapped;
             _logger.LogError(ex, "windows_click failed unexpectedly");
             throw;
+        }
+    }
+
+    /// <summary>"left"/"right"/"middle" 文字列を <see cref="MouseButton"/> に解釈する。null は Left 扱い。</summary>
+    /// <param name="button">"left"/"right"/"middle"/null。大文字小文字は無視。</param>
+    /// <param name="result">解釈結果 (デフォルトは <see cref="MouseButton.Left"/>)。</param>
+    /// <param name="error">エラーメッセージ (失敗時のみ)。</param>
+    /// <returns>成功時 true。</returns>
+    internal static bool TryParseMouseButton(string? button, out MouseButton result, out string error)
+    {
+        error = string.Empty;
+        if (string.IsNullOrEmpty(button)) { result = MouseButton.Left; return true; }
+        switch (button.Trim().ToLowerInvariant())
+        {
+            case "left": result = MouseButton.Left; return true;
+            case "right": result = MouseButton.Right; return true;
+            case "middle": result = MouseButton.Middle; return true;
+            default:
+                result = MouseButton.Left;
+                error = $"button '{button}' is not one of 'left', 'right', 'middle'.";
+                return false;
         }
     }
 

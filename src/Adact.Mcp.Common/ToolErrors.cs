@@ -22,6 +22,8 @@ internal static class ToolErrors
     public const string WindowNotFound = "WINDOW_NOT_FOUND";
     /// <summary>element ref が不正 / 未知 / 現 snapshot に存在しない。</summary>
     public const string RefNotFound = "REF_NOT_FOUND";
+    /// <summary>element ref の文字列形式が不正 (例: <c>s1e2</c> 形式に従わない)。</summary>
+    public const string InvalidRefFormat = "INVALID_REF_FORMAT";
     /// <summary>UIA を介した click / fill 他の要素操作が失敗した。</summary>
     public const string ElementInteractionFailed = "ELEMENT_INTERACTION_FAILED";
     /// <summary>UIA tree 走査中に例外が発生して snapshot 取得に失敗した。</summary>
