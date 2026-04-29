@@ -1,3 +1,5 @@
+using Adact.Engine;
+
 using Xunit;
 
 namespace Adact.Engine.Tests.Unit;

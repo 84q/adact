@@ -68,6 +68,34 @@ dotnet test
 
 PowerShell では `|` を含む filter は quote してください。
 
+## カバレッジ取得
+
+`coverlet.collector` (各テストプロジェクトに導入済み) と `dotnet-reportgenerator-globaltool` を使う。
+
+```powershell
+# 初回のみ: ReportGenerator のグローバルツールを導入
+dotnet tool install --global dotnet-reportgenerator-globaltool
+
+# Unit + Integration のカバレッジを cobertura で出力
+if (Test-Path TestResults) { Remove-Item -Recurse -Force TestResults }
+dotnet test adact.sln --filter "Layer=Unit|Layer=Integration" --collect:"XPlat Code Coverage" --results-directory TestResults
+
+# HTML レポート生成 (production code のみ。adact.dll の小文字も拾う)
+reportgenerator `
+  "-reports:TestResults/**/coverage.cobertura.xml" `
+  "-targetdir:TestResults/coverage-html" `
+  "-reporttypes:Html;TextSummary" `
+  "-assemblyfilters:+Adact.*;+adact;-Adact.*.Tests"
+
+# サマリ表示
+Get-Content TestResults/coverage-html/Summary.txt
+
+# ブラウザで詳細 (ファイル別 / 行ごとのカバー / 未カバー強調)
+Start-Process TestResults/coverage-html/index.html
+```
+
+`TestResults/` は `.gitignore` 済みのため commit されない。CI 用途では同じ手順で生成可能。
+
 ## テスト追加時の目安
 
 | 変更内容 | 追加・更新するテスト |
