@@ -27,8 +27,8 @@ flowchart LR
 | --- | --- | --- |
 | `src/Adact.Cli/` | `adact.exe` の entry point。CLI client、`serve` / `local` 起動、Skill install、CLI 出力変換 | `Program`, `*Command`, `AdactMcpClient`, `SnapshotTextFormatter` |
 | `src/Adact.Cli.Server/` | HTTP MCP daemon の host | `HttpHost`, `HttpDaemonControl` |
-| `src/Adact.Engine/` | FlaUI.UIA3 による Windows UIA 操作の実体 | `UiaEngine`, `WindowSession`, `SnapshotBuilder`, `RefRegistry`, `InteractiveSessionGuard` |
-| `src/Adact.Mcp.Common/` | HTTP / stdio 共通の MCP tool 実装と session/ref 管理 | `WindowsTools`, `SessionStore`, `WindowRefStore`, `ToolErrors` |
+| `src/Adact.Engine/` | FlaUI.UIA3 による Windows UIA 操作の実体 | `UiaEngine` (partial: `UiaEngine.cs`, `UiaEngine.Launch.cs`, `UiaEngine.WaitForWindow.cs`)、`WindowSession` (partial: `WindowSession.cs`, `WindowSession.{Mouse,Keyboard,Toggle,Window,Inspect,Wait,Screenshot}.cs`)、`SnapshotBuilder`, `RefRegistry`, `InteractiveSessionGuard`、Phase 8 で追加された `MouseTarget`, `WaitForState`, `WaitForElementQuery`, `WaitForResult`, `WindowSearchQuery`, `LaunchRequest`, `LaunchResult`, `InspectResult`, `ScreenshotResult` 等の値型と `Exceptions/{LaunchFailedException,WaitTimeoutException}` |
+| `src/Adact.Mcp.Common/` | HTTP / stdio 共通の MCP tool 実装と session/ref 管理 | `WindowsTools` (partial: `WindowsTools.cs`, `WindowsTools.{Mouse,Keyboard,Toggle,Window,Inspect,Wait,Launch,Screenshot}.cs`)、`SessionStore`, `WindowRefStore`, `ToolErrors` |
 | `src/Adact.Mcp.Stdio/` | stdio MCP server の host | `McpStdioServer`, `StdioDaemonControl` |
 
 ## Test projects

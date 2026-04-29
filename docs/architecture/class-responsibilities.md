@@ -83,8 +83,19 @@ flowchart TB
 | `ListAppsCommand` | `--server` option | `CommandHelpers.RunWithClientAsync()`、MCP `windows_list_apps`、`TsvWriter` | window 一覧 TSV と exit code |
 | `AttachCommand` | positional `ref`、条件指定 option、`--no-snapshot`、`--snapshot-dir`、`--server` | `RefValidator`、MCP `windows_attach`、成功時に `CommandHelpers.WriteSnapshotResultAsync()` | `sessionId` / `windowRef` / snapshot path |
 | `SnapshotCommand` | `--sid`、`--snapshot-dir`、`--filter`、`--server` | `CommandHelpers.WriteSnapshotResultAsync()` | `sessionId` と CLI `.txt` snapshot path |
-| `ClickCommand` | element ref、`--no-snapshot`、`--snapshot-dir`、`--server` | `RefValidator`、`CommandHelpers.RunRefOperationAndAutoSnapshotAsync()`、MCP `windows_click` | 操作後 snapshot path、または `sessionId` のみ |
+| `ClickCommand` | element ref、`--button`、`--count`、`--modifier`、`--position`、`--no-snapshot`、`--snapshot-dir`、`--server` | `RefValidator`、`CommandHelpers.RunRefOperationAndAutoSnapshotAsync()`、MCP `windows_click` | 操作後 snapshot path、または `sessionId` のみ |
 | `FillCommand` | element ref、text、`--no-snapshot`、`--snapshot-dir`、`--server` | `RefValidator`、`CommandHelpers.RunRefOperationAndAutoSnapshotAsync()`、MCP `windows_fill` | 操作後 snapshot path、または `sessionId` のみ |
+| `DblclickCommand` / `HoverCommand` | element ref、`--button` (dblclick のみ)、`--modifier`、`--position`、auto-snapshot 系 | MCP `windows_dblclick` / `windows_hover` | 操作後 snapshot path |
+| `MouseMoveCommand` / `MouseDownCommand` / `MouseUpCommand` / `MouseWheelCommand` | target (`s<sid>e<eid>` または `x,y`)、`--button` / `--delta-x` / `--delta-y` | MCP `windows_mouse_move` / `windows_mouse_down` / `windows_mouse_up` / `windows_mouse_wheel` | mouse-wheel のみ snapshot、それ以外は出力なし |
+| `TypeCommand` / `PressCommand` / `KeyDownCommand` / `KeyUpCommand` | text + `--ref` / `--delay-ms` / key combo | MCP `windows_type` / `windows_press` / `windows_key_down` / `windows_key_up` | type/press は snapshot、key-down/key-up は出力なし |
+| `ToggleCommands` (`check` / `uncheck`) / `SelectCommand` / `ClearCommand` | `--ref`、`select` は `--name` / `--index` / `--item-ref` 排他 | MCP `windows_check` / `windows_uncheck` / `windows_select` / `windows_clear` | snapshot path |
+| `RefOnlyCommandBuilder` で生成する `focus` / `scroll-into-view` | `--ref` のみ | MCP `windows_focus` / `windows_scroll_into_view` | 出力なし |
+| `ResizeCommand` / `WindowStateCommandBuilder` で生成する `minimize` / `maximize` / `restore` | `resize` は `--width` / `--height`、その他は引数なし | MCP `windows_resize` / `windows_minimize` / `windows_maximize` / `windows_restore` | snapshot path |
+| `InspectCommand` | `--ref` | MCP `windows_inspect` | UIA プロパティ詳細の JSON 1 行 |
+| `ScreenshotCommand` | `--ref?`、`--out?`、`--sid?` | MCP `windows_screenshot` | `{ path, width, height }` JSON 1 行 |
+| `WaitForCommand` | `--ref` または検索条件、`--state`、`--timeout`、`--sid` | MCP `windows_wait_for` | `{ ref, state }` JSON 1 行 |
+| `WaitForWindowCommand` | `--title` / `--class-name` / `--process-name` / `--exe`、`--timeout` | MCP `windows_wait_for_window` | window info JSON 1 行。attach は行わない |
+| `LaunchCommand` | `<executable>`、`--cwd`、`--env`、`-- <args>` | MCP `windows_launch` | `{ pid, processName, executablePath }` JSON 1 行。attach は行わない |
 | `DetachCommand` / `CloseCommand` / `KillCommand` | `--sid`、`--server` | `LifecycleCommandImpl.ExecuteAsync()` と対応 MCP tool | `sessionId` と `detached` / `closed` / `killed` の literal 行 |
 | `CloseAllCommand` | `--server` | MCP `windows_close_all`、`FormatResults()` | session ごとの TSV 風結果。失敗があれば exit 1 |
 | `DaemonStopCommand` | `--server` | `ConnectionResolver`、localhost guard、MCP `daemon_stop` | `stopped`。応答前切断も停止済みとして成功扱い |
@@ -152,6 +163,15 @@ HTTP と stdio は transport が違うだけで、どちらも同じ `WindowsToo
 | `RefRegistry` | sessionId、stable key -> eid、current snapshot の eid -> `IElement` | `RefId`、`IElement.RuntimeId`、positional fallback | stable な `elementRef` と current element 解決 |
 | `RefId` | 状態は持たない | `s<sid>e<eid>` format / parse | ref 文字列、または parsed id |
 | `SnapshotBuildInput` | root window、modal siblings、options、window/process metadata、generatedAt | `SnapshotBuilder.Build()` に渡される | raw snapshot 構築入力 |
+| `MouseTarget` | `ByRef(string)` または `ByPoint(int,int)` の sealed record | `MouseTarget.Parse(string)` で `s<sid>e<eid>` または `x,y` を分岐 (マルチモニタ対応で負値可) | low-level mouse 操作の対象 |
+| `WaitForState` / `WaitForStateParser` | `attached` / `detached` / `visible` / `hidden` / `enabled` / `disabled` の enum と wire 文字列 ⇔ enum 変換 | CLI / MCP / Engine の wait-for | wait-for state 表現の単一ソース |
+| `WaitForElementQuery` | name / controlType / automationId / className の case-insensitive exact match 条件 | `WindowSession.WaitForQueryAsync` | 検索条件モードのクエリ |
+| `WaitForResult` | 待機完了時の `Ref` と `State` | `WindowSession.WaitFor*Async` | wait-for の戻り値 |
+| `WindowSearchQuery` | title / className / processName / executable の case-insensitive 正規表現 | `UiaEngine.WaitForWindowAsync` | wait-for-window の入力 |
+| `LaunchRequest` / `LaunchResult` | 実行ファイル/引数/cwd/env、起動結果の pid / processName / executablePath | `UiaEngine.LaunchAsync` | launch の入出力 |
+| `InspectResult` | UIA プロパティと対応 Pattern の状態 (`patterns` 辞書) | `WindowSession.InspectAsync` | inspect の戻り値 |
+| `ScreenshotResult` | `Path`, `Width`, `Height` | `WindowSession.ScreenshotAsync` | PNG 保存結果 |
+| `Exceptions/LaunchFailedException`, `WaitTimeoutException` | 業務例外 | `ToolErrors.TryMap` で `LAUNCH_FAILED` / `WAIT_TIMEOUT` にマップ | MCP tool error |
 
 Engine は UIA 操作の不安定さを吸収する層です。`UiaEngine` と `WindowSession` は同じ gate を共有し、window 列挙、attach、snapshot、click、fill、close、kill を daemon process 内で 1 本ずつ実行します。
 

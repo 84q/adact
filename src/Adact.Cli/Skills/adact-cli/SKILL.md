@@ -90,7 +90,7 @@ valid as the first positional argument of `attach`.
   ```
 
 - **exit code** — `0` success, `1` command failed, `2` user/argument error,
-  `3` connection failed.
+  `3` connection failed, `4` environment not supported (no interactive session).
 
 ## Common error recovery
 
@@ -106,6 +106,7 @@ valid as the first positional argument of `attach`.
 | `CONNECTION_FAILED`   | Could not reach the ADACT daemon.                     | Start the daemon with `adact serve`, or pass `--server <url>`.                                    |
 | `LOCAL_ONLY`          | Operation only valid against a localhost daemon.      | Run the command on the same host as the daemon.                                                   |
 | `WAIT_TIMEOUT`        | `wait-for` / `wait-for-window` timed out.             | Increase `--timeout`, verify the app reaches the expected state, or relax the search conditions.  |
+| `LAUNCH_FAILED`       | `launch` could not start the target executable.       | Verify the path / PATH name. For UWP, double-check the `shell:AppsFolder\<AUMID>` form. Confirm permissions and that the file exists. |
 
 `REF_NOT_FOUND` is the most frequent error during automation. It means the
 element the ref pointed to has gone (replaced, virtualized, dialog closed,

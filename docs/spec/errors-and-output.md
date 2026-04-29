@@ -40,7 +40,7 @@ hint <optional recovery hint>
 | --- | --- |
 | `attach` | `sessionId s1`, `windowRef w1`, `snapshot .adact/session-1-...txt` |
 | `snapshot` | `sessionId s1`, `snapshot .adact/session-1-...txt` |
-| `click` / `fill` | `sessionId s1`, `snapshot .adact/session-1-...txt` |
+| `click` / `fill` / その他 auto-snapshot 対象 (`dblclick`, `hover`, `type`, `press`, `check`, `uncheck`, `select`, `clear`, `mouse-wheel`, `resize`, `minimize`, `maximize`, `restore`) | `sessionId s1`, `snapshot .adact/session-1-...txt` |
 | `detach` | `sessionId s1`, `detached` |
 | `close` | `sessionId s1`, `closed`, `detached` |
 | `kill` | `sessionId s1`, `killed`, `detached` |
@@ -57,6 +57,49 @@ hint <optional recovery hint>
 | コマンド | 出力 |
 | --- | --- |
 | `daemon-stop` | `stopped` |
+
+### JSON 1 行
+
+`inspect`, `screenshot`, `wait-for`, `wait-for-window`, `launch` は `Console.WriteLine(JsonSerializer.Serialize(...))` で 1 行の JSON を stdout に出します。
+
+| コマンド | 形 |
+| --- | --- |
+| `inspect` | `{"ref":"s1e7","name":"...","controlType":"Button","automationId":"...","className":"...","helpText":"...","value":"...","boundingRect":{"x":0,"y":0,"width":0,"height":0},"isEnabled":true,"isOffscreen":false,"isKeyboardFocusable":true,"hasKeyboardFocus":false,"patterns":{...}}` |
+| `screenshot` | `{"path":".adact/screenshot-s1-....png","width":800,"height":600}` |
+| `wait-for` | `{"ref":"s1e7","state":"visible"}` (state は `attached` / `detached` / `visible` / `hidden` / `enabled` / `disabled` のいずれか) |
+| `wait-for-window` | `{"processId":1234,"processName":"notepad","windowTitle":"Untitled - Notepad","controlType":"Window","className":"Notepad","nativeWindowHandle":...}` |
+| `launch` | `{"pid":1234,"processName":"notepad.exe","executablePath":"C:\\Windows\\System32\\notepad.exe"}` |
+
+### inspect の JSON スキーマ
+
+`inspect` が返す JSON は `windows_inspect` のシリアライズと同形式で、以下のフィールドを 1 オブジェクトに含みます。
+
+| フィールド | 型 | 内容 |
+| --- | --- | --- |
+| `ref` | string | 入力と同じ element ref |
+| `name` | string? | UIA Name |
+| `controlType` | string | UIA ControlType |
+| `automationId` | string? | UIA AutomationId |
+| `className` | string? | Win32 ClassName |
+| `helpText` | string? | UIA HelpText |
+| `value` | string? | ValuePattern.Value |
+| `boundingRect` | object | `{ "x", "y", "width", "height" }` |
+| `isEnabled` | bool | UIA IsEnabled |
+| `isOffscreen` | bool | UIA IsOffscreen |
+| `isKeyboardFocusable` | bool | UIA IsKeyboardFocusable |
+| `hasKeyboardFocus` | bool | UIA HasKeyboardFocus |
+| `patterns` | object | 対応 Pattern と状態。`Toggle: { ToggleState }`、`SelectionItem: { IsSelected }`、`ExpandCollapse: { ExpandCollapseState }`、`RangeValue: { Min, Max, Value }`、`Window: { VisualState, InteractionState }` のうち取得できたもの |
+
+子要素サマリは含まれません (構造は `snapshot` で取得します)。
+
+### PNG 出力 (`screenshot`)
+
+| 項目 | 内容 |
+| --- | --- |
+| 形式 | PNG 固定。`--out` を指定する場合は拡張子 `.png` 必須 (異なれば CLI 段階で `INVALID_ARGUMENT` exit 2) |
+| 既定保存先 | `.adact/screenshot-<sid>-<UTC ts>.png` |
+| クリップ | `--ref` 指定時は要素の bounding rect、未指定はアタッチ済みウィンドウ全体 |
+| 出力 | stdout に `{ "path", "width", "height" }` JSON 1 行。`path` は CWD からの相対パス |
 
 ## MCP tool error
 
@@ -81,12 +124,14 @@ CLI client は `isError: true` を受けると stderr の `error` / `message` / 
 | `INVALID_WINDOW_REF` | MCP | `w<n>` が unknown / retired | 1 |
 | `WINDOW_NOT_FOUND` | MCP | `windowRef` 解決後の HWND attach が失敗 | 1 |
 | `REF_NOT_FOUND` | MCP | Element Ref が malformed、session 不一致、現 snapshot にない | 1 |
-| `ELEMENT_INTERACTION_FAILED` | MCP | click/fill が UIA 操作として失敗 | 1 |
+| `ELEMENT_INTERACTION_FAILED` | MCP | click/fill 等の UIA 操作が失敗 | 1 |
 | `SNAPSHOT_FAILED` | MCP | snapshot 構築失敗 | 1 |
 | `NO_ACTIVE_SESSION` | MCP | active session がない | 1 |
-| `NOT_FOUND` | MCP | lifecycle 対象 session がない | 1 |
+| `NOT_FOUND` | MCP | lifecycle / wait-for 等の対象 session がない | 1 |
 | `CLOSE_FAILED` | MCP | window close 失敗 | 1 |
 | `KILL_FAILED` | MCP | process kill 失敗 | 1 |
+| `LAUNCH_FAILED` | Engine→MCP→CLI | `launch` が失敗 (実行ファイル不在、Win32Exception、UWP COM 失敗等) | 1 |
+| `WAIT_TIMEOUT` | Engine→MCP→CLI | `wait-for` / `wait-for-window` が timeout | 1 |
 | `CONNECTION_FAILED` | CLI | HTTP daemon に接続できない | 3 |
 | `LOCAL_ONLY` | CLI / MCP | remote target で `daemon-stop`、または stdio mode で `daemon_stop` | 2 または 1 |
 | `NO_INTERACTIVE_SESSION` | daemon 起動 | `serve` / `local` が非対話 desktop で起動された | 4 |
@@ -101,6 +146,8 @@ CLI client は `isError: true` を受けると stderr の `error` / `message` / 
 | `REF_NOT_FOUND` | `adact snapshot` を再取得し、新しい `[ref=...]` を使う |
 | `INVALID_WINDOW_REF` | `adact list-apps` で `w<n>` を取り直して `adact attach <w<n>>` を使う |
 | `WINDOW_NOT_FOUND` | `windowRef` に対応する window が表示されているか確認し、必要なら `list-apps` を再実行する |
+| `WAIT_TIMEOUT` | `--timeout` を伸ばす、待機条件 (`--state` や検索条件) を見直す、対象 UI が想定通り遷移するか確認する |
+| `LAUNCH_FAILED` | 実行ファイルパスを確認する。PATH が通っているか、Win32 / .NET は権限と実行ビットが揃っているか、UWP は `shell:AppsFolder\<AUMID>` の AUMID が正しいかを確認する |
 
 ## 参照
 

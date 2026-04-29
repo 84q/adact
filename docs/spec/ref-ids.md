@@ -65,6 +65,9 @@ Element Ref は「直近 snapshot で確認できる要素」を操作するた�
 | `attach` | session と関連付け | 発行または既存 session を返す | snapshot 取得時に発行 |
 | `snapshot` | 変化なし | 維持 | 現 snapshot の要素集合を更新 |
 | `click` / `fill` | 変化なし | 維持 | 操作後 snapshot で更新。RuntimeId が同じなら再利用 |
+| `wait-for` | 変化なし | 維持 | 変化なし。auto-snapshot は発火しないため ref の再採番は起こらない |
+| `wait-for-window` | 変化なし | 変化なし (attach は伴わない) | 変化なし。返り値は対象 window の info JSON のみで、`windowRef` の発行や session への関連付けは行わない |
+| `launch` | 変化なし | 変化なし (attach は伴わない) | 起動成功直後は `pid` のみ返る。要素操作するには `wait-for-window` -> `list-apps` -> `attach` の手順を踏む |
 | `detach` | session 関連を解除 | 削除 | 失効 |
 | `close` / `kill` | session 関連を解除 | 削除 | 失効 |
 | `daemon-stop` | daemon 終了で全消滅 | daemon 終了で全消滅 | daemon 終了で全消滅 |

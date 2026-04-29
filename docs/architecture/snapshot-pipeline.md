@@ -124,7 +124,7 @@ MCP tool としての `windows_snapshot` は raw JSON を返すだけです。CL
 
 ## CLI `WriteSnapshotResultAsync`
 
-`CommandHelpers.WriteSnapshotResultAsync()` は、`snapshot` command、`attach` 成功後の自動 snapshot、`click` / `fill` 成功後の自動 snapshot から共通利用されます。
+`CommandHelpers.WriteSnapshotResultAsync()` は、`snapshot` command、`attach` 成功後の自動 snapshot、および Phase 8 で追加された auto-snapshot 対象コマンド (`click`, `fill`, `dblclick`, `hover`, `type`, `press`, `check`, `uncheck`, `select`, `clear`, `mouse-wheel`, `resize`, `minimize`, `maximize`, `restore`) 成功後の自動 snapshot から共通利用されます。
 
 1. filter 未指定なら `operable` にし、`SnapshotTreeFilter.IsKnownFilter()` で `operable` / `raw` のみ許可します。
 2. `sessionId` があれば MCP `windows_snapshot` の arguments に入れ、なければ arguments なしで active session を使います。
@@ -150,9 +150,17 @@ MCP tool としての `windows_snapshot` は raw JSON を返すだけです。CL
 
 `operable` filter は、button/edit/menu item など操作対象として意味のある ControlType を残し、無名の `Pane` / `Group` / `Custom` などの構造要素は flatten します。`IsOffscreen=true` の要素は子孫ごと除外します。root window は常に保持します。
 
-## `click` / `fill` 後の自動 snapshot
+## auto-snapshot 対象コマンドと操作後 snapshot
 
-`click` / `fill` は、操作が UI を変える可能性が高いため、CLI 側で成功後に snapshot を自動取得します。
+`click` / `fill` を含む状態変化系コマンドは、操作が UI を変える可能性が高いため、CLI 側で成功後に snapshot を自動取得します。
+
+| 分類 | コマンド | auto-snapshot |
+| --- | --- | --- |
+| 状態変化系 | `click`, `fill`, `dblclick`, `hover`, `type`, `press`, `check`, `uncheck`, `select`, `clear`, `mouse-wheel`, `resize`, `minimize`, `maximize`, `restore` | あり (`--no-snapshot` で抑止可) |
+| 低レベル補助 | `mouse-move`, `mouse-down`, `mouse-up`, `key-down`, `key-up`, `focus`, `scroll-into-view` | なし |
+| 取得・同期系 | `inspect`, `screenshot`, `wait-for`, `wait-for-window`, `launch` | なし |
+
+`click` / `fill` の流れを例にすると次のようになります。
 
 1. CLI は操作前に element ref 形式を検証します。
 2. MCP `windows_click` / `windows_fill` は ref prefix の `s<n>` から session を見つけ、`RefRegistry.Resolve()` で current snapshot の element に解決します。

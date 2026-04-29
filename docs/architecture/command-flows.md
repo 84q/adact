@@ -174,6 +174,75 @@ sequenceDiagram
 8. MCP tool が成功したら、CLI は element ref から `sessionId` を抽出します。
 9. `--no-snapshot` がなければ CLI が `windows_snapshot` を追加で呼び、操作後の snapshot path を出力します。`--no-snapshot` の場合は最低限 `sessionId` を出力します。
 
+## `adact wait-for`
+
+| 観点 | 内容 |
+| --- | --- |
+| MCP tool | `windows_wait_for` |
+| 入力モード | ref モード (`--ref`) と検索条件モード (`--name` / `--control-type` / `--automation-id` / `--class-name`) の排他 |
+| Engine operation | `WindowSession.WaitForRefAsync` / `WindowSession.WaitForQueryAsync` |
+| 失敗時 | `WAIT_TIMEOUT` (タイムアウト)、`REF_NOT_FOUND` (ref 不在)、`INVALID_ARGUMENT` (引数排他違反等) |
+
+1. `WaitForCommand` が `--ref` と検索条件の排他、`--state` の値、`--timeout > 0` を CLI 段階で検証します。
+2. CLI は MCP `windows_wait_for` に必要な引数だけを渡します。検索条件モードでは `--sid` も透過します。
+3. `WindowsTools.WaitForAsync` が session を解決し (ref モードは ref の prefix から、検索条件モードは `sessionId` または active session)、ポーリングで state を待ちます。
+4. 完了すると `{ ref, state }` を返し、CLI は JSON 1 行を stdout に出します。
+5. `wait-for` は取得・同期系として扱われ、auto-snapshot は発火しません (`--no-snapshot` フラグも持ちません)。
+
+## `adact wait-for-window`
+
+| 観点 | 内容 |
+| --- | --- |
+| MCP tool | `windows_wait_for_window` |
+| 入力 | `--title` / `--class-name` / `--process-name` / `--exe` (case-insensitive 正規表現) のいずれか必須 |
+| Engine operation | `UiaEngine.WaitForWindowAsync` |
+| attach 動作 | 行わない。返り値は window info JSON のみで、`windowRef` / `sessionId` は発行されない |
+
+1. `WaitForWindowCommand` が条件のうち最低 1 つが指定されていることを CLI 段階で検証します。
+2. CLI は MCP `windows_wait_for_window` を呼びます。
+3. `UiaEngine.WaitForWindowAsync` が `WindowSearchQuery` をポーリング検出し、最初にマッチした `WindowInfo` を返します。
+4. CLI は `{ processId, processName, windowTitle, controlType, className, nativeWindowHandle }` JSON 1 行を stdout に出します。後続で attach するには `list-apps` -> `attach` の手順を踏みます。
+
+## `adact launch`
+
+| 観点 | 内容 |
+| --- | --- |
+| MCP tool | `windows_launch` |
+| 入力 | `<executable>` (Win32 / .NET フルパス・PATH 名、または `shell:AppsFolder\<AUMID>` の UWP)、`--cwd`、`--env`、`-- <args>` |
+| Engine operation | `UiaEngine.LaunchAsync` |
+| attach 動作 | 行わない。CLI / MCP どちらも `pid` のみ返す |
+
+1. `LaunchCommand` が `--env KEY=VALUE` をパースし、UWP モードでは `--cwd` / `--env` が併用されていないかを `WindowsTools.LaunchAsync` 側でも検証します (UWP は `INVALID_ARGUMENT`)。
+2. `UiaEngine.LaunchAsync` は UWP プレフィックスなら `IApplicationActivationManager.ActivateApplication` を、それ以外は `Process.Start` (`UseShellExecute=false`) を呼びます。
+3. 失敗 (実行ファイル不在、`Win32Exception`、COM 失敗) は `LaunchFailedException` として `LAUNCH_FAILED` にマップされます。
+4. 成功時は `{ pid, processName, executablePath }` を JSON 1 行で stdout に出します。後続操作は `wait-for-window` -> `list-apps` -> `attach` で進めます。
+
+## `adact inspect`
+
+| 観点 | 内容 |
+| --- | --- |
+| MCP tool | `windows_inspect` |
+| Engine operation | `WindowSession.InspectAsync` |
+| 出力 | UIA プロパティ + 対応 Pattern を 1 オブジェクトの JSON 1 行で出す |
+| auto-snapshot | 発火しない |
+
+1. `InspectCommand` が ref 形式を CLI 段階で検証します。
+2. `WindowsTools.InspectAsync` が ref から session を解決し、現 snapshot 内の要素から `InspectResult` を作ります。
+3. CLI は `Console.WriteLine(JsonSerializer.Serialize(json))` で 1 行 JSON を stdout に出します。
+
+## `adact screenshot`
+
+| 観点 | 内容 |
+| --- | --- |
+| MCP tool | `windows_screenshot` |
+| Engine operation | `WindowSession.ScreenshotAsync` |
+| 出力 | `{ path, width, height }` JSON 1 行 |
+| auto-snapshot | 発火しない |
+
+1. `ScreenshotCommand` が `--out` の拡張子 `.png` を CLI 段階で検証します。
+2. `--ref` 指定時は要素の bounding rect でクリップし、未指定はアタッチ済みウィンドウ全体を保存します。
+3. 既定保存先は `.adact/screenshot-<sid>-<UTC ts>.png`。CWD からの相対パスを `path` に入れて返します。
+
 ## lifecycle commands
 
 ```mermaid
