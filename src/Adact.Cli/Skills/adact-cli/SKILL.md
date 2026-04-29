@@ -57,6 +57,7 @@ the reference for the command you are about to run.
 | `adact minimize`       | Minimize the attached window.                         | [`references/minimize.md`](references/minimize.md)   |
 | `adact maximize`       | Maximize the attached window.                         | [`references/maximize.md`](references/maximize.md)   |
 | `adact restore`        | Restore the attached window to normal state.          | [`references/restore.md`](references/restore.md)     |
+| `adact launch`         | Start a Windows process (Win32 / .NET / UWP).         | [`references/launch.md`](references/launch.md)       |
 
 ## Element refs
 

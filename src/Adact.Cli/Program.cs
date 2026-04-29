@@ -61,6 +61,7 @@ internal static class Program
         root.Subcommands.Add(CloseAllCommand.Build());
         root.Subcommands.Add(DaemonStopCommand.Build());
         root.Subcommands.Add(InstallCommand.Build());
+        root.Subcommands.Add(LaunchCommand.Build());
         return root;
     }
 }

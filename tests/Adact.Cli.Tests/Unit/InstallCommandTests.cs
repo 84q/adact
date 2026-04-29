@@ -24,6 +24,7 @@ public class InstallCommandTests
     "press", "key-down", "key-up", "type",
     "check", "uncheck", "select", "focus", "clear", "scroll-into-view",
     "resize", "minimize", "maximize", "restore",
+    "launch",
       };
 
     /// <summary>

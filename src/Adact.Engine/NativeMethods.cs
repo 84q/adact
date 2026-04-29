@@ -90,4 +90,72 @@ internal static class NativeMethods
     /// <param name="lParam">EnumWindows に渡した lParam。</param>
     /// <returns>列挙を継続する場合 true、中断する場合 false。</returns>
     internal delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    // ------------------------------------------------------------------
+    // UWP / Microsoft Store アプリ起動 (IApplicationActivationManager)
+    // 設計 024 §2 / §10。`shell:AppsFolder\<AUMID>` 形式の起動に使用する。
+    // ------------------------------------------------------------------
+
+    /// <summary>ApplicationActivationManager の CLSID。</summary>
+    internal static readonly Guid CLSID_ApplicationActivationManager =
+        new("45BA127D-10A8-46EA-8AB7-56EA9078943C");
+
+    /// <summary><see cref="IApplicationActivationManager"/> の IID (ComImport の Guid と一致)。</summary>
+    internal static readonly Guid IID_IApplicationActivationManager =
+        new("2E941141-7F97-4756-BA1D-9DECDE894A3D");
+
+    /// <summary><see cref="IApplicationActivationManager.ActivateApplication"/> に渡すフラグ。NOERRORUI のみ使用。</summary>
+    internal const int AO_NOERRORUI = 0x00000002;
+
+    /// <summary>
+    /// IApplicationActivationManager の COM インタフェース宣言。AUMID 経由で UWP / Packaged アプリを起動する。
+    /// </summary>
+    [ComImport]
+    [Guid("2E941141-7F97-4756-BA1D-9DECDE894A3D")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    internal interface IApplicationActivationManager
+    {
+        /// <summary>AUMID と任意の引数からアプリを起動し、起動した PID を返す。</summary>
+        /// <param name="appUserModelId">対象アプリの AUMID。</param>
+        /// <param name="arguments">アプリに渡すコマンドライン引数 (空文字列可)。</param>
+        /// <param name="options"><see cref="AO_NOERRORUI"/> 等の起動オプション。</param>
+        /// <param name="processId">起動したプロセス ID。</param>
+        /// <returns>HRESULT。失敗時は <see cref="System.Runtime.InteropServices.COMException"/> として throw される。</returns>
+        [PreserveSig]
+        int ActivateApplication(
+            [MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
+            [MarshalAs(UnmanagedType.LPWStr)] string? arguments,
+            int options,
+            out uint processId);
+
+        /// <summary>未使用 (vtable スロット保持用)。</summary>
+        /// <param name="appUserModelId">AUMID。</param>
+        /// <param name="itemArray">対象アイテム。</param>
+        /// <param name="verb">verb。</param>
+        /// <param name="options">フラグ。</param>
+        /// <param name="processId">PID。</param>
+        /// <returns>HRESULT。</returns>
+        [PreserveSig]
+        int ActivateForFile(
+            [MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
+            IntPtr itemArray,
+            [MarshalAs(UnmanagedType.LPWStr)] string? verb,
+            int options,
+            out uint processId);
+
+        /// <summary>未使用 (vtable スロット保持用)。</summary>
+        /// <param name="appUserModelId">AUMID。</param>
+        /// <param name="itemArray">対象アイテム。</param>
+        /// <param name="verb">verb。</param>
+        /// <param name="options">フラグ。</param>
+        /// <param name="processId">PID。</param>
+        /// <returns>HRESULT。</returns>
+        [PreserveSig]
+        int ActivateForProtocol(
+            [MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
+            IntPtr itemArray,
+            [MarshalAs(UnmanagedType.LPWStr)] string? verb,
+            int options,
+            out uint processId);
+    }
 }

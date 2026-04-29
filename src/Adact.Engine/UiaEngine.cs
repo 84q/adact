@@ -16,7 +16,7 @@ namespace Adact.Engine;
 /// ADACT Engine のエントリポイント。ウィンドウ列挙とアタッチを担当する。
 /// 内部に <see cref="UIA3Automation"/> を 1 個だけ保持し、Session 間で共有する。
 /// </summary>
-public sealed class UiaEngine : IDisposable
+public sealed partial class UiaEngine : IDisposable
 {
     /// <summary>本 Engine が保持する UIA オートメーション。Session 間で共有する。</summary>
     private readonly AutomationBase _automation;

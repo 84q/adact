@@ -36,6 +36,8 @@ internal static class ToolErrors
     public const string CloseFailed = "CLOSE_FAILED";
     /// <summary>Process.Kill に失敗した。</summary>
     public const string KillFailed = "KILL_FAILED";
+    /// <summary>プロセス起動 (Process.Start / UWP ActivateApplication) に失敗した。</summary>
+    public const string LaunchFailed = "LAUNCH_FAILED";
     /// <summary>現モード (stdio 等) でサポートされないツールを呼んだ。</summary>
     public const string LocalOnly = "LOCAL_ONLY";
     /// <summary>業務例外として提示したい不規則例外を包んだケース (例: daemon 停止失敗)。</summary>
@@ -55,6 +57,7 @@ internal static class ToolErrors
             SnapshotException s => Error(SnapshotFailed, s.Message),
             CloseFailedException c => Error(CloseFailed, c.Message),
             KillFailedException k => Error(KillFailed, k.Message),
+            LaunchFailedException l => Error(LaunchFailed, l.Message),
             _ => null,
         };
     }

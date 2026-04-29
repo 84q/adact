@@ -26,6 +26,7 @@ public class InstallCommandIntegrationTests
     "references/hover.md",
     "references/key-down.md",
     "references/key-up.md",
+    "references/launch.md",
     "references/list-apps.md",
     "references/maximize.md",
     "references/minimize.md",
