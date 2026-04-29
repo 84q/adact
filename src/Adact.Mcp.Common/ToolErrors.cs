@@ -14,21 +14,36 @@ namespace Adact.Mcp.Common;
 /// </summary>
 internal static class ToolErrors
 {
+    /// <summary>引数の不正 (必須キー不足・例外的な型を含む)。</summary>
     public const string InvalidArgument = "INVALID_ARGUMENT";
+    /// <summary>未知 / 引退済みの <c>w&lt;n&gt;</c> が指定された場合。</summary>
     public const string InvalidWindowRef = "INVALID_WINDOW_REF";
+    /// <summary>検索条件に一致する window が見つからなかった。</summary>
     public const string WindowNotFound = "WINDOW_NOT_FOUND";
+    /// <summary>検索条件に複数 window が一致してしまった。</summary>
     public const string AmbiguousAttach = "AMBIGUOUS_ATTACH";
+    /// <summary>element ref が不正 / 未知 / 現 snapshot に存在しない。</summary>
     public const string RefNotFound = "REF_NOT_FOUND";
+    /// <summary>UIA を介した click / fill 他の要素操作が失敗した。</summary>
     public const string ElementInteractionFailed = "ELEMENT_INTERACTION_FAILED";
+    /// <summary>UIA tree 走査中に例外が発生して snapshot 取得に失敗した。</summary>
     public const string SnapshotFailed = "SNAPSHOT_FAILED";
+    /// <summary>アクティブ session が無い状態で sessionId を省略した呼び出し。</summary>
     public const string NoActiveSession = "NO_ACTIVE_SESSION";
+    /// <summary>対象の session が見つからなかった。</summary>
     public const string NotFound = "NOT_FOUND";
+    /// <summary>WindowPattern.Close / WM_CLOSE で閉じられなかった。</summary>
     public const string CloseFailed = "CLOSE_FAILED";
+    /// <summary>Process.Kill に失敗した。</summary>
     public const string KillFailed = "KILL_FAILED";
+    /// <summary>現モード (stdio 等) でサポートされないツールを呼んだ。</summary>
     public const string LocalOnly = "LOCAL_ONLY";
+    /// <summary>業務例外として提示したい不規則例外を包んだケース (例: daemon 停止失敗)。</summary>
     public const string InternalError = "INTERNAL_ERROR";
 
     /// <summary>業務例外なら <see cref="CallToolResult"/> を返し、それ以外は null。</summary>
+    /// <param name="ex">マッピング対象の例外。</param>
+    /// <returns>業務例外に対応する error result、またはマッピング不可のとき <c>null</c>。</returns>
     public static CallToolResult? TryMap(Exception ex)
     {
         return ex switch
@@ -46,6 +61,14 @@ internal static class ToolErrors
         };
     }
 
+    /// <summary>
+    /// エラーコード / メッセージ / 任意のデータを <c>isError:true</c> の <see cref="CallToolResult"/> に整形する。
+    /// text content は <c>"&lt;code&gt;: &lt;message&gt;"</c> 、structured content は <c>{ code, message, details? }</c>。
+    /// </summary>
+    /// <param name="code">上記定数のいずれかのエラーコード。</param>
+    /// <param name="message">人間可読なメッセージ。</param>
+    /// <param name="details">エラーと一緒に返したい補助情報 (例: <c>{ candidateCount: 2 }</c>)。</param>
+    /// <returns><c>IsError = true</c> の <see cref="CallToolResult"/>。</returns>
     public static CallToolResult Error(string code, string message, JsonObject? details = null)
     {
         var text = $"{code}: {message}";

@@ -9,6 +9,9 @@ namespace Adact.Mcp.Common;
 /// top-level window を一意化するキー。WindowRefStore のエントリ識別子として使用する。
 /// 詳細は discussion/009_Phase5設計.md §7.3 参照。
 /// </summary>
+/// <param name="Hwnd">Win32 HWND。</param>
+/// <param name="ProcessId">window を所有するプロセスの PID。</param>
+/// <param name="ProcessStartTime">プロセスの起動時刻。取得できない場合は <see cref="DateTime.MinValue"/>。</param>
 public readonly record struct WindowKey(nint Hwnd, int ProcessId, DateTime ProcessStartTime)
 {
     /// <summary>
@@ -16,6 +19,8 @@ public readonly record struct WindowKey(nint Hwnd, int ProcessId, DateTime Proce
     /// プロセスへのアクセス権がない等で StartTime を取得できない場合は
     /// <see cref="DateTime.MinValue"/> でフォールバックする。
     /// </summary>
+    /// <param name="info">もとになる <see cref="WindowInfo"/>。</param>
+    /// <returns>同一性判定に使用する <see cref="WindowKey"/>。</returns>
     public static WindowKey From(WindowInfo info)
     {
         DateTime startTime;

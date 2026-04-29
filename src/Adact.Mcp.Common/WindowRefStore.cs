@@ -11,16 +11,23 @@ namespace Adact.Mcp.Common;
 /// </summary>
 public sealed class WindowRefStore
 {
+    /// <summary>すべての読み書きを覆うロック。<c>_entries</c> と <c>_nextRef</c> はこのロック下でのみ触る。</summary>
     private readonly object _lock = new();
+    /// <summary>WindowKey → エントリ。引退済みエントリも保持し、同一 HWND の復活時に番号を保つ。</summary>
     private readonly Dictionary<WindowKey, WindowRefEntry> _entries = new();
+    /// <summary>最も最近採番した <c>w&lt;n&gt;</c> の <c>n</c>。<see cref="Interlocked.Increment(ref int)"/> で採番される。</summary>
     private int _nextRef;
 
     /// <summary>
     /// 同じ <see cref="WindowKey"/> に対しては既存 windowRef を返し、
     /// 未知の WindowKey には新たな番号を採番してエントリを登録する。
-    /// 既存エントリが引退済みの場合も「同じ key」とみなさず再採番せず、
+    /// 既存エントリが引退済みの場合も同じ key とみなして再採番せず、
     /// 同じ番号で復活させる (HWND 一致なら同一 window と扱う)。
     /// </summary>
+    /// <param name="key">window 同一性キー。</param>
+    /// <param name="info">最新の <see cref="WindowInfo"/> (title 等の更新に使用)。</param>
+    /// <returns>該当 window に対応する <see cref="WindowRefEntry"/>。</returns>
+    /// <remarks>スレッドセーフ。内部で <see cref="_lock"/> を取得している。</remarks>
     public WindowRefEntry SyncOrAssign(WindowKey key, WindowInfo info)
     {
         lock (_lock)
@@ -50,9 +57,11 @@ public sealed class WindowRefStore
     }
 
     /// <summary>
-    /// 列挙された <see cref="WindowKey"/> のうち、ストアに存在するエントリのみ生存とみなし、
-    /// それ以外を引退マークする。引退時 <see cref="WindowRefEntry.SessionId"/> はクリアする。
+    /// ストアに保持している非引退エントリのうち、<paramref name="presentKeys"/> に含まれないものを
+    /// 引退マークし、<see cref="WindowRefEntry.SessionId"/> をクリアする。
     /// </summary>
+    /// <param name="presentKeys">今回の list で見えている WindowKey 集合。</param>
+    /// <exception cref="ArgumentNullException"><paramref name="presentKeys"/> が <c>null</c> のとき。</exception>
     public void RetireMissing(IEnumerable<WindowKey> presentKeys)
     {
         ArgumentNullException.ThrowIfNull(presentKeys);
@@ -78,7 +87,10 @@ public sealed class WindowRefStore
         }
     }
 
-    /// <summary>引退済みエントリは false を返す。</summary>
+    /// <summary>指定 <c>w&lt;n&gt;</c> に対応する生存エントリを探す。引退済みエントリは false を返す。</summary>
+    /// <param name="windowRef">探す windowRef。</param>
+    /// <param name="entry">見つかったエントリ。見つからない場合は <c>default!</c>。</param>
+    /// <returns>生存エントリが見つかったかどうか。</returns>
     public bool TryResolve(string windowRef, out WindowRefEntry entry)
     {
         lock (_lock)
@@ -98,6 +110,8 @@ public sealed class WindowRefStore
     }
 
     /// <summary>attach 成功時に sessionId を関連付ける。</summary>
+    /// <param name="windowRef">関連付け対象の <c>w&lt;n&gt;</c>。</param>
+    /// <param name="sessionId"><see cref="SessionStore"/> から見た sessionId (例: <c>s1</c>)。</param>
     public void AssociateSession(string windowRef, string sessionId)
     {
         lock (_lock)
@@ -113,6 +127,7 @@ public sealed class WindowRefStore
     }
 
     /// <summary>detach 時に sessionId をクリアする (Phase 5 #7 で利用)。</summary>
+    /// <param name="windowRef">関連 sessionId を取り外す <c>w&lt;n&gt;</c>。</param>
     public void ClearSession(string windowRef)
     {
         lock (_lock)
@@ -130,6 +145,9 @@ public sealed class WindowRefStore
     /// 指定 <see cref="WindowKey"/> に一致するエントリを返す。引退済みも含めて検索する
     /// (呼び出し側が <see cref="WindowRefEntry.Retired"/> を見て判断する)。
     /// </summary>
+    /// <param name="key">探すキー。</param>
+    /// <param name="entry">見つかったエントリ。存在しなければ <c>default!</c>。</param>
+    /// <returns>エントリが見つかったかどうか。</returns>
     public bool TryFindByKey(WindowKey key, out WindowRefEntry entry)
     {
         lock (_lock)
@@ -145,6 +163,7 @@ public sealed class WindowRefStore
     }
 
     /// <summary>引退済を除く全エントリのスナップショット。</summary>
+    /// <returns>生存エントリのリスト (コピー)。</returns>
     public IReadOnlyList<WindowRefEntry> ListActive()
     {
         lock (_lock)
@@ -156,6 +175,10 @@ public sealed class WindowRefStore
     /// <summary>
     /// 指定 sessionId に紐付く生存エントリを返す。引退済みは対象外。線形スキャン (エントリ数は通常少数)。
     /// </summary>
+    /// <param name="sessionId">探す sessionId。</param>
+    /// <param name="entry">見つかったエントリ。見つからなければ <c>default!</c>。</param>
+    /// <returns>エントリが見つかったかどうか。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="sessionId"/> が <c>null</c> のとき。</exception>
     public bool TryFindBySessionId(string sessionId, out WindowRefEntry entry)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
@@ -179,6 +202,11 @@ public sealed class WindowRefStore
 /// <summary>
 /// WindowRefStore に保持される単一エントリ。
 /// </summary>
+/// <param name="WindowRef">この window に割り当てられた安定 ref (例: <c>w1</c>)。</param>
+/// <param name="Key">同一性判定に使用する <see cref="WindowKey"/>。</param>
+/// <param name="Info">最新の <see cref="WindowInfo"/> (title 等は list のたびに更新される)。</param>
+/// <param name="SessionId">attach 済みの sessionId。未 attach なら <c>null</c>。</param>
+/// <param name="Retired">このエントリが list から消えたため引退済みかどうか。</param>
 public sealed record WindowRefEntry(
     string WindowRef,
     WindowKey Key,

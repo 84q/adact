@@ -16,20 +16,32 @@ using ModelContextProtocol.Server;
 namespace Adact.Mcp.Common;
 
 /// <summary>
-/// Phase 3 で公開する MCP ツール 5 種。
-/// 詳細は 002_アーキテクチャ設計.md §4.1 / §6 / §8 参照。
+/// Phase 3 以降で公開する MCP ツール群 (windows_* と daemon_stop)。
+/// 詳細は docs/spec/mcp-tools.md および discussion/002_アーキテクチャ設計.md §4.1 / §6 / §8 を参照。
 /// </summary>
 [McpServerToolType]
 public sealed class WindowsTools
 {
+    /// <summary><see cref="AttachAsync"/> で受け取る <c>windowRef</c> の文法 (<c>w</c> + 1 桁以上の数字) を検証する正規表現。</summary>
     private static readonly Regex WindowRefPattern = new("^w\\d+$", RegexOptions.Compiled);
 
+    /// <summary>WindowSession を sessionId で管理し、ツール呼び出しを直列化するストア。</summary>
     private readonly SessionStore _store;
+    /// <summary>top-level window に対する <c>w&lt;n&gt;</c> ref の発行・同期を担うストア。</summary>
     private readonly WindowRefStore _refStore;
+    /// <summary>daemon プロセス停止 (<c>daemon_stop</c>) を抽象化したアダプタ。stdio モードでは <see cref="IDaemonControl.IsSupported"/> が <c>false</c>。</summary>
     private readonly IDaemonControl _daemonControl;
+    /// <summary>業務例外以外の予期せぬ失敗を記録するロガー。</summary>
     private readonly ILogger<WindowsTools> _logger;
 
 
+    /// <summary>
+    /// MCP ツール群を構築する。stdio / HTTP どちらのホストからも同じ実装が共有される。
+    /// </summary>
+    /// <param name="store">UIA 直列化 lock と sessionId 辞書を保持する <see cref="SessionStore"/>。</param>
+    /// <param name="refStore"><c>w&lt;n&gt;</c> ref を発行・同期する <see cref="WindowRefStore"/>。</param>
+    /// <param name="daemonControl"><c>daemon_stop</c> を実行するためのモード固有の実装。</param>
+    /// <param name="logger">未マップ例外用ロガー。<c>null</c> の場合は <see cref="NullLogger{T}"/> を使用する。</param>
     public WindowsTools(SessionStore store, WindowRefStore refStore, IDaemonControl daemonControl, ILogger<WindowsTools>? logger = null)
     {
         _store = store;
@@ -38,6 +50,19 @@ public sealed class WindowsTools
         _logger = logger ?? NullLogger<WindowsTools>.Instance;
     }
 
+    /// <summary>
+    /// 現在のデスクトップに存在する top-level window を列挙し、各 window に <c>w&lt;n&gt;</c> ref を割り当てて返す。
+    /// </summary>
+    /// <param name="ct">キャンセル トークン。</param>
+    /// <returns>
+    /// <c>windows</c> 配列を含む <see cref="CallToolResult"/>。各要素は <c>windowRef</c> / <c>sessionId</c> (attach 済みのみ) /
+    /// <c>processName</c> / <c>processId</c> / <c>className</c> / <c>windowTitle</c> を持つ。
+    /// </returns>
+    /// <remarks>
+    /// 同一 <see cref="WindowKey"/> には常に同じ <c>w&lt;n&gt;</c> を再利用する。前回 list に含まれていたが今回消えた window は
+    /// <see cref="WindowRefStore.RetireMissing"/> により retired となり、以降 <see cref="AttachAsync"/> で解決できなくなる。
+    /// すべてのツール呼び出しは <see cref="SessionStore"/> の semaphore で直列化される。
+    /// </remarks>
     [McpServerTool(Name = "windows_list_apps")]
     [Description("List top-level windows currently running on this Windows desktop. Use this to discover candidates for windows_attach.")]
     public async Task<CallToolResult> ListAppsAsync(CancellationToken ct)
@@ -83,6 +108,24 @@ public sealed class WindowsTools
         }
     }
 
+    /// <summary>
+    /// 指定された <c>windowRef</c> もしくは属性条件 (processName / windowTitle / className / processId) に一致する
+    /// 単一 window へ attach し、sessionId / windowRef / windowInfo を返す。
+    /// </summary>
+    /// <param name="windowRef"><see cref="ListAppsAsync"/> で得た <c>w&lt;n&gt;</c>。指定された場合は属性引数は無視する。</param>
+    /// <param name="processName">プロセス名 (大小無視・完全一致)。</param>
+    /// <param name="windowTitle">ウィンドウタイトル (大小無視・完全一致)。</param>
+    /// <param name="className">Win32 ClassName (大小無視・完全一致)。</param>
+    /// <param name="processId">Process ID (完全一致)。</param>
+    /// <param name="ct">キャンセル トークン。</param>
+    /// <returns>
+    /// <c>sessionId</c> / <c>windowRef</c> / <c>windowInfo</c> を含む <see cref="CallToolResult"/>。属性条件で複数 window が一致した場合は
+    /// <c>AMBIGUOUS_ATTACH</c>、0 件なら <c>WINDOW_NOT_FOUND</c>、retired な <c>w&lt;n&gt;</c> なら <c>INVALID_WINDOW_REF</c> を返す。
+    /// </returns>
+    /// <remarks>
+    /// 同じ window に対する再 attach は既存 session を返し、二重に sessionId を発行しない。
+    /// 引数がすべて未指定の場合は <c>INVALID_ARGUMENT</c>。
+    /// </remarks>
     [McpServerTool(Name = "windows_attach")]
     [Description("Attach to a single top-level window. Specify windowRef (from windows_list_apps) OR any combination of processName / windowTitle / className / processId for strict-equal matching; multiple matches yield AMBIGUOUS_ATTACH. Returns sessionId (e.g. 's1'), windowRef and windowInfo.")]
     public async Task<CallToolResult> AttachAsync(
@@ -180,6 +223,16 @@ public sealed class WindowsTools
         }
     }
 
+    /// <summary>
+    /// 指定 session (省略時はアクティブ session) で UIA tree を走査し、各要素に <c>s&lt;sid&gt;e&lt;eid&gt;</c> ref を付与した
+    /// snapshot JSON を返す。
+    /// </summary>
+    /// <param name="sessionId">対象 session。省略するとアクティブ session を使う。アクティブが無ければ <c>NO_ACTIVE_SESSION</c>。</param>
+    /// <param name="ct">キャンセル トークン。</param>
+    /// <returns>
+    /// snapshot JSON を text content と structured content の両方で含む <see cref="CallToolResult"/>。
+    /// 不明な <paramref name="sessionId"/> は <c>INVALID_ARGUMENT</c> を返す。
+    /// </returns>
     [McpServerTool(Name = "windows_snapshot")]
     [Description("Take a UIA snapshot of the attached window. Returns the raw UIA tree as JSON with all elements and properties; filtering and field selection are performed client-side. When sessionId is omitted, the active session (last attached) is used.")]
     public async Task<CallToolResult> SnapshotAsync(
@@ -223,6 +276,15 @@ public sealed class WindowsTools
         }
     }
 
+    /// <summary>
+    /// 直近 snapshot で得た element ref が指す UIA 要素を click する。session は ref の prefix (<c>s&lt;sid&gt;</c>) から自動解決する。
+    /// </summary>
+    /// <param name="ref">snapshot 由来の element ref (例: <c>s1e7</c>)。</param>
+    /// <param name="ct">キャンセル トークン。</param>
+    /// <returns>
+    /// 成功時は空の content を持つ <see cref="CallToolResult"/>。ref が空・不正・未知 session prefix の場合は
+    /// <c>INVALID_ARGUMENT</c> または <c>REF_NOT_FOUND</c>、要素操作失敗時は <c>ELEMENT_INTERACTION_FAILED</c>。
+    /// </returns>
     [McpServerTool(Name = "windows_click")]
     [Description("Click an element identified by ref. The session is determined automatically from the ref id prefix.")]
     public async Task<CallToolResult> ClickAsync(
@@ -257,6 +319,17 @@ public sealed class WindowsTools
         }
     }
 
+    /// <summary>
+    /// element ref が指す入力要素のテキストを <paramref name="value"/> で完全に上書きする。
+    /// session は ref の prefix から自動解決する。
+    /// </summary>
+    /// <param name="ref">snapshot 由来の element ref。</param>
+    /// <param name="value">設定するテキスト (空文字列は許可、<c>null</c> は <c>INVALID_ARGUMENT</c>)。</param>
+    /// <param name="ct">キャンセル トークン。</param>
+    /// <returns>
+    /// 成功時は空の content を持つ <see cref="CallToolResult"/>。
+    /// ref が空・不正なら <c>INVALID_ARGUMENT</c> / <c>REF_NOT_FOUND</c>、操作失敗時は <c>ELEMENT_INTERACTION_FAILED</c>。
+    /// </returns>
     [McpServerTool(Name = "windows_fill")]
     [Description("Fill (overwrite) an input element with the given value. The session is determined automatically from the ref id prefix.")]
     public async Task<CallToolResult> FillAsync(
@@ -295,6 +368,15 @@ public sealed class WindowsTools
         }
     }
 
+    /// <summary>
+    /// 指定 session を <see cref="SessionStore"/> から取り外す。window やプロセスには影響を与えず、sessionId のみ無効化する。
+    /// </summary>
+    /// <param name="sessionId">対象 session。省略するとアクティブ session を detach する。</param>
+    /// <param name="ct">キャンセル トークン。</param>
+    /// <returns>
+    /// <c>{ sessionId, detached: true }</c> を含む <see cref="CallToolResult"/>。アクティブが無い場合は <c>NO_ACTIVE_SESSION</c>、
+    /// session が見つからない場合は <c>NOT_FOUND</c>。
+    /// </returns>
     [McpServerTool(Name = "windows_detach")]
     [Description("Release the session record without affecting the window or process. The session ID becomes invalid.")]
     public async Task<CallToolResult> DetachAsync(
@@ -318,6 +400,15 @@ public sealed class WindowsTools
         });
     }
 
+    /// <summary>
+    /// UIA <c>WindowPattern.Close()</c> もしくは <c>WM_CLOSE</c> 経由で window を閉じる。成功時は同 session を自動的に detach する。
+    /// </summary>
+    /// <param name="sessionId">対象 session。省略するとアクティブ session を使う。</param>
+    /// <param name="ct">キャンセル トークン。</param>
+    /// <returns>
+    /// <c>{ sessionId, closed: true, detached: true }</c> を含む <see cref="CallToolResult"/>。
+    /// アクティブが無い場合は <c>NO_ACTIVE_SESSION</c>、session 不明は <c>NOT_FOUND</c>、close 失敗は <c>CLOSE_FAILED</c>。
+    /// </returns>
     [McpServerTool(Name = "windows_close")]
     [Description("Close the attached window via UIA WindowPattern.Close() / WM_CLOSE. On success, the session is automatically detached.")]
     public async Task<CallToolResult> CloseAsync(
@@ -356,6 +447,15 @@ public sealed class WindowsTools
         });
     }
 
+    /// <summary>
+    /// <c>Process.Kill</c> によって window の背後にあるプロセスを強制終了する。成功時は session を自動的に detach する。
+    /// </summary>
+    /// <param name="sessionId">対象 session。省略するとアクティブ session を使う。</param>
+    /// <param name="ct">キャンセル トークン。</param>
+    /// <returns>
+    /// <c>{ sessionId, killed: true, detached: true }</c> を含む <see cref="CallToolResult"/>。
+    /// アクティブが無い場合は <c>NO_ACTIVE_SESSION</c>、session 不明は <c>NOT_FOUND</c>、kill 失敗は <c>KILL_FAILED</c>。
+    /// </returns>
     [McpServerTool(Name = "windows_kill")]
     [Description("Forcefully terminate the process backing the attached window via Process.Kill. On success, the session is automatically detached.")]
     public async Task<CallToolResult> KillAsync(
@@ -394,6 +494,15 @@ public sealed class WindowsTools
         });
     }
 
+    /// <summary>
+    /// 現在 attach 中のすべての session に対して close を試行し、結果を session 単位の配列として返す。
+    /// </summary>
+    /// <param name="ct">キャンセル トークン。<see cref="OperationCanceledException"/> はそのまま伝播する。</param>
+    /// <returns>
+    /// <c>{ results: [ { sessionId, result: "ok"|"fail", error?, message? }, ... ] }</c> を含む <see cref="CallToolResult"/>。
+    /// 個別の close 失敗は <c>CLOSE_FAILED</c> として配列要素にだけ記録され、全体としては成功扱いとなる。
+    /// </returns>
+    /// <remarks>キャンセル以外の例外はエントリ単位で握りつぶし、ループを継続する。</remarks>
     [McpServerTool(Name = "windows_close_all")]
     [Description("Close every attached window. Returns a per-session result array. Partial failure is reported, not thrown.")]
     public async Task<CallToolResult> CloseAllAsync(CancellationToken ct = default)
@@ -436,6 +545,15 @@ public sealed class WindowsTools
         return SuccessJson(new JsonObject { ["results"] = results });
     }
 
+    /// <summary>
+    /// 全 session を detach した後、HTTP daemon の graceful shutdown を要求する。stdio モードでは未対応。
+    /// </summary>
+    /// <param name="ct">キャンセル トークン。</param>
+    /// <returns>
+    /// 成功時は <c>{ stopped: true }</c> を含む <see cref="CallToolResult"/>。
+    /// stdio モードでは <c>LOCAL_ONLY</c>、停止処理が失敗した場合は <c>INTERNAL_ERROR</c> を返す。
+    /// </returns>
+    /// <remarks>設計 §4.5 に従い、ここでは window を close せず session 記録のみ解放する。</remarks>
     [McpServerTool(Name = "daemon_stop")]
     [Description("Stop the daemon (HTTP listener). All sessions are detached first. Only available in HTTP mode.")]
     public async Task<CallToolResult> DaemonStopAsync(CancellationToken ct = default)
@@ -471,6 +589,13 @@ public sealed class WindowsTools
         return SuccessJson(new JsonObject { ["stopped"] = true });
     }
 
+    /// <summary>
+    /// <paramref name="sessionId"/> が <c>null</c> の場合はアクティブ session を採用し、無ければ <c>NO_ACTIVE_SESSION</c> エラーを構築する。
+    /// </summary>
+    /// <param name="sessionId">呼び出し元から渡された sessionId。省略時は <c>null</c>。</param>
+    /// <param name="resolvedId">解決された sessionId。失敗時は <see cref="string.Empty"/>。</param>
+    /// <param name="error">解決失敗時のエラー結果。成功時は <c>null</c>。</param>
+    /// <returns>解決に成功したかどうか。</returns>
     private bool TryResolveSessionId(string? sessionId, out string resolvedId, out CallToolResult? error)
     {
         if (sessionId is null)
@@ -493,6 +618,12 @@ public sealed class WindowsTools
         return true;
     }
 
+    /// <summary>
+    /// <paramref name="sessionId"/> に対応する <see cref="WindowRefStore"/> エントリの sessionId 紐付けを解除し、
+    /// <paramref name="session"/> を Dispose する。Dispose / Clear で発生した例外は握りつぶしてデバッグログに記録する。
+    /// </summary>
+    /// <param name="sessionId">既に <see cref="SessionStore"/> から取り外された session の ID。</param>
+    /// <param name="session">Dispose 対象の <see cref="WindowSession"/>。</param>
     private void DetachSession(string sessionId, WindowSession session)
     {
         if (_refStore.TryFindBySessionId(sessionId, out var entry))
@@ -504,6 +635,11 @@ public sealed class WindowsTools
         catch (Exception ex) { _logger.LogDebug(ex, "Disposing session {Sid} failed", sessionId); }
     }
 
+    /// <summary>
+    /// 任意の JSON object を text content (シリアライズ済み) と structured content の両方に載せた成功レスポンスを構築する。
+    /// </summary>
+    /// <param name="obj">レスポンス本体となる JSON object。</param>
+    /// <returns><see cref="CallToolResult.IsError"/> = <c>false</c> の <see cref="CallToolResult"/>。</returns>
     private static CallToolResult SuccessJson(JsonObject obj)
     {
         return new CallToolResult

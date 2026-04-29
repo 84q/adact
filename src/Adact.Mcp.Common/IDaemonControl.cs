@@ -14,5 +14,7 @@ public interface IDaemonControl
     /// daemon の HTTP listener を停止し graceful shutdown を要求する。
     /// stdio モードでは <see cref="InvalidOperationException"/> を throw する。
     /// </summary>
+    /// <param name="ct">停止処理をキャンセルするためのトークン。</param>
+    /// <exception cref="InvalidOperationException">stdio モードで呼び出された場合。</exception>
     Task StopAsync(CancellationToken ct);
 }
