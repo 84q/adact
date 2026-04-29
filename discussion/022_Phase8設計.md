@@ -102,7 +102,7 @@ CLI コマンドはすべて kebab-case、MCP は `windows_` prefix の snake_ca
 | `mouse-down` / `mouse-up` | target, `--button` |
 | `mouse-wheel` | target, `--delta-x <delta>`, `--delta-y <delta>` (Playwright/DOM 流: 正値=下/右、負値=上/左) |
 | `inspect` | ref |
-| `screenshot` | `--ref <ref>` (任意。未指定はウィンドウ全体), `--highlight` (対象 ref をハイライト)、その他 (`--out` 等) は既存 `snapshot` コマンドの該当オプションと揃える |
+| `screenshot` | `--ref <ref>` (任意。未指定はウィンドウ全体)、その他 (`--out` 等) は既存 `snapshot` コマンドの該当オプションと揃える。`--highlight` (対象 ref をハイライト) は **将来拡張**として今回は実装しない |
 | `wait-for` | `--ref <ref>` または検索条件 (`--name`, `--control-type`, `--automation-id` 等)、`--state attached/detached/visible/hidden/enabled/disabled`, `--timeout <ms>` |
 | `wait-for-window` | `--window-key`, `--title`, `--class-name`, `--process-name`, `--exe`（既存 attach クエリと互換）, `--timeout <ms>` |
 | `resize` | `--width <w>`, `--height <h>` |
@@ -157,7 +157,7 @@ ComboBox 等で選択肢が closed 状態の場合、必要に応じて事前に
 - 既存 `snapshot` コマンドの保存先・命名規則を踏襲（デフォルト `.adact/` 配下）
 - 画像形式は **PNG 固定**
 - `--ref <ref>` 指定時は該当要素の bounding rect でクリップ
-- `--highlight` フラグ指定時は、キャプチャ前に対象要素を一時的にハイライト描画
+- `--highlight` フラグは **本リリースでは実装しない**。FlaUI に専用 API が無く、Win32 GDI で一時的に矩形描画してキャプチャするには副作用が大きく、別 PR で扱う。CLI / MCP では当面オプション自体を提供しない。
 
 ## 11. minimize 中の操作
 
