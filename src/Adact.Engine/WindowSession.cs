@@ -18,19 +18,41 @@ namespace Adact.Engine;
 /// </summary>
 public sealed class WindowSession : IDisposable
 {
+    /// <summary>UIA オートメーション。Engine と共有される (<see cref="_ownsAutomation"/> が true のときのみ Dispose する)。</summary>
     private readonly AutomationBase _automation;
+    /// <summary>attach 対象の FlaUI <see cref="Window"/>。</summary>
     private readonly Window _window;
+    /// <summary>snapshot の起点となる root 要素 (<see cref="_window"/> を <see cref="FlaUiElement"/> でラップ)。</summary>
     private readonly IElement _rootElement;
+    /// <summary>Session スコープの Ref ID レジストリ。</summary>
     private readonly RefRegistry _registry;
+    /// <summary>Engine と全 Session で共有される UIA 直列化 gate (Engine が所有し、Session は Dispose しない)。</summary>
     private readonly SemaphoreSlim _gate;
+    /// <summary>本 Session のログ出力に使うロガー。</summary>
     private readonly ILogger<WindowSession> _logger;
+    /// <summary>true のときのみ <see cref="Dispose"/> 時に <see cref="_automation"/> も Dispose する。</summary>
     private readonly bool _ownsAutomation;
+    /// <summary>attach 時点にキャッシュした対象プロセスの PID。</summary>
     private readonly int _processId;
+    /// <summary>attach 時点にキャッシュした対象プロセスの名前。</summary>
     private readonly string _processName;
+    /// <summary>attach 時点にキャッシュした対象ウィンドウタイトル。</summary>
     private readonly string _title;
+    /// <summary>attach 対象ウィンドウの HWND。</summary>
     private readonly nint _nativeWindowHandle;
+    /// <summary>本 Session が <see cref="Dispose"/> 済みなら true。</summary>
     private bool _disposed;
 
+    /// <summary>
+    /// 新しい <see cref="WindowSession"/> を初期化する。<see cref="UiaEngine"/> が attach 時に呼び出す。
+    /// </summary>
+    /// <param name="automation">UIA オートメーション (Engine と共有)。</param>
+    /// <param name="window">attach 対象の FlaUI <see cref="Window"/>。</param>
+    /// <param name="sessionId">Engine が採番した session ID (Ref ID の <c>s</c> 部)。</param>
+    /// <param name="info">attach 時点でのウィンドウ情報スナップショット。</param>
+    /// <param name="gate">Engine と全 Session で共有される UIA 直列化 gate。</param>
+    /// <param name="logger">ロガー。null の場合は <see cref="NullLogger{T}"/> を使う。</param>
+    /// <param name="ownsAutomation">true の場合、本 Session の Dispose 時に <paramref name="automation"/> も Dispose する。</param>
     internal WindowSession(
         AutomationBase automation,
         Window window,
@@ -53,16 +75,28 @@ public sealed class WindowSession : IDisposable
         _nativeWindowHandle = info.NativeWindowHandle;
     }
 
+    /// <summary>本セッションの ID。<see cref="UiaEngine"/> が単調増加で採番し、Detach 後も再利用しない。</summary>
     public int SessionId => _registry.SessionId;
+
+    /// <summary>attach 対象プロセスの名前 (拡張子なし)。</summary>
     public string ProcessName => _processName;
+
+    /// <summary>attach 対象プロセスの PID。</summary>
     public int ProcessId => _processId;
+
+    /// <summary>attach 時点での対象ウィンドウのタイトル。</summary>
     public string Title => _title;
+
+    /// <summary>attach 対象ウィンドウの HWND。</summary>
     public nint NativeWindowHandle => _nativeWindowHandle;
 
     /// <summary>
     /// テスト専用: FlaUI 依存を持たない最小限の <see cref="WindowSession"/> を生成する。
     /// Snapshot / Click / Fill / Close / Kill 等の操作は呼び出してはならない (NRE になる)。
     /// </summary>
+    /// <param name="sessionId">テスト用に割り当てるセッション ID。</param>
+    /// <param name="info">テスト用ウィンドウ情報。</param>
+    /// <returns>FlaUI 非依存の最小限な <see cref="WindowSession"/>。</returns>
     internal static WindowSession CreateForTest(int sessionId, WindowInfo info)
         => new(
             automation: null!,
@@ -73,6 +107,14 @@ public sealed class WindowSession : IDisposable
             logger: null,
             ownsAutomation: false);
 
+    /// <summary>
+    /// 対象ウィンドウの UIA ツリーを走査し、JSON snapshot を返す。Engine の直列化 gate 内で実行される。
+    /// </summary>
+    /// <param name="options">snapshot オプション。null の場合は既定値が使われる。</param>
+    /// <param name="ct">キャンセルトークン。</param>
+    /// <returns>JSON とメタ情報を含む <see cref="SnapshotResult"/>。</returns>
+    /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
+    /// <exception cref="SnapshotException">UIA 走査または JSON 構築に失敗した場合。</exception>
     public Task<SnapshotResult> SnapshotAsync(SnapshotOptions? options = null, CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -110,6 +152,16 @@ public sealed class WindowSession : IDisposable
         }, ct);
     }
 
+    /// <summary>
+    /// 指定 Ref ID の要素をクリックする。事前に対象ウィンドウへのフォーカス移動を試み、
+    /// その後 InvokePattern が利用可能ならそれで invoke、不可なら FlaUI の物理クリックでフォールバックする。
+    /// </summary>
+    /// <param name="refId">操作対象の Ref ID。</param>
+    /// <param name="options">クリックオプション (現状は将来予約)。</param>
+    /// <param name="ct">キャンセルトークン。</param>
+    /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
+    /// <exception cref="RefNotFoundException"><paramref name="refId"/> が現セッションで解決できない場合。</exception>
+    /// <exception cref="ElementInteractionException">UIA 操作が内部的に失敗した場合。</exception>
     public Task ClickAsync(string refId, ClickOptions? options = null, CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -132,6 +184,15 @@ public sealed class WindowSession : IDisposable
         }, ct);
     }
 
+    /// <summary>
+    /// 指定 Ref ID の入力要素にテキストをセットする。ValuePattern を優先し、不可なら Ctrl+A → Delete → Type のキー操作にフォールバックする。
+    /// </summary>
+    /// <param name="refId">操作対象の Ref ID。</param>
+    /// <param name="text">セットするテキスト。</param>
+    /// <param name="ct">キャンセルトークン。</param>
+    /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
+    /// <exception cref="RefNotFoundException"><paramref name="refId"/> が現セッションで解決できない場合。</exception>
+    /// <exception cref="ElementInteractionException">UIA 操作が内部的に失敗した場合。</exception>
     public Task FillAsync(string refId, string text, CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -156,6 +217,10 @@ public sealed class WindowSession : IDisposable
     /// <summary>
     /// UIA 操作を Engine と共有の gate で直列化して実行する。
     /// </summary>
+    /// <typeparam name="T">アクションの戻り値の型。</typeparam>
+    /// <param name="action">gate 内で実行するアクション。</param>
+    /// <param name="ct">キャンセルトークン。</param>
+    /// <returns><paramref name="action"/> の実行結果。</returns>
     private async Task<T> RunSerializedAsync<T>(Func<CancellationToken, Task<T>> action, CancellationToken ct)
     {
         await _gate.WaitAsync(ct).ConfigureAwait(false);
@@ -169,6 +234,9 @@ public sealed class WindowSession : IDisposable
         }
     }
 
+    /// <summary>戻り値なし版の <see cref="RunSerializedAsync{T}"/>。</summary>
+    /// <param name="action">gate 内で実行するアクション。</param>
+    /// <param name="ct">キャンセルトークン。</param>
     private async Task RunSerializedAsync(Func<CancellationToken, Task> action, CancellationToken ct)
     {
         await _gate.WaitAsync(ct).ConfigureAwait(false);
@@ -202,6 +270,7 @@ public sealed class WindowSession : IDisposable
         await Task.Delay(50, ct).ConfigureAwait(false);
     }
 
+    /// <summary><see cref="Dispose"/> のエイリアス。意味的に「セッションを手放す」操作を表現する。</summary>
     public void Detach() => Dispose();
 
     /// <summary>
@@ -209,6 +278,9 @@ public sealed class WindowSession : IDisposable
     /// WM_CLOSE PostMessage にフォールバックする。失敗時は <see cref="CloseFailedException"/>。
     /// 成功・失敗に関わらず本メソッドはセッションの Dispose は行わない (呼び出し側が管理する)。
     /// </summary>
+    /// <param name="ct">キャンセルトークン。</param>
+    /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
+    /// <exception cref="CloseFailedException">WindowPattern も WM_CLOSE もウィンドウを閉じられなかった場合。</exception>
     public Task CloseAsync(CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -255,6 +327,9 @@ public sealed class WindowSession : IDisposable
     /// 対応プロセスを <see cref="Process.Kill(bool)"/> (entireProcessTree:true) で強制終了する。
     /// 失敗時は <see cref="KillFailedException"/>。本メソッドはセッションの Dispose は行わない。
     /// </summary>
+    /// <param name="ct">キャンセルトークン。</param>
+    /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
+    /// <exception cref="KillFailedException">既にプロセスが終了している、または Kill が失敗した場合。</exception>
     // TODO(post-Phase5): PID 再利用対策として ProcessStartTime での同一性検証を追加する余地あり。
     public Task KillAsync(CancellationToken ct = default)
     {
@@ -290,6 +365,10 @@ public sealed class WindowSession : IDisposable
         }, ct);
     }
 
+    /// <summary>
+    /// セッションを破棄する。<c>ownsAutomation</c> が true の場合は内部 <see cref="AutomationBase"/> も Dispose する。
+    /// 本メソッドは複数回呼んでも安全。
+    /// </summary>
     public void Dispose()
     {
         if (_disposed) return;
@@ -300,6 +379,8 @@ public sealed class WindowSession : IDisposable
         }
     }
 
+    /// <summary>本 Session が <see cref="Dispose"/> 済みなら <see cref="ObjectDisposedException"/> を throw する。</summary>
+    /// <exception cref="ObjectDisposedException">本 Session が Dispose 済みの場合。</exception>
     private void ThrowIfDisposed()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);

@@ -53,6 +53,9 @@ public static class InteractiveSessionGuard
     /// <item><description>上記いずれにも該当しない → OK</description></item>
     /// </list>
     /// </summary>
+    /// <param name="sessionId">対象プロセスの Windows セッション ID。</param>
+    /// <param name="windowStationName">対象プロセスの WindowStation 名。取得失敗時は null。</param>
+    /// <returns>判定結果。OK の場合 <see cref="CheckResult.Message"/> は null。</returns>
     public static CheckResult Check(int sessionId, string? windowStationName)
     {
         if (sessionId == 0
@@ -71,6 +74,7 @@ public static class InteractiveSessionGuard
     /// 実プロセスから SessionId と WindowStation 名を観測し <see cref="Check"/> を呼ぶ。
     /// P/Invoke エラー等で観測値が得られない場合は NG 扱い。
     /// </summary>
+    /// <returns>観測値とともに格納された <see cref="ProbeResult"/>。</returns>
     public static ProbeResult Probe()
     {
         int sessionId;
@@ -99,9 +103,17 @@ public static class InteractiveSessionGuard
         return new ProbeResult(result.Ok, sessionId, windowStationName, result.Message);
     }
 
+    /// <summary>エラーメッセージ用に WindowStation 名を整形する。null は <c>&lt;unknown&gt;</c>、それ以外はダブルクォートで囲む。</summary>
+    /// <param name="name">WindowStation 名。</param>
+    /// <returns>整形済み文字列。</returns>
     private static string FormatStationForMessage(string? name)
         => name is null ? "<unknown>" : $"\"{name}\"";
 
+    /// <summary>
+    /// 現在のプロセスに関連付けられた WindowStation 名を P/Invoke (<c>GetProcessWindowStation</c> + <c>GetUserObjectInformation</c>)
+    /// で取得する。取得不能のときは null。
+    /// </summary>
+    /// <returns>WindowStation 名。取得失敗時は null。</returns>
     private static string? TryGetWindowStationName()
     {
         var hStation = NativeMethods.GetProcessWindowStation();

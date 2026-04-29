@@ -18,16 +18,25 @@ namespace Adact.Engine;
 /// </summary>
 public sealed class UiaEngine : IDisposable
 {
+    /// <summary>本 Engine が保持する UIA オートメーション。Session 間で共有する。</summary>
     private readonly AutomationBase _automation;
+    /// <summary>Engine と Session 用ロガー生成に使う <see cref="ILoggerFactory"/>。</summary>
     private readonly ILoggerFactory _loggerFactory;
+    /// <summary>本 Engine 自身のログ出力に使うロガー。</summary>
     private readonly ILogger<UiaEngine> _logger;
-    // UIA はマシン全体で前面ウィンドウを取り合うため、Engine と Engine が払い出す
-    // WindowSession の UIA 操作はマシン内で 1 本に直列化する。Engine と全 Session で
-    // 同じインスタンスを共有する。詳細は 006_Phase4_設計.md §5 参照。
+    /// <summary>
+    /// UIA 操作のマシン内直列化 gate。UIA はマシン全体で前面ウィンドウを取り合うため、
+    /// Engine と Engine が払い出す WindowSession の UIA 操作はこの 1 本で直列化する。
+    /// Engine と全 Session で同じインスタンスを共有する。詳細は 006_Phase4_設計.md §5 参照。
+    /// </summary>
     private readonly SemaphoreSlim _gate = new(1, 1);
+    /// <summary>次に払い出すセッション ID。<see cref="Interlocked.Increment(ref int)"/> で単調増加採番する。</summary>
     private int _nextSessionId;
+    /// <summary>本 Engine が <see cref="Dispose"/> 済みであれば true。</summary>
     private bool _disposed;
 
+    /// <summary>標準の <see cref="UIA3Automation"/> を内部で生成する production 用コンストラクタ。</summary>
+    /// <param name="loggerFactory">ログ出力に使用するロガーファクトリ。null の場合は <see cref="NullLoggerFactory"/> を使う。</param>
     public UiaEngine(ILoggerFactory? loggerFactory = null)
         : this(new UIA3Automation(), loggerFactory)
     {
@@ -37,6 +46,8 @@ public sealed class UiaEngine : IDisposable
     /// テスト容易性および将来の UIA2 fallback のため、外部から <see cref="AutomationBase"/> を注入可能。
     /// 渡された automation は本インスタンスが Dispose する。
     /// </summary>
+    /// <param name="automation">注入する <see cref="AutomationBase"/> 実装。</param>
+    /// <param name="loggerFactory">ログ出力に使用するロガーファクトリ。null の場合は <see cref="NullLoggerFactory"/> を使う。</param>
     internal UiaEngine(AutomationBase automation, ILoggerFactory? loggerFactory = null)
     {
         _automation = automation;
@@ -44,6 +55,13 @@ public sealed class UiaEngine : IDisposable
         _logger = _loggerFactory.CreateLogger<UiaEngine>();
     }
 
+    /// <summary>
+    /// 現在のデスクトップ上の可視トップレベルウィンドウを列挙する。
+    /// 不可視・オフスクリーンの UWP CoreWindow 等は除外し、HWND ベースで重複も排除する。
+    /// </summary>
+    /// <param name="ct">キャンセルトークン。</param>
+    /// <returns>列挙されたウィンドウ情報のリスト。</returns>
+    /// <exception cref="ObjectDisposedException">本インスタンスが Dispose 済みの場合。</exception>
     public Task<IReadOnlyList<WindowInfo>> ListWindowsAsync(CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -55,6 +73,12 @@ public sealed class UiaEngine : IDisposable
         }, ct);
     }
 
+    /// <summary>
+    /// gate 内で同期的に現デスクトップのトップレベルウィンドウを列挙する内部実装。
+    /// 同 gate 内 (例: <see cref="AttachAsync"/>) からの再呼び出しで self-deadlock しないよう
+    /// 公開 API ではなくこちらを直接呼ぶ。
+    /// </summary>
+    /// <returns>列挙されたウィンドウ情報のリスト。</returns>
     private List<WindowInfo> ListWindowsCore()
     {
         var desktop = _automation.GetDesktop();
@@ -93,6 +117,11 @@ public sealed class UiaEngine : IDisposable
     /// 該当 HWND が現在の列挙に含まれない、もしくは <c>FromHandle</c> が失敗した場合は
     /// <see cref="WindowNotFoundException"/> を throw する。
     /// </summary>
+    /// <param name="hwnd">attach 対象の Win32 ウィンドウハンドル。</param>
+    /// <param name="ct">キャンセルトークン。</param>
+    /// <returns>新規に生成された <see cref="WindowSession"/>。</returns>
+    /// <exception cref="ObjectDisposedException">本インスタンスが Dispose 済みの場合。</exception>
+    /// <exception cref="WindowNotFoundException">HWND が現在の列挙に存在しない、または UIA から再取得できなかった場合。</exception>
     public Task<WindowSession> AttachByHandleAsync(nint hwnd, CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -138,6 +167,10 @@ public sealed class UiaEngine : IDisposable
     /// 指定 <see cref="AttachQuery"/> にマッチする現在の top-level window 一覧を返す。
     /// attach は行わない。WindowsTools 側で attach 前に WindowKey を確定するために使用する。
     /// </summary>
+    /// <param name="query">マッチング条件。</param>
+    /// <param name="ct">キャンセルトークン。</param>
+    /// <returns><paramref name="query"/> にマッチした候補ウィンドウのリスト。</returns>
+    /// <exception cref="ObjectDisposedException">本インスタンスが Dispose 済みの場合。</exception>
     public Task<IReadOnlyList<WindowInfo>> FindMatchesAsync(AttachQuery query, CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -151,6 +184,15 @@ public sealed class UiaEngine : IDisposable
         }, ct);
     }
 
+    /// <summary>
+    /// <see cref="AttachQuery"/> にマッチするトップレベルウィンドウへ attach する。マッチが 1 件のときのみ成功。
+    /// </summary>
+    /// <param name="query">マッチング条件。</param>
+    /// <param name="ct">キャンセルトークン。</param>
+    /// <returns>新規に生成された <see cref="WindowSession"/>。</returns>
+    /// <exception cref="ObjectDisposedException">本インスタンスが Dispose 済みの場合。</exception>
+    /// <exception cref="WindowNotFoundException">マッチが 0 件のとき。</exception>
+    /// <exception cref="AmbiguousAttachException">マッチが 2 件以上のとき。</exception>
     public Task<WindowSession> AttachAsync(AttachQuery query, CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -201,6 +243,10 @@ public sealed class UiaEngine : IDisposable
     /// UIA 操作を直列化して実行する。Engine と Engine から払い出された全 WindowSession の
     /// UIA 操作はこの gate を共有する。
     /// </summary>
+    /// <typeparam name="T">action の戻り型。</typeparam>
+    /// <param name="action">gate 内で実行するアクション。</param>
+    /// <param name="ct">キャンセルトークン。</param>
+    /// <returns>action の戻り値。</returns>
     internal async Task<T> RunSerializedAsync<T>(Func<CancellationToken, Task<T>> action, CancellationToken ct)
     {
         await _gate.WaitAsync(ct).ConfigureAwait(false);
@@ -217,6 +263,8 @@ public sealed class UiaEngine : IDisposable
     /// <summary>
     /// 戻り値なし版の <see cref="RunSerializedAsync{T}"/>。
     /// </summary>
+    /// <param name="action">gate 内で実行するアクション。</param>
+    /// <param name="ct">キャンセルトークン。</param>
     internal async Task RunSerializedAsync(Func<CancellationToken, Task> action, CancellationToken ct)
     {
         await _gate.WaitAsync(ct).ConfigureAwait(false);
@@ -230,6 +278,14 @@ public sealed class UiaEngine : IDisposable
         }
     }
 
+    /// <summary>
+    /// <see cref="WindowInfo"/> が <see cref="AttachQuery"/> にマッチするか判定する。
+    /// 指定された各フィールドは大文字小文字無視で完全一致比較する。すべてのフィールドが <c>null</c> の
+    /// クエリは誤用とみなしマッチさせない。
+    /// </summary>
+    /// <param name="w">判定対象のウィンドウ情報。</param>
+    /// <param name="q">マッチング条件。</param>
+    /// <returns>マッチすれば true。</returns>
     internal static bool Matches(WindowInfo w, AttachQuery q)
     {
         if (q.ProcessId is not null && w.ProcessId != q.ProcessId.Value) return false;
@@ -245,13 +301,25 @@ public sealed class UiaEngine : IDisposable
         return true;
     }
 
+    /// <summary>
+    /// <see cref="AutomationElement.ControlType"/> の取得が UIA エラーで失敗しても列挙を止めないよう、
+    /// 例外を握り潰して "Unknown" を返すヘルパ。
+    /// </summary>
+    /// <param name="el">対象要素。</param>
+    /// <returns>ControlType の文字列、取得失敗時は "Unknown"。</returns>
     private static string SafeControlType(AutomationElement el)
     {
         try { return el.ControlType.ToString(); } catch { return "Unknown"; }
     }
 
+    /// <summary>空文字列を <c>null</c> に正規化する。</summary>
+    /// <param name="s">入力文字列。</param>
+    /// <returns><paramref name="s"/> が <c>null</c> または空文字列なら <c>null</c>、それ以外はそのまま返す。</returns>
     private static string? NullIfEmpty(string? s) => string.IsNullOrEmpty(s) ? null : s;
 
+    /// <summary>
+    /// 内部の <see cref="AutomationBase"/> と直列化 gate を破棄する。本メソッドは複数回呼んでも安全。
+    /// </summary>
     public void Dispose()
     {
         if (_disposed) return;
@@ -260,6 +328,8 @@ public sealed class UiaEngine : IDisposable
         try { _gate.Dispose(); } catch { }
     }
 
+    /// <summary>本 Engine が <see cref="Dispose"/> 済みなら <see cref="ObjectDisposedException"/> を throw する。</summary>
+    /// <exception cref="ObjectDisposedException">本 Engine が Dispose 済みの場合。</exception>
     private void ThrowIfDisposed()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);

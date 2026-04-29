@@ -18,13 +18,19 @@ public sealed class SnapshotBuilder
     /// <summary>SnapshotOptions.MaxDepth が 0 以下や未指定相当の時に使う既定の再帰深度上限。</summary>
     private const int DefaultMaxDepth = 64;
 
+    /// <summary>snapshot 中の Ref ID 採番に使うセッション固有レジストリ。</summary>
     private readonly RefRegistry _registry;
 
+    /// <summary>新しいビルダーを <see cref="RefRegistry"/> 紐付けで初期化する。</summary>
+    /// <param name="registry">snapshot 中の Ref ID 採番に使用するセッション固有レジストリ。</param>
     public SnapshotBuilder(RefRegistry registry)
     {
         _registry = registry;
     }
 
+    /// <summary>UIA ツリーを走査し、JSON snapshot を構築する。</summary>
+    /// <param name="input">root ウィンドウ・モーダル兄弟・オプションおよびメタ情報。</param>
+    /// <returns>構築された snapshot JSON とセッション ID 文字列。</returns>
     public SnapshotBuildResult Build(SnapshotBuildInput input)
     {
         _registry.BeginSnapshot();

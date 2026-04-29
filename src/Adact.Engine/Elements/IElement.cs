@@ -5,19 +5,49 @@ namespace Adact.Engine.Elements;
 /// </summary>
 public interface IElement
 {
+    /// <summary>UIA Name プロパティ (空文字列は <c>null</c>)。</summary>
     string? Name { get; }
+
+    /// <summary>UIA AutomationId プロパティ (空文字列は <c>null</c>)。</summary>
     string? AutomationId { get; }
+
+    /// <summary>UIA ControlType の文字列表現 (例: <c>"Button"</c>)。取得失敗時は <c>"Unknown"</c>。</summary>
     string ControlType { get; }
+
+    /// <summary>Win32 ウィンドウクラス名 (空文字列は <c>null</c>)。</summary>
     string? ClassName { get; }
+
+    /// <summary>UIA IsEnabled プロパティ (取得失敗時は安全側の true)。</summary>
     bool IsEnabled { get; }
+
+    /// <summary>UIA IsOffscreen プロパティ (取得失敗時は false)。</summary>
     bool IsOffscreen { get; }
+
+    /// <summary>ValuePattern の Value (空文字列は <c>null</c>)。Pattern を持たない要素では <c>null</c>。</summary>
     string? Value { get; }
+
+    /// <summary>UIA HelpText プロパティ (空文字列は <c>null</c>)。</summary>
     string? HelpText { get; }
+
+    /// <summary>BoundingRectangle (スクリーン座標、取得失敗時は既定値)。</summary>
     Rect BoundingRectangle { get; }
+
+    /// <summary>UIA IsKeyboardFocusable プロパティ (取得失敗時は false)。</summary>
     bool IsKeyboardFocusable { get; }
+
+    /// <summary>UIA HasKeyboardFocus プロパティ (取得失敗時は false)。</summary>
     bool HasKeyboardFocus { get; }
+
+    /// <summary>UIA RuntimeId 配列 (取得不能時は <c>null</c>)。RefRegistry の StableKey 計算に用いる。</summary>
     IReadOnlyList<int>? RuntimeId { get; }
+
+    /// <summary>子要素の列挙 (FindAllChildren 相当)。失敗時は空配列。</summary>
     IReadOnlyList<IElement> Children { get; }
+
+    /// <summary>InvokePattern が利用可能ならそれで、そうでなければ FlaUI の <c>Click()</c> でクリックする。</summary>
     void Click();
+
+    /// <summary>テキストを入力する。ValuePattern が利用可能ならそれで、不可の場合は Ctrl+A→Delete→Type にフォールバック。</summary>
+    /// <param name="text">入力するテキスト。</param>
     void Fill(string text);
 }
