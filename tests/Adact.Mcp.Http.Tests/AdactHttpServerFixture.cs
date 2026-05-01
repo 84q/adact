@@ -1,3 +1,5 @@
+using System.Net;
+
 using Adact.Cli.Server;
 
 using Microsoft.AspNetCore.Builder;
@@ -42,7 +44,7 @@ public sealed class AdactHttpServerFixture : IAsyncLifetime
             return;
         }
 
-        _app = HttpHost.BuildApplication(port: 0);
+        _app = HttpHost.BuildApplication(IPAddress.Loopback, 0);
         await _app.StartAsync();
         // Listen(IPAddress.Loopback, 0) で起動したあと、実際にバインドされた URL は
         // IServerAddressesFeature 経由 (app.Urls) で取得できる。

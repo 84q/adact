@@ -13,6 +13,9 @@ internal static class ServeCommand
     /// <summary>--port 未指定時の既定ポート。</summary>
     private const int DefaultPort = 41300;
 
+    /// <summary>--host 未指定時の既定ホスト。</summary>
+    private const string DefaultHost = "127.0.0.1";
+
     /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
     /// <returns>serve サブコマンド。</returns>
     public static Command Build()
@@ -38,19 +41,33 @@ internal static class ServeCommand
             }
         });
 
-        var cmd = new Command("serve", "Run as an HTTP MCP server on 127.0.0.1:<port> (default 41300).");
+        var host = new Option<string>("--host")
+        {
+            Description = "IP address to bind the HTTP listener to (default 127.0.0.1). Use 0.0.0.0 to listen on all interfaces.",
+            DefaultValueFactory = _ => DefaultHost,
+        };
+
+        var cmd = new Command("serve", "Run as an HTTP MCP server on <host>:<port> (default 127.0.0.1:41300).");
         cmd.Options.Add(port);
+        cmd.Options.Add(host);
 
         cmd.SetAction(async (parseResult, ct) =>
         {
             var p = parseResult.GetValue(port);
+            var h = parseResult.GetValue(host);
+
+            if (!System.Net.IPAddress.TryParse(h, out var ipAddress))
+            {
+                CliError.Write(ErrorCodes.InvalidArgument, $"--host '{h}' is not a valid IP address.");
+                return ExitCodes.UserError;
+            }
 
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
 
             try
             {
-                return await HttpHost.RunAsync(p, cts.Token).ConfigureAwait(false);
+                return await HttpHost.RunAsync(ipAddress, p, cts.Token).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

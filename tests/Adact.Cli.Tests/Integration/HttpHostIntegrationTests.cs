@@ -1,3 +1,5 @@
+using System.Net;
+
 using Adact.Cli.Server;
 using Adact.Engine;
 using Adact.Mcp.Common;
@@ -20,7 +22,7 @@ public sealed class HttpHostIntegrationTests
     [Fact]
     public async Task BuildApplication_WhenBuilt_MapsMcpRoute()
     {
-        await using var app = HttpHost.BuildApplication(port: 0);
+        await using var app = HttpHost.BuildApplication(IPAddress.Loopback, 0);
         var routeBuilder = (IEndpointRouteBuilder)app;
 
         var routePatterns = routeBuilder.DataSources
@@ -38,7 +40,7 @@ public sealed class HttpHostIntegrationTests
     [Fact]
     public async Task BuildApplication_WhenBuilt_RegistersRequiredSingletonServices()
     {
-        await using var app = HttpHost.BuildApplication(port: 0);
+        await using var app = HttpHost.BuildApplication(IPAddress.Loopback, 0);
         var services = app.Services;
 
         Assert.Same(
@@ -59,7 +61,7 @@ public sealed class HttpHostIntegrationTests
     [Fact]
     public async Task StopAsync_WhenCalled_RequestsHostApplicationStop()
     {
-        await using var app = HttpHost.BuildApplication(port: 0);
+        await using var app = HttpHost.BuildApplication(IPAddress.Loopback, 0);
         var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
         var control = app.Services.GetRequiredService<IDaemonControl>();
 

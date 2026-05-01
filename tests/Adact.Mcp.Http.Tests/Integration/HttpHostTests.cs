@@ -1,3 +1,5 @@
+using System.Net;
+
 using Adact.Cli.Server;
 using Adact.Engine;
 using Adact.Mcp.Common;
@@ -24,7 +26,7 @@ public sealed class HttpHostTests
     [Fact]
     public void BuildApplication_ConfiguresMcpRouteAndCoreServices()
     {
-        using var app = HttpHost.BuildApplication(port: 0);
+        using var app = HttpHost.BuildApplication(IPAddress.Loopback, 0);
 
         var routes = ((IEndpointRouteBuilder)app).DataSources
             .SelectMany(source => source.Endpoints)
@@ -46,7 +48,7 @@ public sealed class HttpHostTests
     [Fact]
     public async Task DaemonControl_StopAsync_RequestsApplicationStop()
     {
-        await using var app = HttpHost.BuildApplication(port: 0);
+        await using var app = HttpHost.BuildApplication(IPAddress.Loopback, 0);
         var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
         var daemonControl = app.Services.GetRequiredService<IDaemonControl>();
 

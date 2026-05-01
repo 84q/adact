@@ -29,9 +29,10 @@ public static class HttpHost
     public const int ExitCodeEnvironmentNotSupported = 4;
 
     /// <summary>
-    /// HTTP MCP サーバーをフォアグラウンドで起動し、<paramref name="ct"/> がキャンセルされるまで待機する。
+    /// HTTP MCP サーバーをフォアグラウンドで起動し、<paramref name="ct"> がキャンセルされるまで待機する。
     /// </summary>
-    /// <param name="port">バインドする TCP ポート番号。常に 127.0.0.1 (loopback) のみを listen する。</param>
+    /// <param name="hostAddress">バインドする IP アドレス。</param>
+    /// <param name="port">バインドする TCP ポート番号。</param>
     /// <param name="ct">サーバー停止を要求するキャンセルトークン。</param>
     /// <returns>
     /// プロセス終了コード。正常終了時は <c>0</c>。対話セッション判定 (018 §5.2) で NG だった場合は
@@ -41,7 +42,7 @@ public static class HttpHost
     /// 起動前に <see cref="InteractiveSessionGuard.Probe"/> による対話デスクトップ判定を行う。
     /// NG の場合のエラーフォーマットは 009 §6.2 / 018 §5.3 に従い stderr に出力される。
     /// </remarks>
-    public static async Task<int> RunAsync(int port, CancellationToken ct)
+    public static async Task<int> RunAsync(IPAddress hostAddress, int port, CancellationToken ct)
     {
         // listener 起動前に対話デスクトップ判定を行う (018 §5.2)。
         if (!EnsureInteractiveSession())
@@ -49,7 +50,7 @@ public static class HttpHost
             return ExitCodeEnvironmentNotSupported;
         }
 
-        var app = BuildApplication(port);
+        var app = BuildApplication(hostAddress, port);
         await app.RunAsync(ct).ConfigureAwait(false);
         return 0;
     }
@@ -78,7 +79,8 @@ public static class HttpHost
     /// <summary>
     /// WebApplication を構築する。テストから WebApplicationFactory 経由で再利用できるよう Build/Run を分離。
     /// </summary>
-    /// <param name="port">Kestrel が 127.0.0.1 で listen する TCP ポート番号。</param>
+    /// <param name="hostAddress">Kestrel が listen する IP アドレス。</param>
+    /// <param name="port">Kestrel が listen する TCP ポート番号。</param>
     /// <returns>MCP エンドポイント (<see cref="McpPath"/>) がマップされた、未起動の <see cref="WebApplication"/>。</returns>
     /// <remarks>
     /// DI 登録: <see cref="UiaEngine"/>, <see cref="SessionStore"/>, <see cref="WindowRefStore"/>,
@@ -87,14 +89,14 @@ public static class HttpHost
     /// Stateless モードで構築し、<see cref="WindowsTools"/> をツール実装として登録する。
     /// ログは全プロバイダを除外したうえで stderr 出力の SimpleConsole に寄せる。
     /// </remarks>
-    public static WebApplication BuildApplication(int port)
+    public static WebApplication BuildApplication(IPAddress hostAddress, int port)
     {
         var builder = WebApplication.CreateBuilder();
 
-        // localhost 既定でバインド: 127.0.0.1:<port> のみリッスン (009 §2)。
+        // 指定されたアドレスでバインド (既定は 127.0.0.1)。
         builder.WebHost.ConfigureKestrel(options =>
         {
-            options.Listen(IPAddress.Loopback, port);
+            options.Listen(hostAddress, port);
         });
 
         // ログは stderr に統一 (stdio との一貫性のため)。stdout は HTTP モードでは
