@@ -92,6 +92,47 @@ internal static class NativeMethods
     internal delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
     // ------------------------------------------------------------------
+    // 操作ブロック検知 (WTS API / Desktop API)
+    // 設計: discussion/027_操作ブロック検知.md §5.1。
+    // ------------------------------------------------------------------
+
+    /// <summary>現行接続済みサーバーのハンドル。WTS API で使用する。</summary>
+    internal static readonly IntPtr WTS_CURRENT_SERVER_HANDLE = IntPtr.Zero;
+
+    /// <summary>WTSQuerySessionInformation の情報クラス: セッションのロック状態。</summary>
+    internal const int WTS_SESSIONSTATE_LOCK = 25;
+
+    /// <summary>wtsapi32 WTSQuerySessionInformationW の P/Invoke シグネチャ。</summary>
+    [DllImport("wtsapi32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "WTSQuerySessionInformationW")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool WTSQuerySessionInformation(
+        IntPtr hServer,
+        int sessionId,
+        int wtsInfoClass,
+        out IntPtr ppBuffer,
+        out uint pBytesReturned);
+
+    /// <summary>wtsapi32 WTSFreeMemory の P/Invoke シグネチャ。</summary>
+    [DllImport("wtsapi32.dll")]
+    internal static extern void WTSFreeMemory(IntPtr pMemory);
+
+    /// <summary>user32 OpenInputDesktop の P/Invoke シグネチャ。</summary>
+    [DllImport("user32.dll", SetLastError = true)]
+    internal static extern IntPtr OpenInputDesktop(uint dwFlags, [MarshalAs(UnmanagedType.Bool)] bool fInherit, uint dwDesiredAccess);
+
+    /// <summary>user32 CloseDesktop の P/Invoke シグネチャ。</summary>
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool CloseDesktop(IntPtr hDesktop);
+
+    /// <summary>user32 GetForegroundWindow の P/Invoke シグネチャ。</summary>
+    [DllImport("user32.dll")]
+    internal static extern IntPtr GetForegroundWindow();
+
+    /// <summary>OpenInputDesktop で要求するアクセス権: オブジェクト情報を読む。</summary>
+    internal const uint DESKTOP_READOBJECTS = 0x0001;
+
+    // ------------------------------------------------------------------
     // UWP / Microsoft Store アプリ起動 (IApplicationActivationManager)
     // 設計 024 §2 / §10。`shell:AppsFolder\<AUMID>` 形式の起動に使用する。
     // ------------------------------------------------------------------

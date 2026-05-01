@@ -42,6 +42,8 @@ public sealed partial class WindowSession : IWindowSession
     private readonly string _title;
     /// <summary>attach 対象ウィンドウの HWND。</summary>
     private readonly nint _nativeWindowHandle;
+    /// <summary>本プロセスの Windows セッション ID。操作ブロック検知用にキャッシュする。</summary>
+    private readonly int _sessionId;
     /// <summary>本 Session が <see cref="Dispose"/> 済みなら true。</summary>
     private bool _disposed;
 
@@ -80,6 +82,7 @@ public sealed partial class WindowSession : IWindowSession
         _processName = info.ProcessName;
         _title = info.Title;
         _nativeWindowHandle = info.NativeWindowHandle;
+        _sessionId = Process.GetCurrentProcess().SessionId;
     }
 
     /// <summary>本セッションの ID。<see cref="UiaEngine"/> が単調増加で採番し、Detach 後も再利用しない。</summary>
@@ -260,6 +263,17 @@ public sealed partial class WindowSession : IWindowSession
         {
             return await action(ct).ConfigureAwait(false);
         }
+        catch (OperationBlockedException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            var blocked = OperationBlockerDetector.Detect(_sessionId, _nativeWindowHandle);
+            if (blocked.IsBlocked)
+                throw new OperationBlockedException(blocked.Reason!, ex);
+            throw;
+        }
         finally
         {
             _gate.Release();
@@ -275,6 +289,17 @@ public sealed partial class WindowSession : IWindowSession
         try
         {
             await action(ct).ConfigureAwait(false);
+        }
+        catch (OperationBlockedException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            var blocked = OperationBlockerDetector.Detect(_sessionId, _nativeWindowHandle);
+            if (blocked.IsBlocked)
+                throw new OperationBlockedException(blocked.Reason!, ex);
+            throw;
         }
         finally
         {

@@ -19,6 +19,20 @@ ADACT は Windows UIA と daemon process の状態に依存します。問題が
 
 UIA は同一 Windows session 内の top-level window しか見えません。`list-apps` が空に見える事故を避けるため、ADACT は daemon 起動時に fail-fast します。
 
+## `OPERATION_BLOCKED`
+
+| 症状 | 内容 |
+| --- | --- |
+| exit code | 通常 `1` |
+| stderr | `error OPERATION_BLOCKED` |
+| 典型原因 | 画面ロック中、UAC プロンプト表示中、対象ウィンドウが非アクティブまたは最小化されている |
+
+復旧:
+
+1. 画面がロックされている場合は解除する。
+2. UAC プロンプトが表示されている場合は許可または拒否して閉じる。
+3. 対象ウィンドウがアクティブで表示されていることを確認する。
+
 ## daemon 接続失敗
 
 | 症状 | 内容 |

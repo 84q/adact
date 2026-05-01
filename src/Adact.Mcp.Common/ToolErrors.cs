@@ -44,6 +44,8 @@ internal static class ToolErrors
     public const string InternalError = "INTERNAL_ERROR";
     /// <summary><c>windows_wait_for</c> / <c>windows_wait_for_window</c> がタイムアウト内に成功条件を満たせなかった。</summary>
     public const string WaitTimeout = "WAIT_TIMEOUT";
+    /// <summary>デスクトップがロック / UAC / ウィンドウ非アクティブなどで操作がブロックされた。</summary>
+    public const string OperationBlocked = "OPERATION_BLOCKED";
 
     /// <summary>業務例外なら <see cref="CallToolResult"/> を返し、それ以外は null。</summary>
     /// <param name="ex">マッピング対象の例外。</param>
@@ -61,6 +63,7 @@ internal static class ToolErrors
             KillFailedException k => Error(KillFailed, k.Message),
             LaunchFailedException l => Error(LaunchFailed, l.Message),
             WaitTimeoutException t => Error(WaitTimeout, t.Message),
+            OperationBlockedException o => Error(OperationBlocked, o.Message),
             _ => null,
         };
     }

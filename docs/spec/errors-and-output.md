@@ -134,6 +134,7 @@ CLI client は `isError: true` を受けると stderr の `error` / `message` / 
 | `WAIT_TIMEOUT` | Engine→MCP→CLI | `wait-for` / `wait-for-window` が timeout | 1 |
 | `CONNECTION_FAILED` | CLI | HTTP daemon に接続できない | 3 |
 | `LOCAL_ONLY` | CLI / MCP | remote target で `daemon-stop`、または stdio mode で `daemon_stop` | 2 または 1 |
+| `OPERATION_BLOCKED` | Engine→MCP→CLI | デスクトップがロック / UAC / ウィンドウ非アクティブなどで操作がブロックされた | 1 |
 | `NO_INTERACTIVE_SESSION` | daemon 起動 | `serve` / `local` が非対話 desktop で起動された | 4 |
 | `INTERNAL_ERROR` | CLI / MCP | 予期しない内部失敗 | 1 |
 
@@ -146,6 +147,7 @@ CLI client は `isError: true` を受けると stderr の `error` / `message` / 
 | `REF_NOT_FOUND` | `adact snapshot` を再取得し、新しい `[ref=...]` を使う |
 | `INVALID_WINDOW_REF` | `adact list-apps` で `w<n>` を取り直して `adact attach <w<n>>` を使う |
 | `WINDOW_NOT_FOUND` | `windowRef` に対応する window が表示されているか確認し、必要なら `list-apps` を再実行する |
+| `OPERATION_BLOCKED` | 画面ロックを解除する、UAC プロンプトを閉じる、対象ウィンドウがアクティブで表示されていることを確認する |
 | `WAIT_TIMEOUT` | `--timeout` を伸ばす、待機条件 (`--state` や検索条件) を見直す、対象 UI が想定通り遷移するか確認する |
 | `LAUNCH_FAILED` | 実行ファイルパスを確認する。PATH が通っているか、Win32 / .NET は権限と実行ビットが揃っているか、UWP は `shell:AppsFolder\<AUMID>` の AUMID が正しいかを確認する |
 

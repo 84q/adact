@@ -42,6 +42,9 @@ internal static class ErrorCodes
     /// <summary>localhost 限定の操作を非ローカル接続で実行しようとした (例: <c>daemon-stop</c>)。</summary>
     public const string LocalOnly = "LOCAL_ONLY";
 
+    /// <summary>デスクトップがロック / UAC / ウィンドウ非アクティブなどで操作がブロックされた。</summary>
+    public const string OperationBlocked = "OPERATION_BLOCKED";
+
     /// <summary>その他の内部エラー。</summary>
     public const string InternalError = "INTERNAL_ERROR";
 }
