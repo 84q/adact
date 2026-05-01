@@ -33,7 +33,7 @@ internal static class SnapshotCommand
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
                 (client, token) => CommandHelpers.WriteSnapshotResultAsync(
-                    client, sidArg, dirArg, token, writeSessionId: true, filter: filterArg),
+                    client, sidArg, dirArg, token, writeSessionId: true, filter: filterArg, writeContentToStdout: true),
                 ct);
         });
 

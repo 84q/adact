@@ -116,9 +116,11 @@ ref.
 
 ## Snapshot output format
 
-Commands that capture snapshots (`snapshot`, `click`, `fill`, `hover`, `type`,
-`press`, etc.) write the snapshot content to **stdout** as well as to a file.
-The stdout structure is:
+The `snapshot` command writes the full snapshot text to **stdout** as well as
+to a file. Other commands (`click`, `fill`, `hover`, `type`, `press`, etc.)
+only write the snapshot to a file and print the file path on stdout.
+
+### `snapshot` command stdout
 
 ```
 sessionId s1
@@ -136,6 +138,16 @@ sessionId: s1
 The key-value header (`sessionId`, `snapshot`, optionally `unchanged`) is
 followed by the full snapshot text. AI clients can parse the header lines and
 then use the tree body to locate element refs.
+
+### Other commands (file only)
+
+`click`, `fill`, and similar commands output only the header lines:
+
+```
+sessionId s1
+snapshot .adact/session-1-20260428T180002500.txt
+unchanged true      <-- only present when the UI state did not change
+```
 
 ## Connecting to the daemon
 

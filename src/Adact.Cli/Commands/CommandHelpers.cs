@@ -99,6 +99,10 @@ internal static class CommandHelpers
     /// <param name="writeSessionId">true の場合 stdout に sessionId 行を書き出す。
     /// 呼び出し側で既に出力済みの場合 (例: attach コマンド) は false を指定する。</param>
     /// <param name="filter">"operable" / "raw" を指定する CLI フィルタ。null/省略時は operable。</param>
+    /// <param name="writeContentToStdout">
+    /// true の場合、snapshot テキスト本体も stdout に書き出す。
+    /// <c>snapshot</c> コマンド専用。click/fill 等の auto-snapshot では false のままとする。
+    /// </param>
     /// <returns>exit code (成功時 0)。エラー時は <see cref="McpResponse.TryReportError"/> 経由で stderr 出力 + 1。</returns>
     /// <exception cref="ArgumentNullException">client が null。</exception>
     public static async Task<int> WriteSnapshotResultAsync(
@@ -107,7 +111,8 @@ internal static class CommandHelpers
         string? snapshotDir,
         CancellationToken ct,
         bool writeSessionId = true,
-        string? filter = null)
+        string? filter = null,
+        bool writeContentToStdout = false)
     {
         ArgumentNullException.ThrowIfNull(client);
 
@@ -171,8 +176,10 @@ internal static class CommandHelpers
             KeyValueWriter.Write("unchanged", "true");
         }
 
-        // Output snapshot content to stdout so AI clients can see it without reading the file.
-        Console.Out.WriteLine(text);
+        if (writeContentToStdout)
+        {
+            Console.Out.WriteLine(text);
+        }
         return ExitCodes.Success;
     }
 
