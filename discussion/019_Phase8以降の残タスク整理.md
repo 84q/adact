@@ -54,11 +54,11 @@
 
 | タスク | 内容 | 状態 | 出所 |
 | --- | --- | --- | --- |
-| 接続先環境変数 | `.adact/config.json` と `--server` に加え、環境変数で daemon 接続先を指定できるようにする。 | **未実装** | Phase 5 |
+| ~~接続先環境変数~~ | ~~`.adact/config.json` と `--server` に加え、環境変数で daemon 接続先を指定できるようにする。~~ | **不採用** | 設計 009 §3.1 で「環境変数による指定は不採用」と決定済み。`.adact/config.json` + `--server` で十分。 |
 | 認証 / TLS / CORS | リモート daemon 運用時の保護方針を決め、必要最小限を実装する。 | **未実装** | Phase 5 |
 | `--format` | CLI 出力の Markdown / JSON 等の切替要否を検討する。 | **未実装** | Phase 5 |
 | `REF_NOT_FOUND` 時の再 snapshot 方針 | 古い ref / 消滅 ref に遭遇したとき、AI 側判断・CLI ヒント・自動再 snapshot のどこまで担うか決める。 | **方針確定** | Phase 5 / Phase 6 |
-| `.adact/config.json` 拡充 | 接続先以外の設定項目、個人設定とリポジトリ共有設定の分離、検索ルールを拡張する。 | **未実装** | Phase 5 |
+| `.adact/config.json` 拡充 | 接続先以外の設定項目（`defaultSnapshotDir` / `outputFormat` 等）、個人設定とリポジトリ共有設定の分離、検索ルールを拡張する。 | **未実装** | Phase 5 / Phase 9 以降。現状は `server` のみ対応。 |
 | `KillAsync` の PID 再利用対策 | `Process.StartTime` 等を使い、意図しない別プロセス kill を防ぐ。 | **未実装** | Phase 5 |
 | `CalculatorMutex` 共通化 | テストアセンブリ間で重複している Calculator mutex を共有テストヘルパへ集約する。 | **未実装** | Phase 5 |
 | recipes | 電卓・メモ帳などの典型操作テンプレートを提供するか検討する。 | **未実装** | Phase 6 |
@@ -151,8 +151,9 @@
 | 検証用サンプルアプリ | ADACT の主要操作を確認する専用アプリを提供する。 | 未着手 | 既存アプリ依存のスモークを減らし、AI の既知情報に依存しない検証を行う。当面は既存アプリで十分。 |
 | FlaUI テストコード生成 | AI が探索した操作を、FlaUI を用いた自動シナリオテストとして生成する。 | 未着手 | Codegen / recipes / Skill 拡張と合わせて設計する。 |
 | 失敗時スクリーンショット自動撮影 | 操作失敗時に自動的にスクリーンショットを撮影し、エラー出力に添付する。 | 未着手 | `screenshot` コマンドは実装済み。失敗時の自動連携が残タスク。 |
-| `.adact/config.json` | 接続先・個人設定・検索ルールなどの永続設定。 | 未着手 | Phase 5 申し送り。 |
-| 環境変数による接続先指定 | `ADACT_SERVER` などの環境変数で daemon 接続先を指定。 | 未着手 | Phase 5 申し送り。 |
+| `.adact/config.json`（`server`） | 接続先 URL の永続設定。 | **完了** | 設計 009 §3.3 通り実装済み。`server` フィールドのみ対応。 |
+| `.adact/config.json`（その他） | `defaultSnapshotDir` / `outputFormat` 等の拡張設定。 | 未着手 | Phase 5 / Phase 9 以降で必要性を見て追加。 |
+| ~~環境変数による接続先指定~~ | ~~`ADACT_SERVER` などの環境変数で daemon 接続先を指定。~~ | **不採用** | 設計 009 §3.1 で不採用決定。`.adact/config.json` + `--server` で十分。 |
 | PID 再利用対策 | `KillAsync` で `Process.StartTime` を使った同一性検証。 | 未着手 | Phase 5 申し送り。 |
 | `CalculatorMutex` 共通化 | 3 テストプロジェクトに重複している CalculatorMutex を集約。 | 未着手 | Phase 5 申し送り。技術的負債ではあるが動作に影響なし。 |
 
@@ -174,6 +175,7 @@
 | 028 の成果 | UWP アプリ snapshot の内部要素取得は完了。 |
 | Element Ref | `s<sid>e<eid>` 形式を継続する。generation 付き ref は旧 baseline のみに残る過去形式として扱う。 |
 | `REF_NOT_FOUND` 時の方針 | Skill ドキュメントとエラーメッセージで「`adact snapshot` を再実行し、新しい ref を取得して retry」と案内する。自動再 snapshot は未実装。 |
+| 接続先解決 | `--server` > `.adact/config.json`（`server` フィールド）> 既定値 `http://127.0.0.1:41300/mcp` の優先順位で確定。環境変数は不採用。 |
 
 ### 6.2 提案（Phase 9 以降）
 
@@ -184,7 +186,7 @@
 | 動作確認用サンプルアプリ | 当面は既存アプリ（電卓・メモ帳・Chrome）で十分。Phase 9 以降で modal / dynamic UI の再現性が必要になった場合に作成する。 |
 | `adact` コマンド単体起動 | 配布・インストール導線を整備し、コマンド名だけで起動できる状態を目指す。 |
 | FlaUI テストコード生成 | AI 探索からテストコード生成へつなげる Codegen / recipes / Skill 拡張を将来機能として整理する。 |
-| `.adact/config.json` | 接続先・個人設定・検索ルールなどの永続設定を整備する。 |
+| `.adact/config.json`（その他フィールド） | `defaultSnapshotDir` / `outputFormat` 等、接続先以外の永続設定を追加する。現状は `server` のみ完了。 |
 | PID 再利用対策 | `KillAsync` に `Process.StartTime` による同一性検証を追加する。 |
 | `CalculatorMutex` 共通化 | 3 テストプロジェクトに重複している `CalculatorMutex` を共有テストヘルパーに集約する。 |
 
@@ -214,7 +216,7 @@
 | 順序 | 内容 | 理由 |
 | --- | --- | --- |
 | 1 | 失敗時スクリーンショット自動撮影 | `screenshot` コマンドは完成している。操作失敗時 catch ブロックへの統合でデバッグ体験を飛躍的に改善する。 |
-| 2 | `.adact/config.json` と環境変数対応 | 接続先設定の永続化と、毎回 `--server` を指定しない運用性の向上。 |
+| 2 | `.adact/config.json` 拡充（`defaultSnapshotDir` 等） | `server` 以外の設定項目を追加し、CLI の運用性を向上する。 |
 | 3 | `--verbose` の全コマンド展開 | 現状は `local` のみ。`attach` / `click` などでも詳細ログを有効化できるようにする。 |
 | 4 | PID 再利用対策 + `CalculatorMutex` 共通化 | 技術的負債の解消。動作に影響はないが、テストの堅牢性と保守性を向上する。 |
 | 5 | Phase 9 新規機能の採否再判断 | `evaluate`、recipes、サンプルアプリ、Codegen など、実利用で不足が見えたものから優先する。 |
