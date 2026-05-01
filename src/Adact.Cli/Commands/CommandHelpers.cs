@@ -159,13 +159,20 @@ internal static class CommandHelpers
         }
 
         var sidNum = ParseSidNumber(resolvedSid);
-        var path = SnapshotFileWriter.Write(text, sidNum, snapshotDir);
+        var (path, isNew) = SnapshotFileWriter.Write(text, sidNum, snapshotDir);
 
         if (writeSessionId)
         {
             KeyValueWriter.Write("sessionId", resolvedSid);
         }
         KeyValueWriter.Write("snapshot", path);
+        if (!isNew)
+        {
+            KeyValueWriter.Write("unchanged", "true");
+        }
+
+        // Output snapshot content to stdout so AI clients can see it without reading the file.
+        Console.Out.WriteLine(text);
         return ExitCodes.Success;
     }
 

@@ -28,11 +28,31 @@ adact snapshot [--sid <sessionId>] [--snapshot-dir <dir>] [--filter <name>] [--s
 ```
 sessionId s1
 snapshot .adact/session-1-20260428T180001234.txt
+---
+filter: operable
+sessionId: s1
+...
+---
+- Window "メモ帳" [ref=s1e1]
+  ...
 ```
 
-Filenames are `session-<sid>-<UTC timestamp>.txt`. The file content is a
-Playwright-style indented text representation of the UIA tree (UTF-8, LF
-newlines, no BOM). Older files are not cleaned up automatically.
+The snapshot content is written to **both** stdout and the file. Filenames are
+`session-<sid>-<UTC timestamp>.txt`. The file content is a Playwright-style
+indented text representation of the UIA tree (UTF-8, LF newlines, no BOM).
+Older files are not cleaned up automatically.
+
+If the UI state has not changed since the last snapshot, ADACT reuses the
+existing file and prints `unchanged true`:
+
+```
+sessionId s1
+snapshot .adact/session-1-20260428T180001234.txt
+unchanged true
+---
+filter: operable
+...
+```
 
 ### File format
 
