@@ -20,6 +20,8 @@ public sealed class SnapshotBuilder
 
     /// <summary>snapshot 中の Ref ID 採番に使うセッション固有レジストリ。</summary>
     private readonly RefRegistry _registry;
+    /// <summary>現 snapshot で既に出力済みの ref ID 集合。UWP の FindAllDescendants フラットリストによる重複を防ぐ。</summary>
+    private readonly HashSet<string> _emittedRefs = new();
 
     /// <summary>新しいビルダーを <see cref="RefRegistry"/> 紐付けで初期化する。</summary>
     /// <param name="registry">snapshot 中の Ref ID 採番に使用するセッション固有レジストリ。</param>
@@ -34,6 +36,7 @@ public sealed class SnapshotBuilder
     public SnapshotBuildResult Build(SnapshotBuildInput input)
     {
         _registry.BeginSnapshot();
+        _emittedRefs.Clear();
 
         var maxDepth = input.Options.MaxDepth > 0 ? input.Options.MaxDepth : DefaultMaxDepth;
 
@@ -49,12 +52,15 @@ public sealed class SnapshotBuilder
             foreach (var modal in input.ModalSiblings)
             {
                 var modalNode = BuildNode(modal, depth: 0, maxDepth, isModalDialog: true, ref positionalIndex);
-                children.Add(modalNode);
-                modalSummaries.Add(new JsonObject
+                if (modalNode is not null)
                 {
-                    ["ref"] = modalNode["ref"]?.GetValue<string>(),
-                    ["title"] = modal.Name,
-                });
+                    children.Add(modalNode);
+                    modalSummaries.Add(new JsonObject
+                    {
+                        ["ref"] = modalNode["ref"]?.GetValue<string>(),
+                        ["title"] = modal.Name,
+                    });
+                }
             }
             rootNode["children"] = children;
         }
@@ -85,11 +91,17 @@ public sealed class SnapshotBuilder
     }
 
     /// <summary>raw 全フィールドを JSON ノードとして出力する (フィルタなし、すべての子を再帰)。</summary>
-    private JsonObject BuildNode(
+    private JsonObject? BuildNode(
         IElement el, int depth, int maxDepth, bool isModalDialog, ref int positionalIndex)
     {
         var refId = _registry.Register(el, positionalIndex);
         positionalIndex++;
+
+        // Skip if this ref was already emitted in the current snapshot
+        // (can happen with UWP FindAllDescendants flat lists where the same element
+        // appears both as a direct child and nested inside another branch)
+        if (!_emittedRefs.Add(refId))
+            return null;
 
         var node = new JsonObject
         {
@@ -117,7 +129,9 @@ public sealed class SnapshotBuilder
         {
             foreach (var child in el.Children)
             {
-                childNodes.Add(BuildNode(child, depth + 1, maxDepth, isModalDialog: false, ref positionalIndex));
+                var childNode = BuildNode(child, depth + 1, maxDepth, isModalDialog: false, ref positionalIndex);
+                if (childNode is not null)
+                    childNodes.Add(childNode);
             }
         }
         if (childNodes.Count > 0) node["children"] = childNodes;

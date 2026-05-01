@@ -86,7 +86,33 @@ internal sealed class FlaUiElement : IElement
             if (_children is not null) return _children;
             try
             {
-                var raw = _el.FindAllChildren();
+                AutomationElement[] raw;
+                // UWP workaround: CoreWindow hides deep content from FindAllChildren
+                if (_el.Properties.ClassName.ValueOrDefault == "Windows.UI.Core.CoreWindow")
+                {
+                    raw = _el.FindAllDescendants();
+                    // Exclude self if present
+                    raw = raw.Where(r => !r.Equals(_el)).ToArray();
+                }
+                else
+                {
+                    raw = _el.FindAllChildren();
+                }
+                // Deduplicate by RuntimeId to avoid duplicate entries from FindAllDescendants flat list
+                var seenRuntimeIds = new HashSet<string>();
+                var unique = new List<AutomationElement>(raw.Length);
+                foreach (var r in raw)
+                {
+                    var rid = Safe(() => r.Properties.RuntimeId.ValueOrDefault);
+                    var key = rid is not null && rid.Length > 0
+                        ? string.Join(",", rid)
+                        : $"fallback:{r.GetHashCode()}";
+                    if (seenRuntimeIds.Add(key))
+                    {
+                        unique.Add(r);
+                    }
+                }
+                raw = unique.ToArray();
                 var list = new List<IElement>(raw.Length);
                 foreach (var c in raw) list.Add(new FlaUiElement(c));
                 _children = list;

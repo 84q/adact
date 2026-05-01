@@ -95,11 +95,100 @@ UWP アプリの snapshot 取得制約を docs に明記し、`press` / `type` /
 
 ---
 
-## 4. 今後の検証方針
+## 4. 検証結果
 
-1. **案 A の検証**: `FlaUiElement.Children` の `FindAllChildren()` を `FindAllDescendants()` に変更し、電卓で snapshot を再取得。他のアプリ（Chrome、Notepad++ 等）でパフォーマンス影響を確認。
-2. **案 B の検証**: `RawViewWalker` / `ControlViewWalker` を使って `ApplicationFrameInputSinkWindow` の内部要素を取得できるか確認。
-3. **判断**: 案 A/B の検証結果をもとに、どの案を採用するか決定。いずれにせよ案 C（ドキュメント化）は併行して実施。
+### 4.1 案 A（`FindAllDescendants`）の検証結果
+
+| アプリ | FindAllChildren | FindAllDescendants | 時間（Children/Descendants） | 数字ボタン |
+| --- | --- | --- | --- | --- |
+| 電卓 | 3 | 52 | 16ms / 19ms | ✅ 0-9 取得可能 |
+| Notepad++ | 2 | 23 | 11ms / 11ms | N/A | 3ボタン |
+
+**重要な発見**: `FindAllDescendants` で電卓の数字ボタン（0-9）が**取得できた**。パフォーマンスはほぼ同等（16ms vs 19ms）。
+
+### 4.2 UIA ツリーの詳細構造
+
+電卓の `ApplicationFrameWindow` の子要素:
+
+```
+ApplicationFrameWindow（外枠）
+├── Window "電卓" [Class: ApplicationFrameTitleBarWindow]
+│   ├── MenuBar "システム"
+│   ├── Button "最小化"
+│   ├── Button "最大化"
+│   └── Button "閉じる"
+├── Window "電卓" [Class: Windows.UI.Core.CoreWindow]  ← 実際の UWP コンテンツ
+│   ├── Text "電卓" [Class: TextBlock]
+│   └── Custom [Class: Custom]  ← この内部にボタンが存在
+│       └── Group
+│           └── Button "1"
+│           └── Button "2"
+│           └── ...
+└── Pane [Class: ApplicationFrameInputSinkWindow]  ← 子要素なし（0）
+```
+
+**核心的事実**:
+- `CoreWindow.FindAllChildren()`: **2 要素のみ**（TextBlock, Custom）
+- `CoreWindow.FindAllDescendants()`: **44 要素**（うちボタン 33）
+- `ApplicationFrameInputSinkWindow.FindAllChildren()`: **0 要素**
+- `ApplicationFrameInputSinkWindow.FindAllDescendants()`: **0 要素**
+
+つまり、ボタンは `ApplicationFrameInputSinkWindow` ではなく **`Windows.UI.Core.CoreWindow` の深い階層**に存在する。
+
+### 4.3 案 B（TreeWalker）の検証結果
+
+FlaUI 5.0.0 の API で `GetRawTreeWalker()` は利用不可。`FindAllDescendants` で代替可能なため、案 B は不要と判断。
+
+### 4.4 新たな課題
+
+`FindAllDescendants()` は**フラットなリスト**を返すため、UIA ツリーの階層構造が失われる。例:
+
+```
+階層構造（期待）:
+Window
+└── Custom
+    └── Group
+        └── Button "1"
+
+FindAllDescendants の結果（フラット）:
+[Window, Custom, Group, Button "1"]
+```
+
+このため、`SnapshotBuilder` の再帰構造と整合させるには、親子関係の復元が必要。
+
+---
+
+## 5. 実装方針の決定
+
+### 採用案: **案 A + UWP 特化ハンドリング**
+
+`FlaUiElement.Children` で通常は `FindAllChildren()` を使い、UWP の特殊要素（`Windows.UI.Core.CoreWindow`）に対してのみ `FindAllDescendants()` で深く掘る。
+
+**理由**:
+- Notepad++ 等の Win32 アプリには**影響なし**
+- 電卓等の UWP アプリで**ボタンを取得可能**
+- パフォーマンス劣化**ほぼなし**
+
+**実装方法**:
+1. `FlaUiElement.Children` で `ClassName == "Windows.UI.Core.CoreWindow"` の場合、`FindAllDescendants()` を使う
+2. `FindAllDescendants` の結果から、現在の要素 `_el` 自身を除外し、残りを子として返す
+3. **階層構造はフラット化される**（孫要素が子として表示される）— これは既知の制約
+
+### 代替案: **現状維持 + ドキュメント化（案 C）**
+
+UWP アプリの制約を docs に明記し、`press` / `type` を推奨する。
+
+- **利点**: 実装リスクゼロ
+- **欠点**: UWP アプリの `click` 操作が制限される
+
+---
+
+## 6. 今後の検証方針
+
+1. **実装の検証**: `CoreWindow` 特化ハンドリングを実装し、電卓で snapshot を再取得
+2. **他の UWP アプリ**: 設定アプリ、メールアプリ等でも同じ問題が出るか確認
+3. **階層復元の検討**: `FindAllDescendants` の結果から親子関係を復元する方法の有無
+4. **判断**: 実装の複雑さと効果を比較し、採用するか現状維持（案 C）にするか決定
 
 ---
 
