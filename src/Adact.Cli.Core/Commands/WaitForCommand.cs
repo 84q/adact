@@ -124,10 +124,10 @@ internal static class WaitForCommand
             return (ErrorCodes.InvalidArgument, "--timeout must be > 0.");
         }
         if (!string.IsNullOrEmpty(state)
-            && !Adact.Engine.WaitForStateParser.TryParse(state, out _))
+            && !WaitForStateParser.TryParse(state, out _))
         {
             return (ErrorCodes.InvalidArgument,
-                $"--state '{state}' is not one of: {Adact.Engine.WaitForStateParser.AllowedValues}.");
+                $"--state '{state}' is not one of: {WaitForStateParser.AllowedValues}.");
         }
         return (null, null);
     }

@@ -15,9 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Adact.Cli.Core\Adact.Cli.Core.csproj" />
     <ProjectReference Include="..\Adact.Cli.Server\Adact.Cli.Server.csproj" />
-    <ProjectReference Include="..\Adact.Engine\Adact.Engine.csproj" />
-    <ProjectReference Include="..\Adact.Mcp.Common\Adact.Mcp.Common.csproj" />
     <ProjectReference Include="..\Adact.Mcp.Stdio\Adact.Mcp.Stdio.csproj" />
   </ItemGroup>
 
