@@ -42,7 +42,7 @@
 
 | タスク | 内容 | 状態 | 備考 |
 | --- | --- | --- | --- |
-| `AttachQuery.Hwnd` / `--hwnd` | window handle 直接指定で attach できるようにする。 | **未実装** | `attach` の既存フラグ体系に追加する想定。 |
+| `AttachQuery.Hwnd` / `--hwnd` | window handle 直接指定で attach できるようにする。 | **実装しない** | `list-apps` で取得した `windowRef`（`w1` など）で十分。HWND は人間にとって判読しにくく、運用メリットが少ない。 |
 | モーダルダイアログ検出/追随 | モーダルダイアログを検出し、操作対象として自動追随できるようにする。 | **部分実装** | snapshot 出力にはモーダル要素を含めるようになった（`SnapshotBuilder` で `ModalSiblings` を tree に追加）。自動的な操作対象切り替え（追随）は未実装。 |
 | 画面ロック検知 | Windows デスクトップセッションがロックされている場合に、操作不能であることを明示的に返す。 | **完了** | [027](027_操作ブロック検知.md) で `OPERATION_BLOCKED` として実装。操作失敗時 catch ブロックで検知。 |
 | 失敗時詳細ログ | click/fill/snapshot 失敗時に対象 ref、要素情報、例外情報を追えるようにする。 | **部分実装** | `WindowSession.RunSerializedAsync` で例外種別・ref・メッセージをログ出力。完全な構造化ログ（JSON 形式など）は未実装。 |
@@ -213,11 +213,10 @@
 
 | 順序 | 内容 | 理由 |
 | --- | --- | --- |
-| 1 | 旧 Phase 7 安定化のうち `--hwnd` を実装する | タイトル以外の attach 手段を増やし、タイトル重複時の運用性を向上する。 |
-| 2 | 失敗時スクリーンショット自動撮影 | `screenshot` コマンドは完成している。操作失敗時 catch ブロックへの統合でデバッグ体験を飛躍的に改善する。 |
-| 3 | `.adact/config.json` と環境変数対応 | 接続先設定の永続化と、毎回 `--server` を指定しない運用性の向上。 |
-| 4 | `--verbose` の全コマンド展開 | 現状は `local` のみ。`attach` / `click` などでも詳細ログを有効化できるようにする。 |
-| 5 | PID 再利用対策 + `CalculatorMutex` 共通化 | 技術的負債の解消。動作に影響はないが、テストの堅牢性と保守性を向上する。 |
-| 6 | Phase 9 新規機能の採否再判断 | `evaluate`、recipes、サンプルアプリ、Codegen など、実利用で不足が見えたものから優先する。 |
-| 7 | cross-platform CLI client / 配布導線の設計 | `adact serve` の Windows only を維持しながら、遠隔操作端末と `adact` コマンド単体起動の実現方式を決める。 |
-| 8 | FlaUI テストコード生成の構想整理 | Codegen / recipes / Skill 拡張の責務境界を整理し、安定セレクタ生成との関係を決める。 |
+| 1 | 失敗時スクリーンショット自動撮影 | `screenshot` コマンドは完成している。操作失敗時 catch ブロックへの統合でデバッグ体験を飛躍的に改善する。 |
+| 2 | `.adact/config.json` と環境変数対応 | 接続先設定の永続化と、毎回 `--server` を指定しない運用性の向上。 |
+| 3 | `--verbose` の全コマンド展開 | 現状は `local` のみ。`attach` / `click` などでも詳細ログを有効化できるようにする。 |
+| 4 | PID 再利用対策 + `CalculatorMutex` 共通化 | 技術的負債の解消。動作に影響はないが、テストの堅牢性と保守性を向上する。 |
+| 5 | Phase 9 新規機能の採否再判断 | `evaluate`、recipes、サンプルアプリ、Codegen など、実利用で不足が見えたものから優先する。 |
+| 6 | cross-platform CLI client / 配布導線の設計 | `adact serve` の Windows only を維持しながら、遠隔操作端末と `adact` コマンド単体起動の実現方式を決める。 |
+| 7 | FlaUI テストコード生成の構想整理 | Codegen / recipes / Skill 拡張の責務境界を整理し、安定セレクタ生成との関係を決める。 |
