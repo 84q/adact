@@ -208,3 +208,39 @@ UWP アプリの制約を docs に明記し、`press` / `type` を推奨する�
 | パフォーマンス基準 | `FindAllDescendants` に変更した場合、どの程度のパフォーマンス劣化を許容するか |
 | 対象アプリ範囲 | 電卓だけでなく、他の UWP アプリ（メール、写真等）でも同じ問題が出るか調査するか |
 | 代替操作の推奨 | `press` / `type` / マウス座標操作をどの程度推奨するか |
+
+---
+
+## 7. 完了記録
+
+**完了日: 2026-05-01**
+
+### 採用した方針
+
+- **案 A（`FindAllDescendants` 適用）を採用**。
+- `CoreWindow`（`Windows.UI.Core.CoreWindow`）に対してのみ `FindAllDescendants()` を使用。
+- 他のコントロールタイプでは従来通り `FindAllChildren()` を維持し、パフォーマンス影響を最小化。
+
+### 実装詳細
+
+1. **`FlaUiElement.Children` の変更**:
+   - `_automationElement.ControlType` が `CoreWindow` の場合、`FindAllDescendants()` を使用
+   - それ以外は従来通り `FindAllChildren()`
+   - `FindAllDescendants` の重複防止のため、`RuntimeId` ベースの重複排除を追加
+
+2. **`SnapshotBuilder` の重複排除**:
+   - `_emittedRefs` (`HashSet<string>`) を追加
+   - `BuildNode` が `null` を返すよう変更（既に出力済みの ref の場合）
+   - 子要素追加時に `null` チェックを追加
+
+### 検証結果
+
+- **電卓 snapshot**: 52 要素を取得（s1e1..s1e52）、数字ボタン 0-9 を含む
+- **クリック操作**: `click s1e40`（Button "1"）が正常に動作
+- **計算検証**: `1 + 5 = 6` の計算が正しく実行されることを確認
+- **パフォーマンス**: Notepad++ で `FindAllDescendants` と `FindAllChildren` の差は 11ms vs 11ms（1.00x）
+- **テスト**: 全 529 テストが合格
+
+### コミット
+
+`28b5a48` feat: enable UWP app (Calculator) snapshot and interaction via CoreWindow FindAllDescendants workaround
