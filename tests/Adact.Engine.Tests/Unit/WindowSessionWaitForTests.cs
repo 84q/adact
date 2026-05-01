@@ -1,4 +1,5 @@
 using Adact.Engine;
+using Adact.Engine.Exceptions;
 
 using Xunit;
 
@@ -24,6 +25,18 @@ public class WindowSessionWaitForTests
             ClassName: null,
             NativeWindowHandle: 0x1234);
         return WindowSession.CreateForTest(1, info);
+    }
+
+    private static WindowSession CreateSessionWithRoot(FakeElement root)
+    {
+        var info = new WindowInfo(
+            ProcessId: 12345,
+            ProcessName: "fake",
+            Title: "Fake",
+            ControlType: "Window",
+            ClassName: null,
+            NativeWindowHandle: 0x1234);
+        return WindowSession.CreateForTest(1, info, root);
     }
 
     /// <summary>WaitForRefAsync は refId が null の場合 ArgumentNullException を投げる。</summary>
@@ -171,5 +184,56 @@ public class WindowSessionWaitForTests
         var a = new WaitForResult("s1e1", WaitForState.Visible);
         var b = new WaitForResult("s1e1", WaitForState.Visible);
         Assert.Equal(a, b);
+    }
+
+    /// <summary>WaitForRefAsync はキャンセルトークンが発火済みの場合、即座に OperationCanceledException を投げる。</summary>
+    [Fact]
+    public async Task WaitForRefAsync_Cancelled_ThrowsOperationCanceledException()
+    {
+        var button = FakeElement.Button("OK");
+        var root = FakeElement.Window("Fake Window", button);
+        var session = CreateSessionWithRoot(root);
+
+        await session.SnapshotAsync();
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            session.WaitForRefAsync("s1e2", WaitForState.Visible, TimeSpan.FromSeconds(1), cts.Token));
+    }
+
+    /// <summary>WaitForQueryAsync はキャンセルトークンが発火済みの場合、即座に OperationCanceledException を投げる。</summary>
+    [Fact]
+    public async Task WaitForQueryAsync_Cancelled_ThrowsOperationCanceledException()
+    {
+        var root = FakeElement.Window("Fake Window", FakeElement.Button("OK"));
+        var session = CreateSessionWithRoot(root);
+
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            session.WaitForQueryAsync(
+                new WaitForElementQuery("OK", null, null, null),
+                WaitForState.Visible,
+                TimeSpan.FromSeconds(1),
+                cts.Token));
+    }
+
+    /// <summary>WaitForRefAsync は状態が満たされずタイムアウトに達した場合、WaitTimeoutException を投げる。</summary>
+    [Fact]
+    public async Task WaitForRefAsync_VisibleNotSatisfied_ThrowsWaitTimeoutException()
+    {
+        var button = FakeElement.Button("OK");
+        button.IsOffscreen = true;
+        var root = FakeElement.Window("Fake Window", button);
+        var session = CreateSessionWithRoot(root);
+
+        await session.SnapshotAsync();
+        var ex = await Assert.ThrowsAsync<WaitTimeoutException>(() =>
+            session.WaitForRefAsync("s1e2", WaitForState.Visible, TimeSpan.FromMilliseconds(200)));
+
+        Assert.Contains("wait-for did not observe state 'visible'", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("s1e2", ex.Message, StringComparison.Ordinal);
     }
 }

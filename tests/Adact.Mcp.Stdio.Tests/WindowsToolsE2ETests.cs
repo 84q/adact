@@ -31,9 +31,11 @@ public class WindowsToolsE2ETests
     /// stdio MCP の最小疎通を E2E で担保するため。
     /// </summary>
     /// <returns>テスト完了タスク。</returns>
-    [Fact]
+    [InteractiveFact]
     public async Task ListApps_OnRunningSystem_ReturnsNonEmpty()
     {
+        InteractiveTestGuard.SkipIfNotInteractive();
+
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         await using var client = await McpClient.CreateAsync(CreateTransport(), cancellationToken: cts.Token);
 
@@ -52,9 +54,11 @@ public class WindowsToolsE2ETests
     /// stdio トランスポート + UIA + ref 採番の E2E 通しシナリオの回帰防止。
     /// </summary>
     /// <returns>テスト完了タスク。</returns>
-    [Fact]
+    [InteractiveFact]
     public async Task AttachAndSnapshot_OnCalculator_ReturnsTreeWithButtons()
     {
+        InteractiveTestGuard.SkipIfNotInteractive();
+
         // calc.exe を使う E2E をアセンブリ間並列でも直列化するための named semaphore
         using var _calcLock = new CalculatorMutex();
         var calculator = StartCalculator();
@@ -69,21 +73,9 @@ public class WindowsToolsE2ETests
                 $"windows_list_apps failed: {(listResult.Content.FirstOrDefault() as TextContentBlock)?.Text}");
             var listText = (listResult.Content[0] as TextContentBlock)?.Text;
             Assert.NotNull(listText);
-            string? windowRef = null;
-            using (var listDoc = JsonDocument.Parse(listText!))
-            {
-                foreach (var item in listDoc.RootElement.EnumerateArray())
-                {
-                    if (item.TryGetProperty("windowTitle", out var t)
-                        && t.ValueKind == JsonValueKind.String
-                        && string.Equals(t.GetString(), "電卓", StringComparison.Ordinal))
-                    {
-                        windowRef = item.GetProperty("windowRef").GetString();
-                        break;
-                    }
-                }
-            }
-            Assert.NotNull(windowRef);
+            var windowRef = CalculatorWindowFinder.FindWindowRef(listText!);
+            Assert.False(string.IsNullOrEmpty(windowRef),
+                $"Calculator windowRef not found in windows_list_apps output: {listText}");
 
             // attach (windowRef 経由)
             var attach = await client.CallToolAsync(

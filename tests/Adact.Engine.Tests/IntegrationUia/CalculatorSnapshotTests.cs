@@ -20,6 +20,8 @@ public class CalculatorSnapshotTests : IAsyncLifetime
     /// <returns>起動完了タスク。</returns>
     public async Task InitializeAsync()
     {
+        InteractiveTestGuard.SkipIfNotInteractive();
+
         // 既存の電卓プロセスを終了させ、「電卓」タイトルのウィンドウが複数存在する瞬間を回避する。
         // calc.exe (launcher) と CalculatorApp.exe の両方を対象にする。
         foreach (var name in new[] { "CalculatorApp", "calc" })
@@ -74,7 +76,7 @@ public class CalculatorSnapshotTests : IAsyncLifetime
     /// 実 UIA ツリーと RefRegistry の結合動作の回帰を L3 で検出するため。
     /// </summary>
     /// <returns>テスト完了タスク。</returns>
-    [Fact]
+    [InteractiveFact]
     public async Task Snapshot_OnCalculator_ContainsExpectedNodes()
     {
         using var engine = new UiaEngine();

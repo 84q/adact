@@ -25,7 +25,7 @@ public sealed partial class WindowsTools
     /// <summary><see cref="AttachAsync"/> で受け取る <c>windowRef</c> の文法 (<c>w</c> + 1 桁以上の数字) を検証する正規表現。</summary>
     private static readonly Regex WindowRefPattern = new("^w\\d+$", RegexOptions.Compiled);
 
-    /// <summary>WindowSession を sessionId で管理し、ツール呼び出しを直列化するストア。</summary>
+    /// <summary>window session を sessionId で管理し、ツール呼び出しを直列化するストア。</summary>
     private readonly SessionStore _store;
     /// <summary>top-level window に対する <c>w&lt;n&gt;</c> ref の発行・同期を担うストア。</summary>
     private readonly WindowRefStore _refStore;
@@ -149,7 +149,7 @@ public sealed partial class WindowsTools
         try
         {
             // session 確保: 既存があれば再利用、なければ新規 attach
-            WindowSession session;
+            IWindowSession session;
             if (entry.SessionId is { } sid && _store.TryGet(sid, out var live))
             {
                 session = live;
@@ -207,7 +207,7 @@ public sealed partial class WindowsTools
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
 
-        WindowSession? session;
+        IWindowSession? session;
         if (sessionId is null)
         {
             session = _store.GetActiveOrNull();
@@ -648,8 +648,8 @@ public sealed partial class WindowsTools
     /// <paramref name="session"/> を Dispose する。Dispose / Clear で発生した例外は握りつぶしてデバッグログに記録する。
     /// </summary>
     /// <param name="sessionId">既に <see cref="SessionStore"/> から取り外された session の ID。</param>
-    /// <param name="session">Dispose 対象の <see cref="WindowSession"/>。</param>
-    private void DetachSession(string sessionId, WindowSession session)
+    /// <param name="session">Dispose 対象の <see cref="IWindowSession"/>。</param>
+    private void DetachSession(string sessionId, IWindowSession session)
     {
         if (_refStore.TryFindBySessionId(sessionId, out var entry))
         {

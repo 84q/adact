@@ -28,7 +28,7 @@ public sealed partial class WindowsTools
         if (string.IsNullOrEmpty(key))
             return ToolErrors.Error(ToolErrors.InvalidArgument, "key must be a non-empty string.");
 
-        WindowSession? session;
+        IWindowSession? session;
         if (@ref is null)
         {
             session = _store.GetActiveOrNull();

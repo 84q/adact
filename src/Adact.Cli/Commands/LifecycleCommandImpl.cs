@@ -20,7 +20,7 @@ internal static class LifecycleCommandImpl
     /// <returns>exit code (成功 0)。</returns>
     /// <exception cref="ArgumentNullException">必須引数が null。</exception>
     public static async Task<int> ExecuteAsync(
-        AdactMcpClient client,
+        IAdactMcpClient client,
         string toolName,
         string? sessionId,
         IReadOnlyList<string> literalLines,

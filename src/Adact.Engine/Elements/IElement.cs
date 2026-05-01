@@ -54,3 +54,31 @@ public interface IElement
     /// <summary>UIA <c>SetFocus</c> によりキーボードフォーカスを当てる。失敗時は best-effort。</summary>
     void Focus();
 }
+
+/// <summary>Toggle / checkbox 的な操作を fake 可能にする任意 capability。</summary>
+public interface ICheckableElement
+{
+    /// <summary>現在 checked / selected 状態なら true。</summary>
+    bool IsChecked { get; }
+
+    /// <summary>checked / selected 状態を設定する。</summary>
+    /// <param name="isChecked">設定する状態。</param>
+    void SetChecked(bool isChecked);
+}
+
+/// <summary>List / ComboBox 的な選択操作を fake 可能にする任意 capability。</summary>
+public interface ISelectableElement
+{
+    /// <summary>選択する。</summary>
+    /// <param name="name">選択名。</param>
+    /// <param name="index">選択 index。</param>
+    /// <param name="item">選択 item。</param>
+    void SelectItem(string? name, int? index, IElement? item);
+}
+
+/// <summary>ScrollIntoView 操作を fake 可能にする任意 capability。</summary>
+public interface IScrollableElement
+{
+    /// <summary>要素を表示領域へ scroll する。</summary>
+    void ScrollIntoView();
+}

@@ -75,7 +75,7 @@ internal static class ScreenshotCommand
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
     private static async Task<int> ExecuteAsync(
-        AdactMcpClient client,
+        IAdactMcpClient client,
         string? refValue,
         string? outValue,
         string? sidValue,

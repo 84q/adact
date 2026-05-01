@@ -16,13 +16,17 @@ namespace Adact.Cli.Tests;
 /// 本 fixture の前提: <c>xunit.runner.json</c> で <c>parallelizeAssembly: false</c> が設定されていること。
 /// 同一テストアセンブリ内では <c>[CollectionDefinition("AdactCli", DisableParallelization = true)]</c> によって
 /// daemon を共有する全テストが直列化される。並列実行する場合は ephemeral port のリトライ実装が別途必要になる。
+/// If <c>ADACT_SERVER_URL</c> is set, the fixture uses that external daemon and leaves its lifecycle to the caller.
 /// </remarks>
 public sealed class AdactDaemonFixture : IAsyncLifetime
 {
+    internal const string ServerUrlEnvironmentVariable = "ADACT_SERVER_URL";
+
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan StopTimeout = TimeSpan.FromSeconds(10);
 
     private Process? _serveProcess;
+    private bool _usesExternalServer;
     private readonly StringBuilder _stdout = new();
     private readonly StringBuilder _stderr = new();
     private readonly StringBuilder _diagnostics = new();
@@ -41,6 +45,15 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
     /// <returns>起動完了タスク。</returns>
     public async Task InitializeAsync()
     {
+        var externalBaseUrl = GetExternalServerUrl();
+        if (externalBaseUrl is not null)
+        {
+            BaseUrl = externalBaseUrl;
+            _usesExternalServer = true;
+            await WaitForReadyAsync(BaseUrl, StartupTimeout).ConfigureAwait(false);
+            return;
+        }
+
         Port = GetFreePort();
         BaseUrl = $"http://127.0.0.1:{Port}/mcp";
 
@@ -88,6 +101,7 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
     /// <returns>解放完了タスク。</returns>
     public async Task DisposeAsync()
     {
+        if (_usesExternalServer) return;
         if (_serveProcess is null) return;
 
         // graceful: daemon-stop CLI 経由で停止依頼。失敗・タイムアウトしたら Kill。
@@ -204,6 +218,22 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
         // parallelizeAssembly:false 前提なので競合は発生しないが、安全側に倒す。
         using var listener = new TcpListenerHandle(IPAddress.Loopback, 0);
         return listener.Port;
+    }
+
+    internal static string? GetExternalServerUrl()
+    {
+        var value = Environment.GetEnvironmentVariable(ServerUrlEnvironmentVariable);
+        if (string.IsNullOrWhiteSpace(value)) return null;
+
+        var url = value.Trim();
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)
+            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new InvalidOperationException(
+                $"{ServerUrlEnvironmentVariable} must be an absolute http(s) URL, e.g. http://127.0.0.1:41300/mcp.");
+        }
+
+        return uri.ToString();
     }
 
     private sealed class TcpListenerHandle : IDisposable

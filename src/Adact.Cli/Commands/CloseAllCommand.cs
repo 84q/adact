@@ -38,7 +38,7 @@ internal static class CloseAllCommand
     /// <param name="client">接続済み MCP クライアント。</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。全 ok もしくは空配列なら 0、一つでも fail があれば 1。</returns>
-    private static async Task<int> ExecuteAsync(AdactMcpClient client, CancellationToken ct)
+    private static async Task<int> ExecuteAsync(IAdactMcpClient client, CancellationToken ct)
     {
         var result = await client.CallToolAsync("windows_close_all", arguments: null, ct).ConfigureAwait(false);
 

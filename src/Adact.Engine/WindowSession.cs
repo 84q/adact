@@ -16,7 +16,7 @@ namespace Adact.Engine;
 /// 1 ウィンドウへの操作セッション。Snapshot / Click / Fill を提供する。
 /// Session ID は <see cref="UiaEngine"/> が採番し、Detach 後も再利用しない。
 /// </summary>
-public sealed partial class WindowSession : IDisposable
+public sealed partial class WindowSession : IWindowSession
 {
     /// <summary>UIA オートメーション。Engine と共有される (<see cref="_ownsAutomation"/> が true のときのみ Dispose する)。</summary>
     private readonly AutomationBase _automation;
@@ -30,6 +30,8 @@ public sealed partial class WindowSession : IDisposable
     private readonly SemaphoreSlim _gate;
     /// <summary>本 Session のログ出力に使うロガー。</summary>
     private readonly ILogger<WindowSession> _logger;
+    /// <summary>keyboard / mouse / auto-wait 操作境界。</summary>
+    private readonly IWindowInteractionDriver _interaction;
     /// <summary>true のときのみ <see cref="Dispose"/> 時に <see cref="_automation"/> も Dispose する。</summary>
     private readonly bool _ownsAutomation;
     /// <summary>attach 時点にキャッシュした対象プロセスの PID。</summary>
@@ -53,6 +55,8 @@ public sealed partial class WindowSession : IDisposable
     /// <param name="gate">Engine と全 Session で共有される UIA 直列化 gate。</param>
     /// <param name="logger">ロガー。null の場合は <see cref="NullLogger{T}"/> を使う。</param>
     /// <param name="ownsAutomation">true の場合、本 Session の Dispose 時に <paramref name="automation"/> も Dispose する。</param>
+    /// <param name="rootElement">snapshot root。null の場合は <paramref name="window"/> を <see cref="FlaUiElement"/> でラップする。</param>
+    /// <param name="interaction">keyboard / mouse / auto-wait 操作境界。null の場合は FlaUI 実装を使う。</param>
     internal WindowSession(
         AutomationBase automation,
         Window window,
@@ -60,14 +64,17 @@ public sealed partial class WindowSession : IDisposable
         WindowInfo info,
         SemaphoreSlim gate,
         ILogger<WindowSession>? logger = null,
-        bool ownsAutomation = false)
+        bool ownsAutomation = false,
+        IElement? rootElement = null,
+        IWindowInteractionDriver? interaction = null)
     {
         _automation = automation;
         _window = window;
-        _rootElement = new FlaUiElement(window);
+        _rootElement = rootElement ?? new FlaUiElement(window);
         _registry = new RefRegistry(sessionId);
         _gate = gate;
         _logger = logger ?? NullLogger<WindowSession>.Instance;
+        _interaction = interaction ?? new FlaUiWindowInteractionDriver(window, info.ProcessId, _logger);
         _ownsAutomation = ownsAutomation;
         _processId = info.ProcessId;
         _processName = info.ProcessName;
@@ -106,6 +113,31 @@ public sealed partial class WindowSession : IDisposable
             gate: new SemaphoreSlim(1, 1),
             logger: null,
             ownsAutomation: false);
+
+    /// <summary>
+    /// テスト専用: FlaUI に依存しない root element を持つ最小限の <see cref="WindowSession"/> を生成する。
+    /// Snapshot / Ref 解決 / IElement ベース操作の L2 テストで使用する。
+    /// </summary>
+    /// <param name="sessionId">テスト用に割り当てるセッション ID。</param>
+    /// <param name="info">テスト用ウィンドウ情報。</param>
+    /// <param name="rootElement">snapshot root になる fake element。</param>
+    /// <param name="interaction">keyboard / mouse / auto-wait 操作境界。null の場合は no-op 実装を使う。</param>
+    /// <returns>FlaUI 非依存の <see cref="WindowSession"/>。</returns>
+    internal static WindowSession CreateForTest(
+        int sessionId,
+        WindowInfo info,
+        IElement rootElement,
+        IWindowInteractionDriver? interaction = null)
+        => new(
+            automation: null!,
+            window: null!,
+            sessionId: sessionId,
+            info: info,
+            gate: new SemaphoreSlim(1, 1),
+            logger: null,
+            ownsAutomation: false,
+            rootElement: rootElement,
+            interaction: interaction ?? new NoopWindowInteractionDriver());
 
     /// <summary>
     /// 対象ウィンドウの UIA ツリーを走査し、JSON snapshot を返す。Engine の直列化 gate 内で実行される。
@@ -256,19 +288,7 @@ public sealed partial class WindowSession : IDisposable
     /// 詳細は 002_アーキテクチャ設計.md §6.6 参照。
     /// </summary>
     private async Task AutoWaitAfterInteractionAsync(CancellationToken ct)
-    {
-        try
-        {
-            using var p = Process.GetProcessById(_processId);
-            try { p.WaitForInputIdle(1000); }
-            catch (Exception ex) { _logger.LogDebug(ex, "WaitForInputIdle failed (ignored, best effort)"); }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "GetProcessById failed during auto-wait (ignored)");
-        }
-        await Task.Delay(50, ct).ConfigureAwait(false);
-    }
+        => await _interaction.WaitAfterInteractionAsync(ct).ConfigureAwait(false);
 
     /// <summary><see cref="Dispose"/> のエイリアス。意味的に「セッションを手放す」操作を表現する。</summary>
     public void Detach() => Dispose();

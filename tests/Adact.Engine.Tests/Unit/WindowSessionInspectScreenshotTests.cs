@@ -10,7 +10,7 @@ namespace Adact.Engine.Tests.Unit;
 /// <see cref="WindowSession.InspectAsync(string, CancellationToken)"/> および
 /// <see cref="WindowSession.ScreenshotAsync(string?, string?, CancellationToken)"/>
 /// (Phase 8 Step 6) の引数検証 / Dispose 後挙動 / 結果型シリアライズを検証する Unit テスト。
-/// 実 UIA / FlaUI には依存せず、<see cref="WindowSession.CreateForTest"/> で生成した
+/// 実 UIA / FlaUI には依存せず、<see cref="WindowSession.CreateForTest(int, WindowInfo)"/> で生成した
 /// 最小セッションに対して、UIA に到達する前に弾かれる例外のみを確認する。
 /// </summary>
 [Trait("Layer", "Unit")]

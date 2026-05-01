@@ -29,6 +29,8 @@ public class NotepadppSmokeTests : IAsyncLifetime
     /// <returns>起動完了タスク。</returns>
     public async Task InitializeAsync()
     {
+        InteractiveTestGuard.SkipIfNotInteractive();
+
         foreach (var p in CandidatePaths)
         {
             if (File.Exists(p)) { _exePath = p; break; }
@@ -70,7 +72,7 @@ public class NotepadppSmokeTests : IAsyncLifetime
     /// Win32 アプリの探索動作の回帰を Smoke で検出するため。
     /// </summary>
     /// <returns>テスト完了タスク。</returns>
-    [Fact]
+    [InteractiveFact]
     public async Task Snapshot_OnNotepadpp_ContainsMenuBarOrFileMenu()
     {
         if (_exePath is null) return; // Notepad++ 未インストールのマシンは事実上 skip

@@ -53,7 +53,7 @@ internal static class InspectCommand
     /// <param name="refValue">対象 Element Ref。</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
-    private static async Task<int> ExecuteAsync(AdactMcpClient client, string refValue, CancellationToken ct)
+    private static async Task<int> ExecuteAsync(IAdactMcpClient client, string refValue, CancellationToken ct)
     {
         var args = new Dictionary<string, object?> { ["ref"] = refValue };
         var result = await client.CallToolAsync("windows_inspect", args, ct).ConfigureAwait(false);

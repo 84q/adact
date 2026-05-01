@@ -59,6 +59,13 @@ public sealed partial class WindowSession
             var container = _registry.Resolve(refId);
             try
             {
+                if (container is ISelectableElement selectable)
+                {
+                    var item = itemRef is not null ? _registry.Resolve(itemRef) : null;
+                    selectable.SelectItem(name, index, item);
+                    return;
+                }
+
                 var inner = Inner(container);
                 TryExpand(inner);
 
@@ -163,6 +170,12 @@ public sealed partial class WindowSession
             var el = _registry.Resolve(refId);
             try
             {
+                if (el is IScrollableElement scrollable)
+                {
+                    scrollable.ScrollIntoView();
+                    return Task.CompletedTask;
+                }
+
                 var inner = Inner(el);
                 var pat = inner.Patterns.ScrollItem.PatternOrDefault;
                 if (pat is null)
@@ -196,6 +209,16 @@ public sealed partial class WindowSession
             var el = _registry.Resolve(refId);
             try
             {
+                if (el is ICheckableElement checkable)
+                {
+                    var desiredChecked = desired == ToggleState.On;
+                    if (checkable.IsChecked != desiredChecked)
+                    {
+                        checkable.SetChecked(desiredChecked);
+                    }
+                    return;
+                }
+
                 var inner = Inner(el);
                 var toggle = inner.Patterns.Toggle.PatternOrDefault;
                 if (toggle is null)

@@ -133,7 +133,7 @@ internal static class WaitForCommand
     }
 
     private static async Task<int> ExecuteAsync(
-        AdactMcpClient client,
+        IAdactMcpClient client,
         Dictionary<string, object?> args,
         CancellationToken ct)
     {

@@ -28,7 +28,7 @@ Trait は `[Trait("Layer", "Unit")]` のように指定します。実アプリ�
 
 | 項目 | 注意 |
 | --- | --- |
-| 対話 session | `adact serve` / `adact local` / UIA smoke は対象 GUI と同じ対話 Windows session で実行する |
+| 対話 session | `adact serve` / `adact local` / UIA smoke は対象 GUI と同じ対話 Windows session で実行する。非対話 SSH session では GUI session 必須テストは skip される |
 | Calculator | 複数 test assembly が Calculator を使うため、named semaphore `Global\AdactCalculatorE2E` で直列化している |
 | Notepad++ | Win32 代表の smoke 対象。インストール有無や環境差に注意する |
 | UIA focus | click/fill は foreground や focus に影響されるため、実行中に人間が同じ desktop を触ると flaky になりうる |
@@ -68,19 +68,76 @@ dotnet test
 
 PowerShell では `|` を含む filter は quote してください。
 
+### SSH / 非対話 session から L3+ を実行する
+
+SSH などの非対話 session から L3+ (`IntegrationUia` / `Smoke` / `E2E`) を実行する場合、
+実アプリや UIA に触る処理は対話 Windows session 側で動いている必要がある。
+
+CLI / HTTP の Smoke / E2E は `ADACT_SERVER_URL` に外部 daemon の MCP endpoint を設定すると、
+テスト process 自身では daemon を起動せず、その URL に接続する。先に Windows の対話 GUI
+session 側で `adact serve --port 41300` などを起動しておく。
+HTTP の Calculator E2E では、外部 daemon 指定時も `windows_launch` を通して対話 GUI
+session 側で Calculator を起動する。
+
+```powershell
+$env:ADACT_SERVER_URL = "http://127.0.0.1:41300/mcp"
+dotnet test tests/Adact.Cli.Tests/Adact.Cli.Tests.csproj --filter "Layer=Smoke|Layer=E2E"
+dotnet test tests/Adact.Mcp.Http.Tests/Adact.Mcp.Http.Tests.csproj --filter "Layer=Smoke|Layer=E2E"
+```
+
+`ADACT_SERVER_URL` が設定されている場合、`Adact.Cli.Tests` と `Adact.Mcp.Http.Tests`
+はその URL を使い、自前の `adact serve` process や in-process HTTP server は起動・停止しない。
+未設定の場合は従来どおり、CLI fixture は一時的な local daemon subprocess を起動し、
+HTTP fixture は in-process `WebApplication` を起動する。
+
+`Adact.Engine.Tests` の L3/L4、`Adact.Mcp.Stdio.Tests`、HTTP の in-process 実行など、
+test runner 側が直接 UIA や対象アプリを扱うテストは非対話 session では実行対象にしない。
+これらは `InteractiveFact` / `InteractiveTestGuard` により対話 desktop がない場合に skip される。
+
 ## カバレッジ取得
 
-`coverlet.collector` (各テストプロジェクトに導入済み) と `dotnet-reportgenerator-globaltool` を使う。
+Layer 別にカバレッジを収集・レポート化する。`.runsettings` に共通除外設定（テスト assembly、
+依存ライブラリ）を集約している。
+
+### 前提
 
 ```powershell
 # 初回のみ: ReportGenerator のグローバルツールを導入
 dotnet tool install --global dotnet-reportgenerator-globaltool
+```
 
+### Layer 別レポート
+
+```powershell
+# Unit のみ（高速）
+.\scripts\coverage.ps1 -Layer Unit
+
+# Integration のみ
+.\scripts\coverage.ps1 -Layer Integration
+
+# Unit + Integration（開発時の基本）
+.\scripts\coverage.ps1 -Layer Unit
+.\scripts\coverage.ps1 -Layer Integration
+
+# Smoke / E2E（実アプリ起動を伴う）
+.\scripts\coverage.ps1 -Layer Smoke
+.\scripts\coverage.ps1 -Layer E2E
+
+# 全 Layer
+.\scripts\coverage.ps1
+```
+
+各 Layer のレポートは `TestResults/<Layer>/coverage-html/` に出力される。
+`index.html` をブラウザで開くとファイル別 / 行ごとのカバー状況が確認できる。
+
+### 手動実行（スクリプトを使わない場合）
+
+```powershell
 # Unit + Integration のカバレッジを cobertura で出力
 if (Test-Path TestResults) { Remove-Item -Recurse -Force TestResults }
-dotnet test adact.sln --filter "Layer=Unit|Layer=Integration" --collect:"XPlat Code Coverage" --results-directory TestResults
+dotnet test adact.sln --filter "Layer=Unit|Layer=Integration" --collect:"XPlat Code Coverage" --results-directory TestResults --settings .runsettings
 
-# HTML レポート生成 (production code のみ。adact.dll の小文字も拾う)
+# HTML レポート生成
 reportgenerator `
   "-reports:TestResults/**/coverage.cobertura.xml" `
   "-targetdir:TestResults/coverage-html" `
@@ -89,12 +146,17 @@ reportgenerator `
 
 # サマリ表示
 Get-Content TestResults/coverage-html/Summary.txt
-
-# ブラウザで詳細 (ファイル別 / 行ごとのカバー / 未カバー強調)
-Start-Process TestResults/coverage-html/index.html
 ```
 
-`TestResults/` は `.gitignore` 済みのため commit されない。CI 用途では同じ手順で生成可能。
+`TestResults/` は `.gitignore` 済みのため commit されない。CI 用途では `scripts/coverage.ps1` 
+または同じ手順で生成可能。
+
+### zero coverage assembly の扱い
+
+`coverlet` は実行されたコードのみを計測対象とする。テストから到達していない assembly 
+（例: `Adact.Mcp.Stdio` が Unit/Integration テストに含まれない場合）はレポートに現れない。
+これは「未到達 = カバレッジ 0%」とは異なる。Layer 別レポートを比較することで、
+「どの Layer でどの assembly が動作確認されているか」を判断する。
 
 ## テスト追加時の目安
 

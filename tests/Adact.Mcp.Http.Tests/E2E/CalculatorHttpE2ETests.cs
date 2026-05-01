@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Text.Json;
 
+using Adact.Mcp.Http.Tests;
+
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 
@@ -43,38 +45,50 @@ public class CalculatorHttpE2ETests
     /// HTTP トランスポート + UIA + ref 採番の E2E 通しシナリオの回帰防止。
     /// </summary>
     /// <returns>テスト完了タスク。</returns>
-    [Fact]
+    [InteractiveFact]
     public async Task AttachAndSnapshot_OnCalculator_ReturnsTreeWithButtons()
     {
+        InteractiveTestGuard.SkipIfNotInteractive();
+
         // calc.exe を使う E2E をアセンブリ間並列でも直列化するための named semaphore
         using var _calcLock = new CalculatorMutex();
-        var calculator = StartCalculator();
+        var calculator = _fixture.UsesExternalServer ? null : StartCalculator();
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
             await using var client = await McpClient.CreateAsync(CreateTransport(), cancellationToken: cts.Token);
 
-            // 電卓の windowRef を windows_list_apps から取得する
-            var listResult = await client.CallToolAsync("windows_list_apps", cancellationToken: cts.Token);
-            Assert.False(listResult.IsError ?? false,
-                $"windows_list_apps failed: {(listResult.Content.FirstOrDefault() as TextContentBlock)?.Text}");
-            var listText = (listResult.Content[0] as TextContentBlock)?.Text;
-            Assert.NotNull(listText);
-            string? windowRef = null;
-            using (var listDoc = JsonDocument.Parse(listText!))
+            if (_fixture.UsesExternalServer)
             {
-                foreach (var item in listDoc.RootElement.EnumerateArray())
-                {
-                    if (item.TryGetProperty("windowTitle", out var t)
-                        && t.ValueKind == JsonValueKind.String
-                        && string.Equals(t.GetString(), "電卓", StringComparison.Ordinal))
-                    {
-                        windowRef = item.GetProperty("windowRef").GetString();
-                        break;
-                    }
-                }
+                var launch = await client.CallToolAsync(
+                    "windows_launch",
+                    new Dictionary<string, object?> { ["executable"] = "calc.exe" },
+                    cancellationToken: cts.Token);
+                Assert.False(launch.IsError ?? false,
+                    $"windows_launch failed: {(launch.Content.FirstOrDefault() as TextContentBlock)?.Text}");
             }
-            Assert.NotNull(windowRef);
+
+            string? windowRef = null;
+            string? listText = null;
+            var deadline = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(10);
+            while (DateTimeOffset.UtcNow < deadline)
+            {
+                var listResult = await client.CallToolAsync("windows_list_apps", cancellationToken: cts.Token);
+                Assert.False(listResult.IsError ?? false,
+                    $"windows_list_apps failed: {(listResult.Content.FirstOrDefault() as TextContentBlock)?.Text}");
+                listText = (listResult.Content[0] as TextContentBlock)?.Text;
+                Assert.NotNull(listText);
+
+                windowRef = CalculatorWindowFinder.FindWindowRef(listText!);
+                if (!string.IsNullOrEmpty(windowRef))
+                {
+                    break;
+                }
+
+                await Task.Delay(200, cts.Token);
+            }
+            Assert.False(string.IsNullOrEmpty(windowRef),
+                $"Calculator windowRef not found in windows_list_apps output: {listText}");
 
             // attach (windowRef 経由)
             var attach = await client.CallToolAsync(
@@ -96,12 +110,20 @@ public class CalculatorHttpE2ETests
             var buttonCount = CountByRole(tree, "Button");
             Assert.True(buttonCount > 1,
                 $"Calculator snapshot should contain multiple Button nodes; got {buttonCount}.");
+
+            if (_fixture.UsesExternalServer)
+            {
+                await client.CallToolAsync("windows_close", cancellationToken: cts.Token);
+            }
         }
         finally
         {
-            foreach (var p in Process.GetProcessesByName("CalculatorApp"))
+            if (!_fixture.UsesExternalServer)
             {
-                try { p.Kill(); p.WaitForExit(2000); } catch { }
+                foreach (var p in Process.GetProcessesByName("CalculatorApp"))
+                {
+                    try { p.Kill(); p.WaitForExit(2000); } catch { }
+                }
             }
             try { calculator?.Dispose(); } catch { }
         }

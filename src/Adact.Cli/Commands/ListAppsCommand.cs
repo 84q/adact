@@ -33,7 +33,7 @@ internal static class ListAppsCommand
     /// <param name="client">接続済み MCP クライアント。</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
-    private static async Task<int> ExecuteAsync(AdactMcpClient client, CancellationToken ct)
+    private static async Task<int> ExecuteAsync(IAdactMcpClient client, CancellationToken ct)
     {
         var result = await client.CallToolAsync("windows_list_apps", arguments: null, ct).ConfigureAwait(false);
 

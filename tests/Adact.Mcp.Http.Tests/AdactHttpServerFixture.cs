@@ -12,12 +12,20 @@ namespace Adact.Mcp.Http.Tests;
 /// </summary>
 public sealed class AdactHttpServerFixture : IAsyncLifetime
 {
+    internal const string ServerUrlEnvironmentVariable = "ADACT_SERVER_URL";
+
+    private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(30);
+
     private WebApplication? _app;
+    private bool _usesExternalServer;
 
     /// <summary>
     /// テスト中に MCP クライアントから接続する HTTP エンドポイント (/mcp 付き)。
     /// </summary>
     public Uri BaseAddress { get; private set; } = null!;
+
+    /// <summary>True when tests are connected to an externally started daemon from <c>ADACT_SERVER_URL</c>.</summary>
+    public bool UsesExternalServer => _usesExternalServer;
 
     /// <summary>
     /// HTTP サーバーを起動して <see cref="BaseAddress"/> を解決する。
@@ -25,6 +33,15 @@ public sealed class AdactHttpServerFixture : IAsyncLifetime
     /// <returns>初期化完了タスク。</returns>
     public async Task InitializeAsync()
     {
+        var externalBaseAddress = GetExternalServerUri();
+        if (externalBaseAddress is not null)
+        {
+            BaseAddress = externalBaseAddress;
+            _usesExternalServer = true;
+            await WaitForReadyAsync(BaseAddress, StartupTimeout).ConfigureAwait(false);
+            return;
+        }
+
         _app = HttpHost.BuildApplication(port: 0);
         await _app.StartAsync();
         // Listen(IPAddress.Loopback, 0) で起動したあと、実際にバインドされた URL は
@@ -41,12 +58,54 @@ public sealed class AdactHttpServerFixture : IAsyncLifetime
     /// <returns>解放完了タスク。</returns>
     public async Task DisposeAsync()
     {
+        if (_usesExternalServer) return;
+
         if (_app is not null)
         {
             try { await _app.StopAsync(); } catch { }
             await _app.DisposeAsync();
             _app = null;
         }
+    }
+
+    internal static Uri? GetExternalServerUri()
+    {
+        var value = Environment.GetEnvironmentVariable(ServerUrlEnvironmentVariable);
+        if (string.IsNullOrWhiteSpace(value)) return null;
+
+        var url = value.Trim();
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)
+            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new InvalidOperationException(
+                $"{ServerUrlEnvironmentVariable} must be an absolute http(s) URL, e.g. http://127.0.0.1:41300/mcp.");
+        }
+
+        return uri;
+    }
+
+    private static async Task WaitForReadyAsync(Uri baseAddress, TimeSpan timeout)
+    {
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        Exception? last = null;
+        while (sw.Elapsed < timeout)
+        {
+            try
+            {
+                using var _ = await http.GetAsync(baseAddress).ConfigureAwait(false);
+                return;
+            }
+            catch (Exception ex)
+            {
+                last = ex;
+                await Task.Delay(200).ConfigureAwait(false);
+            }
+        }
+
+        throw new TimeoutException(
+            $"External adact HTTP daemon did not become ready within {timeout.TotalSeconds:F0}s on {baseAddress}.",
+            last);
     }
 }
 

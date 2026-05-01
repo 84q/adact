@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Adact.Mcp.Common;
 
 /// <summary>
-/// MCP 層が保持する Session ストア。複数 <see cref="WindowSession"/> を sessionId (例: "s1") で管理し、
+/// MCP 層が保持する Session ストア。複数 <see cref="IWindowSession"/> を sessionId (例: "s1") で管理し、
 /// 最後にアタッチした Session を「アクティブ Session」として保持する。
 /// UIA は同時呼び出しに弱いため <see cref="SemaphoreSlim"/> でツール呼び出しを直列化する。
 /// </summary>
@@ -20,8 +20,8 @@ public sealed class SessionStore : IDisposable
     private readonly UiaEngine _engine;
     /// <summary>Dispose / 例外トレース用のロガー。</summary>
     private readonly ILogger<SessionStore> _logger;
-    /// <summary>sessionId (例: <c>s1</c>) → <see cref="WindowSession"/> の辞書。</summary>
-    private readonly ConcurrentDictionary<string, WindowSession> _sessions = new();
+    /// <summary>sessionId (例: <c>s1</c>) → <see cref="IWindowSession"/> の辞書。</summary>
+    private readonly ConcurrentDictionary<string, IWindowSession> _sessions = new();
     /// <summary>UIA 呼び出しを直列化するための semaphore (初期カウント 1)。</summary>
     private readonly SemaphoreSlim _lock = new(1, 1);
     /// <summary>最後に attach / register された session の ID。存在しなければ <c>null</c>。</summary>
@@ -55,8 +55,8 @@ public sealed class SessionStore : IDisposable
     /// attach 成功時に session をストアへ登録し、同時にアクティブ session とする。
     /// 同じ sessionId のエントリがあれば上書きされる。
     /// </summary>
-    /// <param name="session">登録する <see cref="WindowSession"/>。</param>
-    public void Register(WindowSession session)
+    /// <param name="session">登録する <see cref="IWindowSession"/>。</param>
+    public void Register(IWindowSession session)
     {
         var id = $"s{session.SessionId}";
         _sessions[id] = session;
@@ -69,7 +69,7 @@ public sealed class SessionStore : IDisposable
     /// <param name="sessionId">探す sessionId (例: <c>s1</c>)。</param>
     /// <param name="session">見つかった session。見つからない場合は <c>null!</c>。</param>
     /// <returns>見つかったかどうか。</returns>
-    public bool TryGet(string sessionId, out WindowSession session)
+    public bool TryGet(string sessionId, out IWindowSession session)
     {
         if (_sessions.TryGetValue(sessionId, out var s))
         {
@@ -82,7 +82,7 @@ public sealed class SessionStore : IDisposable
 
     /// <summary>アクティブ session を返す。存在しない (未 attach / detach 済み) なら <c>null</c>。</summary>
     /// <returns>アクティブ session、または <c>null</c>。</returns>
-    public WindowSession? GetActiveOrNull()
+    public IWindowSession? GetActiveOrNull()
     {
         if (_activeSessionId is null) return null;
         return _sessions.TryGetValue(_activeSessionId, out var s) ? s : null;
@@ -91,7 +91,7 @@ public sealed class SessionStore : IDisposable
     /// <summary>Ref ID から sid を抽出し、対応する Session を返す。失敗時は null。</summary>
     /// <param name="refId"><c>s&lt;sid&gt;e&lt;eid&gt;</c> 形式の element ref。</param>
     /// <returns>解決できた session、または <c>null</c>。</returns>
-    public WindowSession? ResolveByRef(string refId)
+    public IWindowSession? ResolveByRef(string refId)
     {
         if (!RefId.TryParse(refId, out var sid, out _)) return null;
         var key = $"s{sid}";
@@ -105,7 +105,7 @@ public sealed class SessionStore : IDisposable
     /// <param name="sessionId">削除する session の ID。</param>
     /// <param name="session">削除された session。見つからない場合は <c>null</c>。</param>
     /// <returns>削除できたかどうか。</returns>
-    public bool TryRemove(string sessionId, [NotNullWhen(true)] out WindowSession? session)
+    public bool TryRemove(string sessionId, [NotNullWhen(true)] out IWindowSession? session)
     {
         if (_sessions.TryRemove(sessionId, out var removed))
         {
@@ -120,15 +120,15 @@ public sealed class SessionStore : IDisposable
         return false;
     }
 
-    /// <summary>現在保持しているすべての (sessionId, WindowSession) のスナップショット。</summary>
+    /// <summary>現在保持しているすべての (sessionId, IWindowSession) のスナップショット。</summary>
     /// <returns>スナップショット時点のエントリ一覧。後続の変更は反映されない。</returns>
-    public IReadOnlyList<KeyValuePair<string, WindowSession>> ListAll()
+    public IReadOnlyList<KeyValuePair<string, IWindowSession>> ListAll()
     {
         return _sessions.ToArray();
     }
 
     /// <summary>
-    /// 保持しているすべての <see cref="WindowSession"/> と同時に <see cref="UiaEngine"/>、並びに semaphore を解放する。
+    /// 保持しているすべての <see cref="IWindowSession"/> と同時に <see cref="UiaEngine"/>、並びに semaphore を解放する。
     /// </summary>
     /// <remarks>
     /// 二重呼び出しは無視される。Dispose 中に起きた個別の例外は握りつぶしてデバッグログに記録し、ループを継続する。

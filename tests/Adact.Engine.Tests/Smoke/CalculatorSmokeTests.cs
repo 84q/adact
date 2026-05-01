@@ -19,6 +19,8 @@ public class CalculatorSmokeTests : IAsyncLifetime
     /// <returns>起動完了タスク。</returns>
     public async Task InitializeAsync()
     {
+        InteractiveTestGuard.SkipIfNotInteractive();
+
         // 既存の電卓プロセスを終了させ、「電卓」タイトルのウィンドウが複数存在する瞬間を回避する。
         // calc.exe (launcher) と CalculatorApp.exe の両方を対象にする。
         foreach (var name in new[] { "CalculatorApp", "calc" })
@@ -64,7 +66,7 @@ public class CalculatorSmokeTests : IAsyncLifetime
     /// click → snapshot のやり取りと ref 介した要素操作の Smoke 検証。
     /// </summary>
     /// <returns>テスト完了タスク。</returns>
-    [Fact]
+    [InteractiveFact]
     public async Task Click_Seven_DisplayShowsSeven()
     {
         using var engine = new UiaEngine();

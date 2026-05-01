@@ -91,7 +91,7 @@ internal static class WaitForWindowCommand
     }
 
     private static async Task<int> ExecuteAsync(
-        AdactMcpClient client,
+        IAdactMcpClient client,
         Dictionary<string, object?> args,
         CancellationToken ct)
     {

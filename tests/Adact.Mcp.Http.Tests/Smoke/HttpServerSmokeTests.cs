@@ -55,9 +55,11 @@ public class HttpServerSmokeTests
     /// HTTP 配線と最も軽量な UIA ツールの疎通を Smoke として検出するため。
     /// </summary>
     /// <returns>テスト完了タスク。</returns>
-    [Fact]
+    [InteractiveFact]
     public async Task ListApps_OnRunningHttpServer_ReturnsNonEmpty()
     {
+        InteractiveTestGuard.SkipIfNotInteractive();
+
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         await using var client = await McpClient.CreateAsync(CreateTransport(), cancellationToken: cts.Token);
 

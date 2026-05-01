@@ -96,7 +96,7 @@ public sealed partial class WindowsTools
         }
 
         // session 解決
-        WindowSession? session;
+        IWindowSession? session;
         if (hasRef)
         {
             if (!RefId.TryParse(@ref!, out _, out _))

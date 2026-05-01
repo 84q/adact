@@ -6,7 +6,7 @@ namespace Adact.Engine.Tests.Unit;
 
 /// <summary>
 /// <see cref="WindowSession.ResizeAsync(int, int, CancellationToken)"/> の引数検証 (Phase 8 Step 5) を
-/// 検証する Unit テスト。実 UIA / FlaUI には依存せず、<see cref="WindowSession.CreateForTest"/> で
+/// 検証する Unit テスト。実 UIA / FlaUI には依存せず、<see cref="WindowSession.CreateForTest(int, WindowInfo)"/> で
 /// 生成した最小セッションに対して引数検証段階の例外のみを確認する。
 /// </summary>
 [Trait("Layer", "Unit")]

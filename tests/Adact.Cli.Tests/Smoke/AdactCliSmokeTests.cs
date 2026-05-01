@@ -70,7 +70,7 @@ public class AdactCliSmokeTests
         // daemon が NOT_FOUND を返す経路 (windows_attach の失敗パス) の最小確認として残置している。
         // ロジック単体の検証は <see cref="Adact.Cli.Tests.Unit.AttachCommandTests"/> 側で実施。
         var result = CliProcess.RunWithServer(
-            "attach --title __adact_nonexistent_window__",
+            "attach w999999",
             _fixture.BaseUrl);
 
         Assert.Equal(1, result.ExitCode);

@@ -14,6 +14,12 @@ namespace Adact.Cli.Commands;
 /// </summary>
 internal static class CommandHelpers
 {
+    internal static Func<ServerEndpoint, CancellationToken, Task<IAdactMcpClient>> ConnectClientAsync { get; set; }
+        = static async (endpoint, ct) => await AdactMcpClient.ConnectAsync(
+            endpoint,
+            loggerFactory: null,
+            ct).ConfigureAwait(false);
+
     /// <summary>
     /// 接続解決 → MCP 接続 → コマンド実装の呼び出し、を共通化する。
     /// 解決失敗 → INVALID_ARGUMENT (exit 2)、接続失敗 → CONNECTION_FAILED (exit 3)、
@@ -25,7 +31,7 @@ internal static class CommandHelpers
     /// <returns>exit code。</returns>
     public static async Task<int> RunWithClientAsync(
         string? serverArg,
-        Func<AdactMcpClient, CancellationToken, Task<int>> exec,
+        Func<IAdactMcpClient, CancellationToken, Task<int>> exec,
         CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(exec);
@@ -46,7 +52,7 @@ internal static class CommandHelpers
 
         try
         {
-            await using var client = await AdactMcpClient.ConnectAsync(endpoint, loggerFactory: null, ct).ConfigureAwait(false);
+            await using var client = await ConnectClientAsync(endpoint, ct).ConfigureAwait(false);
             return await exec(client, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -96,7 +102,7 @@ internal static class CommandHelpers
     /// <returns>exit code (成功時 0)。エラー時は <see cref="McpResponse.TryReportError"/> 経由で stderr 出力 + 1。</returns>
     /// <exception cref="ArgumentNullException">client が null。</exception>
     public static async Task<int> WriteSnapshotResultAsync(
-        AdactMcpClient client,
+        IAdactMcpClient client,
         string? sessionId,
         string? snapshotDir,
         CancellationToken ct,
@@ -176,7 +182,7 @@ internal static class CommandHelpers
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
     public static async Task<int> RunRefOperationAndAutoSnapshotAsync(
-        AdactMcpClient client,
+        IAdactMcpClient client,
         string operationToolName,
         Dictionary<string, object?> operationArgs,
         string elementRef,
@@ -220,7 +226,7 @@ internal static class CommandHelpers
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
     public static async Task<int> RunSessionOperationAndAutoSnapshotAsync(
-        AdactMcpClient client,
+        IAdactMcpClient client,
         string operationToolName,
         Dictionary<string, object?> operationArgs,
         string? sessionId,

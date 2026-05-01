@@ -10,7 +10,7 @@ namespace Adact.Cli.Connection;
 /// 各 CLI コマンドは <see cref="ConnectAsync"/> でクライアントを作成し、
 /// <see cref="CallToolAsync"/> 経由で tool を呼び出す。
 /// </summary>
-internal sealed class AdactMcpClient : IAsyncDisposable
+internal sealed class AdactMcpClient : IAdactMcpClient, IAsyncDisposable
 {
     private readonly McpClient _client;
 

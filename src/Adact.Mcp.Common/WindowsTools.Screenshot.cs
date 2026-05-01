@@ -40,7 +40,7 @@ public sealed partial class WindowsTools
                 $"'out' must end with '.png' (got '{@out}'). Screenshot format is PNG-only.");
         }
 
-        WindowSession? session;
+        IWindowSession? session;
         if (!string.IsNullOrEmpty(@ref))
         {
             if (!ValidateRef(@ref, out session, out var refError))

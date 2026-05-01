@@ -38,12 +38,12 @@ public sealed partial class WindowSession
                 }
                 else
                 {
-                    try { _window.Focus(); } catch { /* best effort */ }
+                    _interaction.FocusWindow();
                 }
 
                 using (PressModifiers(mods))
                 {
-                    Keyboard.Type(main);
+                    _interaction.TypeKey(main);
                 }
             }
             catch (AdactException) { throw; }
@@ -73,7 +73,7 @@ public sealed partial class WindowSession
             c.ThrowIfCancellationRequested();
             try
             {
-                Keyboard.Press(vk);
+                _interaction.PressKey(vk);
             }
             catch (Exception ex)
             {
@@ -101,7 +101,7 @@ public sealed partial class WindowSession
             c.ThrowIfCancellationRequested();
             try
             {
-                Keyboard.Release(vk);
+                _interaction.ReleaseKey(vk);
             }
             catch (Exception ex)
             {
@@ -138,19 +138,19 @@ public sealed partial class WindowSession
                 }
                 else
                 {
-                    try { _window.Focus(); } catch { /* best effort */ }
+                    _interaction.FocusWindow();
                 }
 
                 if (delayMs <= 0)
                 {
-                    Keyboard.Type(text);
+                    _interaction.TypeText(text);
                 }
                 else
                 {
                     foreach (var ch in text)
                     {
                         c.ThrowIfCancellationRequested();
-                        Keyboard.Type(ch);
+                        _interaction.TypeChar(ch);
                         await Task.Delay(delayMs, c).ConfigureAwait(false);
                     }
                 }

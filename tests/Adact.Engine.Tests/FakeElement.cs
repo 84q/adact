@@ -3,7 +3,7 @@ using Adact.Engine.Elements;
 namespace Adact.Engine.Tests;
 
 /// <summary>L1/L2 テスト用の in-memory IElement 実装。</summary>
-internal sealed class FakeElement : IElement
+internal sealed class FakeElement : IElement, ICheckableElement, ISelectableElement, IScrollableElement
 {
     public string? Name { get; set; }
     public string? AutomationId { get; set; }
@@ -23,10 +23,30 @@ internal sealed class FakeElement : IElement
     public int ClickCount { get; private set; }
     public string? LastFilledText { get; private set; }
     public int FocusCount { get; private set; }
+    public bool IsChecked { get; private set; }
+    public bool? LastSetChecked { get; private set; }
+    public string? LastSelectedName { get; private set; }
+    public int? LastSelectedIndex { get; private set; }
+    public IElement? LastSelectedItem { get; private set; }
+    public int ScrollIntoViewCount { get; private set; }
 
     public void Click() => ClickCount++;
     public void Fill(string text) => LastFilledText = text;
     public void Focus() => FocusCount++;
+    public void SetChecked(bool isChecked)
+    {
+        IsChecked = isChecked;
+        LastSetChecked = isChecked;
+    }
+
+    public void SelectItem(string? name, int? index, IElement? item)
+    {
+        LastSelectedName = name;
+        LastSelectedIndex = index;
+        LastSelectedItem = item;
+    }
+
+    public void ScrollIntoView() => ScrollIntoViewCount++;
 
     public FakeElement AddChild(FakeElement child)
     {

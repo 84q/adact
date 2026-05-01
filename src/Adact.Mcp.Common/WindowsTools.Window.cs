@@ -84,13 +84,13 @@ public sealed partial class WindowsTools
     /// </summary>
     /// <param name="toolName">MCP ツール名 (ログ用)。</param>
     /// <param name="sessionId">対象 session。null はアクティブ。</param>
-    /// <param name="op">解決済み <see cref="Adact.Engine.WindowSession"/> に対する操作。</param>
+    /// <param name="op">解決済み <see cref="Adact.Engine.IWindowSession"/> に対する操作。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>成功時は空 content、業務例外は <c>CallToolResult</c>、未マップ例外は再 throw。</returns>
     private async Task<CallToolResult> InvokeWindowStateAsync(
         string toolName,
         string? sessionId,
-        Func<Adact.Engine.WindowSession, Task> op,
+        Func<Adact.Engine.IWindowSession, Task> op,
         CancellationToken ct)
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);

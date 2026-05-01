@@ -97,7 +97,7 @@ internal static class AttachCommand
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
     private static async Task<int> ExecuteAsync(
-        AdactMcpClient client,
+        IAdactMcpClient client,
         Dictionary<string, object?> arguments,
         bool noSnapshot,
         string? snapshotDir,

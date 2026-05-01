@@ -190,7 +190,7 @@ public sealed partial class WindowsTools
     /// <param name="session">解決された session (失敗時は null)。</param>
     /// <param name="error">エラー結果 (成功時は null)。</param>
     /// <returns>成功時 true。</returns>
-    private bool ValidateRef(string @ref, out WindowSession? session, out CallToolResult? error)
+    private bool ValidateRef(string @ref, out IWindowSession? session, out CallToolResult? error)
     {
         session = null;
         if (string.IsNullOrEmpty(@ref))
@@ -220,7 +220,7 @@ public sealed partial class WindowsTools
     /// <param name="session">対応 session。</param>
     /// <param name="error">エラー結果。</param>
     /// <returns>成功時 true。</returns>
-    private bool ValidateMouseTarget(string target, out MouseTarget? parsed, out WindowSession? session, out CallToolResult? error)
+    private bool ValidateMouseTarget(string target, out MouseTarget? parsed, out IWindowSession? session, out CallToolResult? error)
     {
         parsed = null;
         session = null;

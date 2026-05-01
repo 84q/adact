@@ -33,7 +33,7 @@ public sealed partial class WindowSession
             var el = _registry.Resolve(refId);
             try
             {
-                try { _window.Focus(); } catch { /* best effort */ }
+                _interaction.FocusWindow();
                 PerformClick(el, options, dblclick: options.Double);
             }
             catch (AdactException) { throw; }
@@ -64,7 +64,7 @@ public sealed partial class WindowSession
             var el = _registry.Resolve(refId);
             try
             {
-                try { _window.Focus(); } catch { /* best effort */ }
+                _interaction.FocusWindow();
                 PerformClick(el, options ?? new ClickOptions(), dblclick: true);
             }
             catch (AdactException) { throw; }
@@ -102,7 +102,7 @@ public sealed partial class WindowSession
                 var mods = ModifierKeys.Resolve(modifiers);
                 using (PressModifiers(mods))
                 {
-                    Mouse.MoveTo(x, y);
+                    _interaction.MoveTo(x, y);
                 }
             }
             catch (AdactException) { throw; }
@@ -133,7 +133,7 @@ public sealed partial class WindowSession
             try
             {
                 var (x, y) = ResolveTarget(target);
-                Mouse.MoveTo(x, y);
+                _interaction.MoveTo(x, y);
             }
             catch (AdactException) { throw; }
             catch (Exception ex)
@@ -164,8 +164,8 @@ public sealed partial class WindowSession
             try
             {
                 var (x, y) = ResolveTarget(target);
-                Mouse.MoveTo(x, y);
-                Mouse.Down(MapButton(button));
+                _interaction.MoveTo(x, y);
+                _interaction.MouseDown(button);
             }
             catch (AdactException) { throw; }
             catch (Exception ex)
@@ -196,8 +196,8 @@ public sealed partial class WindowSession
             try
             {
                 var (x, y) = ResolveTarget(target);
-                Mouse.MoveTo(x, y);
-                Mouse.Up(MapButton(button));
+                _interaction.MoveTo(x, y);
+                _interaction.MouseUp(button);
             }
             catch (AdactException) { throw; }
             catch (Exception ex)
@@ -231,15 +231,15 @@ public sealed partial class WindowSession
             try
             {
                 var (x, y) = ResolveTarget(target);
-                Mouse.MoveTo(x, y);
+                _interaction.MoveTo(x, y);
                 if (deltaY != 0)
                 {
                     // FlaUI: 正値 = up scroll. 設計の符号 (Playwright 流, 正 = down) のため反転する。
-                    Mouse.Scroll(-deltaY);
+                    _interaction.Scroll(-deltaY);
                 }
                 if (deltaX != 0)
                 {
-                    Mouse.HorizontalScroll(deltaX);
+                    _interaction.HorizontalScroll(deltaX);
                 }
             }
             catch (AdactException) { throw; }
@@ -255,11 +255,11 @@ public sealed partial class WindowSession
     /// <param name="el">クリック対象要素。</param>
     /// <param name="options">クリックオプション。</param>
     /// <param name="dblclick">true の場合は OS ダブルクリック判定を意図して 1 回の <c>DoubleClick</c> を発火する。</param>
-    private static void PerformClick(IElement el, ClickOptions options, bool dblclick)
+    private void PerformClick(IElement el, ClickOptions options, bool dblclick)
     {
         var (x, y) = ComputeTargetPoint(el, options.PositionX, options.PositionY);
         var mods = ModifierKeys.Resolve(options.Modifiers);
-        var btn = MapButton(options.Button);
+        var btn = options.Button;
 
         // 標準ケース (修飾なし、位置指定なし、左ボタン、Count==1、!dblclick) は
         // 既存の Invoke パターン経由クリックを維持する (Phase 2 互換)。
@@ -271,62 +271,56 @@ public sealed partial class WindowSession
             return;
         }
 
-        Mouse.MoveTo(x, y);
+        _interaction.MoveTo(x, y);
         using (PressModifiers(mods))
         {
             if (dblclick)
             {
-                Mouse.DoubleClick(btn);
+                _interaction.MouseDoubleClick(btn);
             }
             else
             {
                 int count = options.Count <= 0 ? 1 : options.Count;
                 for (int i = 0; i < count; i++)
                 {
-                    Mouse.Click(btn);
+                    _interaction.MouseClick(btn);
                 }
             }
         }
     }
 
-    /// <summary>FlaUI <see cref="Mouse"/> に渡すボタンへ変換する。</summary>
-    /// <param name="button">本実装の <see cref="MouseButton"/>。</param>
-    /// <returns>FlaUI 入力 API 用の <see cref="FlaUI.Core.Input.MouseButton"/>。</returns>
-    private static FlaUI.Core.Input.MouseButton MapButton(MouseButton button)
-    {
-        return button switch
-        {
-            MouseButton.Right => FlaUI.Core.Input.MouseButton.Right,
-            MouseButton.Middle => FlaUI.Core.Input.MouseButton.Middle,
-            _ => FlaUI.Core.Input.MouseButton.Left,
-        };
-    }
-
     /// <summary>修飾キーを押下し、戻り値の <see cref="IDisposable"/> 解放時に解放するヘルパ。</summary>
     /// <param name="modifiers">押下する修飾キー列。</param>
     /// <returns>解放時に modifiers をすべて解放する <see cref="IDisposable"/>。</returns>
-    private static IDisposable PressModifiers(IReadOnlyList<VirtualKeyShort> modifiers)
+    private IDisposable PressModifiers(IReadOnlyList<VirtualKeyShort> modifiers)
     {
         if (modifiers.Count == 0) return NoopDisposable.Instance;
-        foreach (var k in modifiers) Keyboard.Press(k);
-        return new ModifierReleaser(modifiers);
+        foreach (var k in modifiers) _interaction.PressKey(k);
+        return new ModifierReleaser(_interaction, modifiers);
     }
 
     /// <summary>解放時に押下中の修飾キーをすべて Release する <see cref="IDisposable"/>。</summary>
     private sealed class ModifierReleaser : IDisposable
     {
+        /// <summary>キー操作境界。</summary>
+        private readonly IWindowInteractionDriver _interaction;
         /// <summary>押下中の修飾キー列。</summary>
         private readonly IReadOnlyList<VirtualKeyShort> _keys;
         /// <summary>解放対象の修飾キー列を保持して構築する。</summary>
+        /// <param name="interaction">キー操作境界。</param>
         /// <param name="keys">解放する修飾キー列。</param>
-        public ModifierReleaser(IReadOnlyList<VirtualKeyShort> keys) { _keys = keys; }
+        public ModifierReleaser(IWindowInteractionDriver interaction, IReadOnlyList<VirtualKeyShort> keys)
+        {
+            _interaction = interaction;
+            _keys = keys;
+        }
         /// <inheritdoc />
         public void Dispose()
         {
             // 押下と逆順で解放する (Win32 ベストプラクティス)。
             for (int i = _keys.Count - 1; i >= 0; i--)
             {
-                try { Keyboard.Release(_keys[i]); } catch { /* best effort */ }
+                try { _interaction.ReleaseKey(_keys[i]); } catch { /* best effort */ }
             }
         }
     }
