@@ -12,16 +12,14 @@ internal static class CloseCommand
     public static Command Build()
     {
         var sid = new Option<string?>("--sid") { Description = "Target session ID (default: active session)." };
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("close", "Close a window via UIA WindowPattern.Close (auto-detach on success).");
         cmd.Options.Add(sid);
-        cmd.Options.Add(server);
 
         cmd.SetAction((parseResult, ct) =>
         {
             var sidArg = parseResult.GetValue(sid);
-            var serverArg = parseResult.GetValue(server);
+            var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
 
             return CommandHelpers.RunWithClientAsync(
                 serverArg,

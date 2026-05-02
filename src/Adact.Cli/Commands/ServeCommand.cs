@@ -47,7 +47,7 @@ internal static class ServeCommand
             DefaultValueFactory = _ => DefaultHost,
         };
 
-        var cmd = new Command("serve", "Run as an HTTP MCP server on <host>:<port> (default 127.0.0.1:41300).");
+        var cmd = new Command("serve", "Run as an HTTP MCP server on <host>:<port> (default 127.0.0.1:41300). (--server option is ignored for this command.)");
         cmd.Options.Add(port);
         cmd.Options.Add(host);
 

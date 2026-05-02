@@ -18,14 +18,11 @@ internal static class DaemonStopCommand
     /// <returns>daemon-stop サブコマンド。</returns>
     public static Command Build()
     {
-        var server = CommandHelpers.CreateServerOption();
-
         var cmd = new Command("daemon-stop", "Stop a local HTTP MCP daemon gracefully.");
-        cmd.Options.Add(server);
 
         cmd.SetAction((parseResult, ct) =>
         {
-            var serverArg = parseResult.GetValue(server);
+            var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
             return RunAsync(serverArg, ct);
         });
 

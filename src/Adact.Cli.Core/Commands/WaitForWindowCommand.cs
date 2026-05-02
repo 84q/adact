@@ -21,7 +21,6 @@ internal static class WaitForWindowCommand
         var processNameOpt = new Option<string?>("--process-name") { Description = "Process name regex (case-insensitive, no extension)." };
         var exeOpt = new Option<string?>("--exe") { Description = "Executable full-path regex (case-insensitive)." };
         var timeoutOpt = new Option<int?>("--timeout") { Description = "Polling timeout in milliseconds. Defaults to 5000." };
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("wait-for-window", "Wait until a top-level window matching the given conditions appears. Does not attach.");
         cmd.Options.Add(titleOpt);
@@ -29,7 +28,6 @@ internal static class WaitForWindowCommand
         cmd.Options.Add(processNameOpt);
         cmd.Options.Add(exeOpt);
         cmd.Options.Add(timeoutOpt);
-        cmd.Options.Add(server);
 
         cmd.SetAction((parseResult, ct) =>
         {
@@ -38,7 +36,7 @@ internal static class WaitForWindowCommand
             var processName = parseResult.GetValue(processNameOpt);
             var exe = parseResult.GetValue(exeOpt);
             var timeoutValue = parseResult.GetValue(timeoutOpt);
-            var serverArg = parseResult.GetValue(server);
+            var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
 
             var (errorCode, errorMessage) = ValidateArgs(title, className, processName, exe, timeoutValue);
             if (errorCode is not null)

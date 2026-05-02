@@ -29,4 +29,3 @@
 | 18 | デフォルト接続先を local に | MCP 接続時のデフォルト接続先を `local`（stdio）に変更する。 | 未着手 | 現状のデフォルトが TCP 等の場合の変更。 |
 | 19 | local 接続時の daemon 自動起動 | local 接続時に ADACT daemon プロセスが存在しなければ自動的に立ち上げる。 | 未着手 | ID 18 とセットで検討。 |
 | 20 | daemon-stop の local 専用化 | `daemon-stop` コマンドを local（stdio）接続時のみ有効にし、127.0.0.1 等のリモート接続時は実行不可にする。 | 未着手 | ID 18・19 とセットで検討。セキュリティ観点からリモート側の誤停止を防ぐ。 |
-| 21 | オプションの順番の柔軟化 | 現状は、 "list-apps --server xxx" は OK だが、 "--server xxx list-apps" は NG | 未着手 |  |

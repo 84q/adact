@@ -305,6 +305,15 @@ public class CommandHelpersTests
         Assert.Equal("windows_maximize", Assert.Single(client.Calls).Name);
     }
 
+    /// <summary>Verifies that ServerOption has the expected name, description, and Recursive flag.</summary>
+    [Fact]
+    public void ServerOption_HasExpectedProperties()
+    {
+        Assert.Equal("--server", CommandHelpers.ServerOption.Name);
+        Assert.Contains("Connection target URL", CommandHelpers.ServerOption.Description ?? "");
+        Assert.True(CommandHelpers.ServerOption.Recursive);
+    }
+
     /// <summary>Verifies that invalid server arguments fail before connecting.</summary>
     [Fact]
     public async Task RunWithClientAsync_InvalidServer_ReturnsUserErrorWithoutConnecting()

@@ -15,14 +15,11 @@ internal static class ListAppsCommand
     /// <returns>list-apps サブコマンド。</returns>
     public static Command Build()
     {
-        var server = CommandHelpers.CreateServerOption();
-
         var cmd = new Command("list-apps", "List top-level windows on this Windows desktop.");
-        cmd.Options.Add(server);
 
         cmd.SetAction((parseResult, ct) =>
         {
-            var serverArg = parseResult.GetValue(server);
+            var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
             return CommandHelpers.RunWithClientAsync(serverArg, ExecuteAsync, ct);
         });
 

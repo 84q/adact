@@ -30,7 +30,6 @@ internal static class WaitForCommand
         };
         var timeoutOpt = new Option<int?>("--timeout") { Description = "Polling timeout in milliseconds. Defaults to 5000." };
         var sidOpt = new Option<string?>("--sid") { Description = "Target session ID (default: active session). Only used with search conditions." };
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("wait-for", "Wait until an element reaches the given state. Specify either --ref or search conditions (mutually exclusive).");
         cmd.Options.Add(refOpt);
@@ -41,7 +40,6 @@ internal static class WaitForCommand
         cmd.Options.Add(stateOpt);
         cmd.Options.Add(timeoutOpt);
         cmd.Options.Add(sidOpt);
-        cmd.Options.Add(server);
 
         cmd.SetAction((parseResult, ct) =>
         {
@@ -53,7 +51,7 @@ internal static class WaitForCommand
             var stateValue = parseResult.GetValue(stateOpt);
             var timeoutValue = parseResult.GetValue(timeoutOpt);
             var sidValue = parseResult.GetValue(sidOpt);
-            var serverArg = parseResult.GetValue(server);
+            var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
 
             var (errorCode, errorMessage) = ValidateArgs(
                 refValue, nameValue, controlTypeValue, autoIdValue, classNameValue, stateValue, timeoutValue);

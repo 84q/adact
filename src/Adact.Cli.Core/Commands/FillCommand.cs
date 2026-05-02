@@ -23,14 +23,12 @@ internal static class FillCommand
         };
         var noSnapshot = new Option<bool>("--no-snapshot") { Description = "Do not capture a snapshot after the action." };
         var snapshotDir = new Option<string?>("--snapshot-dir") { Description = "Snapshot output directory (default '.adact/')." };
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("fill", "Fill (overwrite) an input element with text.");
         cmd.Arguments.Add(refArg);
         cmd.Arguments.Add(textArg);
         cmd.Options.Add(noSnapshot);
         cmd.Options.Add(snapshotDir);
-        cmd.Options.Add(server);
 
         cmd.SetAction((parseResult, ct) =>
         {
@@ -38,7 +36,7 @@ internal static class FillCommand
             var textValue = parseResult.GetValue(textArg);
             var noSnap = parseResult.GetValue(noSnapshot);
             var dirArg = parseResult.GetValue(snapshotDir);
-            var serverArg = parseResult.GetValue(server);
+            var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
 
             if (!RefValidator.IsElementRef(refValue))
             {

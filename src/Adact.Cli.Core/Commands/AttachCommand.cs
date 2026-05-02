@@ -29,13 +29,11 @@ internal static class AttachCommand
         };
         var noSnapshot = new Option<bool>("--no-snapshot") { Description = "Do not capture a snapshot on success." };
         var snapshotDir = new Option<string?>("--snapshot-dir") { Description = "Snapshot output directory (default '.adact/')." };
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("attach", "Attach to a window as a session.");
         cmd.Arguments.Add(refArg);
         cmd.Options.Add(noSnapshot);
         cmd.Options.Add(snapshotDir);
-        cmd.Options.Add(server);
 
         cmd.SetAction((parseResult, ct) =>
         {
@@ -52,7 +50,7 @@ internal static class AttachCommand
             var arguments = new Dictionary<string, object?> { ["windowRef"] = args.Ref };
             var noSnap = parseResult.GetValue(noSnapshot);
             var dir = parseResult.GetValue(snapshotDir);
-            var serverArg = parseResult.GetValue(server);
+            var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
 
             return CommandHelpers.RunWithClientAsync(
                 serverArg,

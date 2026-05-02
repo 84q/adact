@@ -18,20 +18,18 @@ internal static class WindowStateCommandBuilder
         var sid = new Option<string?>("--sid") { Description = "Target session ID (default: active session)." };
         var noSnapshot = OperationOptions.NoSnapshot();
         var snapshotDir = OperationOptions.SnapshotDir();
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command(name, description);
         cmd.Options.Add(sid);
         cmd.Options.Add(noSnapshot);
         cmd.Options.Add(snapshotDir);
-        cmd.Options.Add(server);
 
         cmd.SetAction((parseResult, ct) =>
         {
             var sidArg = parseResult.GetValue(sid);
             var noSnap = parseResult.GetValue(noSnapshot);
             var dirArg = parseResult.GetValue(snapshotDir);
-            var serverArg = parseResult.GetValue(server);
+            var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
 
             var args = new Dictionary<string, object?>();
             if (!string.IsNullOrEmpty(sidArg)) args["sessionId"] = sidArg;

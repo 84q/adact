@@ -22,7 +22,6 @@ internal static class SelectCommand
         var itemRef = new Option<string?>("--item-ref") { Description = "Element ref of the child ListItem to select." };
         var noSnapshot = OperationOptions.NoSnapshot();
         var snapshotDir = OperationOptions.SnapshotDir();
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("select", "Select an item in a list/combobox by name, index, or item-ref.");
         cmd.Arguments.Add(refArg);
@@ -31,7 +30,6 @@ internal static class SelectCommand
         cmd.Options.Add(itemRef);
         cmd.Options.Add(noSnapshot);
         cmd.Options.Add(snapshotDir);
-        cmd.Options.Add(server);
 
         cmd.SetAction((pr, ct) =>
         {
@@ -41,7 +39,7 @@ internal static class SelectCommand
             var itemRefVal = pr.GetValue(itemRef);
             var noSnap = pr.GetValue(noSnapshot);
             var dirArg = pr.GetValue(snapshotDir);
-            var serverArg = pr.GetValue(server);
+            var serverArg = pr.GetValue(CommandHelpers.ServerOption);
 
             if (!RefValidator.IsElementRef(refValue))
             {

@@ -19,7 +19,6 @@ internal static class HoverCommand
         {
             Description = "Hover point relative to element top-left, as 'x,y'. Defaults to center.",
         };
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("hover", "Move the mouse cursor over an element.");
         cmd.Arguments.Add(refArg);
@@ -27,7 +26,6 @@ internal static class HoverCommand
         cmd.Options.Add(snapshotDir);
         cmd.Options.Add(modifiers);
         cmd.Options.Add(position);
-        cmd.Options.Add(server);
 
         cmd.SetAction((pr, ct) =>
         {
@@ -36,7 +34,7 @@ internal static class HoverCommand
             var dirArg = pr.GetValue(snapshotDir);
             var mods = pr.GetValue(modifiers);
             var posStr = pr.GetValue(position);
-            var serverArg = pr.GetValue(server);
+            var serverArg = pr.GetValue(CommandHelpers.ServerOption);
 
             if (!RefValidator.IsElementRef(refValue))
             {

@@ -102,6 +102,7 @@ public class DaemonStopCommandTests
             Console.SetError(errWriter);
 
             var root = new RootCommand("test");
+            root.Options.Add(CommandHelpers.ServerOption);
             root.Subcommands.Add(DaemonStopCommand.Build());
             var parse = root.Parse(args);
             var exit = await parse.InvokeAsync().ConfigureAwait(false);

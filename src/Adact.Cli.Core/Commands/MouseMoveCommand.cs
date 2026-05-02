@@ -16,16 +16,14 @@ internal static class MouseMoveCommand
         {
             Description = "Either an element ref ('s<sid>e<eid>') or screen coordinates ('x,y').",
         };
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("mouse-move", "Move the mouse cursor to a target (element ref or 'x,y').");
         cmd.Arguments.Add(targetArg);
-        cmd.Options.Add(server);
 
         cmd.SetAction((pr, ct) =>
         {
             var target = pr.GetValue(targetArg);
-            var serverArg = pr.GetValue(server);
+            var serverArg = pr.GetValue(CommandHelpers.ServerOption);
             if (string.IsNullOrEmpty(target))
                 return Task.FromResult(OperationOptions.ReportUserError("target argument is required."));
 

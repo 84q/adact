@@ -16,16 +16,14 @@ internal static class KeyDownCommand
         {
             Description = "Single key name (e.g. 'Shift', 'A', 'F1'). '+' combinations are not allowed.",
         };
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("key-down", "Press and hold a single key on the active session's window.");
         cmd.Arguments.Add(keyArg);
-        cmd.Options.Add(server);
 
         cmd.SetAction((pr, ct) =>
         {
             var key = pr.GetValue(keyArg);
-            var serverArg = pr.GetValue(server);
+            var serverArg = pr.GetValue(CommandHelpers.ServerOption);
             if (string.IsNullOrEmpty(key))
                 return Task.FromResult(OperationOptions.ReportUserError("key argument is required."));
 

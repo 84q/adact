@@ -20,7 +20,6 @@ internal static class DblclickCommand
         {
             Description = "Click point relative to the element's top-left, as 'x,y'. Defaults to center.",
         };
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("dblclick", "Double-click an element identified by an Element Ref.");
         cmd.Arguments.Add(refArg);
@@ -29,7 +28,6 @@ internal static class DblclickCommand
         cmd.Options.Add(button);
         cmd.Options.Add(modifiers);
         cmd.Options.Add(position);
-        cmd.Options.Add(server);
 
         cmd.SetAction((parseResult, ct) =>
         {
@@ -39,7 +37,7 @@ internal static class DblclickCommand
             var btn = parseResult.GetValue(button);
             var mods = parseResult.GetValue(modifiers);
             var posStr = parseResult.GetValue(position);
-            var serverArg = parseResult.GetValue(server);
+            var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
 
             if (!RefValidator.IsElementRef(refValue))
             {

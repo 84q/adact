@@ -28,20 +28,18 @@ internal static class ScreenshotCommand
         {
             Description = "Target session ID when --ref is omitted (default: active session).",
         };
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("screenshot", "Capture a PNG screenshot of the attached window or a specific element.");
         cmd.Options.Add(refOpt);
         cmd.Options.Add(outOpt);
         cmd.Options.Add(sid);
-        cmd.Options.Add(server);
 
         cmd.SetAction((parseResult, ct) =>
         {
             var refValue = parseResult.GetValue(refOpt);
             var outValue = parseResult.GetValue(outOpt);
             var sidValue = parseResult.GetValue(sid);
-            var serverArg = parseResult.GetValue(server);
+            var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
 
             if (!string.IsNullOrEmpty(refValue) && !RefValidator.IsElementRef(refValue))
             {

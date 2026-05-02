@@ -19,7 +19,6 @@ internal static class TypeCommand
         };
         var noSnapshot = OperationOptions.NoSnapshot();
         var snapshotDir = OperationOptions.SnapshotDir();
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("type", "Type text into an element character by character.");
         cmd.Arguments.Add(refArg);
@@ -27,7 +26,6 @@ internal static class TypeCommand
         cmd.Options.Add(delay);
         cmd.Options.Add(noSnapshot);
         cmd.Options.Add(snapshotDir);
-        cmd.Options.Add(server);
 
         cmd.SetAction((pr, ct) =>
         {
@@ -36,7 +34,7 @@ internal static class TypeCommand
             var d = pr.GetValue(delay);
             var noSnap = pr.GetValue(noSnapshot);
             var dirArg = pr.GetValue(snapshotDir);
-            var serverArg = pr.GetValue(server);
+            var serverArg = pr.GetValue(CommandHelpers.ServerOption);
 
             if (!RefValidator.IsElementRef(refValue))
             {

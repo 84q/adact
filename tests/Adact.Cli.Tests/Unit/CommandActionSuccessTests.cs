@@ -429,6 +429,7 @@ public class CommandActionSuccessTests
             Console.SetError(errWriter);
 
             var root = new RootCommand("test");
+            root.Options.Add(CommandHelpers.ServerOption);
             root.Subcommands.Add(command);
             var exit = await root.Parse(args).InvokeAsync().ConfigureAwait(false);
             return (outWriter.ToString(), errWriter.ToString(), exit);

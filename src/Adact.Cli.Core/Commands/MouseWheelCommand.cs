@@ -27,7 +27,6 @@ internal static class MouseWheelCommand
         };
         var noSnapshot = OperationOptions.NoSnapshot();
         var snapshotDir = OperationOptions.SnapshotDir();
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("mouse-wheel", "Scroll the mouse wheel at a target.");
         cmd.Arguments.Add(targetArg);
@@ -35,7 +34,6 @@ internal static class MouseWheelCommand
         cmd.Options.Add(deltaX);
         cmd.Options.Add(noSnapshot);
         cmd.Options.Add(snapshotDir);
-        cmd.Options.Add(server);
 
         cmd.SetAction((pr, ct) =>
         {
@@ -44,7 +42,7 @@ internal static class MouseWheelCommand
             var dx = pr.GetValue(deltaX);
             var noSnap = pr.GetValue(noSnapshot);
             var dirArg = pr.GetValue(snapshotDir);
-            var serverArg = pr.GetValue(server);
+            var serverArg = pr.GetValue(CommandHelpers.ServerOption);
             if (string.IsNullOrEmpty(target))
                 return Task.FromResult(OperationOptions.ReportUserError("target argument is required."));
 

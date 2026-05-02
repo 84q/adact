@@ -17,18 +17,16 @@ internal static class MouseDownCommand
             Description = "Either an element ref or 'x,y' coordinates.",
         };
         var button = OperationOptions.Button();
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("mouse-down", "Press and hold a mouse button at the target.");
         cmd.Arguments.Add(targetArg);
         cmd.Options.Add(button);
-        cmd.Options.Add(server);
 
         cmd.SetAction((pr, ct) =>
         {
             var target = pr.GetValue(targetArg);
             var btn = pr.GetValue(button);
-            var serverArg = pr.GetValue(server);
+            var serverArg = pr.GetValue(CommandHelpers.ServerOption);
             if (string.IsNullOrEmpty(target))
                 return Task.FromResult(OperationOptions.ReportUserError("target argument is required."));
             if (!OperationOptions.ValidateButton(btn, out var be))

@@ -20,7 +20,6 @@ internal static class RefOnlyCommandBuilder
     public static Command Build(string name, string description, string toolName, bool autoSnapshot)
     {
         var refArg = new Argument<string>("ref") { Description = "Element Ref ID like 's1e7'." };
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command(name, description);
         cmd.Arguments.Add(refArg);
@@ -34,12 +33,11 @@ internal static class RefOnlyCommandBuilder
             cmd.Options.Add(noSnapshot);
             cmd.Options.Add(snapshotDir);
         }
-        cmd.Options.Add(server);
 
         cmd.SetAction((pr, ct) =>
         {
             var refValue = pr.GetValue(refArg);
-            var serverArg = pr.GetValue(server);
+            var serverArg = pr.GetValue(CommandHelpers.ServerOption);
             if (!RefValidator.IsElementRef(refValue))
             {
                 CliError.Write(ErrorCodes.InvalidRefFormat,

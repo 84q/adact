@@ -27,7 +27,6 @@ internal static class ClickCommand
         {
             Description = "Click point relative to the element's bounding-rectangle top-left, as 'x,y'. Defaults to the center.",
         };
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("click", "Click an element identified by an Element Ref.");
         cmd.Arguments.Add(refArg);
@@ -37,7 +36,6 @@ internal static class ClickCommand
         cmd.Options.Add(count);
         cmd.Options.Add(modifiers);
         cmd.Options.Add(position);
-        cmd.Options.Add(server);
 
         cmd.SetAction((parseResult, ct) =>
         {
@@ -48,7 +46,7 @@ internal static class ClickCommand
             var cnt = parseResult.GetValue(count);
             var mods = parseResult.GetValue(modifiers);
             var posStr = parseResult.GetValue(position);
-            var serverArg = parseResult.GetValue(server);
+            var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
 
             if (!RefValidator.IsElementRef(refValue))
             {

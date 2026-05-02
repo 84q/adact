@@ -22,14 +22,12 @@ internal static class PressCommand
         };
         var noSnapshot = OperationOptions.NoSnapshot();
         var snapshotDir = OperationOptions.SnapshotDir();
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("press", "Press a key combo (e.g. 'Ctrl+C').");
         cmd.Arguments.Add(keyArg);
         cmd.Options.Add(refOption);
         cmd.Options.Add(noSnapshot);
         cmd.Options.Add(snapshotDir);
-        cmd.Options.Add(server);
 
         cmd.SetAction((pr, ct) =>
         {
@@ -37,7 +35,7 @@ internal static class PressCommand
             var refValue = pr.GetValue(refOption);
             var noSnap = pr.GetValue(noSnapshot);
             var dirArg = pr.GetValue(snapshotDir);
-            var serverArg = pr.GetValue(server);
+            var serverArg = pr.GetValue(CommandHelpers.ServerOption);
             if (string.IsNullOrEmpty(key))
                 return Task.FromResult(OperationOptions.ReportUserError("key argument is required."));
             if (refValue is not null && !RefValidator.IsElementRef(refValue))

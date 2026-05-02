@@ -16,14 +16,11 @@ internal static class CloseAllCommand
     /// <returns>close-all サブコマンド。</returns>
     public static Command Build()
     {
-        var server = CommandHelpers.CreateServerOption();
-
         var cmd = new Command("close-all", "Close all attached windows (per-session result on stdout).");
-        cmd.Options.Add(server);
 
         cmd.SetAction((parseResult, ct) =>
         {
-            var serverArg = parseResult.GetValue(server);
+            var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
 
             return CommandHelpers.RunWithClientAsync(
                 serverArg,

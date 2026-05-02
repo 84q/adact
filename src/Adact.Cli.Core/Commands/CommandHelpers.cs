@@ -76,16 +76,15 @@ internal static class CommandHelpers
     }
 
     /// <summary>
-    /// 共通 <c>--server</c> Option。設計 009 §3 / §4.2。
-    /// 各コマンドはこのヘルパで Option を生成し、AddOption で root に登録する。
+    /// 共通 <c>--server</c> Option。設計 009 §3 / §4.2、031。
+    /// RootCommand に <c>Recursive = true</c> で登録することで、全サブコマンドで利用可能になる。
     /// </summary>
-    /// <returns>全コマンド共用の <c>--server</c> Option。</returns>
-    public static Option<string?> CreateServerOption() =>
-        new("--server")
-        {
-            Description = "Connection target URL (e.g. http://127.0.0.1:41300/mcp). "
-                + "Falls back to .adact/config.json or the default endpoint.",
-        };
+    public static readonly Option<string?> ServerOption = new("--server")
+    {
+        Description = "Connection target URL (e.g. http://127.0.0.1:41300/mcp). "
+            + "Falls back to .adact/config.json or the default endpoint.",
+        Recursive = true,
+    };
 
     /// <summary>
     /// MCP <c>windows_snapshot</c> を呼び、結果を CLI 側で operable / raw フィルタを適用した上で

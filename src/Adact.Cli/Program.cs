@@ -28,6 +28,7 @@ internal static class Program
     internal static RootCommand BuildRoot()
     {
         var root = new RootCommand("ADACT - AI-driven Desktop Application CLI Tools");
+        root.Options.Add(CommandHelpers.ServerOption);
         root.Subcommands.Add(LocalCommand.Build());
         root.Subcommands.Add(ServeCommand.Build());
         root.Subcommands.Add(ListAppsCommand.Build());

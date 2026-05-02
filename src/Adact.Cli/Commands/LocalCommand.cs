@@ -18,7 +18,7 @@ internal static class LocalCommand
             Description = "Enable Debug-level logging on stderr.",
         };
 
-        var cmd = new Command("local", "Run as a stdio MCP server (stdin/stdout = JSON-RPC, stderr = logs).");
+        var cmd = new Command("local", "Run as a stdio MCP server (stdin/stdout = JSON-RPC, stderr = logs). (--server option is ignored for this command.)");
         cmd.Options.Add(verbose);
 
         cmd.SetAction(async (parseResult, ct) =>

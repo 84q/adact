@@ -41,14 +41,11 @@ internal static class LaunchCommand
             AllowMultipleArgumentsPerToken = false,
         };
 
-        var server = CommandHelpers.CreateServerOption();
-
         var cmd = new Command("launch", "Start a Windows process (Win32 / .NET / UWP) and print its pid as JSON.");
         cmd.Arguments.Add(executable);
         cmd.Arguments.Add(rest);
         cmd.Options.Add(cwd);
         cmd.Options.Add(env);
-        cmd.Options.Add(server);
 
         cmd.SetAction((parseResult, ct) =>
         {
@@ -56,7 +53,7 @@ internal static class LaunchCommand
             var argsArray = parseResult.GetValue(rest) ?? [];
             var cwdArg = parseResult.GetValue(cwd);
             var envArg = parseResult.GetValue(env) ?? [];
-            var serverArg = parseResult.GetValue(server);
+            var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
 
             if (string.IsNullOrEmpty(exe))
             {

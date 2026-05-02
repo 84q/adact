@@ -16,16 +16,14 @@ internal static class KeyUpCommand
         {
             Description = "Single key name (must match the one passed to 'key-down').",
         };
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("key-up", "Release a single key previously pressed by 'key-down'.");
         cmd.Arguments.Add(keyArg);
-        cmd.Options.Add(server);
 
         cmd.SetAction((pr, ct) =>
         {
             var key = pr.GetValue(keyArg);
-            var serverArg = pr.GetValue(server);
+            var serverArg = pr.GetValue(CommandHelpers.ServerOption);
             if (string.IsNullOrEmpty(key))
                 return Task.FromResult(OperationOptions.ReportUserError("key argument is required."));
 

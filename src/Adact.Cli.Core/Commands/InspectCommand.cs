@@ -21,16 +21,14 @@ internal static class InspectCommand
             Description = "Element Ref ID like 's1e7'.",
             Required = true,
         };
-        var server = CommandHelpers.CreateServerOption();
 
         var cmd = new Command("inspect", "Print detailed UIA properties of the element identified by --ref as a single JSON line.");
         cmd.Options.Add(refOpt);
-        cmd.Options.Add(server);
 
         cmd.SetAction((parseResult, ct) =>
         {
             var refValue = parseResult.GetValue(refOpt);
-            var serverArg = parseResult.GetValue(server);
+            var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
 
             if (!RefValidator.IsElementRef(refValue))
             {
