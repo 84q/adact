@@ -1,6 +1,7 @@
 ---
 description: "Orchestrator から委任されたコード、テスト、docs、設定の作成・修正を担当し、レビュー担当を呼ばずに成果物と検証結果を返す"
 mode: subagent
+model: "opencode-go/minimax-m2.7"
 temperature: 0.1
 tools:
   write: true
