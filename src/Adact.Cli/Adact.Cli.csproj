@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Skills\**\*.md">
+    <None Include="..\Adact.Cli.Core\Skills\**\*.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Skills\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </None>

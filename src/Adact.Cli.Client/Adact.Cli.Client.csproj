@@ -13,4 +13,11 @@
     <ProjectReference Include="..\Adact.Cli.Core\Adact.Cli.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\Adact.Cli.Core\Skills\**\*.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Skills\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -10,7 +10,7 @@ internal static class Program
     {
         var root = new RootCommand("ADACT - Cross-platform CLI Client");
         root.Options.Add(CommandHelpers.ServerOption);
-        // Cross-platform: exclude local/serve/daemon-stop/install
+        // Cross-platform: exclude local/serve/daemon-stop
         root.Subcommands.Add(ListAppsCommand.Build());
         root.Subcommands.Add(AttachCommand.Build());
         root.Subcommands.Add(SnapshotCommand.Build());
@@ -45,6 +45,7 @@ internal static class Program
         root.Subcommands.Add(KillCommand.Build());
         root.Subcommands.Add(CloseAllCommand.Build());
         root.Subcommands.Add(LaunchCommand.Build());
+        root.Subcommands.Add(InstallCommand.Build());
         return await root.Parse(args).InvokeAsync();
     }
 }
