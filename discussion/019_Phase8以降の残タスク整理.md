@@ -29,3 +29,9 @@
 | 18 | デフォルト接続先を local に | MCP 接続時のデフォルト接続先を `local`（stdio）に変更する。 | 未着手 | 現状のデフォルトが TCP 等の場合の変更。 |
 | 19 | local 接続時の daemon 自動起動 | local 接続時に ADACT daemon プロセスが存在しなければ自動的に立ち上げる。 | 未着手 | ID 18 とセットで検討。 |
 | 20 | daemon-stop の local 専用化 | `daemon-stop` コマンドを local（stdio）接続時のみ有効にし、127.0.0.1 等のリモート接続時は実行不可にする。 | 完了 | ID 18・19 とセットで検討。セキュリティ観点からリモート側の誤停止を防ぐ。 |
+| 21 | SampleApp 更新：close 拒否パターン | SampleApp に `Closing` イベントで `e.Cancel = true` するボタンを追加し、`close` コマンドが効かないパターンを検証できるようにする。 | 未着手 | discussion/032 参照。WPF/WinForms で `close` が効かないケースを再現。 |
+| 22 | SampleApp 更新：MenuItem にサブメニュー | SampleApp の MenuBar（File/Edit/View）に入れ子サブメニューを追加し、多階層メニューの操作検証を可能にする。 | 未着手 | discussion/032 参照。現在は1階層のみ（Open/Save/Exit）。マウスオーバーで右側に展開される多階層メニューの UIA 構造検証にも必要。 |
+| 23 | FileDialog 操作の解決策検討 | `OpenFileDialog` / `SaveFileDialog` を ADACT で操作する方法（ファイル選択・キャンセル）を検討・実装する。 | 未着手 | discussion/032 参照。ダイアログの button を `click` で押せるが、ファイルパスの入力方法が未定。 |
+| 24 | ComboBox 選択要素取得のスキル化 | `inspect` で子 ListItem を確認する方法、または `snapshot` の `[selected]` フラグを使った選択確認方法を `adact-cli` Skill に記載する。 | 未着手 | discussion/032 参照。ComboBox 自身の inspect では `IsSelected` が出ず、子 ListItem の inspect が必要。 |
+| 25 | Skill と実体の乖離解消 | `adact-cli` Skill ファイルが実際の CLI 仕様と乖離している箇所を修正する（例：Skill に `close` コマンドがない、`inspect --ref` のまま等）。 | 未着手 | discussion/031（global option 化）、本日の `inspect`/`detach` 変更等。Skill ファイルは `.agents/skills/adact-cli/references/` および `src/Adact.Cli.Core/Skills/adact-cli/references/` に存在。 |
+| 26 | Skill 更新：別ウィンドウ扱いの要素説明 | ツールチップ・メニューサブメニュー・ダイアログボックス等が UIA 上で「別ウィンドウ」として snapshot に現れることを Skill に記載する。 | 未着手 | discussion/030、032 参照。Popup (`isPopup`)、Modal (`isModalDialog`) の概念を Skill の `snapshot` リファレンス等に追記。 |
