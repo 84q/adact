@@ -40,6 +40,14 @@ internal sealed class FlaUiElement : IElement
     public bool IsEnabled => Safe(() => _el.Properties.IsEnabled.ValueOrDefault, true);
 
     /// <inheritdoc />
+    public bool IsSelected => Safe(() =>
+    {
+        var pattern = _el.Patterns.SelectionItem.PatternOrDefault;
+        if (pattern is not null) return pattern.IsSelected.ValueOrDefault;
+        return false;
+    }, false);
+
+    /// <inheritdoc />
     public bool IsOffscreen => Safe(() => _el.Properties.IsOffscreen.ValueOrDefault, false);
 
     /// <inheritdoc />

@@ -77,12 +77,12 @@ Phase 8 で追加された Mouse / Keyboard / Toggle / Window カテゴリのう
 | `scroll-into-view` | `--ref`、`--server` | (出力なし) |
 | `resize` | `--width <w>`、`--height <h>`、auto-snapshot 系オプション | `sessionId`, `snapshot` |
 | `minimize` / `maximize` / `restore` | `--sid` (任意)、auto-snapshot 系オプション | `sessionId`, `snapshot` |
-| `inspect` | `--ref`、`--server` | UIA プロパティの JSON を 1 行で stdout 出力 |
+| `inspect` | `<s<sid>e<eid>>`、`--server` | UIA プロパティの JSON を 1 行で stdout 出力 |
 | `screenshot` | `--ref` (任意。未指定はウィンドウ全体)、`--out <path>` (PNG 必須、default `.adact/screenshot-<sid>-<UTC ts>.png`)、`--sid`、`--server` | `{ "path": ..., "width": ..., "height": ... }` JSON 1 行 |
 | `wait-for` | `--ref` または検索条件 (`--name` / `--control-type` / `--automation-id` / `--class-name`、case-insensitive exact match) のいずれか必須、`--state attached|detached|visible|hidden|enabled|disabled` (default `visible`、`detached` は ref モード専用)、`--timeout <ms>` (default 5000)、`--sid` (検索条件モード時のみ)、`--server` | `{ "ref": "s1e7", "state": "..." }` JSON 1 行 |
 | `wait-for-window` | `--title` / `--class-name` / `--process-name` / `--exe` のいずれか必須 (case-insensitive 正規表現)、`--timeout <ms>` (default 5000)、`--server` | マッチ window の info JSON 1 行 (`processId`, `processName`, `windowTitle`, `controlType`, `className`, `nativeWindowHandle`)。attach は行わない |
 | `launch` | `<executable>` (実行ファイルパス / PATH 名 / `shell:AppsFolder\<AUMID>`)、`-- <arg>...` (任意)、`--cwd <dir>`、`--env KEY=VALUE` (繰り返し可)、`--server` | `{ "pid": ..., "processName": ..., "executablePath": ... }` JSON 1 行。attach は行わない |
-| `detach` | `[--sid <s<n>>]`、`--server` | `sessionId`, `detached` |
+| `detach` | `[<s<n>>]`、`--server` | `sessionId`, `detached` |
 | `close` | `[--sid <s<n>>]`、`--server` | `sessionId`, `closed`, `detached` |
 | `kill` | `[--sid <s<n>>]`、`--server` | `sessionId`, `killed`, `detached` |
 | `close-all` | `--server` | TSV rows: `sessionId`, `result`, optional `error` |

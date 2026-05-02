@@ -16,24 +16,23 @@ internal static class InspectCommand
     /// <returns>inspect サブコマンド。</returns>
     public static Command Build()
     {
-        var refOpt = new Option<string?>("--ref")
+        var refArg = new Argument<string>("ref")
         {
             Description = "Element Ref ID like 's1e7'.",
-            Required = true,
         };
 
-        var cmd = new Command("inspect", "Print detailed UIA properties of the element identified by --ref as a single JSON line.");
-        cmd.Options.Add(refOpt);
+        var cmd = new Command("inspect", "Print detailed UIA properties of the element identified by ref as a single JSON line.");
+        cmd.Arguments.Add(refArg);
 
         cmd.SetAction((parseResult, ct) =>
         {
-            var refValue = parseResult.GetValue(refOpt);
+            var refValue = parseResult.GetValue(refArg);
             var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
 
             if (!RefValidator.IsElementRef(refValue))
             {
                 CliError.Write(ErrorCodes.InvalidRefFormat,
-                    $"--ref must be in 's<sid>e<eid>' form, got '{refValue}'.");
+                    $"ref must be in 's<sid>e<eid>' form, got '{refValue}'.");
                 return Task.FromResult(ExitCodes.UserError);
             }
 

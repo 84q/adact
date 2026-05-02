@@ -41,7 +41,7 @@ ApplicationFrameWindow（外枠）
     └── [数字ボタン等はここに存在するはず]
 ```
 
-`inspect --ref s1e8` の結果:
+`inspect s1e8` の結果:
 
 ```json
 {

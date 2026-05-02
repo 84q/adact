@@ -11,10 +11,10 @@ internal static class DetachCommand
     /// <returns>detach サブコマンド。</returns>
     public static Command Build()
     {
-        var sid = new Option<string?>("--sid") { Description = "Target session ID (default: active session)." };
+        var sid = new Argument<string?>("sid") { Description = "Target session ID (default: active session)." };
 
         var cmd = new Command("detach", "Release a session (window stays intact).");
-        cmd.Options.Add(sid);
+        cmd.Arguments.Add(sid);
 
         cmd.SetAction((parseResult, ct) =>
         {

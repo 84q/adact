@@ -139,6 +139,7 @@ public sealed class SnapshotBuilder
             JsonValue.Create(r.Width), JsonValue.Create(r.Height));
         node["isKeyboardFocusable"] = el.IsKeyboardFocusable;
         node["hasKeyboardFocus"] = el.HasKeyboardFocus;
+        if (el.IsSelected) node["isSelected"] = true;
         if (isModalDialog) node["isModalDialog"] = true;
         if (isPopup) node["isPopup"] = true;
 

@@ -10,6 +10,7 @@ internal sealed class FakeElement : IElement, ICheckableElement, ISelectableElem
     public string ControlType { get; set; } = "Unknown";
     public string? ClassName { get; set; }
     public bool IsEnabled { get; set; } = true;
+    public bool IsSelected { get; set; }
     public bool IsOffscreen { get; set; }
     public string? Value { get; set; }
     public string? HelpText { get; set; }

@@ -90,6 +90,24 @@ public class SnapshotBuilderTests
     }
 
     /// <summary>
+    /// IsSelected=true の要素に isSelected フラグが付与され、false の要素には付与されないことを確認する。
+    /// </summary>
+    [Fact]
+    public void Raw_SelectedElement_HasIsSelectedFlag()
+    {
+        var selected = FakeElement.Button("selected");
+        selected.IsSelected = true;
+        var unselected = FakeElement.Button("unselected");
+        var root = FakeElement.Window("T", selected, unselected);
+        var (doc, _) = Build(root);
+
+        var children = doc.RootElement.GetProperty("tree").GetProperty("children");
+        Assert.Equal(2, children.GetArrayLength());
+        Assert.True(children[0].GetProperty("isSelected").GetBoolean());
+        Assert.False(children[1].TryGetProperty("isSelected", out _));
+    }
+
+    /// <summary>
     /// 単一 snapshot 内で全ノードの ref がユニークで連番採番 (s1e1, s1e2, ...) されることを確認する。
     /// </summary>
     [Fact]

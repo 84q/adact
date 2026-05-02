@@ -18,7 +18,7 @@ public class SnapshotTreeFilterTests
         bool isOffscreen = false,
         params SnapshotElement[] children)
         => new(role, name, aid, Value: null,
-            IsEnabled: true, IsOffscreen: isOffscreen, HasKeyboardFocus: false,
+            IsEnabled: true, IsSelected: false, IsOffscreen: isOffscreen, HasKeyboardFocus: false,
             IsModalDialog: false, Ref: $"s1e{role}{name}", Children: children);
 
     /// <summary>raw フィルタではツリーを一切加工せずそのまま返すことを確認する。</summary>

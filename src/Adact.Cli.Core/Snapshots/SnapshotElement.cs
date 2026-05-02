@@ -11,6 +11,7 @@ namespace Adact.Cli.Snapshots;
 /// <param name="AutomationId">UIA AutomationId。</param>
 /// <param name="Value">ValuePattern.Value などから取得された現在値。</param>
 /// <param name="IsEnabled">UIA IsEnabled。</param>
+/// <param name="IsSelected">SelectionItemPattern.IsSelected。選択状態なら true。</param>
 /// <param name="IsOffscreen">UIA IsOffscreen。operable フィルタでは子孫ごと除外される。</param>
 /// <param name="HasKeyboardFocus">キーボードフォーカスを保持しているか。</param>
 /// <param name="IsModalDialog">Engine がモーダルダイアログとして識別した要素であるか。</param>
@@ -22,6 +23,7 @@ internal sealed record SnapshotElement(
   string? AutomationId,
   string? Value,
   bool IsEnabled,
+  bool IsSelected,
   bool IsOffscreen,
   bool HasKeyboardFocus,
   bool IsModalDialog,

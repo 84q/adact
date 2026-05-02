@@ -485,4 +485,8 @@ $RECYCLE.BIN/
 
 # adact runtime working dir (snapshot files etc.)
 .adact/
+.adact-test/
+.adact-test2/
+.adact-test3/
+.adact-test4/
 

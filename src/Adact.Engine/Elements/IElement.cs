@@ -20,6 +20,9 @@ public interface IElement
     /// <summary>UIA IsEnabled プロパティ (取得失敗時は安全側の true)。</summary>
     bool IsEnabled { get; }
 
+    /// <summary>UIA SelectionItemPattern.IsSelected (パターンを持たない要素では false)。</summary>
+    bool IsSelected { get; }
+
     /// <summary>UIA IsOffscreen プロパティ (取得失敗時は false)。</summary>
     bool IsOffscreen { get; }
 

@@ -15,23 +15,22 @@ namespace Adact.Cli.Tests.Unit;
 [Collection(ConsoleCollection.Name)]
 public class InspectScreenshotCommandTests
 {
-    /// <summary>adact inspect --ref に不正形式を渡すと UserError + INVALID_REF_FORMAT を返す。</summary>
+    /// <summary>adact inspect に不正形式の ref positional argument を渡すと UserError + INVALID_REF_FORMAT を返す。</summary>
     [Fact]
     public async Task Inspect_MalformedRef_ReturnsUserError()
     {
-        var (_, stderr, exit) = await RunInspectAsync(["inspect", "--ref", "not-a-ref"]);
+        var (_, stderr, exit) = await RunInspectAsync(["inspect", "not-a-ref"]);
 
         Assert.Equal(ExitCodes.UserError, exit);
         Assert.Contains("error " + ErrorCodes.InvalidRefFormat, stderr, StringComparison.Ordinal);
-        Assert.Contains("--ref", stderr, StringComparison.Ordinal);
     }
 
-    /// <summary>adact inspect は --ref が必須なので省略するとパーサエラーとなり 0 以外を返す。</summary>
+    /// <summary>adact inspect は ref positional argument が必須なので省略するとパーサエラーとなり 0 以外を返す。</summary>
     [Fact]
     public async Task Inspect_MissingRef_ReturnsUserError()
     {
         var (_, _, exit) = await RunInspectAsync(["inspect"]);
-        // --ref は Required なので System.CommandLine の parse error として UserError になる。
+        // ref は positional required なので System.CommandLine の parse error として UserError になる。
         Assert.NotEqual(ExitCodes.Success, exit);
     }
 
@@ -46,15 +45,14 @@ public class InspectScreenshotCommandTests
         Assert.Contains("--ref", stderr, StringComparison.Ordinal);
     }
 
-    /// <summary>inspect は --ref を Required として公開していることを検証する。</summary>
+    /// <summary>inspect は ref を positional argument として公開していることを検証する。</summary>
     [Fact]
-    public void Inspect_HasRequiredRefOption()
+    public void Inspect_HasRequiredRefArgument()
     {
         var cmd = InspectCommand.Build();
         Assert.Equal("inspect", cmd.Name);
-        var refOpt = cmd.Options.FirstOrDefault(o => o.Name == "--ref");
-        Assert.NotNull(refOpt);
-        Assert.True(refOpt!.Required);
+        var refArg = cmd.Arguments.FirstOrDefault(a => a.Name == "ref");
+        Assert.NotNull(refArg);
     }
 
     /// <summary>screenshot は --ref / --out をオプショナルとして公開していることを検証する。</summary>

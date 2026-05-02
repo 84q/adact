@@ -167,6 +167,10 @@ internal static class SnapshotTextFormatter
         {
             sb.Append(" [focused]");
         }
+        if (el.IsSelected)
+        {
+            sb.Append(" [selected]");
+        }
         if (el.IsModalDialog)
         {
             sb.Append(" [modal]");

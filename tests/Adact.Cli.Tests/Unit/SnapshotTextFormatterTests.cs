@@ -14,10 +14,10 @@ public class SnapshotTextFormatterTests
     private static SnapshotElement Leaf(
         string role, string? name = null, string? aid = null,
         string? value = null, bool isEnabled = true,
-        bool focused = false, bool modal = false,
+        bool selected = false, bool focused = false, bool modal = false,
         string refId = "s1e1")
         => new(role, name, aid, Value: value,
-            IsEnabled: isEnabled, IsOffscreen: false, HasKeyboardFocus: focused,
+            IsEnabled: isEnabled, IsSelected: selected, IsOffscreen: false, HasKeyboardFocus: focused,
             IsModalDialog: modal, Ref: refId, Children: Array.Empty<SnapshotElement>());
 
     private static SnapshotMeta Meta() =>
@@ -74,8 +74,8 @@ public class SnapshotTextFormatterTests
     public void Format_IndentsByDepthTwoSpaces()
     {
         var grand = Leaf("Button", "x", refId: "s1e3");
-        var child = new SnapshotElement("Pane", "P", null, null, true, false, false, false, "s1e2", new[] { grand });
-        var root = new SnapshotElement("Window", "T", null, null, true, false, false, false, "s1e1", new[] { child });
+        var child = new SnapshotElement("Pane", "P", null, null, true, false, false, false, false, "s1e2", new[] { grand });
+        var root = new SnapshotElement("Window", "T", null, null, true, false, false, false, false, "s1e1", new[] { child });
         var text = SnapshotTextFormatter.Format(Meta(), root, "operable");
 
         Assert.Contains("\n- Window \"T\" [ref=s1e1]\n", text);
@@ -99,6 +99,15 @@ public class SnapshotTextFormatterTests
         var root = Leaf("Window", "Save?", modal: true, refId: "s1e1");
         var text = SnapshotTextFormatter.Format(Meta(), root, "operable");
         Assert.Contains("[modal]", text, StringComparison.Ordinal);
+    }
+
+    /// <summary>選択状態の要素に [selected] フラグが付与されることを確認する。</summary>
+    [Fact]
+    public void Format_SelectedFlag_IsEmitted()
+    {
+        var root = Leaf("ListItem", "Item1", selected: true, refId: "s1e1");
+        var text = SnapshotTextFormatter.Format(Meta(), root, "operable");
+        Assert.Contains("[selected]", text, StringComparison.Ordinal);
     }
 
     /// <summary>processName に日本語を含むとき、frontmatter でダブルクオートで囲むことを確認する (YAML 互換性)。</summary>

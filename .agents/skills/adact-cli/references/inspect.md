@@ -10,12 +10,12 @@ patterns the element supports before deciding which command to run.
 ## Synopsis
 
 ```
-adact inspect --ref <ref> [--server <url>]
+adact inspect <ref> [--server <url>]
 ```
 
-| Flag       | Purpose                                        |
+| Argument   | Purpose                                        |
 | ---------- | ---------------------------------------------- |
-| `--ref`    | Element ref to inspect (e.g. `s1e7`). Required. |
+| `ref`      | Element ref to inspect (e.g. `s1e7`). Required. |
 | `--server` | Daemon endpoint URL.                           |
 
 ## Output
@@ -49,6 +49,6 @@ Patterns the element does not implement are simply absent from the object.
 
 ## Error recovery
 
-- `INVALID_REF_FORMAT` — `--ref` was not in `s<sid>e<eid>` form.
+- `INVALID_REF_FORMAT` — `ref` was not in `s<sid>e<eid>` form.
 - `REF_NOT_FOUND` — the element behind the ref is no longer reachable. Run
   `adact snapshot` and retry with a fresh ref.

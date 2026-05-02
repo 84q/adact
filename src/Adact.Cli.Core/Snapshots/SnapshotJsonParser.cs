@@ -62,6 +62,7 @@ internal static class SnapshotJsonParser
         var automationId = GetStringOrNull(node, "automationId");
         var value = GetStringOrNull(node, "value");
         var isEnabled = GetBoolOrDefault(node, "isEnabled", defaultValue: true);
+        var isSelected = GetBoolOrDefault(node, "isSelected", defaultValue: false);
         var isOffscreen = GetBoolOrDefault(node, "isOffscreen", defaultValue: false);
         var hasKeyboardFocus = GetBoolOrDefault(node, "hasKeyboardFocus", defaultValue: false);
         var isModalDialog = GetBoolOrDefault(node, "isModalDialog", defaultValue: false);
@@ -83,6 +84,7 @@ internal static class SnapshotJsonParser
           AutomationId: automationId,
           Value: value,
           IsEnabled: isEnabled,
+          IsSelected: isSelected,
           IsOffscreen: isOffscreen,
           HasKeyboardFocus: hasKeyboardFocus,
           IsModalDialog: isModalDialog,
