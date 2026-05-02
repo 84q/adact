@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
+using Adact.Tests.Common;
+
 using Xunit;
 
 namespace Adact.Cli.Tests.E2E;

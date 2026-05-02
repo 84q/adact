@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Text.Json;
 
+using Adact.Tests.Common;
+
 using Xunit;
 
 namespace Adact.Engine.Tests.Smoke;

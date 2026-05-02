@@ -1,5 +1,7 @@
 using System.Diagnostics;
 
+using Adact.Tests.Common;
+
 using Xunit;
 
 namespace Adact.Engine.Tests.IntegrationUia;
@@ -10,9 +12,10 @@ namespace Adact.Engine.Tests.IntegrationUia;
 /// </summary>
 [Trait("Layer", "IntegrationUia")]
 [Collection("UiaSerial")]
-public class CalculatorSnapshotTests : IAsyncLifetime
+public class CalculatorSnapshotTests : IAsyncLifetime, IDisposable
 {
     private Process? _process;
+    private CalculatorMutex? _calcLock;
 
     /// <summary>
     /// 既存電卓を終了したうえで calc.exe を起動し、CalculatorApp.exe が現れるまで待機する。
@@ -21,6 +24,7 @@ public class CalculatorSnapshotTests : IAsyncLifetime
     public async Task InitializeAsync()
     {
         InteractiveTestGuard.SkipIfNotInteractive();
+        _calcLock = new CalculatorMutex();
 
         // 既存の電卓プロセスを終了させ、「電卓」タイトルのウィンドウが複数存在する瞬間を回避する。
         // calc.exe (launcher) と CalculatorApp.exe の両方を対象にする。
@@ -42,6 +46,19 @@ public class CalculatorSnapshotTests : IAsyncLifetime
         // 電卓は launcher 経由で別プロセスに置き換わる。CalculatorApp.exe が起動するのを待つ。
         await WaitForProcessAsync("CalculatorApp", TimeSpan.FromSeconds(10));
         await Task.Delay(800); // ウィンドウ描画安定待ち
+    }
+
+    /// <summary>
+    /// 電卓プロセスをクリーンアップする。
+    /// </summary>
+    /// <returns>解放完了タスク。</returns>
+    /// <summary>
+    /// 電卓プロセスをクリーンアップする。
+    /// </summary>
+    public void Dispose()
+    {
+        _calcLock?.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

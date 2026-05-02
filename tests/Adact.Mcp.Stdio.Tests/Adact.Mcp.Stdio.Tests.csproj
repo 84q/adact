@@ -23,6 +23,7 @@
   <ItemGroup>
     <!-- adact.exe を spawn するため、Cli プロジェクトを参照ビルドしておく (実体は exe を spawn) -->
     <ProjectReference Include="..\..\src\Adact.Cli\Adact.Cli.csproj" />
+    <ProjectReference Include="..\..\tests\Adact.Tests.Common\Adact.Tests.Common.csproj" />
   </ItemGroup>
 
 </Project>

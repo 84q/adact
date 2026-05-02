@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Text.Json;
 
+using Adact.Tests.Common;
+
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 

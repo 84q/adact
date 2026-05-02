@@ -1,3 +1,5 @@
+using Adact.Tests.Common;
+
 using Xunit;
 
 namespace Adact.Mcp.Http.Tests;
@@ -13,7 +15,7 @@ public class AdactHttpServerFixtureTests
     [Fact]
     public void GetExternalServerUri_WhenUnset_ReturnsNull()
     {
-        using var _ = new EnvironmentVariableScope(AdactHttpServerFixture.ServerUrlEnvironmentVariable, null);
+        using var _ = new EnvironmentVariableScope(ExternalServerHelper.ServerUrlEnvironmentVariable, null);
 
         Assert.Null(AdactHttpServerFixture.GetExternalServerUri());
     }
@@ -23,7 +25,7 @@ public class AdactHttpServerFixtureTests
     public void GetExternalServerUri_WhenSet_ReturnsTrimmedAbsoluteUrl()
     {
         using var _ = new EnvironmentVariableScope(
-            AdactHttpServerFixture.ServerUrlEnvironmentVariable,
+            ExternalServerHelper.ServerUrlEnvironmentVariable,
             "  http://127.0.0.1:41300/mcp  ");
 
         Assert.Equal(new Uri("http://127.0.0.1:41300/mcp"), AdactHttpServerFixture.GetExternalServerUri());
@@ -36,10 +38,10 @@ public class AdactHttpServerFixtureTests
     [InlineData("not a url")]
     public void GetExternalServerUri_WhenInvalid_Throws(string value)
     {
-        using var _ = new EnvironmentVariableScope(AdactHttpServerFixture.ServerUrlEnvironmentVariable, value);
+        using var _ = new EnvironmentVariableScope(ExternalServerHelper.ServerUrlEnvironmentVariable, value);
 
         var ex = Assert.Throws<InvalidOperationException>(() => AdactHttpServerFixture.GetExternalServerUri());
-        Assert.Contains(AdactHttpServerFixture.ServerUrlEnvironmentVariable, ex.Message, StringComparison.Ordinal);
+        Assert.Contains(ExternalServerHelper.ServerUrlEnvironmentVariable, ex.Message, StringComparison.Ordinal);
     }
 }
 

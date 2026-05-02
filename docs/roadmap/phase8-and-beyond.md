@@ -32,7 +32,6 @@
 | `REF_NOT_FOUND` 時の再 snapshot 方針 | AI 側判断、CLI hint、自動再 snapshot の分担を決める | Phase 5 / 6 |
 | `.adact/config.json` 拡充 | 接続先以外の設定、個人設定と repo 共有設定の分離、探索 rule の拡張 | Phase 5 |
 | `KillAsync` の PID 再利用対策 | `Process.StartTime` 等で意図しない別 process kill を防ぐ | Phase 5 |
-| `CalculatorMutex` 共通化 | test assembly 間で重複する Calculator mutex を共有 helper に集約する | Phase 5 |
 | recipes | Calculator / Notepad など典型操作テンプレートを提供する | Phase 6 |
 | Skill 対象拡張 | CLI/MCP サブコマンド追加時に `adact-cli` Skill と同期テストを更新する | Phase 6 |
 

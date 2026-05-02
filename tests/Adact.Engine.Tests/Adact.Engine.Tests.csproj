@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Adact.Engine\Adact.Engine.csproj" />
+    <ProjectReference Include="..\..\tests\Adact.Tests.Common\Adact.Tests.Common.csproj" />
   </ItemGroup>
 
 </Project>

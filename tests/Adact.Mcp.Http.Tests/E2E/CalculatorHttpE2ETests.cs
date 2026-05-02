@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 
 using Adact.Mcp.Http.Tests;
+using Adact.Tests.Common;
 
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;

@@ -1,6 +1,7 @@
 using System.Net;
 
 using Adact.Cli.Server;
+using Adact.Tests.Common;
 
 using Microsoft.AspNetCore.Builder;
 
@@ -14,8 +15,6 @@ namespace Adact.Mcp.Http.Tests;
 /// </summary>
 public sealed class AdactHttpServerFixture : IAsyncLifetime
 {
-    internal const string ServerUrlEnvironmentVariable = "ADACT_SERVER_URL";
-
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(30);
 
     private WebApplication? _app;
@@ -72,18 +71,7 @@ public sealed class AdactHttpServerFixture : IAsyncLifetime
 
     internal static Uri? GetExternalServerUri()
     {
-        var value = Environment.GetEnvironmentVariable(ServerUrlEnvironmentVariable);
-        if (string.IsNullOrWhiteSpace(value)) return null;
-
-        var url = value.Trim();
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)
-            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
-        {
-            throw new InvalidOperationException(
-                $"{ServerUrlEnvironmentVariable} must be an absolute http(s) URL, e.g. http://127.0.0.1:41300/mcp.");
-        }
-
-        return uri;
+        return ExternalServerHelper.GetExternalServerUri();
     }
 
     private static async Task WaitForReadyAsync(Uri baseAddress, TimeSpan timeout)
