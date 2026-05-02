@@ -1,0 +1,22 @@
+<UserControl x:Class="SampleApp.Tabs.AsyncDelayTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel Margin="10">
+        <Button x:Name="StartButton"
+                Content="Start Long Task (30s)"
+                Margin="0,5"
+                AutomationProperties.AutomationId="AsyncDelay_Button_StartLongTask"
+                AutomationProperties.Name="Start Long Task Button"
+                Click="StartButton_Click" />
+        <ProgressBar x:Name="TaskProgressBar"
+                     Height="20"
+                     Margin="0,10"
+                     IsIndeterminate="False"
+                     AutomationProperties.AutomationId="AsyncDelay_ProgressBar_Task"
+                     AutomationProperties.Name="Task Progress Bar" />
+        <Label x:Name="StatusLabel"
+               Content="Idle"
+               AutomationProperties.AutomationId="AsyncDelay_Label_Status"
+               AutomationProperties.Name="Task Status Label" />
+    </StackPanel>
+</UserControl>

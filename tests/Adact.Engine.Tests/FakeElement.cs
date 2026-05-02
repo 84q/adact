@@ -20,6 +20,11 @@ internal sealed class FakeElement : IElement, ICheckableElement, ISelectableElem
     public List<IElement> ChildList { get; } = new();
     public IReadOnlyList<IElement> Children => ChildList;
 
+    public void ClearChildrenCache()
+    {
+        // FakeElement はキャッシュ機構を持たないため空実装
+    }
+
     public int ClickCount { get; private set; }
     public string? LastFilledText { get; private set; }
     public int FocusCount { get; private set; }

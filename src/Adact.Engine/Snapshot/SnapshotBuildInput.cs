@@ -8,6 +8,7 @@ namespace Adact.Engine.Snapshot;
 /// </summary>
 /// <param name="RootWindow">snapshot の起点となるウィンドウ要素。</param>
 /// <param name="ModalSiblings">同プロセス内で検出されたモーダルダイアログ要素 (root の追加子として挿入される)。</param>
+/// <param name="PopupSiblings">同プロセス内で検出された Popup ウィンドウ要素 (root の追加子として挿入される)。</param>
 /// <param name="Options">snapshot のオプション (再帰深度上限など)。</param>
 /// <param name="WindowTitle">root ウィンドウのタイトル (snapshot メタデータ用)。</param>
 /// <param name="ProcessName">プロセス名 (snapshot メタデータ用)。</param>
@@ -16,6 +17,7 @@ namespace Adact.Engine.Snapshot;
 public sealed record SnapshotBuildInput(
     IElement RootWindow,
     IReadOnlyList<IElement> ModalSiblings,
+    IReadOnlyList<IElement> PopupSiblings,
     SnapshotOptions Options,
     string WindowTitle,
     string ProcessName,

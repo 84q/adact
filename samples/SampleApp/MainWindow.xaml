@@ -1,0 +1,64 @@
+<Window x:Class="SampleApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:tabs="clr-namespace:SampleApp.Tabs"
+        Title="ADACT SampleApp"
+        Height="600"
+        Width="900">
+    <Window.Resources>
+        <Style TargetType="TabItem">
+            <Setter Property="AutomationProperties.Name" Value="{Binding Header, RelativeSource={RelativeSource Self}}" />
+        </Style>
+    </Window.Resources>
+    <DockPanel LastChildFill="True">
+        <Menu DockPanel.Dock="Top" AutomationProperties.AutomationId="MainWindow_MenuBar_Main">
+            <MenuItem Header="File" AutomationProperties.AutomationId="MainWindow_MenuItem_File">
+                <MenuItem Header="Open" AutomationProperties.AutomationId="MainWindow_MenuItem_File_Open" />
+                <MenuItem Header="Save" AutomationProperties.AutomationId="MainWindow_MenuItem_File_Save" />
+                <Separator />
+                <MenuItem Header="Exit" AutomationProperties.AutomationId="MainWindow_MenuItem_File_Exit" />
+            </MenuItem>
+            <MenuItem Header="Edit" AutomationProperties.AutomationId="MainWindow_MenuItem_Edit">
+                <MenuItem Header="Cut" AutomationProperties.AutomationId="MainWindow_MenuItem_Edit_Cut" />
+                <MenuItem Header="Copy" AutomationProperties.AutomationId="MainWindow_MenuItem_Edit_Copy" />
+                <MenuItem Header="Paste" AutomationProperties.AutomationId="MainWindow_MenuItem_Edit_Paste" />
+            </MenuItem>
+            <MenuItem Header="View" AutomationProperties.AutomationId="MainWindow_MenuItem_View">
+                <MenuItem Header="Refresh" AutomationProperties.AutomationId="MainWindow_MenuItem_View_Refresh" />
+            </MenuItem>
+        </Menu>
+
+        <StatusBar DockPanel.Dock="Bottom" AutomationProperties.AutomationId="MainWindow_StatusBar">
+            <StatusBarItem>
+                <TextBlock Text="Ready" />
+            </StatusBarItem>
+        </StatusBar>
+
+        <TabControl>
+            <TabItem Header="Basic Controls" AutomationProperties.AutomationId="MainWindow_TabItem_BasicControls">
+                <tabs:BasicControlsTab />
+            </TabItem>
+            <TabItem Header="Selection" AutomationProperties.AutomationId="MainWindow_TabItem_Selection">
+                <tabs:SelectionTab />
+            </TabItem>
+            <TabItem Header="Data Grid" AutomationProperties.AutomationId="MainWindow_TabItem_DataGrid">
+                <tabs:DataGridTab />
+            </TabItem>
+            <TabItem Header="Tree &amp; Menu" AutomationProperties.AutomationId="MainWindow_TabItem_TreeMenu">
+                <tabs:TreeMenuTab />
+            </TabItem>
+            <TabItem Header="Dynamic UI" AutomationProperties.AutomationId="MainWindow_TabItem_DynamicUI">
+                <tabs:DynamicUITab />
+            </TabItem>
+            <TabItem Header="Dialogs" AutomationProperties.AutomationId="MainWindow_TabItem_Dialogs">
+                <tabs:DialogsTab />
+            </TabItem>
+            <TabItem Header="Multi-Window" AutomationProperties.AutomationId="MainWindow_TabItem_MultiWindow">
+                <tabs:MultiWindowTab />
+            </TabItem>
+            <TabItem Header="Async / Delay" AutomationProperties.AutomationId="MainWindow_TabItem_AsyncDelay">
+                <tabs:AsyncDelayTab />
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

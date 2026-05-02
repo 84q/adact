@@ -1,0 +1,19 @@
+<UserControl x:Class="SampleApp.Tabs.TreeMenuTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="10">
+        <TreeView x:Name="MainTreeView"
+                  AutomationProperties.AutomationId="TreeMenu_TreeView_Main"
+                  AutomationProperties.Name="Main Tree View">
+            <TreeView.ContextMenu>
+                <ContextMenu AutomationProperties.AutomationId="TreeMenu_ContextMenu_Main"
+                             AutomationProperties.Name="Main Context Menu">
+                    <MenuItem Header="Expand" AutomationProperties.AutomationId="TreeMenu_ContextMenu_Expand" />
+                    <MenuItem Header="Collapse" AutomationProperties.AutomationId="TreeMenu_ContextMenu_Collapse" />
+                    <Separator />
+                    <MenuItem Header="Delete" AutomationProperties.AutomationId="TreeMenu_ContextMenu_Delete" />
+                </ContextMenu>
+            </TreeView.ContextMenu>
+        </TreeView>
+    </Grid>
+</UserControl>

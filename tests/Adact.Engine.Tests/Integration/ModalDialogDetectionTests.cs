@@ -28,6 +28,7 @@ public class ModalDialogDetectionTests
         var builder = new SnapshotBuilder(registry);
         var input = new SnapshotBuildInput(
             root, new Adact.Engine.Elements.IElement[] { modal },
+            Array.Empty<Adact.Engine.Elements.IElement>(),
             new SnapshotOptions(), "Main", "Fake", 1, DateTimeOffset.UnixEpoch);
         var result = builder.Build(input);
 
@@ -61,6 +62,7 @@ public class ModalDialogDetectionTests
         var builder = new SnapshotBuilder(registry);
         var input = new SnapshotBuildInput(
             root, Array.Empty<Adact.Engine.Elements.IElement>(),
+            Array.Empty<Adact.Engine.Elements.IElement>(),
             new SnapshotOptions(), "Main", "Fake", 1, DateTimeOffset.UnixEpoch);
         var result = builder.Build(input);
 

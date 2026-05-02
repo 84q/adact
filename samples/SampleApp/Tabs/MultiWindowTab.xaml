@@ -1,0 +1,21 @@
+<UserControl x:Class="SampleApp.Tabs.MultiWindowTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel Margin="10">
+        <Button Content="Open Modal Window"
+                Margin="0,5"
+                AutomationProperties.AutomationId="MultiWindow_Button_OpenModal"
+                AutomationProperties.Name="Open Modal Window Button"
+                Click="OpenModal_Click" />
+        <Button Content="Open Modeless Window"
+                Margin="0,5"
+                AutomationProperties.AutomationId="MultiWindow_Button_OpenModeless"
+                AutomationProperties.Name="Open Modeless Window Button"
+                Click="OpenModeless_Click" />
+        <Button Content="Launch Calculator"
+                Margin="0,5"
+                AutomationProperties.AutomationId="MultiWindow_Button_LaunchCalculator"
+                AutomationProperties.Name="Launch Calculator Button"
+                Click="LaunchCalculator_Click" />
+    </StackPanel>
+</UserControl>

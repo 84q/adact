@@ -1,0 +1,20 @@
+<UserControl x:Class="SampleApp.Tabs.DataGridTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DataGrid x:Name="MainDataGrid"
+              AutoGenerateColumns="False"
+              CanUserAddRows="False"
+              IsReadOnly="True"
+              HorizontalScrollBarVisibility="Auto"
+              VerticalScrollBarVisibility="Auto"
+              AutomationProperties.AutomationId="DataGrid_Grid_Main"
+              AutomationProperties.Name="Main Data Grid">
+        <DataGrid.Columns>
+            <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="50" />
+            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="150" />
+            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="250" />
+            <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="120" />
+            <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat=C}" Width="100" />
+        </DataGrid.Columns>
+    </DataGrid>
+</UserControl>

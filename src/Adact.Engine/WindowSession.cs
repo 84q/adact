@@ -160,9 +160,11 @@ public sealed partial class WindowSession : IWindowSession
             var opt = options ?? new SnapshotOptions();
 
             var modals = DetectModalElements();
+            var popups = DetectPopupElements(modals);
+            _rootElement?.ClearChildrenCache();
             var now = DateTimeOffset.UtcNow;
             var input = new SnapshotBuildInput(
-                _rootElement, modals, opt,
+                _rootElement, modals, popups, opt,
                 WindowTitle: Title,
                 ProcessName: ProcessName,
                 ProcessId: ProcessId,
@@ -482,6 +484,78 @@ public sealed partial class WindowSession : IWindowSession
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
                     _logger.LogDebug(ex, "Failed to wrap modal window handle {Hwnd}", hwnd);
+                }
+            }
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// このセッションのプロセスに属し、メインウィンドウではなく、
+    /// かつモーダルダイアログとして検出されていない可視ウィンドウを Popup として検出する。
+    /// </summary>
+    private IReadOnlyList<IElement> DetectPopupElements(IReadOnlyList<IElement> modalElements)
+    {
+        var ownerHwnd = _nativeWindowHandle;
+        if (ownerHwnd == nint.Zero)
+        {
+            try { ownerHwnd = _window.Properties.NativeWindowHandle.ValueOrDefault; }
+            catch { return Array.Empty<IElement>(); }
+        }
+
+        if (ownerHwnd == nint.Zero) return Array.Empty<IElement>();
+
+        var modalHwnds = new HashSet<nint>();
+        foreach (var modal in modalElements)
+        {
+            if (modal is FlaUiElement fe)
+            {
+                try
+                {
+                    var hwnd = fe.Inner.Properties.NativeWindowHandle.ValueOrDefault;
+                    if (hwnd != nint.Zero) modalHwnds.Add(hwnd);
+                }
+                catch (Exception ex)
+                {
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogDebug(ex, "Failed to get window handle for modal element");
+                    }
+                }
+            }
+        }
+
+        var ownerPid = (uint)ProcessId;
+        var popupHwnds = new List<nint>();
+        NativeMethods.EnumWindows((hWnd, _) =>
+        {
+            if (hWnd == ownerHwnd) return true;
+            if (!NativeMethods.IsWindowVisible(hWnd)) return true;
+
+            _ = (nint)NativeMethods.GetWindowThreadProcessId(hWnd, out var pid);
+            if (pid != ownerPid) return true;
+
+            if (modalHwnds.Contains(hWnd)) return true;
+
+            popupHwnds.Add(hWnd);
+            return true;
+        }, IntPtr.Zero);
+
+        if (popupHwnds.Count == 0) return Array.Empty<IElement>();
+
+        var result = new List<IElement>(popupHwnds.Count);
+        foreach (var hwnd in popupHwnds)
+        {
+            try
+            {
+                var el = _automation.FromHandle(hwnd);
+                if (el is not null) result.Add(new FlaUiElement(el));
+            }
+            catch (Exception ex)
+            {
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug(ex, "Failed to wrap popup window handle {Hwnd}", hwnd);
                 }
             }
         }

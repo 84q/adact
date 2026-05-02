@@ -43,15 +43,16 @@ public sealed class SnapshotBuilder
         // DFS 出現順カウンタ。RuntimeId 取得不可な要素の StableKey フォールバックに用いる。
         var positionalIndex = 0;
 
-        var rootNode = BuildNode(input.RootWindow, depth: 0, maxDepth, isModalDialog: false, ref positionalIndex);
+        var rootNode = BuildNode(input.RootWindow, depth: 0, maxDepth, isModalDialog: false, isPopup: false, ref positionalIndex);
+
+        var children = (rootNode?["children"] as JsonArray) ?? new JsonArray();
 
         var modalSummaries = new JsonArray();
         if (input.ModalSiblings.Count > 0)
         {
-            var children = (rootNode["children"] as JsonArray) ?? new JsonArray();
             foreach (var modal in input.ModalSiblings)
             {
-                var modalNode = BuildNode(modal, depth: 0, maxDepth, isModalDialog: true, ref positionalIndex);
+                var modalNode = BuildNode(modal, depth: 0, maxDepth, isModalDialog: true, isPopup: false, ref positionalIndex);
                 if (modalNode is not null)
                 {
                     children.Add(modalNode);
@@ -62,6 +63,22 @@ public sealed class SnapshotBuilder
                     });
                 }
             }
+        }
+
+        if (input.PopupSiblings.Count > 0)
+        {
+            foreach (var popup in input.PopupSiblings)
+            {
+                var popupNode = BuildNode(popup, depth: 0, maxDepth, isModalDialog: false, isPopup: true, ref positionalIndex);
+                if (popupNode is not null)
+                {
+                    children.Add(popupNode);
+                }
+            }
+        }
+
+        if (rootNode is not null && children.Count > 0)
+        {
             rootNode["children"] = children;
         }
 
@@ -92,7 +109,7 @@ public sealed class SnapshotBuilder
 
     /// <summary>raw 全フィールドを JSON ノードとして出力する (フィルタなし、すべての子を再帰)。</summary>
     private JsonObject? BuildNode(
-        IElement el, int depth, int maxDepth, bool isModalDialog, ref int positionalIndex)
+        IElement el, int depth, int maxDepth, bool isModalDialog, bool isPopup, ref int positionalIndex)
     {
         var refId = _registry.Register(el, positionalIndex);
         positionalIndex++;
@@ -123,13 +140,14 @@ public sealed class SnapshotBuilder
         node["isKeyboardFocusable"] = el.IsKeyboardFocusable;
         node["hasKeyboardFocus"] = el.HasKeyboardFocus;
         if (isModalDialog) node["isModalDialog"] = true;
+        if (isPopup) node["isPopup"] = true;
 
         var childNodes = new JsonArray();
         if (depth < maxDepth)
         {
             foreach (var child in el.Children)
             {
-                var childNode = BuildNode(child, depth + 1, maxDepth, isModalDialog: false, ref positionalIndex);
+                var childNode = BuildNode(child, depth + 1, maxDepth, isModalDialog: false, isPopup: false, ref positionalIndex);
                 if (childNode is not null)
                     childNodes.Add(childNode);
             }

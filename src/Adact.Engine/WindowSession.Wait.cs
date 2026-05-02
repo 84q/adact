@@ -206,9 +206,10 @@ public sealed partial class WindowSession
     {
         ct.ThrowIfCancellationRequested();
         var modals = DetectModalElements();
+        var popups = DetectPopupElements(modals);
         var now = DateTimeOffset.UtcNow;
         var input = new SnapshotBuildInput(
-            _rootElement, modals, new SnapshotOptions(),
+            _rootElement, modals, popups, new SnapshotOptions(),
             WindowTitle: Title,
             ProcessName: ProcessName,
             ProcessId: ProcessId,

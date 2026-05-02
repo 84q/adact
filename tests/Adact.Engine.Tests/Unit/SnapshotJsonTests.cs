@@ -19,6 +19,7 @@ public class SnapshotJsonTests
         var builder = new SnapshotBuilder(registry);
         var input = new SnapshotBuildInput(
             root, Array.Empty<Adact.Engine.Elements.IElement>(),
+            Array.Empty<Adact.Engine.Elements.IElement>(),
             new SnapshotOptions(), root.Name ?? "", "FakeProcess", 1234,
             DateTimeOffset.UnixEpoch);
         var result = builder.Build(input);

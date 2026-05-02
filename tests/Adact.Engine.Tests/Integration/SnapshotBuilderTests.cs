@@ -16,12 +16,14 @@ public class SnapshotBuilderTests
     private static (JsonDocument doc, SnapshotBuildResult result) Build(
         FakeElement root,
         IReadOnlyList<Adact.Engine.Elements.IElement>? modals = null,
+        IReadOnlyList<Adact.Engine.Elements.IElement>? popups = null,
         int sessionId = 1)
     {
         var registry = new RefRegistry(sessionId);
         var builder = new SnapshotBuilder(registry);
         var input = new SnapshotBuildInput(
             root, modals ?? Array.Empty<Adact.Engine.Elements.IElement>(),
+            popups ?? Array.Empty<Adact.Engine.Elements.IElement>(),
             new SnapshotOptions(),
             WindowTitle: root.Name ?? "",
             ProcessName: "Fake",
@@ -67,6 +69,24 @@ public class SnapshotBuilderTests
         var children = doc.RootElement.GetProperty("tree").GetProperty("children");
         Assert.Equal(2, children.GetArrayLength());
         Assert.True(children[0].GetProperty("isOffscreen").GetBoolean());
+    }
+
+    /// <summary>
+    /// PopupSiblings を渡した際、root の children に Popup 要素が追加され、
+    /// isPopup: true フラグが付与されることを確認する。
+    /// </summary>
+    [Fact]
+    public void Build_WithPopupSiblings_AddsPopupsToRootChildren_WithIsPopupFlag()
+    {
+        var root = FakeElement.Window("Main");
+        var popup = FakeElement.Window("PopupWindow");
+        var (doc, _) = Build(root, popups: new[] { popup });
+
+        var children = doc.RootElement.GetProperty("tree").GetProperty("children");
+        Assert.Equal(1, children.GetArrayLength());
+        Assert.Equal("Window", children[0].GetProperty("role").GetString());
+        Assert.Equal("PopupWindow", children[0].GetProperty("name").GetString());
+        Assert.True(children[0].GetProperty("isPopup").GetBoolean());
     }
 
     /// <summary>
@@ -149,6 +169,7 @@ public class SnapshotBuilderTests
     {
         var input = new SnapshotBuildInput(
             root, Array.Empty<Adact.Engine.Elements.IElement>(),
+            Array.Empty<Adact.Engine.Elements.IElement>(),
             new SnapshotOptions(),
             WindowTitle: root.Name ?? "",
             ProcessName: "Fake",

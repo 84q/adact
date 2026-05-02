@@ -44,6 +44,9 @@ public interface IElement
     /// <summary>子要素の列挙 (FindAllChildren 相当)。失敗時は空配列。</summary>
     IReadOnlyList<IElement> Children { get; }
 
+    /// <summary>子要素のキャッシュをクリアする。UIA ツリーが動的に変化する場合に、次回 Children アクセス時に再取得されるようにする。</summary>
+    void ClearChildrenCache();
+
     /// <summary>InvokePattern が利用可能ならそれで、そうでなければ FlaUI の <c>Click()</c> でクリックする。</summary>
     void Click();
 

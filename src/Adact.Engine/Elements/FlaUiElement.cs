@@ -164,6 +164,12 @@ internal sealed class FlaUiElement : IElement
         try { _el.Focus(); } catch { /* best effort */ }
     }
 
+    /// <inheritdoc />
+    public void ClearChildrenCache()
+    {
+        _children = null;
+    }
+
     /// <summary>空文字列を <c>null</c> に正規化する。</summary>
     /// <param name="s">入力文字列。</param>
     /// <returns><paramref name="s"/> が <c>null</c> または空文字列なら <c>null</c>、それ以外はそのまま返す。</returns>
