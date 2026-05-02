@@ -1,4 +1,5 @@
 using System.CommandLine;
+
 using Adact.Cli.Commands;
 
 namespace Adact.Cli.Client;
@@ -8,6 +9,7 @@ internal static class Program
     public static async Task<int> Main(string[] args)
     {
         var root = new RootCommand("ADACT - Cross-platform CLI Client");
+        root.Options.Add(CommandHelpers.ServerOption);
         // Cross-platform: exclude local/serve/daemon-stop/install
         root.Subcommands.Add(ListAppsCommand.Build());
         root.Subcommands.Add(AttachCommand.Build());
