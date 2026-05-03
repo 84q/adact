@@ -32,7 +32,7 @@ public class CalculatorCliE2ETests
     /// CLI と daemon と UIA を含む E2E テスト (設計 009 §9.2) のテスト。
     /// </summary>
     [Fact]
-    public void ListAttachSnapshotClickCloseFlow_OnCalculator_Succeeds()
+    public async Task ListAttachSnapshotClickCloseFlow_OnCalculator_Succeeds()
     {
         using var _calcLock = new CalculatorMutex();
 
@@ -40,7 +40,7 @@ public class CalculatorCliE2ETests
         var tempDir = Path.Combine(Path.GetTempPath(), "adact-cli-e2e-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempDir);
 
-        var calculator = StartCalculator();
+        var calculator = await CalculatorTestHelper.StartFreshCalculatorAsync(TimeSpan.FromSeconds(10));
         try
         {
             // (1) list-apps → 電卓行から windowRef を抽出
@@ -116,38 +116,10 @@ public class CalculatorCliE2ETests
         }
         finally
         {
-            foreach (var p in Process.GetProcessesByName("CalculatorApp"))
-            {
-                try { p.Kill(); p.WaitForExit(2000); } catch { }
-            }
+            CalculatorTestHelper.KillCalculatorProcesses();
             try { calculator?.Dispose(); } catch { }
             try { Directory.Delete(tempDir, recursive: true); } catch { }
         }
-    }
-
-    /// <summary>
-    /// UWP 電卓 (calc.exe → CalculatorApp.exe) を起動し、UIA で見える状態になるまで待機する。
-    /// 10 秒以内に CalculatorApp プロセスが見つからなければ <see cref="InvalidOperationException"/> で fast-fail する。
-    /// </summary>
-    private static Process? StartCalculator()
-    {
-        var p = Process.Start(new ProcessStartInfo
-        {
-            FileName = "calc.exe",
-            UseShellExecute = true,
-        });
-        var sw = Stopwatch.StartNew();
-        while (sw.Elapsed < TimeSpan.FromSeconds(10))
-        {
-            if (Process.GetProcessesByName("CalculatorApp").Length > 0)
-            {
-                // UWP 特有の安定化待ち: ウィンドウが UIA ツリーに登録されるまでの猶予。
-                Thread.Sleep(1000);
-                return p;
-            }
-            Thread.Sleep(150);
-        }
-        throw new InvalidOperationException("CalculatorApp did not start within 10s");
     }
 
     /// <summary>

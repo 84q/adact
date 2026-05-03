@@ -319,14 +319,15 @@ public class CommandHelpersTests
     public async Task RunWithClientAsync_InvalidServer_ThrowsInvalidUrlExceptionWithoutConnecting()
     {
         var connected = false;
-        var originalConnect = CommandHelpers.ConnectHttpClientAsync;
-        try
-        {
-            CommandHelpers.ConnectHttpClientAsync = (_, _) =>
+        using var _ = CommandHelpers.PushRuntime(new CommandHelpers.CommandRuntime(
+            ConnectHttpClientAsync: (_, _) =>
             {
                 connected = true;
                 return Task.FromResult<IAdactMcpClient>(new FakeClient());
-            };
+            },
+            ConnectNamedPipeClientAsync: DefaultNamedPipeConnectAsync,
+            IsServerRunningAsync: NamedPipeMcpClient.IsServerRunningAsync,
+            TryAutoStartServerAsync: null));
 
             await Assert.ThrowsAsync<InvalidUrlException>(() =>
                 CommandHelpers.RunWithClientAsync(
@@ -335,21 +336,17 @@ public class CommandHelpersTests
                     CancellationToken.None));
 
             Assert.False(connected);
-        }
-        finally
-        {
-            CommandHelpers.ConnectHttpClientAsync = originalConnect;
-        }
     }
 
     /// <summary>Verifies that connection failures are reported as CONNECTION_FAILED.</summary>
     [Fact]
     public async Task RunWithClientAsync_ConnectionFailure_ReturnsConnectionFailed()
     {
-        var originalConnect = CommandHelpers.ConnectHttpClientAsync;
-        try
-        {
-            CommandHelpers.ConnectHttpClientAsync = (_, _) => throw new HttpRequestException("daemon unavailable");
+        using var _ = CommandHelpers.PushRuntime(new CommandHelpers.CommandRuntime(
+            ConnectHttpClientAsync: (_, _) => throw new HttpRequestException("daemon unavailable"),
+            ConnectNamedPipeClientAsync: DefaultNamedPipeConnectAsync,
+            IsServerRunningAsync: NamedPipeMcpClient.IsServerRunningAsync,
+            TryAutoStartServerAsync: null));
 
             var (stdout, stderr, exit) = await CaptureAsync(() =>
                 CommandHelpers.RunWithClientAsync(
@@ -361,21 +358,17 @@ public class CommandHelpersTests
             Assert.Equal(string.Empty, stdout);
             Assert.Contains("error CONNECTION_FAILED", stderr);
             Assert.Contains("daemon unavailable", stderr);
-        }
-        finally
-        {
-            CommandHelpers.ConnectHttpClientAsync = originalConnect;
-        }
     }
 
     /// <summary>Verifies that unexpected connector exceptions are reported as INTERNAL_ERROR.</summary>
     [Fact]
     public async Task RunWithClientAsync_UnexpectedConnectorException_ReturnsCommandFailed()
     {
-        var originalConnect = CommandHelpers.ConnectHttpClientAsync;
-        try
-        {
-            CommandHelpers.ConnectHttpClientAsync = (_, _) => throw new InvalidOperationException("boom");
+        using var _ = CommandHelpers.PushRuntime(new CommandHelpers.CommandRuntime(
+            ConnectHttpClientAsync: (_, _) => throw new InvalidOperationException("boom"),
+            ConnectNamedPipeClientAsync: DefaultNamedPipeConnectAsync,
+            IsServerRunningAsync: NamedPipeMcpClient.IsServerRunningAsync,
+            TryAutoStartServerAsync: null));
 
             var (stdout, stderr, exit) = await CaptureAsync(() =>
                 CommandHelpers.RunWithClientAsync(
@@ -387,11 +380,6 @@ public class CommandHelpersTests
             Assert.Equal(string.Empty, stdout);
             Assert.Contains("error INTERNAL_ERROR", stderr);
             Assert.Contains("boom", stderr);
-        }
-        finally
-        {
-            CommandHelpers.ConnectHttpClientAsync = originalConnect;
-        }
     }
 
     private static CallToolResult SuccessResult() => new()
@@ -459,6 +447,9 @@ public class CommandHelpersTests
         Directory.CreateDirectory(dir);
         return dir;
     }
+
+    private static async Task<IAdactMcpClient> DefaultNamedPipeConnectAsync(NamedPipeEndPoint endpoint, CancellationToken ct)
+        => await NamedPipeMcpClient.ConnectAsync(endpoint, loggerFactory: null, ct).ConfigureAwait(false);
 
     private static async Task<(string stdout, string stderr, int exit)> CaptureAsync(Func<Task<int>> action)
     {

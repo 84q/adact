@@ -1,4 +1,5 @@
 using System.IO.Pipes;
+using System.Text.Json;
 
 using Adact.Cli.Connection;
 using Adact.Cli.Server.NamedPipe;
@@ -157,5 +158,89 @@ public sealed class NamedPipeLifecycleTests
             serverCts.Cancel();
             try { await serverTask.WaitAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false); } catch { }
         }
+    }
+
+    [InteractiveFact]
+    public async Task NamedPipeServer_ListAppsAndAttachAcrossConnections_SharesDaemonState()
+    {
+        InteractiveTestGuard.SkipIfNotInteractive();
+        using var _calcLock = new CalculatorMutex();
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        var endpoint = CreateUniqueEndpoint();
+        var calculator = await CalculatorTestHelper.StartFreshCalculatorAsync(TimeSpan.FromSeconds(10));
+
+        using var serverCts = new CancellationTokenSource();
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(serverCts.Token, timeoutCts.Token);
+
+        var serverTask = Task.Run(async () =>
+        {
+            try
+            {
+                return await NamedPipeHost.RunAsync(endpoint.PipeName, linkedCts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (serverCts.IsCancellationRequested || timeoutCts.IsCancellationRequested)
+            {
+                return 0;
+            }
+        }, timeoutCts.Token);
+
+        try
+        {
+            await WaitForServerAsync(endpoint, timeoutCts.Token).ConfigureAwait(false);
+
+            string windowRef;
+            await using (var client1 = await NamedPipeMcpClient.ConnectAsync(endpoint, loggerFactory: null, timeoutCts.Token).ConfigureAwait(false))
+            {
+                var list = await client1.CallToolAsync("windows_list_apps", arguments: null, timeoutCts.Token).ConfigureAwait(false);
+                Assert.False(list.IsError ?? false);
+                windowRef = FindCalculatorWindowRef(list);
+            }
+
+            await using var client2 = await NamedPipeMcpClient.ConnectAsync(endpoint, loggerFactory: null, timeoutCts.Token).ConfigureAwait(false);
+            var attach = await client2.CallToolAsync(
+                "windows_attach",
+                new Dictionary<string, object?> { ["windowRef"] = windowRef },
+                timeoutCts.Token).ConfigureAwait(false);
+
+            Assert.False(attach.IsError ?? false,
+                $"windows_attach failed: {(attach.Content.FirstOrDefault() as TextContentBlock)?.Text}");
+            var payload = attach.StructuredContent!.Value;
+            Assert.Equal(windowRef, payload.GetProperty("windowRef").GetString());
+            Assert.StartsWith("s", payload.GetProperty("sessionId").GetString(), StringComparison.Ordinal);
+        }
+        finally
+        {
+            serverCts.Cancel();
+            CalculatorTestHelper.KillCalculatorProcesses();
+            try { calculator?.Dispose(); } catch { }
+            try { await serverTask.WaitAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false); } catch { }
+        }
+    }
+
+    private static string FindCalculatorWindowRef(CallToolResult listResult)
+    {
+        var text = (listResult.Content.FirstOrDefault() as TextContentBlock)?.Text;
+        Assert.NotNull(text);
+
+        using var doc = JsonDocument.Parse(text!);
+        foreach (var window in doc.RootElement.EnumerateArray())
+        {
+            var processName = window.TryGetProperty("processName", out var processNameNode)
+                ? processNameNode.GetString()
+                : null;
+            var windowTitle = window.TryGetProperty("windowTitle", out var titleNode)
+                ? titleNode.GetString()
+                : null;
+
+            if ((processName?.Contains("Calculator", StringComparison.OrdinalIgnoreCase) ?? false)
+                || (windowTitle?.Contains("Calculator", StringComparison.OrdinalIgnoreCase) ?? false)
+                || (windowTitle?.Contains("電卓", StringComparison.Ordinal) ?? false))
+            {
+                return window.GetProperty("windowRef").GetString()
+                    ?? throw new Xunit.Sdk.XunitException("Calculator entry was missing windowRef.");
+            }
+        }
+
+        throw new Xunit.Sdk.XunitException($"Calculator windowRef not found in windows_list_apps output: {text}");
     }
 }

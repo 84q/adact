@@ -16,7 +16,7 @@ namespace Adact.Mcp.Common;
 /// </summary>
 public sealed class SessionStore : IDisposable
 {
-    /// <summary>attach や list の実行主体となる UIA エンジン。ストアとライフサイクルを共有する。</summary>
+    /// <summary>attach や list の実行主体となる UIA エンジン。ストアは利用するが所有しない。</summary>
     private readonly UiaEngine _engine;
     /// <summary>Dispose / 例外トレース用のロガー。</summary>
     private readonly ILogger<SessionStore> _logger;
@@ -32,7 +32,7 @@ public sealed class SessionStore : IDisposable
     /// <summary>
     /// 新しい <see cref="SessionStore"/> を構築する。
     /// </summary>
-    /// <param name="engine">起動済みの <see cref="UiaEngine"/>。ストアがこれを所有し、<see cref="Dispose"/> で一緒に解放する。</param>
+    /// <param name="engine">起動済みの <see cref="UiaEngine"/>。ライフサイクル管理は呼び出し側 / DI が担う。</param>
     /// <param name="logger">Dispose 時の未マップ例外ロガー。<c>null</c> の場合は <see cref="NullLogger{T}"/>。</param>
     public SessionStore(UiaEngine engine, ILogger<SessionStore>? logger = null)
     {
@@ -128,7 +128,7 @@ public sealed class SessionStore : IDisposable
     }
 
     /// <summary>
-    /// 保持しているすべての <see cref="IWindowSession"/> と同時に <see cref="UiaEngine"/>、並びに semaphore を解放する。
+    /// 保持しているすべての <see cref="IWindowSession"/> と semaphore を解放する。
     /// </summary>
     /// <remarks>
     /// 二重呼び出しは無視される。Dispose 中に起きた個別の例外は握りつぶしてデバッグログに記録し、ループを継続する。
@@ -142,7 +142,6 @@ public sealed class SessionStore : IDisposable
             try { s.Dispose(); } catch (Exception ex) { _logger.LogDebug(ex, "Disposing session failed"); }
         }
         _sessions.Clear();
-        try { _engine.Dispose(); } catch { }
         _lock.Dispose();
     }
 

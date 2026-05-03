@@ -417,14 +417,17 @@ public class CommandActionSuccessTests
         Command command,
         string[] args)
     {
-        var originalHttpConnect = CommandHelpers.ConnectHttpClientAsync;
         var origOut = Console.Out;
         var origErr = Console.Error;
         using var outWriter = new StringWriter();
         using var errWriter = new StringWriter();
+        using var _ = CommandHelpers.PushRuntime(new CommandHelpers.CommandRuntime(
+            ConnectHttpClientAsync: (_, _) => Task.FromResult<IAdactMcpClient>(client),
+            ConnectNamedPipeClientAsync: static async (endpoint, ct) => await NamedPipeMcpClient.ConnectAsync(endpoint, loggerFactory: null, ct).ConfigureAwait(false),
+            IsServerRunningAsync: NamedPipeMcpClient.IsServerRunningAsync,
+            TryAutoStartServerAsync: null));
         try
         {
-            CommandHelpers.ConnectHttpClientAsync = (_, _) => Task.FromResult<IAdactMcpClient>(client);
             Console.SetOut(outWriter);
             Console.SetError(errWriter);
 
@@ -439,7 +442,6 @@ public class CommandActionSuccessTests
         }
         finally
         {
-            CommandHelpers.ConnectHttpClientAsync = originalHttpConnect;
             Console.SetOut(origOut);
             Console.SetError(origErr);
         }

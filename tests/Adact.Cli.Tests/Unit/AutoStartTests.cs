@@ -76,32 +76,22 @@ public class AutoStartTests
     [Fact]
     public async Task ListApps_ServerNotRunning_AutoStartsServer()
     {
-        var origIsRunning = CommandHelpers.IsServerRunningAsync;
-        var origConnect = CommandHelpers.ConnectNamedPipeClientAsync;
-        var origAutoStart = CommandHelpers.TryAutoStartServerAsync;
-        try
-        {
-            var autoStartCalled = false;
-            CommandHelpers.IsServerRunningAsync = static (_, _, _) => Task.FromResult(false);
-            CommandHelpers.ConnectNamedPipeClientAsync = static (_, _) => Task.FromResult<IAdactMcpClient>(new FakeClient());
-            CommandHelpers.TryAutoStartServerAsync = _ =>
+        var autoStartCalled = false;
+        using var _ = CommandHelpers.PushRuntime(new CommandHelpers.CommandRuntime(
+            ConnectHttpClientAsync: static async (endpoint, ct) => await AdactMcpClient.ConnectAsync(endpoint, loggerFactory: null, ct).ConfigureAwait(false),
+            ConnectNamedPipeClientAsync: static (_, _) => Task.FromResult<IAdactMcpClient>(new FakeClient()),
+            IsServerRunningAsync: static (_, _, _) => Task.FromResult(false),
+            TryAutoStartServerAsync: _ =>
             {
                 autoStartCalled = true;
                 return Task.FromResult(true);
-            };
+            }));
 
-            var (_, stderr, exit) = await RunAsync(["list-apps"]);
+        var (_, stderr, exit) = await RunAsync(["list-apps"]);
 
-            Assert.Equal(ExitCodes.Success, exit);
-            Assert.True(autoStartCalled);
-            Assert.Equal(string.Empty, stderr);
-        }
-        finally
-        {
-            CommandHelpers.IsServerRunningAsync = origIsRunning;
-            CommandHelpers.ConnectNamedPipeClientAsync = origConnect;
-            CommandHelpers.TryAutoStartServerAsync = origAutoStart;
-        }
+        Assert.Equal(ExitCodes.Success, exit);
+        Assert.True(autoStartCalled);
+        Assert.Equal(string.Empty, stderr);
     }
 
     /// <summary>
@@ -110,32 +100,22 @@ public class AutoStartTests
     [Fact]
     public async Task Launch_ServerNotRunning_AutoStartsServer()
     {
-        var origIsRunning = CommandHelpers.IsServerRunningAsync;
-        var origConnect = CommandHelpers.ConnectNamedPipeClientAsync;
-        var origAutoStart = CommandHelpers.TryAutoStartServerAsync;
-        try
-        {
-            var autoStartCalled = false;
-            CommandHelpers.IsServerRunningAsync = static (_, _, _) => Task.FromResult(false);
-            CommandHelpers.ConnectNamedPipeClientAsync = static (_, _) => Task.FromResult<IAdactMcpClient>(new FakeClient());
-            CommandHelpers.TryAutoStartServerAsync = _ =>
+        var autoStartCalled = false;
+        using var _ = CommandHelpers.PushRuntime(new CommandHelpers.CommandRuntime(
+            ConnectHttpClientAsync: static async (endpoint, ct) => await AdactMcpClient.ConnectAsync(endpoint, loggerFactory: null, ct).ConfigureAwait(false),
+            ConnectNamedPipeClientAsync: static (_, _) => Task.FromResult<IAdactMcpClient>(new FakeClient()),
+            IsServerRunningAsync: static (_, _, _) => Task.FromResult(false),
+            TryAutoStartServerAsync: _ =>
             {
                 autoStartCalled = true;
                 return Task.FromResult(true);
-            };
+            }));
 
-            var (_, stderr, exit) = await RunAsync(["launch", "notepad"]);
+        var (_, stderr, exit) = await RunAsync(["launch", "notepad"]);
 
-            Assert.Equal(ExitCodes.Success, exit);
-            Assert.True(autoStartCalled);
-            Assert.Equal(string.Empty, stderr);
-        }
-        finally
-        {
-            CommandHelpers.IsServerRunningAsync = origIsRunning;
-            CommandHelpers.ConnectNamedPipeClientAsync = origConnect;
-            CommandHelpers.TryAutoStartServerAsync = origAutoStart;
-        }
+        Assert.Equal(ExitCodes.Success, exit);
+        Assert.True(autoStartCalled);
+        Assert.Equal(string.Empty, stderr);
     }
 
     /// <summary>
@@ -145,32 +125,48 @@ public class AutoStartTests
     [Fact]
     public async Task Click_ServerNotRunning_DoesNotAutoStart_ReturnsConnectionFailed()
     {
-        var origIsRunning = CommandHelpers.IsServerRunningAsync;
-        var origConnect = CommandHelpers.ConnectNamedPipeClientAsync;
-        var origAutoStart = CommandHelpers.TryAutoStartServerAsync;
-        try
-        {
-            var autoStartCalled = false;
-            CommandHelpers.IsServerRunningAsync = static (_, _, _) => Task.FromResult(false);
-            CommandHelpers.ConnectNamedPipeClientAsync = static (_, _) => throw new TimeoutException("connection failed");
-            CommandHelpers.TryAutoStartServerAsync = _ =>
+        var autoStartCalled = false;
+        using var _ = CommandHelpers.PushRuntime(new CommandHelpers.CommandRuntime(
+            ConnectHttpClientAsync: static async (endpoint, ct) => await AdactMcpClient.ConnectAsync(endpoint, loggerFactory: null, ct).ConfigureAwait(false),
+            ConnectNamedPipeClientAsync: static (_, _) => throw new TimeoutException("connection failed"),
+            IsServerRunningAsync: static (_, _, _) => Task.FromResult(false),
+            TryAutoStartServerAsync: _ =>
             {
                 autoStartCalled = true;
                 return Task.FromResult(true);
-            };
+            }));
 
-            var (_, stderr, exit) = await RunAsync(["click", "s1e1", "--no-snapshot"]);
+        var (_, stderr, exit) = await RunAsync(["click", "s1e1", "--no-snapshot"]);
 
-            Assert.Equal(ExitCodes.ConnectionFailed, exit);
-            Assert.False(autoStartCalled);
-            Assert.Contains("error CONNECTION_FAILED", stderr);
-        }
-        finally
-        {
-            CommandHelpers.IsServerRunningAsync = origIsRunning;
-            CommandHelpers.ConnectNamedPipeClientAsync = origConnect;
-            CommandHelpers.TryAutoStartServerAsync = origAutoStart;
-        }
+        Assert.Equal(ExitCodes.ConnectionFailed, exit);
+        Assert.False(autoStartCalled);
+        Assert.Contains("error CONNECTION_FAILED", stderr);
+    }
+
+    [Fact]
+    public async Task ListApps_AfterAutoStart_RetriesNamedPipeReconnect()
+    {
+        var connectAttempts = 0;
+        using var _ = CommandHelpers.PushRuntime(new CommandHelpers.CommandRuntime(
+            ConnectHttpClientAsync: static async (endpoint, ct) => await AdactMcpClient.ConnectAsync(endpoint, loggerFactory: null, ct).ConfigureAwait(false),
+            ConnectNamedPipeClientAsync: (_, _) =>
+            {
+                connectAttempts++;
+                if (connectAttempts < 3)
+                {
+                    throw new TimeoutException("warming up");
+                }
+
+                return Task.FromResult<IAdactMcpClient>(new FakeClient());
+            },
+            IsServerRunningAsync: static (_, _, _) => Task.FromResult(false),
+            TryAutoStartServerAsync: static _ => Task.FromResult(true)));
+
+        var (_, stderr, exit) = await RunAsync(["list-apps"]);
+
+        Assert.Equal(ExitCodes.Success, exit);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Equal(3, connectAttempts);
     }
 
     private static async Task<(string stdout, string stderr, int exit)> RunAsync(string[] args)

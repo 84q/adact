@@ -16,8 +16,8 @@ internal static class Program
     /// <returns>サブコマンドが返した exit code (設計 docs/spec/errors-and-output.md)。</returns>
     public static async Task<int> Main(string[] args)
     {
-        // 自動起動関数を設定
-        CommandHelpers.TryAutoStartServerAsync = Daemon.DaemonSpawner.EnsureServerRunningAsync;
+        using var _ = CommandHelpers.PushRuntime(
+            CommandHelpers.CommandRuntime.CreateDefault(Daemon.DaemonSpawner.EnsureServerRunningAsync));
 
         var root = BuildRoot();
         var parseResult = root.Parse(args);

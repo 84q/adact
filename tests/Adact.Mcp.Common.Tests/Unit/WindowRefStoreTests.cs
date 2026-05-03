@@ -290,4 +290,42 @@ public class WindowRefStoreTests
         var store = new WindowRefStore();
         Assert.False(store.TryFindBySessionId("s99", out _));
     }
+
+    [Fact]
+    public void RemoveBySessionId_RemovesAssociatedEntry()
+    {
+        var store = new WindowRefStore();
+        var k = Key(100, 0x1000);
+        var entry = store.SyncOrAssign(k, Info(100, 0x1000));
+        store.AssociateSession(entry.WindowRef, "s1");
+
+        store.RemoveBySessionId("s1");
+
+        Assert.False(store.TryResolve(entry.WindowRef, out _));
+        Assert.False(store.TryFindByKey(k, out _));
+    }
+
+    [Fact]
+    public void PurgeExpiredRetiredEntries_RemovesOnlyExpiredRetiredEntries()
+    {
+        var now = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        var store = new WindowRefStore(
+            retiredEntryTtl: TimeSpan.FromMinutes(5),
+            utcNow: () => now);
+
+        var expiredKey = Key(100, 0x1000);
+        var liveKey = Key(200, 0x2000);
+        var expired = store.SyncOrAssign(expiredKey, Info(100, 0x1000));
+        store.SyncOrAssign(liveKey, Info(200, 0x2000));
+
+        store.RetireMissing(new[] { liveKey });
+        now = now.AddMinutes(6);
+
+        var purged = store.PurgeExpiredRetiredEntries();
+
+        Assert.Equal(1, purged);
+        Assert.False(store.TryFindByKey(expiredKey, out _));
+        Assert.True(store.TryFindByKey(liveKey, out _));
+        Assert.False(store.TryResolve(expired.WindowRef, out _));
+    }
 }

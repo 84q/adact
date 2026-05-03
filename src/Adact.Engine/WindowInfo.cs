@@ -7,10 +7,12 @@ namespace Adact.Engine;
 /// <param name="ControlType">UIA ControlType 名 (例: <c>"Window"</c>、取得失敗時は <c>"Unknown"</c>)。</param>
 /// <param name="ClassName">Win32 ウィンドウクラス名。空文字列は <c>null</c> 化されている。</param>
 /// <param name="NativeWindowHandle">Win32 HWND。FromHandle / 各種 Win32 API への入力に用いる。</param>
+/// <param name="ProcessStartTimeUtc">所有プロセスの開始 UTC 時刻。取得不能時は <c>null</c>。</param>
 public sealed record WindowInfo(
     int ProcessId,
     string ProcessName,
     string Title,
     string ControlType,
     string? ClassName,
-    nint NativeWindowHandle);
+    nint NativeWindowHandle,
+    DateTimeOffset? ProcessStartTimeUtc = null);

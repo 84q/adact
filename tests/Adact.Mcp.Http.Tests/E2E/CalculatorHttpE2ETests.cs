@@ -53,7 +53,9 @@ public class CalculatorHttpE2ETests
 
         // calc.exe を使う E2E をアセンブリ間並列でも直列化するための named semaphore
         using var _calcLock = new CalculatorMutex();
-        var calculator = _fixture.UsesExternalServer ? null : StartCalculator();
+        var calculator = _fixture.UsesExternalServer
+            ? null
+            : await CalculatorTestHelper.StartFreshCalculatorAsync(TimeSpan.FromSeconds(10));
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
@@ -121,29 +123,10 @@ public class CalculatorHttpE2ETests
         {
             if (!_fixture.UsesExternalServer)
             {
-                foreach (var p in Process.GetProcessesByName("CalculatorApp"))
-                {
-                    try { p.Kill(); p.WaitForExit(2000); } catch { }
-                }
+                CalculatorTestHelper.KillCalculatorProcesses();
             }
             try { calculator?.Dispose(); } catch { }
         }
-    }
-
-    private static Process? StartCalculator()
-    {
-        var p = Process.Start(new ProcessStartInfo { FileName = "calc.exe", UseShellExecute = true });
-        var sw = Stopwatch.StartNew();
-        while (sw.Elapsed < TimeSpan.FromSeconds(10))
-        {
-            if (Process.GetProcessesByName("CalculatorApp").Length > 0)
-            {
-                Thread.Sleep(1000);
-                return p;
-            }
-            Thread.Sleep(150);
-        }
-        return p;
     }
 
     private static int CountByRole(JsonElement node, string role)

@@ -10,6 +10,7 @@ public sealed partial class WindowSession
 {
     /// <summary>wait-for の内部ポーリング間隔 (設計 022 §13)。</summary>
     private static readonly TimeSpan WaitForPollInterval = TimeSpan.FromMilliseconds(100);
+    private const int WaitForTraversalMaxDepth = 64;
 
     /// <summary>
     /// 指定 element ref の状態を満たすまで待機する (設計 022 §6 / §7)。
@@ -41,26 +42,15 @@ public sealed partial class WindowSession
             timeout,
             attempt: c =>
             {
-                // 各反復で snapshot を取り直し、registry の現スナップショット mapping を更新する。
-                _ = TakeInternalSnapshot(c);
-                IElement? el = null;
-                try
-                {
-                    el = _registry.Resolve(refId);
-                }
-                catch (RefNotFoundException)
-                {
-                    el = null;
-                }
-
-                if (el is null)
+                var hit = FindWaitTargetByRef(refId, c);
+                if (hit is null)
                 {
                     return state == WaitForState.Detached
                         ? new WaitForResult(refId, WaitForState.Detached)
                         : null;
                 }
 
-                return CheckRefState(refId, el, state);
+                return CheckRefState(refId, hit, state);
             },
             timeoutMessage: $"wait-for did not observe state '{WaitForStateParser.ToWireString(state)}' for ref '{refId}' within {(int)timeout.TotalMilliseconds}ms.",
             ct);
@@ -99,14 +89,7 @@ public sealed partial class WindowSession
             timeout,
             attempt: c =>
             {
-                _ = TakeInternalSnapshot(c);
-                foreach (var (foundRef, el) in _registry.EnumerateCurrent())
-                {
-                    if (!QueryMatches(query, el)) continue;
-                    var hit = CheckRefState(foundRef, el, state);
-                    if (hit is not null) return hit;
-                }
-                return null;
+                return FindWaitTargetByQuery(query, state, c);
             },
             timeoutMessage: $"wait-for did not observe a matching element for state '{WaitForStateParser.ToWireString(state)}' within {(int)timeout.TotalMilliseconds}ms.",
             ct);
@@ -196,38 +179,149 @@ public sealed partial class WindowSession
         }
     }
 
-    /// <summary>
-    /// gate 内で snapshot を取り、registry の現スナップショット mapping を更新する内部用 snapshot 取得。
-    /// 外部 <see cref="SnapshotAsync"/> と異なり、結果の JSON 文字列だけを返す (多くの呼び出し側は破棄する)。
-    /// </summary>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>snapshot 結果。</returns>
-    private SnapshotResult TakeInternalSnapshot(CancellationToken ct)
+    private IElement? FindWaitTargetByRef(string refId, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
+        _rootElement?.ClearChildrenCache();
+        _registry.BeginSnapshot();
+
         var modals = DetectModalElements();
         var popups = DetectPopupElements(modals);
-        var now = DateTimeOffset.UtcNow;
-        var input = new SnapshotBuildInput(
-            _rootElement, modals, popups, new SnapshotOptions(),
-            WindowTitle: Title,
-            ProcessName: ProcessName,
-            ProcessId: ProcessId,
-            GeneratedAt: now);
-        try
+        var emittedRefs = new HashSet<string>(StringComparer.Ordinal);
+        var positionalIndex = 0;
+
+        foreach (var root in EnumerateWaitTraversalRoots(modals, popups))
         {
-            var built = new SnapshotBuilder(_registry).Build(input);
-            return new SnapshotResult(
-                Json: built.Json,
-                SessionId: built.SessionId,
-                WindowTitle: Title,
-                ProcessName: ProcessName,
-                ProcessId: ProcessId,
-                GeneratedAt: now);
+            var found = TraverseForRef(root, refId, depth: 0, ref positionalIndex, emittedRefs, ct);
+            if (found is not null)
+            {
+                return found;
+            }
         }
-        catch (Exception ex) when (ex is not AdactException)
+
+        return null;
+    }
+
+    private WaitForResult? FindWaitTargetByQuery(WaitForElementQuery query, WaitForState state, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        _rootElement?.ClearChildrenCache();
+        _registry.BeginSnapshot();
+
+        var modals = DetectModalElements();
+        var popups = DetectPopupElements(modals);
+        var emittedRefs = new HashSet<string>(StringComparer.Ordinal);
+        var positionalIndex = 0;
+
+        foreach (var root in EnumerateWaitTraversalRoots(modals, popups))
         {
-            throw new SnapshotException("Snapshot construction failed.", ex);
+            var hit = TraverseForQuery(root, query, state, depth: 0, ref positionalIndex, emittedRefs, ct);
+            if (hit is not null)
+            {
+                return hit;
+            }
         }
+
+        return null;
+    }
+
+    private IEnumerable<IElement> EnumerateWaitTraversalRoots(
+        IReadOnlyList<IElement> modals,
+        IReadOnlyList<IElement> popups)
+    {
+        yield return _rootElement;
+
+        foreach (var modal in modals)
+        {
+            yield return modal;
+        }
+
+        foreach (var popup in popups)
+        {
+            yield return popup;
+        }
+    }
+
+    private IElement? TraverseForRef(
+        IElement element,
+        string targetRef,
+        int depth,
+        ref int positionalIndex,
+        HashSet<string> emittedRefs,
+        CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+
+        var refId = _registry.Register(element, positionalIndex);
+        positionalIndex++;
+        if (!emittedRefs.Add(refId))
+        {
+            return null;
+        }
+
+        if (string.Equals(refId, targetRef, StringComparison.Ordinal))
+        {
+            return element;
+        }
+
+        if (depth >= WaitForTraversalMaxDepth)
+        {
+            return null;
+        }
+
+        foreach (var child in element.Children)
+        {
+            var found = TraverseForRef(child, targetRef, depth + 1, ref positionalIndex, emittedRefs, ct);
+            if (found is not null)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    private WaitForResult? TraverseForQuery(
+        IElement element,
+        WaitForElementQuery query,
+        WaitForState state,
+        int depth,
+        ref int positionalIndex,
+        HashSet<string> emittedRefs,
+        CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+
+        var refId = _registry.Register(element, positionalIndex);
+        positionalIndex++;
+        if (!emittedRefs.Add(refId))
+        {
+            return null;
+        }
+
+        if (QueryMatches(query, element))
+        {
+            var hit = CheckRefState(refId, element, state);
+            if (hit is not null)
+            {
+                return hit;
+            }
+        }
+
+        if (depth >= WaitForTraversalMaxDepth)
+        {
+            return null;
+        }
+
+        foreach (var child in element.Children)
+        {
+            var hit = TraverseForQuery(child, query, state, depth + 1, ref positionalIndex, emittedRefs, ct);
+            if (hit is not null)
+            {
+                return hit;
+            }
+        }
+
+        return null;
     }
 }

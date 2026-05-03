@@ -84,7 +84,10 @@ public static class NamedPipeHost
         var services = new ServiceCollection();
         services.AddSingleton(loggerFactory);
         services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
-        var parentServiceProvider = services.BuildServiceProvider();
+        services.AddSingleton<UiaEngine>(sp => new UiaEngine(sp.GetRequiredService<ILoggerFactory>()));
+        services.AddSingleton<SessionStore>();
+        services.AddSingleton<WindowRefStore>();
+        using var parentServiceProvider = services.BuildServiceProvider();
 
         // ConcurrentDictionary を使用して thread-safe に接続を管理
         var connections = new ConcurrentDictionary<Guid, NamedPipeConnection>();

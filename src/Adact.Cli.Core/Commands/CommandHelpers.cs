@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.Text.Json;
+using System.IO.Pipes;
 
 using Adact.Cli.Connection;
 using Adact.Cli.Output;
@@ -14,24 +15,12 @@ namespace Adact.Cli.Commands;
 /// </summary>
 internal static class CommandHelpers
 {
-    internal static Func<ServerEndpoint, CancellationToken, Task<IAdactMcpClient>> ConnectHttpClientAsync { get; set; }
-        = static async (endpoint, ct) => await AdactMcpClient.ConnectAsync(
-            endpoint,
-            loggerFactory: null,
-            ct).ConfigureAwait(false);
+    private static readonly AsyncLocal<CommandRuntime?> RuntimeOverride = new();
+    private static readonly CommandRuntime DefaultRuntime = CommandRuntime.CreateDefault();
+    private static CommandRuntime Runtime => RuntimeOverride.Value ?? DefaultRuntime;
 
-    internal static Func<NamedPipeEndPoint, CancellationToken, Task<IAdactMcpClient>> ConnectNamedPipeClientAsync { get; set; }
-        = static async (endpoint, ct) => await NamedPipeMcpClient.ConnectAsync(
-            endpoint,
-            loggerFactory: null,
-            ct).ConfigureAwait(false);
-
-    /// <summary>
-    /// サーバーが既に起動しているか確認する関数。
-    /// テストでモック可能にするため internal static プロパティとして公開する。
-    /// </summary>
-    internal static Func<NamedPipeEndPoint, int, CancellationToken, Task<bool>> IsServerRunningAsync { get; set; }
-        = NamedPipeMcpClient.IsServerRunningAsync;
+    private static readonly TimeSpan AutoStartReconnectRetryDelay = TimeSpan.FromMilliseconds(150);
+    private const int AutoStartReconnectRetryCount = 5;
 
     /// <summary>
     /// 接続解決 → MCP 接続 → コマンド実装の呼び出し、を共通化する。
@@ -75,7 +64,7 @@ internal static class CommandHelpers
     {
         try
         {
-            await using var client = await ConnectHttpClientAsync(endpoint, ct).ConfigureAwait(false);
+            await using var client = await Runtime.ConnectHttpClientAsync(endpoint, ct).ConfigureAwait(false);
             return await exec(client, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -95,7 +84,7 @@ internal static class CommandHelpers
     {
         try
         {
-            await using var client = await ConnectNamedPipeClientAsync(endpoint, ct).ConfigureAwait(false);
+            await using var client = await Runtime.ConnectNamedPipeClientAsync(endpoint, ct).ConfigureAwait(false);
             return await exec(client, ct).ConfigureAwait(false);
         }
         catch (TimeoutException ex)
@@ -130,11 +119,6 @@ internal static class CommandHelpers
     }
 
     /// <summary>
-    /// 自動起動を試みる関数。Adact.Cli 側で設定される。
-    /// </summary>
-    internal static Func<CancellationToken, Task<bool>>? TryAutoStartServerAsync { get; set; }
-
-    /// <summary>
     /// 接続解決 → （未起動時は自動起動）→ MCP 接続 → コマンド実装の呼び出し、を共通化する。
     /// list-apps と launch 専用。自動起動が有効な場合はサーバー未起動時に自動起動を試みる。
     /// </summary>
@@ -160,14 +144,14 @@ internal static class CommandHelpers
         var pipeEndpoint = ConnectionResolver.ResolveNamedPipeEndpoint();
 
         // まず、短いタイムアウトでサーバーが起動しているか確認（高速パス）
-        var isRunning = await IsServerRunningAsync(pipeEndpoint, 100, ct).ConfigureAwait(false);
+        var isRunning = await Runtime.IsServerRunningAsync(pipeEndpoint, 100, ct).ConfigureAwait(false);
 
         if (isRunning)
         {
             // サーバーが起動している - 通常接続
             try
             {
-                await using var client = await ConnectNamedPipeClientAsync(pipeEndpoint, ct).ConfigureAwait(false);
+                await using var client = await Runtime.ConnectNamedPipeClientAsync(pipeEndpoint, ct).ConfigureAwait(false);
                 return await exec(client, ct).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -177,15 +161,14 @@ internal static class CommandHelpers
         }
 
         // サーバー未起動 - 自動起動を試みる（遅延なし）
-        if (TryAutoStartServerAsync is not null)
+        if (Runtime.TryAutoStartServerAsync is not null)
         {
-            var started = await TryAutoStartServerAsync(ct).ConfigureAwait(false);
+            var started = await Runtime.TryAutoStartServerAsync(ct).ConfigureAwait(false);
             if (started)
             {
-                // 自動起動成功 - 再接続
                 try
                 {
-                    await using var client = await ConnectNamedPipeClientAsync(pipeEndpoint, ct).ConfigureAwait(false);
+                    await using var client = await ConnectNamedPipeClientAfterAutoStartAsync(pipeEndpoint, ct).ConfigureAwait(false);
                     return await exec(client, ct).ConfigureAwait(false);
                 }
                 catch (Exception ex)
@@ -197,6 +180,69 @@ internal static class CommandHelpers
 
         // 自動起動失敗または無効
         return ReportNamedPipeConnectionFailed(pipeEndpoint, "Named pipe connection failed and auto-start was not available or failed.");
+    }
+
+    private static async Task<IAdactMcpClient> ConnectNamedPipeClientAfterAutoStartAsync(
+        NamedPipeEndPoint endpoint,
+        CancellationToken ct)
+    {
+        Exception? last = null;
+
+        for (var attempt = 1; attempt <= AutoStartReconnectRetryCount; attempt++)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            try
+            {
+                return await Runtime.ConnectNamedPipeClientAsync(endpoint, ct).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is TimeoutException or IOException)
+            {
+                last = ex;
+                if (attempt == AutoStartReconnectRetryCount)
+                {
+                    throw;
+                }
+
+                await Task.Delay(AutoStartReconnectRetryDelay, ct).ConfigureAwait(false);
+            }
+        }
+
+        throw last ?? new TimeoutException("Named pipe reconnect failed after auto-start.");
+    }
+
+    internal static IDisposable PushRuntime(CommandRuntime runtime)
+    {
+        ArgumentNullException.ThrowIfNull(runtime);
+        var previous = RuntimeOverride.Value;
+        RuntimeOverride.Value = runtime;
+        return new Scope(() => RuntimeOverride.Value = previous);
+    }
+
+    internal sealed record CommandRuntime(
+        Func<ServerEndpoint, CancellationToken, Task<IAdactMcpClient>> ConnectHttpClientAsync,
+        Func<NamedPipeEndPoint, CancellationToken, Task<IAdactMcpClient>> ConnectNamedPipeClientAsync,
+        Func<NamedPipeEndPoint, int, CancellationToken, Task<bool>> IsServerRunningAsync,
+        Func<CancellationToken, Task<bool>>? TryAutoStartServerAsync)
+    {
+        public static CommandRuntime CreateDefault(Func<CancellationToken, Task<bool>>? tryAutoStartServerAsync = null)
+            => new(
+                static async (endpoint, ct) => await AdactMcpClient.ConnectAsync(endpoint, loggerFactory: null, ct).ConfigureAwait(false),
+                static async (endpoint, ct) => await NamedPipeMcpClient.ConnectAsync(endpoint, loggerFactory: null, ct).ConfigureAwait(false),
+                NamedPipeMcpClient.IsServerRunningAsync,
+                tryAutoStartServerAsync);
+    }
+
+    private sealed class Scope(Action onDispose) : IDisposable
+    {
+        private readonly Action _onDispose = onDispose;
+        private int _disposed;
+
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+            _onDispose();
+        }
     }
 
     /// <summary>

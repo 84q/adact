@@ -1,5 +1,7 @@
 using Adact.Engine;
 
+using System.Reflection;
+
 using Xunit;
 
 namespace Adact.Mcp.Common.Tests.Unit;
@@ -174,5 +176,29 @@ public class SessionStoreTests
         store.Dispose();
 
         Assert.Empty(store.ListAll());
+    }
+
+    /// <summary>
+    /// SessionStore.Dispose は利用中の UiaEngine を破棄せず、所有権を呼び出し側へ残すことを確認する。
+    /// </summary>
+    [Fact]
+    public void Dispose_DoesNotDisposeEngine()
+    {
+        var engine = new UiaEngine();
+        var store = new SessionStore(engine);
+
+        store.Dispose();
+
+        Assert.Equal(0, ReadDisposedFlag(engine));
+
+        engine.Dispose();
+        Assert.Equal(1, ReadDisposedFlag(engine));
+    }
+
+    private static int ReadDisposedFlag(UiaEngine engine)
+    {
+        var field = typeof(UiaEngine).GetField("_disposed", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(field);
+        return (int)field!.GetValue(engine)!;
     }
 }

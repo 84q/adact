@@ -3,6 +3,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
+using Adact.Tests.Common;
+
 using Xunit;
 
 namespace Adact.Cli.Tests;
@@ -185,19 +187,11 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
     }
 
     internal static string? GetExternalServerUrl()
+        => GetExternalServerUrl(Environment.GetEnvironmentVariable);
+
+    internal static string? GetExternalServerUrl(Func<string, string?> getEnvironmentVariable)
     {
-        var value = Environment.GetEnvironmentVariable(ServerUrlEnvironmentVariable);
-        if (string.IsNullOrWhiteSpace(value)) return null;
-
-        var url = value.Trim();
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)
-            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
-        {
-            throw new InvalidOperationException(
-                $"{ServerUrlEnvironmentVariable} must be an absolute http(s) URL, e.g. http://127.0.0.1:41300/mcp.");
-        }
-
-        return uri.ToString();
+        return ExternalServerHelper.GetExternalServerUri(getEnvironmentVariable)?.ToString();
     }
 
     private sealed class TcpListenerHandle : IDisposable

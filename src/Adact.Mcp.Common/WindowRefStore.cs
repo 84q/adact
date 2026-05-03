@@ -11,12 +11,27 @@ namespace Adact.Mcp.Common;
 /// </summary>
 public sealed class WindowRefStore
 {
+    private static readonly TimeSpan DefaultRetiredEntryTtl = TimeSpan.FromMinutes(5);
+
     /// <summary>すべての読み書きを覆うロック。<c>_entries</c> と <c>_nextRef</c> はこのロック下でのみ触る。</summary>
     private readonly object _lock = new();
     /// <summary>WindowKey → エントリ。引退済みエントリも保持し、同一 HWND の復活時に番号を保つ。</summary>
     private readonly Dictionary<WindowKey, WindowRefEntry> _entries = new();
     /// <summary>最も最近採番した <c>w&lt;n&gt;</c> の <c>n</c>。<see cref="Interlocked.Increment(ref int)"/> で採番される。</summary>
     private int _nextRef;
+    private readonly TimeSpan _retiredEntryTtl;
+    private readonly Func<DateTimeOffset> _utcNow;
+
+    /// <summary>
+    /// 新しい <see cref="WindowRefStore"/> を構築する。
+    /// </summary>
+    /// <param name="retiredEntryTtl">retired entry を保持する最大期間。null の場合は既定値。</param>
+    /// <param name="utcNow">現在 UTC 時刻の取得関数。テスト用。null の場合は <see cref="DateTimeOffset.UtcNow"/>。</param>
+    public WindowRefStore(TimeSpan? retiredEntryTtl = null, Func<DateTimeOffset>? utcNow = null)
+    {
+        _retiredEntryTtl = retiredEntryTtl ?? DefaultRetiredEntryTtl;
+        _utcNow = utcNow ?? (() => DateTimeOffset.UtcNow);
+    }
 
     /// <summary>
     /// 同じ <see cref="WindowKey"/> に対しては既存 windowRef を返し、
@@ -32,12 +47,14 @@ public sealed class WindowRefStore
     {
         lock (_lock)
         {
+            PurgeExpiredRetiredEntriesCore(_utcNow());
+
             if (_entries.TryGetValue(key, out var existing))
             {
                 // 引退済から復活する場合は最新の WindowInfo に更新し Retired を解除。
                 if (existing.Retired)
                 {
-                    var revived = existing with { Info = info, Retired = false };
+                    var revived = existing with { Info = info, SessionId = null, Retired = false, RetiredAtUtc = null };
                     _entries[key] = revived;
                     return revived;
                 }
@@ -69,6 +86,9 @@ public sealed class WindowRefStore
         var present = new HashSet<WindowKey>(presentKeys);
         lock (_lock)
         {
+            var now = _utcNow();
+            PurgeExpiredRetiredEntriesCore(now);
+
             // Dictionary の列挙中に書き換えると例外になるため、対象キーを集めてから書き戻す。
             List<WindowKey>? toRetire = null;
             foreach (var kv in _entries)
@@ -81,7 +101,7 @@ public sealed class WindowRefStore
             {
                 foreach (var key in toRetire)
                 {
-                    _entries[key] = _entries[key] with { SessionId = null, Retired = true };
+                    _entries[key] = _entries[key] with { SessionId = null, Retired = true, RetiredAtUtc = now };
                 }
             }
         }
@@ -95,6 +115,7 @@ public sealed class WindowRefStore
     {
         lock (_lock)
         {
+            PurgeExpiredRetiredEntriesCore(_utcNow());
             foreach (var e in _entries.Values)
             {
                 if (e.Retired) continue;
@@ -116,6 +137,7 @@ public sealed class WindowRefStore
     {
         lock (_lock)
         {
+            PurgeExpiredRetiredEntriesCore(_utcNow());
             foreach (var kv in _entries)
             {
                 if (kv.Value.Retired) continue;
@@ -132,6 +154,7 @@ public sealed class WindowRefStore
     {
         lock (_lock)
         {
+            PurgeExpiredRetiredEntriesCore(_utcNow());
             foreach (var kv in _entries)
             {
                 if (!string.Equals(kv.Value.WindowRef, windowRef, StringComparison.Ordinal)) continue;
@@ -152,6 +175,7 @@ public sealed class WindowRefStore
     {
         lock (_lock)
         {
+            PurgeExpiredRetiredEntriesCore(_utcNow());
             if (_entries.TryGetValue(key, out var found))
             {
                 entry = found;
@@ -168,6 +192,7 @@ public sealed class WindowRefStore
     {
         lock (_lock)
         {
+            PurgeExpiredRetiredEntriesCore(_utcNow());
             return _entries.Values.Where(e => !e.Retired).ToArray();
         }
     }
@@ -184,6 +209,7 @@ public sealed class WindowRefStore
         ArgumentNullException.ThrowIfNull(sessionId);
         lock (_lock)
         {
+            PurgeExpiredRetiredEntriesCore(_utcNow());
             foreach (var e in _entries.Values)
             {
                 if (e.Retired) continue;
@@ -197,6 +223,61 @@ public sealed class WindowRefStore
         entry = default!;
         return false;
     }
+
+    /// <summary>
+    /// 指定 sessionId に紐付いている entry をストアから完全に削除する。
+    /// detach / close / kill 後の不要な関連付け掃除に使う。
+    /// </summary>
+    /// <param name="sessionId">削除対象の sessionId。</param>
+    public void RemoveBySessionId(string sessionId)
+    {
+        ArgumentNullException.ThrowIfNull(sessionId);
+
+        lock (_lock)
+        {
+            PurgeExpiredRetiredEntriesCore(_utcNow());
+
+            List<WindowKey>? toRemove = null;
+            foreach (var kv in _entries)
+            {
+                if (!string.Equals(kv.Value.SessionId, sessionId, StringComparison.Ordinal)) continue;
+                (toRemove ??= []).Add(kv.Key);
+            }
+
+            if (toRemove is null) return;
+            foreach (var key in toRemove)
+            {
+                _entries.Remove(key);
+            }
+        }
+    }
+
+    internal int PurgeExpiredRetiredEntries()
+    {
+        lock (_lock)
+        {
+            return PurgeExpiredRetiredEntriesCore(_utcNow());
+        }
+    }
+
+    private int PurgeExpiredRetiredEntriesCore(DateTimeOffset now)
+    {
+        List<WindowKey>? expired = null;
+        foreach (var kv in _entries)
+        {
+            if (!kv.Value.Retired || kv.Value.RetiredAtUtc is null) continue;
+            if (now - kv.Value.RetiredAtUtc.Value < _retiredEntryTtl) continue;
+            (expired ??= []).Add(kv.Key);
+        }
+
+        if (expired is null) return 0;
+        foreach (var key in expired)
+        {
+            _entries.Remove(key);
+        }
+
+        return expired.Count;
+    }
 }
 
 /// <summary>
@@ -207,9 +288,11 @@ public sealed class WindowRefStore
 /// <param name="Info">最新の <see cref="WindowInfo"/> (title 等は list のたびに更新される)。</param>
 /// <param name="SessionId">attach 済みの sessionId。未 attach なら <c>null</c>。</param>
 /// <param name="Retired">このエントリが list から消えたため引退済みかどうか。</param>
+/// <param name="RetiredAtUtc">引退時刻。未引退または旧形式 entry では <c>null</c>。</param>
 public sealed record WindowRefEntry(
     string WindowRef,
     WindowKey Key,
     WindowInfo Info,
     string? SessionId,
-    bool Retired);
+    bool Retired,
+    DateTimeOffset? RetiredAtUtc = null);

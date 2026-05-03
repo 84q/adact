@@ -59,24 +59,8 @@ internal sealed class NamedPipeConnection : IAsyncDisposable
         {
             _logger.LogDebug("Starting MCP server for connection {ConnectionId}", ConnectionId);
 
-            // この接続専用のサービスプロバイダーを構築
-            var services = new ServiceCollection();
-
-            // 親サービスからロガーファクトリを継承
             var loggerFactory = parentServices.GetService<ILoggerFactory>()
                 ?? LoggerFactory.Create(b => b.AddConsole());
-            services.AddSingleton(loggerFactory);
-            services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
-
-            // エンジンとストアを登録
-            services.AddSingleton<UiaEngine>(sp => new UiaEngine(sp.GetRequiredService<ILoggerFactory>()));
-            services.AddSingleton<SessionStore>();
-            services.AddSingleton<WindowRefStore>();
-
-            // NamedPipeDaemonControl にサーバー停止用 CTS を注入
-            services.AddSingleton<IDaemonControl>(sp => new NamedPipeDaemonControl(_serverCts));
-
-            var serviceProvider = services.BuildServiceProvider();
 
             // StreamServerTransport を作成
             await using var transport = new StreamServerTransport(
@@ -102,10 +86,10 @@ internal sealed class NamedPipeConnection : IAsyncDisposable
             // WindowsTools からツールを作成して登録
             var toolCollection = new McpServerPrimitiveCollection<McpServerTool>();
             var windowsTools = new WindowsTools(
-                serviceProvider.GetRequiredService<SessionStore>(),
-                serviceProvider.GetRequiredService<WindowRefStore>(),
-                serviceProvider.GetRequiredService<IDaemonControl>(),
-                serviceProvider.GetRequiredService<ILogger<WindowsTools>>());
+                parentServices.GetRequiredService<SessionStore>(),
+                parentServices.GetRequiredService<WindowRefStore>(),
+                new NamedPipeDaemonControl(_serverCts),
+                parentServices.GetRequiredService<ILogger<WindowsTools>>());
 
             // ツールメソッドをリフレクションで取得して登録
             var toolMethods = typeof(WindowsTools).GetMethods()
@@ -120,7 +104,7 @@ internal sealed class NamedPipeConnection : IAsyncDisposable
             serverOptions.ToolCollection = toolCollection;
 
             // MCP サーバーを作成して実行
-            await using var server = McpServer.Create(transport, serverOptions, loggerFactory, serviceProvider);
+            await using var server = McpServer.Create(transport, serverOptions, loggerFactory, parentServices);
             await server.RunAsync(cancellationToken).ConfigureAwait(false);
 
             _logger.LogDebug("Connection {ConnectionId} handler completed", ConnectionId);

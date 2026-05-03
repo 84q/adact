@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 
 using Adact.Engine;
+using Adact.Engine.Snapshot;
 
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -40,10 +41,16 @@ public sealed partial class WindowsTools
                 $"'out' must end with '.png' (got '{@out}'). Screenshot format is PNG-only.");
         }
 
+        if (!string.IsNullOrEmpty(@ref) && !string.IsNullOrEmpty(sessionId))
+        {
+            return ToolErrors.Error(ToolErrors.InvalidArgument,
+                "sessionId must not be specified together with ref (the session is resolved from ref).");
+        }
+
         IWindowSession? session;
         if (!string.IsNullOrEmpty(@ref))
         {
-            if (!ValidateRef(@ref, out session, out var refError))
+            if (!TryResolveScreenshotRef(@ref, out session, out var refError))
                 return refError!;
         }
         else
@@ -51,7 +58,7 @@ public sealed partial class WindowsTools
             if (!TryResolveSessionId(sessionId, out var sid, out var sessError))
                 return sessError!;
             if (!_store.TryGet(sid, out session))
-                return ToolErrors.Error(ToolErrors.NotFound, $"Session '{sid}' not found.");
+                return ToolErrors.Error(ToolErrors.InvalidArgument, $"Session '{sid}' is not known.");
         }
 
         try
@@ -70,5 +77,33 @@ public sealed partial class WindowsTools
             };
         }
         catch (Exception ex) { return MapOrLog(ex, "windows_screenshot"); }
+    }
+
+    private bool TryResolveScreenshotRef(string @ref, out IWindowSession? session, out CallToolResult? error)
+    {
+        session = null;
+
+        if (string.IsNullOrEmpty(@ref))
+        {
+            error = ToolErrors.Error(ToolErrors.InvalidArgument, "ref must be a non-empty string.");
+            return false;
+        }
+
+        if (!RefId.TryParse(@ref, out var sessionNumber, out _))
+        {
+            error = ToolErrors.Error(ToolErrors.InvalidArgument, $"Ref ID '{@ref}' is malformed.");
+            return false;
+        }
+
+        var sessionId = $"s{sessionNumber}";
+        if (!_store.TryGet(sessionId, out session))
+        {
+            error = ToolErrors.Error(ToolErrors.InvalidArgument,
+                $"Ref ID '{@ref}' refers to unknown session '{sessionId}'.");
+            return false;
+        }
+
+        error = null;
+        return true;
     }
 }

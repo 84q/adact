@@ -236,4 +236,36 @@ public class WindowSessionWaitForTests
         Assert.Contains("wait-for did not observe state 'visible'", ex.Message, StringComparison.Ordinal);
         Assert.Contains("s1e2", ex.Message, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task WaitForQueryAsync_VisibleMatch_ReturnsMatchingRef()
+    {
+        var root = FakeElement.Window("Fake Window", FakeElement.Button("OK", automationId: "okButton"));
+        var session = CreateSessionWithRoot(root);
+
+        var result = await session.WaitForQueryAsync(
+            new WaitForElementQuery("OK", "Button", "okButton", null),
+            WaitForState.Visible,
+            TimeSpan.FromSeconds(1));
+
+        Assert.Equal("s1e2", result.Ref);
+        Assert.Equal(WaitForState.Visible, result.State);
+    }
+
+    [Fact]
+    public async Task WaitForQueryAsync_HiddenNotSatisfied_ThrowsWaitTimeoutException()
+    {
+        var button = FakeElement.Button("OK");
+        button.IsOffscreen = false;
+        var root = FakeElement.Window("Fake Window", button);
+        var session = CreateSessionWithRoot(root);
+
+        var ex = await Assert.ThrowsAsync<WaitTimeoutException>(() =>
+            session.WaitForQueryAsync(
+                new WaitForElementQuery("OK", null, null, null),
+                WaitForState.Hidden,
+                TimeSpan.FromMilliseconds(200)));
+
+        Assert.Contains("wait-for did not observe a matching element", ex.Message, StringComparison.Ordinal);
+    }
 }

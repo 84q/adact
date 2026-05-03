@@ -524,10 +524,10 @@ public sealed partial class WindowsTools
     /// </summary>
     /// <param name="ct">キャンセル トークン。<see cref="OperationCanceledException"/> はそのまま伝播する。</param>
     /// <returns>
-    /// <c>{ results: [ { sessionId, result: "ok"|"fail", error?, message? }, ... ] }</c> を含む <see cref="CallToolResult"/>。
-    /// 個別の close 失敗は <c>CLOSE_FAILED</c> として配列要素にだけ記録され、全体としては成功扱いとなる。
+    /// <c>{ results: [ { sessionId, result: "ok"|"fail", error?, message? }, ... ], hasFailures }</c> を含む <see cref="CallToolResult"/>。
+    /// <see cref="OperationCanceledException"/> はそのまま伝播し、それ以外の個別失敗は配列要素に結果化される。
     /// </returns>
-    /// <remarks>キャンセル以外の例外はエントリ単位で握りつぶし、ループを継続する。</remarks>
+    /// <remarks>キャンセル以外の例外は session 単位で結果化し、残り session への close 試行を継続する。</remarks>
     [McpServerTool(Name = "windows_close_all")]
     [Description("Close every attached window. Returns a per-session result array. Partial failure is reported, not thrown.")]
     public async Task<CallToolResult> CloseAllAsync(CancellationToken ct = default)
@@ -536,6 +536,7 @@ public sealed partial class WindowsTools
 
         var snapshot = _store.ListAll();
         var results = new JsonArray();
+        var hasFailures = false;
 
         foreach (var kv in snapshot)
         {
@@ -556,18 +557,31 @@ public sealed partial class WindowsTools
             {
                 throw;
             }
-            catch (CloseFailedException ex)
+            catch (Exception ex)
             {
+                hasFailures = true;
                 entry["result"] = "fail";
-                entry["error"] = ToolErrors.CloseFailed;
+                entry["error"] = GetToolErrorCode(ex) ?? ToolErrors.InternalError;
                 entry["message"] = ex.Message;
-                _logger.LogDebug(ex, "windows_close_all: closing session {Sid} failed", sid);
+
+                if (ex is CloseFailedException)
+                {
+                    _logger.LogDebug(ex, "windows_close_all: closing session {Sid} failed", sid);
+                }
+                else
+                {
+                    _logger.LogError(ex, "windows_close_all: closing session {Sid} failed unexpectedly", sid);
+                }
             }
 
             results.Add(entry);
         }
 
-        return SuccessJson(new JsonObject { ["results"] = results });
+        return SuccessJson(new JsonObject
+        {
+            ["results"] = results,
+            ["hasFailures"] = hasFailures,
+        });
     }
 
     /// <summary>
@@ -643,6 +657,19 @@ public sealed partial class WindowsTools
         return true;
     }
 
+    private static string? GetToolErrorCode(Exception ex)
+    {
+        var mapped = ToolErrors.TryMap(ex);
+        if (mapped?.StructuredContent is not JsonElement structured)
+        {
+            return null;
+        }
+
+        return structured.TryGetProperty("code", out var code) && code.ValueKind == JsonValueKind.String
+            ? code.GetString()
+            : null;
+    }
+
     /// <summary>
     /// <paramref name="sessionId"/> に対応する <see cref="WindowRefStore"/> エントリの sessionId 紐付けを解除し、
     /// <paramref name="session"/> を Dispose する。Dispose / Clear で発生した例外は握りつぶしてデバッグログに記録する。
@@ -651,11 +678,8 @@ public sealed partial class WindowsTools
     /// <param name="session">Dispose 対象の <see cref="IWindowSession"/>。</param>
     private void DetachSession(string sessionId, IWindowSession session)
     {
-        if (_refStore.TryFindBySessionId(sessionId, out var entry))
-        {
-            try { _refStore.ClearSession(entry.WindowRef); }
-            catch (Exception ex) { _logger.LogDebug(ex, "ClearSession failed for {WindowRef}", entry.WindowRef); }
-        }
+        try { _refStore.RemoveBySessionId(sessionId); }
+        catch (Exception ex) { _logger.LogDebug(ex, "RemoveBySessionId failed for {SessionId}", sessionId); }
         try { session.Dispose(); }
         catch (Exception ex) { _logger.LogDebug(ex, "Disposing session {Sid} failed", sessionId); }
     }

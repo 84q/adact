@@ -26,21 +26,7 @@ public class CalculatorSmokeTests : IAsyncLifetime, IDisposable
         InteractiveTestGuard.SkipIfNotInteractive();
         _calcLock = new CalculatorMutex();
 
-        // 既存の電卓プロセスを終了させ、「電卓」タイトルのウィンドウが複数存在する瞬間を回避する。
-        // calc.exe (launcher) と CalculatorApp.exe の両方を対象にする。
-        foreach (var name in new[] { "CalculatorApp", "calc" })
-        {
-            foreach (var p in Process.GetProcessesByName(name))
-            {
-                try { p.Kill(); p.WaitForExit(2000); } catch { }
-            }
-        }
-        // UWP 側のフレーム解放待ち
-        await Task.Delay(300);
-
-        Process.Start(new ProcessStartInfo { FileName = "calc.exe", UseShellExecute = true });
-        await WaitForProcessAsync("CalculatorApp", TimeSpan.FromSeconds(10));
-        await Task.Delay(1000);
+        _ = await CalculatorTestHelper.StartFreshCalculatorAsync(TimeSpan.FromSeconds(10));
     }
 
     /// <summary>
@@ -62,21 +48,8 @@ public class CalculatorSmokeTests : IAsyncLifetime, IDisposable
     /// <returns>解放完了タスク。</returns>
     public Task DisposeAsync()
     {
-        foreach (var p in Process.GetProcessesByName("CalculatorApp"))
-        {
-            try { p.Kill(); p.WaitForExit(2000); } catch { }
-        }
+        CalculatorTestHelper.KillCalculatorProcesses();
         return Task.CompletedTask;
-    }
-
-    private static async Task WaitForProcessAsync(string name, TimeSpan timeout)
-    {
-        var sw = Stopwatch.StartNew();
-        while (sw.Elapsed < timeout)
-        {
-            if (Process.GetProcessesByName(name).Length > 0) return;
-            await Task.Delay(150);
-        }
     }
 
     /// <summary>
@@ -88,10 +61,16 @@ public class CalculatorSmokeTests : IAsyncLifetime, IDisposable
     public async Task Click_Seven_DisplayShowsSeven()
     {
         using var engine = new UiaEngine();
-        // UWP 電卓はタイトルで window を見つけ、HWND で attach する
-        var windows = await engine.ListWindowsAsync();
-        var target = windows.FirstOrDefault(w =>
-            string.Equals(w.Title, "電卓", StringComparison.OrdinalIgnoreCase));
+        WindowInfo? target = null;
+        await CalculatorTestHelper.WaitUntilAsync(
+            async () =>
+            {
+                var windows = await engine.ListWindowsAsync();
+                target = windows.FirstOrDefault(CalculatorTestHelper.IsCalculatorWindow);
+                return target is not null;
+            },
+            TimeSpan.FromSeconds(10),
+            "Calculator window did not appear in ListWindowsAsync.");
         Assert.NotNull(target);
         using var session = await engine.AttachByHandleAsync(target!.NativeWindowHandle);
 
@@ -101,12 +80,19 @@ public class CalculatorSmokeTests : IAsyncLifetime, IDisposable
         Assert.NotNull(sevenRef);
 
         await session.ClickAsync(sevenRef!);
-        await Task.Delay(400);
+        string? snap2Json = null;
+        await CalculatorTestHelper.WaitUntilAsync(
+            async () =>
+            {
+                snap2Json = (await session.SnapshotAsync()).Json;
+                return snap2Json.Contains('7');
+            },
+            TimeSpan.FromSeconds(5),
+            "Calculator display did not show '7' after clicking the seven button.");
 
-        var snap2 = await session.SnapshotAsync();
         // 表示要素 (CalculatorResults) のテキストに "7" が含まれることを確認。
         // モダン電卓では Name に "Display is 7" のような文字列が入る。
-        Assert.Contains("7", snap2.Json);
+        Assert.Contains("7", snap2Json);
     }
 
     private static string? FindRefByAutomationId(string json, string automationId)

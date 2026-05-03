@@ -36,6 +36,8 @@ public sealed partial class WindowSession : IWindowSession
     private readonly bool _ownsAutomation;
     /// <summary>attach 時点にキャッシュした対象プロセスの PID。</summary>
     private readonly int _processId;
+    /// <summary>attach 時点にキャッシュした対象プロセスの開始 UTC 時刻。取得不能時は null。</summary>
+    private readonly DateTimeOffset? _processStartTimeUtc;
     /// <summary>attach 時点にキャッシュした対象プロセスの名前。</summary>
     private readonly string _processName;
     /// <summary>attach 時点にキャッシュした対象ウィンドウタイトル。</summary>
@@ -79,6 +81,7 @@ public sealed partial class WindowSession : IWindowSession
         _interaction = interaction ?? new FlaUiWindowInteractionDriver(window, info.ProcessId, _logger);
         _ownsAutomation = ownsAutomation;
         _processId = info.ProcessId;
+        _processStartTimeUtc = info.ProcessStartTimeUtc;
         _processName = info.ProcessName;
         _title = info.Title;
         _nativeWindowHandle = info.NativeWindowHandle;
@@ -269,6 +272,10 @@ public sealed partial class WindowSession : IWindowSession
         {
             throw;
         }
+        catch (AdactException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             var blocked = OperationBlockerDetector.Detect(_sessionId, _nativeWindowHandle);
@@ -293,6 +300,10 @@ public sealed partial class WindowSession : IWindowSession
             await action(ct).ConfigureAwait(false);
         }
         catch (OperationBlockedException)
+        {
+            throw;
+        }
+        catch (AdactException)
         {
             throw;
         }
@@ -376,8 +387,7 @@ public sealed partial class WindowSession : IWindowSession
     /// </summary>
     /// <param name="ct">キャンセルトークン。</param>
     /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
-    /// <exception cref="KillFailedException">既にプロセスが終了している、または Kill が失敗した場合。</exception>
-    // TODO(post-Phase5): PID 再利用対策として ProcessStartTime での同一性検証を追加する余地あり。
+    /// <exception cref="KillFailedException">既にプロセスが終了している、PID 同一性検証に失敗した、または Kill が失敗した場合。</exception>
     public Task KillAsync(CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -387,7 +397,30 @@ public sealed partial class WindowSession : IWindowSession
             c.ThrowIfCancellationRequested();
             try
             {
+                if (_processStartTimeUtc is null)
+                {
+                    throw new KillFailedException(
+                        $"Refusing to kill process {_processId} because the original process start time is unknown.");
+                }
+
                 using var p = Process.GetProcessById(_processId);
+                DateTimeOffset currentProcessStartTimeUtc;
+                try
+                {
+                    currentProcessStartTimeUtc = p.StartTime.ToUniversalTime();
+                }
+                catch (Exception ex)
+                {
+                    throw new KillFailedException(
+                        $"Refusing to kill process {_processId} because its current start time could not be read.", ex);
+                }
+
+                if (currentProcessStartTimeUtc != _processStartTimeUtc.Value)
+                {
+                    throw new KillFailedException(
+                        $"Refusing to kill process {_processId} because the PID now belongs to a different process.");
+                }
+
                 p.Kill(entireProcessTree: true);
             }
             // プロセスが既に終了している場合も KILL_FAILED として返す (auto-detach はしない)。
@@ -395,6 +428,10 @@ public sealed partial class WindowSession : IWindowSession
             catch (ArgumentException ex)
             {
                 throw new KillFailedException($"Process {_processId} is no longer running.", ex);
+            }
+            catch (KillFailedException)
+            {
+                throw;
             }
             catch (System.ComponentModel.Win32Exception ex)
             {

@@ -70,8 +70,11 @@ public sealed class AdactHttpServerFixture : IAsyncLifetime
     }
 
     internal static Uri? GetExternalServerUri()
+        => GetExternalServerUri(Environment.GetEnvironmentVariable);
+
+    internal static Uri? GetExternalServerUri(Func<string, string?> getEnvironmentVariable)
     {
-        return ExternalServerHelper.GetExternalServerUri();
+        return ExternalServerHelper.GetExternalServerUri(getEnvironmentVariable);
     }
 
     private static async Task WaitForReadyAsync(Uri baseAddress, TimeSpan timeout)

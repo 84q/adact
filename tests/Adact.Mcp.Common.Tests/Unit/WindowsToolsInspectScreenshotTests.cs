@@ -96,44 +96,59 @@ public class WindowsToolsInspectScreenshotTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>windows_screenshot: 未登録 sessionId は NOT_FOUND を返す。</summary>
+    /// <summary>windows_screenshot: 未登録 sessionId は INVALID_ARGUMENT を返す。</summary>
     [Fact]
-    public async Task Screenshot_UnknownSessionId_ReturnsNotFound()
+    public async Task Screenshot_UnknownSessionId_ReturnsInvalidArgument()
     {
         var (tools, store) = CreateTools();
         try
         {
             var result = await tools.ScreenshotAsync(sessionId: "s99");
             var (code, _) = ReadError(result);
-            Assert.Equal(ToolErrors.NotFound, code);
+            Assert.Equal(ToolErrors.InvalidArgument, code);
         }
         finally { store.Dispose(); }
     }
 
-    /// <summary>windows_screenshot: 形式不正な ref は REF_NOT_FOUND を返す。</summary>
+    /// <summary>windows_screenshot: 形式不正な ref は INVALID_ARGUMENT を返す。</summary>
     [Fact]
-    public async Task Screenshot_MalformedRef_ReturnsRefNotFound()
+    public async Task Screenshot_MalformedRef_ReturnsInvalidArgument()
     {
         var (tools, store) = CreateTools();
         try
         {
             var result = await tools.ScreenshotAsync(@ref: "bad");
             var (code, _) = ReadError(result);
-            Assert.Equal(ToolErrors.RefNotFound, code);
+            Assert.Equal(ToolErrors.InvalidArgument, code);
         }
         finally { store.Dispose(); }
     }
 
-    /// <summary>windows_screenshot: 未登録 session の ref は REF_NOT_FOUND を返す。</summary>
+    /// <summary>windows_screenshot: 未登録 session の ref は INVALID_ARGUMENT を返す。</summary>
     [Fact]
-    public async Task Screenshot_UnknownRef_ReturnsRefNotFound()
+    public async Task Screenshot_UnknownRef_ReturnsInvalidArgument()
     {
         var (tools, store) = CreateTools();
         try
         {
             var result = await tools.ScreenshotAsync(@ref: "s99e1");
             var (code, _) = ReadError(result);
-            Assert.Equal(ToolErrors.RefNotFound, code);
+            Assert.Equal(ToolErrors.InvalidArgument, code);
+        }
+        finally { store.Dispose(); }
+    }
+
+    /// <summary>windows_screenshot: ref と sessionId の同時指定は INVALID_ARGUMENT を返す。</summary>
+    [Fact]
+    public async Task Screenshot_RefAndSessionIdTogether_ReturnsInvalidArgument()
+    {
+        var (tools, store) = CreateTools();
+        try
+        {
+            var result = await tools.ScreenshotAsync(@ref: "s1e1", sessionId: "s1");
+            var (code, message) = ReadError(result);
+            Assert.Equal(ToolErrors.InvalidArgument, code);
+            Assert.Contains("sessionId", message);
         }
         finally { store.Dispose(); }
     }

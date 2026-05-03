@@ -98,11 +98,25 @@ public sealed partial class UiaEngine : IDisposable
 
                 var pid = w.Properties.ProcessId.ValueOrDefault;
                 var procName = "?";
-                try { procName = Process.GetProcessById(pid).ProcessName; } catch { }
+                DateTimeOffset? processStartTimeUtc = null;
+                try
+                {
+                    using var process = Process.GetProcessById(pid);
+                    procName = process.ProcessName;
+                    try
+                    {
+                        processStartTimeUtc = process.StartTime.ToUniversalTime();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Failed to read process start time for pid {Pid}", pid);
+                    }
+                }
+                catch { }
                 var title = w.Properties.Name.ValueOrDefault ?? "";
                 var ctrl = SafeControlType(w);
                 var className = w.Properties.ClassName.ValueOrDefault;
-                list.Add(new WindowInfo(pid, procName, title, ctrl, NullIfEmpty(className), hwnd));
+                list.Add(new WindowInfo(pid, procName, title, ctrl, NullIfEmpty(className), hwnd, processStartTimeUtc));
             }
             catch (Exception ex)
             {
