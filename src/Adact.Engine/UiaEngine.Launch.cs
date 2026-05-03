@@ -161,14 +161,13 @@ public sealed partial class UiaEngine
             ? string.Join(' ', arguments.Select(QuoteIfNeeded))
             : string.Empty;
 
-        object? comObject = null;
         try
         {
             var clsid = NativeMethods.CLSID_ApplicationActivationManager;
             var type = Type.GetTypeFromCLSID(clsid)
                 ?? throw new LaunchFailedException(
                     "ApplicationActivationManager COM class is not registered on this system.");
-            comObject = Activator.CreateInstance(type)
+            var comObject = Activator.CreateInstance(type)
                 ?? throw new LaunchFailedException(
                     "Failed to create ApplicationActivationManager COM instance.");
             var manager = (NativeMethods.IApplicationActivationManager)comObject;
@@ -209,13 +208,6 @@ public sealed partial class UiaEngine
         {
             throw new LaunchFailedException(
                 $"UWP launch failed for '{aumid}': {ex.Message}", ex);
-        }
-        finally
-        {
-            if (comObject is not null)
-            {
-                try { Marshal.FinalReleaseComObject(comObject); } catch { }
-            }
         }
     }
 

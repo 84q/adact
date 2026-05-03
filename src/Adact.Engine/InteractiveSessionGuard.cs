@@ -80,8 +80,7 @@ public static class InteractiveSessionGuard
         int sessionId;
         try
         {
-            using var current = Process.GetCurrentProcess();
-            sessionId = current.SessionId;
+            sessionId = Process.GetCurrentProcess().SessionId;
         }
         catch
         {

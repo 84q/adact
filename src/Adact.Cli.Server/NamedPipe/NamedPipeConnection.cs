@@ -23,10 +23,11 @@ internal sealed class NamedPipeConnection : IAsyncDisposable
     private readonly ILogger<NamedPipeConnection> _logger;
     private readonly CancellationTokenSource _connectionCts;
     private readonly CancellationTokenSource _serverCts;
+    private int _closed;
     private int _disposed;
 
     /// <summary>接続がアクティブかどうか。</summary>
-    public bool IsConnected => _pipeStream.IsConnected && _disposed == 0;
+    public bool IsConnected => _pipeStream.IsConnected && _closed == 0 && _disposed == 0;
 
     /// <summary>接続ID（デバッグ用）。</summary>
     public Guid ConnectionId { get; } = Guid.NewGuid();
@@ -48,14 +49,11 @@ internal sealed class NamedPipeConnection : IAsyncDisposable
     /// <summary>
     /// MCP サーバーを設定して接続を処理開始する。
     /// </summary>
-    /// <param name="serviceProvider">サービスプロバイダー。</param>
+    /// <param name="parentServices">親サービスプロバイダー。</param>
     /// <param name="cancellationToken">キャンセルトークン。</param>
     public async Task RunAsync(IServiceProvider parentServices, CancellationToken cancellationToken)
     {
-        if (_disposed != 0)
-        {
-            throw new ObjectDisposedException(nameof(NamedPipeConnection));
-        }
+        ObjectDisposedException.ThrowIf(_disposed != 0, nameof(NamedPipeConnection));
 
         try
         {
@@ -146,7 +144,7 @@ internal sealed class NamedPipeConnection : IAsyncDisposable
     /// </summary>
     public async Task CloseAsync()
     {
-        if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0)
+        if (Interlocked.CompareExchange(ref _closed, 1, 0) != 0)
         {
             return;
         }
@@ -171,7 +169,7 @@ internal sealed class NamedPipeConnection : IAsyncDisposable
     /// <summary>リソースを解放する。</summary>
     public async ValueTask DisposeAsync()
     {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+        if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0)
         {
             return;
         }

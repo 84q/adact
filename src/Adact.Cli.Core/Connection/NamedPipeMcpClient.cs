@@ -15,6 +15,9 @@ namespace Adact.Cli.Connection;
 /// </summary>
 internal sealed class NamedPipeMcpClient : IAdactMcpClient, IAsyncDisposable
 {
+    private const int ConnectTimeoutMilliseconds = 5000;
+    private const int ServerProbeTimeoutMilliseconds = 1000;
+
     private readonly NamedPipeClientStream _pipeStream;
     private readonly StreamClientTransport _transport;
     private readonly McpClient _client;
@@ -70,7 +73,7 @@ internal sealed class NamedPipeMcpClient : IAdactMcpClient, IAsyncDisposable
         try
         {
             // 接続を試行（タイムアウト: 5秒）
-            await pipeStream.ConnectAsync(5000, cancellationToken).ConfigureAwait(false);
+            await pipeStream.ConnectAsync(ConnectTimeoutMilliseconds, cancellationToken).ConfigureAwait(false);
         }
         catch (TimeoutException)
         {
@@ -113,7 +116,7 @@ internal sealed class NamedPipeMcpClient : IAdactMcpClient, IAsyncDisposable
     /// <returns>接続可能な場合は true、それ以外は false。</returns>
     public static async Task<bool> IsServerRunningAsync(
         NamedPipeEndPoint endpoint,
-        int timeoutMs = 1000,
+        int timeoutMs = ServerProbeTimeoutMilliseconds,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(endpoint);

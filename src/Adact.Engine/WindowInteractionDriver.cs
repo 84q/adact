@@ -35,6 +35,9 @@ internal interface IWindowInteractionDriver
 
 internal sealed class FlaUiWindowInteractionDriver : IWindowInteractionDriver
 {
+    private const int WaitForInputIdleTimeoutMilliseconds = 1000;
+    private const int PostInteractionDelayMilliseconds = 50;
+
     private readonly Window _window;
     private readonly int _processId;
     private readonly ILogger _logger;
@@ -69,14 +72,14 @@ internal sealed class FlaUiWindowInteractionDriver : IWindowInteractionDriver
         try
         {
             using var p = Process.GetProcessById(_processId);
-            try { p.WaitForInputIdle(1000); }
+            try { p.WaitForInputIdle(WaitForInputIdleTimeoutMilliseconds); }
             catch (Exception ex) { _logger.LogDebug(ex, "WaitForInputIdle failed (ignored, best effort)"); }
         }
         catch (Exception ex)
         {
             _logger.LogDebug(ex, "GetProcessById failed during auto-wait (ignored)");
         }
-        await Task.Delay(50, ct).ConfigureAwait(false);
+        await Task.Delay(PostInteractionDelayMilliseconds, ct).ConfigureAwait(false);
     }
 
     private static FlaUiMouseButton MapButton(EngineMouseButton button)

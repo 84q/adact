@@ -32,8 +32,8 @@ public sealed partial class UiaEngine : IDisposable
     private readonly SemaphoreSlim _gate = new(1, 1);
     /// <summary>次に払い出すセッション ID。<see cref="Interlocked.Increment(ref int)"/> で単調増加採番する。</summary>
     private int _nextSessionId;
-    /// <summary>本 Engine が <see cref="Dispose"/> 済みであれば true。</summary>
-    private bool _disposed;
+    /// <summary>本 Engine が <see cref="Dispose"/> 済みであれば 1。</summary>
+    private int _disposed;
 
     /// <summary>標準の <see cref="UIA3Automation"/> を内部で生成する production 用コンストラクタ。</summary>
     /// <param name="loggerFactory">ログ出力に使用するロガーファクトリ。null の場合は <see cref="NullLoggerFactory"/> を使う。</param>
@@ -223,8 +223,10 @@ public sealed partial class UiaEngine : IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
+        if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0)
+        {
+            return;
+        }
         try { _automation.Dispose(); } catch { }
         try { _gate.Dispose(); } catch { }
     }
@@ -233,6 +235,6 @@ public sealed partial class UiaEngine : IDisposable
     /// <exception cref="ObjectDisposedException">本 Engine が Dispose 済みの場合。</exception>
     private void ThrowIfDisposed()
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
     }
 }

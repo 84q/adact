@@ -99,8 +99,6 @@ internal sealed class FlaUiElement : IElement
                 if (_el.Properties.ClassName.ValueOrDefault == "Windows.UI.Core.CoreWindow")
                 {
                     raw = _el.FindAllDescendants();
-                    // Exclude self if present
-                    raw = raw.Where(r => !r.Equals(_el)).ToArray();
                 }
                 else
                 {
@@ -108,21 +106,23 @@ internal sealed class FlaUiElement : IElement
                 }
                 // Deduplicate by RuntimeId to avoid duplicate entries from FindAllDescendants flat list
                 var seenRuntimeIds = new HashSet<string>();
-                var unique = new List<AutomationElement>(raw.Length);
+                var list = new List<IElement>(raw.Length);
                 foreach (var r in raw)
                 {
+                    if (r.Equals(_el))
+                    {
+                        continue;
+                    }
+
                     var rid = Safe(() => r.Properties.RuntimeId.ValueOrDefault);
                     var key = rid is not null && rid.Length > 0
                         ? string.Join(",", rid)
                         : $"fallback:{r.GetHashCode()}";
                     if (seenRuntimeIds.Add(key))
                     {
-                        unique.Add(r);
+                        list.Add(new FlaUiElement(r));
                     }
                 }
-                raw = unique.ToArray();
-                var list = new List<IElement>(raw.Length);
-                foreach (var c in raw) list.Add(new FlaUiElement(c));
                 _children = list;
             }
             catch
@@ -159,11 +159,44 @@ internal sealed class FlaUiElement : IElement
             valuePattern.SetValue(text);
             return;
         }
+
         // Fallback: focus + 全選択 + 入力
-        _el.Focus();
+        EnsureFocus();
         Keyboard.Type(FlaUI.Core.WindowsAPI.VirtualKeyShort.CONTROL, FlaUI.Core.WindowsAPI.VirtualKeyShort.KEY_A);
         Keyboard.Type(FlaUI.Core.WindowsAPI.VirtualKeyShort.DELETE);
         Keyboard.Type(text);
+    }
+
+    private void EnsureFocus()
+    {
+        const int MaxRetries = 2;
+        for (int i = 0; i <= MaxRetries; i++)
+        {
+            try
+            {
+                _el.Focus();
+            }
+            catch
+            {
+                // Focus() が失敗しても続行
+            }
+
+            Wait.UntilInputIsProcessed();
+
+            try
+            {
+                if (_el.Properties.HasKeyboardFocus.ValueOrDefault)
+                {
+                    return;
+                }
+            }
+            catch
+            {
+                // プロパティ取得に失敗しても続行
+            }
+        }
+
+        throw new InvalidOperationException("Failed to set keyboard focus to the target element.");
     }
 
     /// <inheritdoc />

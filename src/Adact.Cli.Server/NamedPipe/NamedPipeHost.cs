@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using System.IO.Pipes;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 using Adact.Engine;
 using Adact.Mcp.Common;
@@ -100,12 +102,15 @@ public static class NamedPipeHost
             while (!serverCt.IsCancellationRequested)
             {
                 // 新しい接続を待ち受け
-                var pipeStream = new NamedPipeServerStream(
+                var pipeStream = NamedPipeServerStreamAcl.Create(
                     shortPipeName,
                     PipeDirection.InOut,
                     NamedPipeServerStream.MaxAllowedServerInstances,
                     PipeTransmissionMode.Byte,
-                    PipeOptions.Asynchronous);
+                    PipeOptions.Asynchronous,
+                    inBufferSize: 0,
+                    outBufferSize: 0,
+                    pipeSecurity: CreateCurrentUserOnlyPipeSecurity());
 
                 try
                 {
@@ -221,12 +226,22 @@ public static class NamedPipeHost
     }
 
     /// <summary>
-    /// 現在のアセンブリのバージョンを文字列化して返す。
+    /// 現在ユーザーのみが Named Pipe を利用できるように制限したセキュリティ設定を作成する。
     /// </summary>
-    /// <returns>アセンブリバージョンの文字列表現。</returns>
-    private static string ThisAssemblyVersion()
+    private static PipeSecurity CreateCurrentUserOnlyPipeSecurity()
     {
-        var v = typeof(NamedPipeHost).Assembly.GetName().Version;
-        return v?.ToString() ?? "0.0.0";
+        var pipeSecurity = new PipeSecurity();
+        pipeSecurity.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+
+        var currentUser = WindowsIdentity.GetCurrent().User
+            ?? throw new InvalidOperationException("Failed to resolve current Windows user SID.");
+
+        pipeSecurity.AddAccessRule(new PipeAccessRule(
+            currentUser,
+            PipeAccessRights.FullControl,
+            AccessControlType.Allow));
+
+        return pipeSecurity;
     }
+
 }

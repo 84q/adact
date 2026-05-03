@@ -70,7 +70,7 @@ internal static class DaemonSpawner
             CreateNoWindow = true,
         };
 
-        Process? process;
+        Process? process = null;
         try
         {
             process = Process.Start(startInfo);
@@ -92,47 +92,61 @@ internal static class DaemonSpawner
         var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         cts.CancelAfter(timeoutMs);
 
-        process.OutputDataReceived += (_, e) =>
+        void OnOutputDataReceived(object? _, DataReceivedEventArgs e)
         {
             if (e.Data?.Contains("Daemon listening on") == true)
             {
                 tcs.TrySetResult(true);
             }
-        };
+        }
 
-        process.BeginOutputReadLine();
+        process.OutputDataReceived += OnOutputDataReceived;
 
         try
         {
-            // 起動完了を待機、またはタイムアウト
-            await Task.WhenAny(tcs.Task, Task.Delay(timeoutMs, cts.Token)).ConfigureAwait(false);
+            process.BeginOutputReadLine();
 
-            if (tcs.Task.IsCompletedSuccessfully && tcs.Task.Result)
+            try
             {
-                // 起動完了メッセージを確認したら、接続確認
-                await Task.Delay(500, ct).ConfigureAwait(false); // 少し待機して安定化
-                return await NamedPipeMcpClient.IsServerRunningAsync(endpoint, 2000, ct).ConfigureAwait(false);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // キャンセルまたはタイムアウト
-        }
+                // 起動完了を待機、またはタイムアウト
+                await Task.WhenAny(tcs.Task, Task.Delay(timeoutMs, cts.Token)).ConfigureAwait(false);
 
-        // タイムアウトまたは起動失敗
-        try
-        {
-            if (!process.HasExited)
+                if (tcs.Task.IsCompletedSuccessfully && tcs.Task.Result)
+                {
+                    // 起動完了メッセージを確認したら、接続確認
+                    await Task.Delay(500, ct).ConfigureAwait(false); // 少し待機して安定化
+                    return await NamedPipeMcpClient.IsServerRunningAsync(endpoint, 2000, ct).ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException)
             {
-                process.Kill();
+                // キャンセルまたはタイムアウト
             }
-        }
-        catch
-        {
-            // 無視
-        }
+            finally
+            {
+                process.CancelOutputRead();
+                process.OutputDataReceived -= OnOutputDataReceived;
+            }
 
-        return false;
+            // タイムアウトまたは起動失敗
+            try
+            {
+                if (!process.HasExited)
+                {
+                    process.Kill();
+                }
+            }
+            catch
+            {
+                // 無視
+            }
+
+            return false;
+        }
+        finally
+        {
+            process.Dispose();
+        }
     }
 
     /// <summary>
