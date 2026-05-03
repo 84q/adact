@@ -1,6 +1,6 @@
 # 残タスク整理
 
-* 終わったものは削除する。
+* 完了、却下時は、「終了タスク」に移動する
   * 取り消し線などは使わない
 * 新規に追加する場合は、一番下に追加する
   * IDは最も大きいIDに+1したものとする。
@@ -18,17 +18,15 @@
 | 13 | 認証・TLS・CORS | リモート daemon 運用時の保護方針を決め、必要最小限を実装する。 | 未着手 | リモート daemon をどの時点で本格サポート扱いにするか未決定。 |
 | 14 | Dashboard | daemon / session / window / snapshot の状態を可視化する管理 UI。 | 未着手 | 運用・デバッグ向け。 |
 | 15 | OCR・Vision | UIA が弱いアプリに対して画像認識・OCR を併用する。 | 未着手 | 初期スコープ外だった領域。 |
-| 16 | state 永続化 | daemon 再起動後も session / window / 設定を復元できるようにする。 | 未着手 | 現状は daemon メモリ内状態のみ。 |
-| 17 | README.md 作成 | OSS 公開を見越したトップレベルの README.md を作成する。 | 未着手 | 内容（機能紹介、セットアップ、クイックスタート、ロードマップ等）は要検討。 |
-| 21 | SampleApp 更新：close 拒否パターン | SampleApp に `Closing` イベントで `e.Cancel = true` するボタンを追加し、`close` コマンドが効かないパターンを検証できるようにする。 | 未着手 | discussion/032 参照。WPF/WinForms で `close` が効かないケースを再現。 |
-| 22 | SampleApp 更新：MenuItem にサブメニュー | SampleApp の MenuBar（File/Edit/View）に入れ子サブメニューを追加し、多階層メニューの操作検証を可能にする。 | 未着手 | discussion/032 参照。現在は1階層のみ（Open/Save/Exit）。マウスオーバーで右側に展開される多階層メニューの UIA 構造検証にも必要。 |
-| 23 | FileDialog 操作の解決策検討 | `OpenFileDialog` / `SaveFileDialog` を ADACT で操作する方法（ファイル選択・キャンセル）を検討・実装する。 | 未着手 | discussion/032 参照。ダイアログの button を `click` で押せるが、ファイルパスの入力方法が未定。 |
-| 24 | ComboBox 選択要素取得のスキル化 | `inspect` で子 ListItem を確認する方法、または `snapshot` の `[selected]` フラグを使った選択確認方法を `adact-cli` Skill に記載する。 | 未着手 | discussion/032 参照。ComboBox 自身の inspect では `IsSelected` が出ず、子 ListItem の inspect が必要。 |
 | 25 | Skill と実体の乖離解消 | `adact-cli` Skill ファイルが実際の CLI 仕様と乖離している箇所を修正する（例：Skill に `close` コマンドがない、`inspect --ref` のまま等）。 | 未着手 | discussion/031（global option 化）、本日の `inspect`/`detach` 変更等。Skill ファイルは `.agents/skills/adact-cli/references/` および `src/Adact.Cli.Core/Skills/adact-cli/references/` に存在。 |
 | 26 | Skill 更新：別ウィンドウ扱いの要素説明 | ツールチップ・メニューサブメニュー・ダイアログボックス等が UIA 上で「別ウィンドウ」として snapshot に現れることを Skill に記載する。 | 未着手 | discussion/030、032 参照。Popup (`isPopup`)、Modal (`isModalDialog`) の概念を Skill の `snapshot` リファレンス等に追記。 |
 | 27 | 全サブコマンド自動統合テスト化 | discussion/032 で手動検証した内容（27コマンド）を自動テスト化。SampleApp を起動 → 操作 → 検証 → クリーンアップの一連を xUnit 化する。 | 未着手 | `Adact.Engine.Tests` または新規プロジェクトで実装。InteractiveTestGuard + CalculatorMutex パターンを参考に。 |
 | 28 | 異なる DPI/スケーリング環境でのテスト | 125%, 150%, 200% 等のディスプレイスケーリングで `BoundingRectangle` の値が変わり、クリック位置がずれる可能性があることを検証する。 | 未着手 | `SetProcessDPIAware` 等の対応が必要か、DPI 非依存座標系の検討。 |
 | 29 | UWP/Store アプリ対応テスト | Windows 電卓（新 `CalculatorApp`）等では UIA ツリー構造が異なり、既存操作パターンが通用しないケースを洗い出す。 | 未着手 | discussion/028 参照。UWP の `CoreWindow` 対応は部分的に実装済みだが、網羅的な検証が必要。 |
+| 21 | SampleApp 更新：close 拒否パターン | SampleApp に `Closing` イベントで `e.Cancel = true` するボタンを追加し、`close` コマンドが効かないパターンを検証できるようにする。 | 未着手 | discussion/032 参照。WPF/WinForms で `close` が効かないケースを再現。 |
+| 22 | SampleApp 更新：MenuItem にサブメニュー | SampleApp の MenuBar（File/Edit/View）に入れ子サブメニューを追加し、多階層メニューの操作検証を可能にする。 | 未着手 | discussion/032 参照。現在は1階層のみ（Open/Save/Exit）。マウスオーバーで右側に展開される多階層メニューの UIA 構造検証にも必要。 |
+| 23 | FileDialog 操作の解決策検討 | `OpenFileDialog` / `SaveFileDialog` を ADACT で操作する方法（ファイル選択・キャンセル）を検討・実装する。 | 未着手 | discussion/032 参照。ダイアログの button を `click` で押せるが、ファイルパスの入力方法が未定。 |
+| 24 | ComboBox 選択要素取得のスキル化 | `inspect` で子 ListItem を確認する方法、または `snapshot` の `[selected]` フラグを使った選択確認方法を `adact-cli` Skill に記載する。 | 未着手 | discussion/032 参照。ComboBox 自身の inspect では `IsSelected` が出ず、子 ListItem の inspect が必要。 |
 | 30 | TreeView 展開操作サポート | TreeItem の `click` では子ノードが展開されない（WPF 仕様）。`expand` / `collapse` コマンドの追加、または `click` に `--expand` オプションを追加する。 | 未着手 | discussion/032 参照。現状は Expander ボタンを個別に `click` する必要がある。 |
 | 31 | Slider/ProgressBar の値変更操作 | `RangeValuePattern` を使った `set-value` コマンドを追加し、Slider の値を直接設定できるようにする。 | 未着手 | SampleApp の Basic Controls タブに Slider があるが、値変更コマンドがない。 |
 | 32 | ContextMenu（右クリック）操作 | `right-click <ref>` コマンドを追加する。現状は `click` のみで右クリックメニューが開けない。 | 未着手 | SampleApp の Tree & Menu タブに ContextMenu があるが検証不可。 |
@@ -39,6 +37,7 @@
 | 37 | エラーコード一覧整備 | `ErrorCodes` クラスと実際のエラーメッセージの対応表を `docs/` に作成。AI やユーザーがエラーの意味を素早く理解できるようにする。 | 未着手 | `CONNECTION_FAILED`、`OPERATION_BLOCKED`、`REF_NOT_FOUND` 等の対処法を含む。 |
 | 38 | 操作履歴・ログの永続化 | 現状は操作ログが stdout/stderr のみ。`.adact/history/` にタイムスタンプ付きでログを残し、デバッグ・再現性向上に役立てる。 | 未着手 | セキュリティ考慮（パスワード等の機密情報フィルタリング）が必要。 |
 | 39 | HTTP プロキシ対応 | `http_proxy` / `https_proxy` 環境変数または `.adact/config.json` 経由で HTTP プロキシを設定できるようにする。現状は `HttpClientTransport` がデフォルト `HttpClient` を使用しており、環境変数を無視する。 | 未着手 | `AdactMcpClient.cs` で `HttpClientHandler` をカスタマイズし `Proxy` プロパティを設定する必要がある。MCP SDK 1.2.0 使用。 |
+| 40 | relay コマンド| AI実行環境とテスト実行環境が遠い(直接つながっていない)場合に、途中のマシンを中継サーバとして利用するためのコマンド | 未着手 | |
 
 # 終了タスク
 
@@ -51,5 +50,7 @@
 | 18 | デフォルト接続先を Named Pipe に | MCP 接続時のデフォルト接続先を Named Pipe に変更する。`adact local` (stdio) は廃止。 | 完了 | `adact serve pipe` を新設し、デフォルト接続先とした。HTTP (`adact serve http`) はリモート用に残す。discussion/033 参照。 |
 | 19 | Named Pipe 接続時の daemon 自動起動 | Named Pipe 接続時に ADACT daemon プロセスが存在しなければ自動的に立ち上げる。 | 完了 | `list-apps` / `launch` のみ自動起動対象。それ以外は `CONNECTION_FAILED` エラー。discussion/033 参照。 |
 | 20 | daemon-stop の local 専用化 | `daemon-stop` コマンドを local（stdio）接続時のみ有効にし、127.0.0.1 等のリモート接続時は実行不可にする。 | 完了 | ID 18・19 とセットで検討。セキュリティ観点からリモート側の誤停止を防ぐ。 |
-| 5 | `KillAsync` PID 再利用対策 | `Process.StartTime` 等を使い、意図しない別プロセス kill を防ぐ。 | 却下 | 調査の結果、通常シナリオ（数秒〜数分後の kill）では PID 再利用の実害は極めて少ない。StartTime 比較はベストエフォートに留まり絶対安全ではなく、真に堅牢にするにはプロセスハンドル保持が必要でコストが大きいため、優先度を下げて見送る。 |
+| 5 | `KillAsync` PID 再利用対策 | `Process.StartTime` 等を使い、意図しない別プロセス kill を防ぐ。 | 完了 | 調査の結果、通常シナリオ（数秒〜数分後の kill）では PID 再利用の実害は極めて少ない。StartTime 比較はベストエフォートに留まり絶対安全ではなく、真に堅牢にするにはプロセスハンドル保持が必要でコストが大きいため、優先度を下げて見送る。 |
 | 11 | 失敗時スクリーンショット自動添付 | 操作失敗時に自動的にスクリーンショットを撮影し、エラー出力に添付する。 | 却下 | `REF_NOT_FOUND` 自動再 snapshot と同様の理由。失敗時のスクリーンショット撮影は AI/ユーザ が手動で判断・実行する責務分担とする。 |
+| 16 | state 永続化 | daemon 再起動後も session / window / 設定を復元できるようにする。 | 却下 | 現状は daemon メモリ内状態のみ。 |
+| 17 | README.md 作成 | OSS 公開を見越したトップレベルの README.md を作成する。 | 完了 | 内容（機能紹介、セットアップ、クイックスタート、ロードマップ等）は要検討。 |
