@@ -1,7 +1,7 @@
 ---
 description: "コードベース調査と Web 調査を統合し、Orchestrator から委任された調査対象を構造化された事実として報告する"
 mode: subagent
-model: "opencode-go/qwen3.6-plus"
+model: "opencode-go/deepseek-v4-pro"
 temperature: 0.2
 tools:
   write: false
