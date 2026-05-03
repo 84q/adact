@@ -6,6 +6,9 @@ tools:
   write: false
   edit: false
   bash: true
+permission:
+  edit: allow
+  bash: allow
 ---
 
 # Reviewer

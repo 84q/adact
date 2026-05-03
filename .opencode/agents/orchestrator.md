@@ -8,10 +8,7 @@ tools:
   bash: true
 permission:
   edit: allow
-  bash:
-    "*": ask
-    "git *": allow
-    "dotnet *": allow
+  bash: allow
 ---
 
 # Orchestrator

@@ -8,6 +8,9 @@ tools:
   edit: false
   bash: true
   webfetch: true
+permission:
+  edit: allow
+  bash: allow
 ---
 
 # Research

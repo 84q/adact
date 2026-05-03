@@ -6,6 +6,9 @@ tools:
   write: true
   edit: true
   bash: true
+permission:
+  edit: allow
+  bash: allow
 ---
 
 # Implementation
