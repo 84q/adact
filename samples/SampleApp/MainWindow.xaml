@@ -59,6 +59,15 @@
             <TabItem Header="Async / Delay" AutomationProperties.AutomationId="MainWindow_TabItem_AsyncDelay">
                 <tabs:AsyncDelayTab />
             </TabItem>
+            <TabItem Header="Drag &amp; Drop" AutomationProperties.AutomationId="MainWindow_TabItem_DragDrop">
+                <tabs:DragDropTab />
+            </TabItem>
+            <TabItem Header="Rich Text" AutomationProperties.AutomationId="MainWindow_TabItem_RichText">
+                <tabs:RichTextTab />
+            </TabItem>
+            <TabItem Header="Advanced / Custom Patterns" AutomationProperties.AutomationId="MainWindow_TabItem_AdvancedCustomPatterns">
+                <tabs:AdvancedCustomPatternsTab />
+            </TabItem>
         </TabControl>
     </DockPanel>
 </Window>

@@ -1,7 +1,10 @@
 <UserControl x:Class="SampleApp.Tabs.DynamicUITab"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
     <StackPanel Margin="10">
+        <TextBlock Text="Dynamic UI: add controls, toggle visibility/enabled state, create virtualized list, and update notification-like live region." FontWeight="Bold" />
         <StackPanel Orientation="Horizontal" Margin="0,5">
             <Button x:Name="AddButton"
                     Content="Add TextBox"
@@ -20,7 +23,56 @@
                     AutomationProperties.AutomationId="Dynamic_Button_ClearAll"
                     AutomationProperties.Name="Clear All Button"
                     Click="ClearButton_Click" />
+            <Button x:Name="AddMixedButton"
+                    Content="Add Mixed Controls"
+                    Margin="5,0,0,0"
+                    AutomationProperties.AutomationId="Dynamic_Button_AddMixedControls"
+                    AutomationProperties.Name="Add Mixed Controls Button"
+                    Click="AddMixedButton_Click" />
+            <controls:ToggleButton x:Name="StateToggleButton"
+                          Content="Disable Panel"
+                          Margin="5,0,0,0"
+                          AutomationProperties.AutomationId="Dynamic_ToggleButton_DisablePanel"
+                          AutomationProperties.Name="Disable Pattern Panel Toggle"
+                          Checked="StateToggleButton_Checked"
+                          Unchecked="StateToggleButton_Unchecked" />
+            <CheckBox x:Name="VisibilityCheckBox"
+                      Content="Show panel"
+                      IsChecked="True"
+                      Margin="5,0,0,0"
+                      AutomationProperties.AutomationId="Dynamic_CheckBox_ShowPanel"
+                      AutomationProperties.Name="Show Pattern Panel Check Box"
+                      Checked="VisibilityCheckBox_Changed"
+                      Unchecked="VisibilityCheckBox_Changed" />
         </StackPanel>
+        <Border x:Name="PatternPanel" BorderBrush="Gray" BorderThickness="1" Padding="8" Margin="0,8">
+            <StackPanel>
+                <TextBlock Text="Panel whose children change IsEnabled / Visibility." AutomationProperties.AutomationId="Dynamic_TextBlock_PanelDescription" AutomationProperties.Name="Dynamic Panel Description" />
+                <Button Content="Dynamic Panel Button" AutomationProperties.AutomationId="Dynamic_Button_PanelAction" AutomationProperties.Name="Dynamic Panel Action Button" />
+                <CheckBox Content="Dynamic Panel CheckBox" AutomationProperties.AutomationId="Dynamic_CheckBox_PanelToggle" AutomationProperties.Name="Dynamic Panel Toggle CheckBox" />
+                <ComboBox x:Name="DynamicPanelComboBox" AutomationProperties.AutomationId="Dynamic_ComboBox_PanelOptions" AutomationProperties.Name="Dynamic Panel Options Combo Box" />
+            </StackPanel>
+        </Border>
+        <StackPanel x:Name="DynamicMixedControlsPanel" Margin="0,8" />
+        <TextBlock x:Name="NotificationTextBlock"
+                   Text="Notification area idle"
+                   Margin="0,8"
+                   AutomationProperties.LiveSetting="Polite"
+                   AutomationProperties.AutomationId="Dynamic_TextBlock_NotificationArea"
+                   AutomationProperties.Name="Notification Live Region" />
+        <Button Content="Create Virtualized Dynamic List"
+                Margin="0,0,0,5"
+                HorizontalAlignment="Left"
+                AutomationProperties.AutomationId="Dynamic_Button_CreateVirtualizedList"
+                AutomationProperties.Name="Create Virtualized Dynamic List Button"
+                Click="CreateVirtualizedListButton_Click" />
+        <ListBox x:Name="DynamicVirtualizedListBox"
+                 Height="120"
+                 VirtualizingStackPanel.IsVirtualizing="True"
+                 VirtualizingStackPanel.VirtualizationMode="Recycling"
+                 ScrollViewer.CanContentScroll="True"
+                 AutomationProperties.AutomationId="Dynamic_ListBox_VirtualizedGenerated"
+                 AutomationProperties.Name="Dynamically Generated Virtualized List Box" />
         <ItemsControl x:Name="DynamicItemsControl" Margin="0,10">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
@@ -32,4 +84,5 @@
             </ItemsControl.ItemTemplate>
         </ItemsControl>
     </StackPanel>
+    </ScrollViewer>
 </UserControl>

@@ -1,0 +1,26 @@
+<UserControl x:Class="SampleApp.Tabs.AdvancedCustomPatternsTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SampleApp.Tabs">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="10">
+        <TextBlock Text="Advanced / Custom Patterns: implemented custom peers expose MultipleView and Dock, Transform is a baseline, and Styles / Transform2 / Spreadsheet-specific peers are placeholders for future expansion." FontWeight="Bold" />
+        <WrapPanel Margin="0,10">
+            <local:MultipleViewSampleControl Width="220" Height="70" Margin="0,0,10,10" AutomationProperties.AutomationId="Advanced_CustomPeer_MultipleViewSample" AutomationProperties.Name="Multiple View Custom Peer Sample" />
+            <local:StylesSampleControl Width="220" Height="70" Margin="0,0,10,10" AutomationProperties.AutomationId="Advanced_Placeholder_StylesSample" AutomationProperties.Name="Styles Placeholder Sample" AutomationProperties.HelpText="StylesPattern is not implemented in this SampleApp build; this control is a future-expansion placeholder." />
+            <local:DockSampleControl Width="220" Height="70" Margin="0,0,10,10" AutomationProperties.AutomationId="Advanced_CustomPeer_DockSample" AutomationProperties.Name="Dock Custom Peer Sample" />
+            <local:Transform2SampleControl Width="220" Height="70" Margin="0,0,10,10" AutomationProperties.AutomationId="Advanced_CustomPeer_TransformBaselineSample" AutomationProperties.Name="Transform Baseline Sample" AutomationProperties.HelpText="Exposes TransformPattern baseline only; Transform2Pattern is not implemented in this SampleApp build." />
+        </WrapPanel>
+        <TextBlock Text="Spreadsheet-like DataGrid baseline: Grid/Table behavior is observable now; SpreadsheetPattern is not implemented and remains a future-expansion placeholder." Margin="0,8" />
+        <DataGrid x:Name="SpreadsheetLikeGrid" Height="160" AutoGenerateColumns="False" CanUserAddRows="False" AutomationProperties.AutomationId="Advanced_DataGrid_SpreadsheetLike" AutomationProperties.Name="Spreadsheet Like Grid Baseline">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Cell" Binding="{Binding Cell}" Width="80" />
+                <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="120" />
+                <DataGridTextColumn Header="Formula" Binding="{Binding Formula}" Width="180" />
+                <DataGridTextColumn Header="Annotation" Binding="{Binding Annotation}" Width="220" />
+            </DataGrid.Columns>
+        </DataGrid>
+        <TextBlock Text="Notification / Annotation / ObjectModel / CustomNavigation / LegacyIAccessible are observation-only candidates; this tab keeps them isolated from ADACT core." Margin="0,10" AutomationProperties.AutomationId="Advanced_TextBlock_ObservationOnlyPatterns" AutomationProperties.Name="Observation Only Pattern Notes" />
+    </StackPanel>
+    </ScrollViewer>
+</UserControl>

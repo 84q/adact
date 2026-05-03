@@ -17,13 +17,24 @@ public partial class SelectionTab : UserControl
         foreach (var color in colors)
         {
             ColorsComboBox.Items.Add(color);
+            EditableColorsComboBox.Items.Add(color);
         }
         ColorsComboBox.SelectedIndex = 0;
+        EditableColorsComboBox.Text = "Green";
 
         var fruits = new[] { "Apple", "Banana", "Cherry", "Date", "Elderberry", "Fig", "Grape", "Honeydew", "Kiwi", "Lemon", "Mango", "Nectarine", "Orange", "Papaya", "Quince", "Raspberry", "Strawberry", "Tangerine", "Ugli", "Watermelon" };
         foreach (var fruit in fruits)
         {
             FruitsListBox.Items.Add(fruit);
+            MultiFruitsListBox.Items.Add(fruit);
+        }
+        FruitsListBox.SelectedIndex = 0;
+        MultiFruitsListBox.SelectedItems.Add("Apple");
+        MultiFruitsListBox.SelectedItems.Add("Cherry");
+
+        for (int i = 1; i <= 1000; i++)
+        {
+            VirtualizedItemsListBox.Items.Add($"Virtualized Item {i:0000}");
         }
 
         var products = new ObservableCollection<Product>();

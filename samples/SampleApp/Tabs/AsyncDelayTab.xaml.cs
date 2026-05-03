@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -6,6 +8,8 @@ namespace SampleApp.Tabs;
 
 public partial class AsyncDelayTab : UserControl
 {
+    private CancellationTokenSource? _cancellationTokenSource;
+
     public AsyncDelayTab()
     {
         InitializeComponent();
@@ -13,17 +17,52 @@ public partial class AsyncDelayTab : UserControl
 
     private async void StartButton_Click(object sender, RoutedEventArgs e)
     {
+        _cancellationTokenSource = new CancellationTokenSource();
         StartButton.IsEnabled = false;
+        CancelButton.IsEnabled = true;
         StatusLabel.Content = "Running...";
-        TaskProgressBar.IsIndeterminate = true;
-
-        await Task.Run(() =>
-        {
-            System.Threading.Thread.Sleep(30000);
-        });
-
         TaskProgressBar.IsIndeterminate = false;
-        StatusLabel.Content = "Completed";
-        StartButton.IsEnabled = true;
+        TaskProgressBar.Value = 0;
+        AsyncResultsListBox.Items.Clear();
+        AsyncResultsDataGrid.Visibility = Visibility.Collapsed;
+
+        try
+        {
+            for (int i = 1; i <= 10; i++)
+            {
+                await Task.Delay(500, _cancellationTokenSource.Token);
+                TaskProgressBar.Value = i * 10;
+                StatusLabel.Content = $"Running... {TaskProgressBar.Value:0}%";
+            }
+
+            StatusLabel.Content = "Completed";
+            AsyncResultsListBox.Items.Add("Async result A");
+            AsyncResultsListBox.Items.Add("Async result B");
+            AsyncResultsListBox.Items.Add("Async result C");
+            AsyncResultsDataGrid.ItemsSource = new List<AsyncResult>
+            {
+                new("A", "Completed"),
+                new("B", "Completed")
+            };
+            AsyncResultsDataGrid.Visibility = Visibility.Visible;
+        }
+        catch (TaskCanceledException)
+        {
+            StatusLabel.Content = "Cancelled";
+        }
+        finally
+        {
+            CancelButton.IsEnabled = false;
+            StartButton.IsEnabled = true;
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
+        }
     }
+
+    private void CancelButton_Click(object sender, RoutedEventArgs e)
+    {
+        _cancellationTokenSource?.Cancel();
+    }
+
+    private sealed record AsyncResult(string Name, string Status);
 }

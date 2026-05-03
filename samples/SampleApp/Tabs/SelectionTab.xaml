@@ -1,17 +1,41 @@
 <UserControl x:Class="SampleApp.Tabs.SelectionTab"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
     <StackPanel Margin="10">
+        <TextBlock Text="SelectionPattern samples: single/multiple ListBox, editable ComboBox, virtualized list, and GridView headers." FontWeight="Bold" />
         <TextBlock Text="Colors:" Margin="0,5" />
         <ComboBox x:Name="ColorsComboBox"
-                  AutomationProperties.AutomationId="Selection_ComboBox_Colors"
-                  AutomationProperties.Name="Colors Combo Box" />
+                   AutomationProperties.AutomationId="Selection_ComboBox_Colors"
+                   AutomationProperties.Name="Colors Combo Box" />
+
+        <TextBlock Text="Editable ComboBox (ExpandCollapse + Selection + Value):" Margin="0,15,0,5" />
+        <ComboBox x:Name="EditableColorsComboBox"
+                  IsEditable="True"
+                  AutomationProperties.AutomationId="Selection_ComboBox_EditableColors"
+                  AutomationProperties.Name="Editable Colors Combo Box" />
 
         <TextBlock Text="Fruits:" Margin="0,15,0,5" />
         <ListBox x:Name="FruitsListBox"
                  Height="150"
                  AutomationProperties.AutomationId="Selection_ListBox_Fruits"
                  AutomationProperties.Name="Fruits List Box" />
+
+        <TextBlock Text="Multiple Selection ListBox (SelectionPattern CanSelectMultiple=true):" Margin="0,15,0,5" />
+        <ListBox x:Name="MultiFruitsListBox"
+                 Height="120"
+                 SelectionMode="Extended"
+                 AutomationProperties.AutomationId="Selection_ListBox_MultiFruits"
+                 AutomationProperties.Name="Multiple Fruits List Box" />
+
+        <TextBlock Text="Virtualized Large ListBox (ItemContainer / VirtualizedItem / Scroll candidates):" Margin="0,15,0,5" />
+        <ListBox x:Name="VirtualizedItemsListBox"
+                 Height="180"
+                 VirtualizingStackPanel.IsVirtualizing="True"
+                 VirtualizingStackPanel.VirtualizationMode="Recycling"
+                 ScrollViewer.CanContentScroll="True"
+                 AutomationProperties.AutomationId="Selection_ListBox_VirtualizedItems"
+                 AutomationProperties.Name="Virtualized Items List Box" />
 
         <TextBlock Text="Products:" Margin="0,15,0,5" />
         <ListView x:Name="ProductsListView"
@@ -27,4 +51,5 @@
             </ListView.View>
         </ListView>
     </StackPanel>
+    </ScrollViewer>
 </UserControl>
