@@ -27,41 +27,45 @@ element disappears.
 
 ## Subcommands
 
-Each subcommand has a dedicated reference document under `references/`. Load
-the reference for the command you are about to run.
+Reference docs are grouped by command family under `references/`. Load the
+family doc that covers the command you are about to run.
 
 | Command                | Purpose                                               | Reference                                  |
 | ---------------------- | ----------------------------------------------------- | ------------------------------------------ |
-| `adact list-apps`      | List top-level windows on this desktop.               | [`references/list-apps.md`](references/list-apps.md) |
-| `adact attach`         | Attach to a window and start a session.               | [`references/attach.md`](references/attach.md)       |
-| `adact snapshot`       | Capture a fresh UIA snapshot of the active session.   | [`references/snapshot.md`](references/snapshot.md)   |
-| `adact click`          | Click an element identified by an element ref.        | [`references/click.md`](references/click.md)         |
-| `adact fill`           | Overwrite an input element with the given text.       | [`references/fill.md`](references/fill.md)           |
-| `adact dblclick`       | Double-click an element.                              | [`references/dblclick.md`](references/dblclick.md)   |
-| `adact hover`          | Move the cursor over an element.                      | [`references/hover.md`](references/hover.md)         |
-| `adact mouse-move`     | Move the cursor to an element ref or `x,y`.           | [`references/mouse-move.md`](references/mouse-move.md) |
-| `adact mouse-down`     | Press and hold a mouse button at a target.            | [`references/mouse-down.md`](references/mouse-down.md) |
-| `adact mouse-up`       | Release a mouse button at a target.                   | [`references/mouse-up.md`](references/mouse-up.md)   |
-| `adact mouse-wheel`    | Scroll the mouse wheel at a target.                   | [`references/mouse-wheel.md`](references/mouse-wheel.md) |
-| `adact press`          | Press a key combo (e.g. `Ctrl+C`).                    | [`references/press.md`](references/press.md)         |
-| `adact key-down`       | Press and hold a single key.                          | [`references/key-down.md`](references/key-down.md)   |
-| `adact key-up`         | Release a single key.                                 | [`references/key-up.md`](references/key-up.md)       |
-| `adact type`           | Type text character by character into an element.     | [`references/type.md`](references/type.md)           |
-| `adact check`          | Ensure a checkbox / toggle / radio is On.             | [`references/check.md`](references/check.md)         |
-| `adact uncheck`        | Ensure a checkbox / toggle is Off.                    | [`references/uncheck.md`](references/uncheck.md)     |
-| `adact select`         | Select a list / combo-box item by name / index / ref. | [`references/select.md`](references/select.md)       |
-| `adact focus`          | Set keyboard focus to an element.                     | [`references/focus.md`](references/focus.md)         |
-| `adact clear`          | Clear the value of an input element.                  | [`references/clear.md`](references/clear.md)         |
-| `adact scroll-into-view` | Scroll an element into view.                        | [`references/scroll-into-view.md`](references/scroll-into-view.md) |
-| `adact resize`         | Resize the attached window.                           | [`references/resize.md`](references/resize.md)       |
-| `adact minimize`       | Minimize the attached window.                         | [`references/minimize.md`](references/minimize.md)   |
-| `adact maximize`       | Maximize the attached window.                         | [`references/maximize.md`](references/maximize.md)   |
-| `adact restore`        | Restore the attached window to normal state.          | [`references/restore.md`](references/restore.md)     |
-| `adact inspect`        | Print detailed UIA properties of an element as JSON.  | [`references/inspect.md`](references/inspect.md)     |
-| `adact screenshot`     | Save a PNG screenshot of the window or an element.    | [`references/screenshot.md`](references/screenshot.md) |
-| `adact launch`         | Start a Windows process (Win32 / .NET / UWP).         | [`references/launch.md`](references/launch.md)       |
-| `adact wait-for`       | Wait until an element reaches a target state.         | [`references/wait-for.md`](references/wait-for.md)   |
-| `adact wait-for-window`| Wait until a top-level window appears (no attach).    | [`references/wait-for-window.md`](references/wait-for-window.md) |
+| `adact list-apps`      | List top-level windows on this desktop.               | [`references/session-bootstrap.md`](references/session-bootstrap.md) |
+| `adact attach`         | Attach to a window and start a session.               | [`references/session-bootstrap.md`](references/session-bootstrap.md) |
+| `adact launch`         | Start a Windows process (Win32 / .NET / UWP).         | [`references/session-bootstrap.md`](references/session-bootstrap.md) |
+| `adact wait-for-window`| Wait until a top-level window appears (no attach).    | [`references/session-bootstrap.md`](references/session-bootstrap.md) |
+| `adact snapshot`       | Capture a fresh UIA snapshot of the active session.   | [`references/snapshots-and-inspection.md`](references/snapshots-and-inspection.md) |
+| `adact inspect`        | Print detailed UIA properties of an element as JSON.  | [`references/snapshots-and-inspection.md`](references/snapshots-and-inspection.md) |
+| `adact screenshot`     | Save a PNG screenshot of the window or an element.    | [`references/snapshots-and-inspection.md`](references/snapshots-and-inspection.md) |
+| `adact click`          | Click an element identified by an element ref.        | [`references/element-actions.md`](references/element-actions.md) |
+| `adact fill`           | Overwrite an input element with the given text.       | [`references/element-actions.md`](references/element-actions.md) |
+| `adact dblclick`       | Double-click an element.                              | [`references/element-actions.md`](references/element-actions.md) |
+| `adact hover`          | Move the cursor over an element.                      | [`references/element-actions.md`](references/element-actions.md) |
+| `adact type`           | Type text character by character into an element.     | [`references/element-actions.md`](references/element-actions.md) |
+| `adact focus`          | Set keyboard focus to an element.                     | [`references/element-actions.md`](references/element-actions.md) |
+| `adact clear`          | Clear the value of an input element.                  | [`references/element-actions.md`](references/element-actions.md) |
+| `adact scroll-into-view` | Scroll an element into view.                        | [`references/element-actions.md`](references/element-actions.md) |
+| `adact mouse-move`     | Move the cursor to an element ref or `x,y`.           | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
+| `adact mouse-down`     | Press and hold a mouse button at a target.            | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
+| `adact mouse-up`       | Release a mouse button at a target.                   | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
+| `adact mouse-wheel`    | Scroll the mouse wheel at a target.                   | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
+| `adact press`          | Press a key combo (e.g. `Ctrl+C`).                    | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
+| `adact key-down`       | Press and hold a single key.                          | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
+| `adact key-up`         | Release a single key.                                 | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
+| `adact check`          | Ensure a checkbox / toggle / radio is On.             | [`references/selection-and-state.md`](references/selection-and-state.md) |
+| `adact uncheck`        | Ensure a checkbox / toggle is Off.                    | [`references/selection-and-state.md`](references/selection-and-state.md) |
+| `adact select`         | Select a list / combo-box item by name / index / ref. | [`references/selection-and-state.md`](references/selection-and-state.md) |
+| `adact wait-for`       | Wait until an element reaches a target state.         | [`references/selection-and-state.md`](references/selection-and-state.md) |
+| `adact resize`         | Resize the attached window.                           | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
+| `adact minimize`       | Minimize the attached window.                         | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
+| `adact maximize`       | Maximize the attached window.                         | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
+| `adact restore`        | Restore the attached window to normal state.          | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
+| `adact detach`         | Detach the session without closing the window.        | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
+| `adact close`          | Close the attached window (auto-detach on success).   | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
+| `adact kill`           | Force-kill the attached process (auto-detach on success). | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
+| `adact close-all`      | Close all attached windows and report per-session results. | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
 
 ## Element refs
 
@@ -115,6 +119,12 @@ from the control's role/name/AutomationId, **not** by reusing the previous
 ref.
 
 ## Snapshot output format
+
+Transient popup UI (tooltips, menus, context menus, dialog boxes) may appear as
+separate top-level windows near the top of the snapshot tree. This is expected:
+Windows UIA often exposes these as distinct windows (for example a popup menu
+window layered above the app window). When this happens, inspect those extra
+window nodes and use refs from the currently visible popup subtree.
 
 The `snapshot` command writes the full snapshot text to **stdout** as well as
 to a file. Other commands (`click`, `fill`, `hover`, `type`, `press`, etc.)
