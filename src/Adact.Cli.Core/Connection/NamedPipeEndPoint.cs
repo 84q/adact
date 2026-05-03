@@ -101,7 +101,7 @@ internal sealed class NamedPipeEndPoint
     }
 
     /// <summary>
-    /// ワークスペースパスの SHA1 ハッシュ（先頭16文字）を計算する。
+    /// ワークスペースパスの SHA256 ハッシュ（先頭16文字）を計算する。
     /// </summary>
     /// <param name="workspacePath">ワークスペースパス。</param>
     /// <returns>16文字の16進数ハッシュ文字列。</returns>
@@ -109,7 +109,7 @@ internal sealed class NamedPipeEndPoint
     {
         var normalized = Path.GetFullPath(workspacePath).ToLowerInvariant();
         var bytes = Encoding.UTF8.GetBytes(normalized);
-        var hash = SHA1.HashData(bytes);
+        var hash = SHA256.HashData(bytes);
         var hex = Convert.ToHexString(hash);
         return hex[..WorkspaceHashLength];
     }

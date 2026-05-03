@@ -329,13 +329,13 @@ public class CommandHelpersTests
             IsServerRunningAsync: NamedPipeMcpClient.IsServerRunningAsync,
             TryAutoStartServerAsync: null));
 
-            await Assert.ThrowsAsync<InvalidUrlException>(() =>
-                CommandHelpers.RunWithClientAsync(
-                    "ftp://localhost/mcp",
-                    (_, _) => Task.FromResult(ExitCodes.Success),
-                    CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidUrlException>(() =>
+            CommandHelpers.RunWithClientAsync(
+                "ftp://localhost/mcp",
+                (_, _) => Task.FromResult(ExitCodes.Success),
+                CancellationToken.None));
 
-            Assert.False(connected);
+        Assert.False(connected);
     }
 
     /// <summary>Verifies that connection failures are reported as CONNECTION_FAILED.</summary>
@@ -348,16 +348,16 @@ public class CommandHelpersTests
             IsServerRunningAsync: NamedPipeMcpClient.IsServerRunningAsync,
             TryAutoStartServerAsync: null));
 
-            var (stdout, stderr, exit) = await CaptureAsync(() =>
-                CommandHelpers.RunWithClientAsync(
-                    "http://127.0.0.1:41300/mcp",
-                    (_, _) => Task.FromResult(ExitCodes.Success),
-                    CancellationToken.None));
+        var (stdout, stderr, exit) = await CaptureAsync(() =>
+            CommandHelpers.RunWithClientAsync(
+                "http://127.0.0.1:41300/mcp",
+                (_, _) => Task.FromResult(ExitCodes.Success),
+                CancellationToken.None));
 
-            Assert.Equal(ExitCodes.ConnectionFailed, exit);
-            Assert.Equal(string.Empty, stdout);
-            Assert.Contains("error CONNECTION_FAILED", stderr);
-            Assert.Contains("daemon unavailable", stderr);
+        Assert.Equal(ExitCodes.ConnectionFailed, exit);
+        Assert.Equal(string.Empty, stdout);
+        Assert.Contains("error CONNECTION_FAILED", stderr);
+        Assert.Contains("daemon unavailable", stderr);
     }
 
     /// <summary>Verifies that unexpected connector exceptions are reported as INTERNAL_ERROR.</summary>
@@ -370,16 +370,16 @@ public class CommandHelpersTests
             IsServerRunningAsync: NamedPipeMcpClient.IsServerRunningAsync,
             TryAutoStartServerAsync: null));
 
-            var (stdout, stderr, exit) = await CaptureAsync(() =>
-                CommandHelpers.RunWithClientAsync(
-                    "http://127.0.0.1:41300/mcp",
-                    (_, _) => Task.FromResult(ExitCodes.Success),
-                    CancellationToken.None));
+        var (stdout, stderr, exit) = await CaptureAsync(() =>
+            CommandHelpers.RunWithClientAsync(
+                "http://127.0.0.1:41300/mcp",
+                (_, _) => Task.FromResult(ExitCodes.Success),
+                CancellationToken.None));
 
-            Assert.Equal(ExitCodes.CommandFailed, exit);
-            Assert.Equal(string.Empty, stdout);
-            Assert.Contains("error INTERNAL_ERROR", stderr);
-            Assert.Contains("boom", stderr);
+        Assert.Equal(ExitCodes.CommandFailed, exit);
+        Assert.Equal(string.Empty, stdout);
+        Assert.Contains("error INTERNAL_ERROR", stderr);
+        Assert.Contains("boom", stderr);
     }
 
     private static CallToolResult SuccessResult() => new()

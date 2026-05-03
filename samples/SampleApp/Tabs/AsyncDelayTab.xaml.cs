@@ -6,13 +6,22 @@ using System.Windows.Controls;
 
 namespace SampleApp.Tabs;
 
-public partial class AsyncDelayTab : UserControl
+public partial class AsyncDelayTab : UserControl, IDisposable
 {
     private CancellationTokenSource? _cancellationTokenSource;
 
     public AsyncDelayTab()
     {
         InitializeComponent();
+        Unloaded += OnUnloaded;
+    }
+
+    public void Dispose()
+    {
+        Unloaded -= OnUnloaded;
+        _cancellationTokenSource?.Dispose();
+        _cancellationTokenSource = null;
+        GC.SuppressFinalize(this);
     }
 
     private async void StartButton_Click(object sender, RoutedEventArgs e)
@@ -62,6 +71,11 @@ public partial class AsyncDelayTab : UserControl
     private void CancelButton_Click(object sender, RoutedEventArgs e)
     {
         _cancellationTokenSource?.Cancel();
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        Dispose();
     }
 
     private sealed record AsyncResult(string Name, string Status);

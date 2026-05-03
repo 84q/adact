@@ -29,7 +29,7 @@ public static class HttpHost
     public const int ExitCodeEnvironmentNotSupported = 4;
 
     /// <summary>
-    /// HTTP MCP サーバーをフォアグラウンドで起動し、<paramref name="ct"> がキャンセルされるまで待機する。
+    /// HTTP MCP サーバーをフォアグラウンドで起動し、<paramref name="ct"/> がキャンセルされるまで待機する。
     /// </summary>
     /// <param name="hostAddress">バインドする IP アドレス。</param>
     /// <param name="port">バインドする TCP ポート番号。</param>

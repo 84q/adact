@@ -164,7 +164,7 @@ public sealed partial class WindowSession : IWindowSession
 
             var modals = DetectModalElements();
             var popups = DetectPopupElements(modals);
-            _rootElement?.ClearChildrenCache();
+            _rootElement.ClearChildrenCache();
             var now = DateTimeOffset.UtcNow;
             var input = new SnapshotBuildInput(
                 _rootElement, modals, popups, opt,

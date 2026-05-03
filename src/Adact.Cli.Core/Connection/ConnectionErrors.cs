@@ -38,7 +38,7 @@ internal static class ConnectionErrors
     }
 
     /// <summary>
-    /// <see cref="ConnectionResolver.Resolve"/> 周辺で発生する URL / config 検証エラーを
+    /// <c>ConnectionResolver</c> 周辺で発生する URL / config 検証エラーを
     /// <c>INVALID_ARGUMENT</c> (exit 2) として stderr に書き出す。
     /// </summary>
     /// <param name="ex">接続解決時に発生した例外。</param>

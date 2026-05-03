@@ -1,7 +1,7 @@
 namespace Adact.Cli.Snapshots;
 
 /// <summary>
-/// CLI 側の snapshot ツリーフィルタ。Phase 7 で <see cref="Adact.Engine"/> から移譲された
+/// CLI 側の snapshot ツリーフィルタ。Phase 7 で Engine から移譲された
 /// operable / raw 切替ロジックを担う。設計 016 §2、§2.4。
 ///
 /// - <c>raw</c>: ツリーをそのまま返す (フィールド削減のみ)。
@@ -9,7 +9,7 @@ namespace Adact.Cli.Snapshots;
 ///   AutomationId があれば残し、なければ flatten。未知 ControlType は flatten。
 ///   IsOffscreen=true は子孫ごと exclude する。
 ///
-/// ルート要素は常に保持する (<see cref="Adact.Engine.Snapshot.SnapshotBuilder"/> 同様)。
+/// ルート要素は常に保持する (SnapshotBuilder 同様)。
 /// </summary>
 internal static class SnapshotTreeFilter
 {

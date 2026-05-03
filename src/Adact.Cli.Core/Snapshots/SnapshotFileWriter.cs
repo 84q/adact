@@ -18,8 +18,8 @@ internal static class SnapshotFileWriter
     /// <param name="sid">セッション番号 (例: <c>s1</c> の <c>1</c>)。ファイル名生成に利用する。</param>
     /// <param name="dir">保存先ディレクトリ。null/空なら <c>.adact</c>。</param>
     /// <returns>
-    /// <paramref name="path"/>: CWD からの相対パス (slash 区切り)。stdout 出力用。
-    /// <paramref name="isNew"/>: 新規作成された場合は <see langword="true"/>、前回と同一で再利用された場合は <see langword="false"/>。
+    /// path: CWD からの相対パス (slash 区切り)。stdout 出力用。
+    /// isNew: 新規作成された場合は <see langword="true"/>、前回と同一で再利用された場合は <see langword="false"/>。
     /// </returns>
     public static (string path, bool isNew) Write(string snapshotText, int sid, string? dir = null)
     {
