@@ -15,14 +15,19 @@ It brings a Playwright-like snapshot/ref workflow to Windows UI Automation, so A
 
 ## Installation
 
-ADACT is currently intended to be used from a source build. Release/distribution packaging is not ready yet.
+Download Windows builds from this repository's [GitHub Releases](https://github.com/84q/adact/releases) page.
 
-### Requirements
+- **framework-dependent ZIP**: smaller download; requires a compatible .NET 10 runtime on the machine.
+- **self-contained ZIP**: larger download; includes the runtime so you can run ADACT on supported Windows without a separate .NET install.
+
+Source build is still supported as a fallback and development path.
+
+### Source build requirements
 
 - Windows
 - .NET 10 SDK
 
-### Build
+### Build from source
 
 ```powershell
 git clone <this-repository-url>
@@ -47,32 +52,34 @@ For more project docs, see [docs/README.md](docs/README.md).
 
 ## Quick start
 
-After building from source, start the daemon in one terminal:
+The examples below use `adact.exe` from an extracted release ZIP. If you are running from a source checkout instead, replace `adact` with `dotnet run --project src/Adact.Cli --`.
+
+Start the daemon in one terminal:
 
 ```powershell
 # Named Pipe mode
-dotnet run --project src/Adact.Cli -- serve pipe
+.\adact.exe serve pipe
 
 # or HTTP mode
-dotnet run --project src/Adact.Cli -- serve http --port 41300
+.\adact.exe serve http --port 41300
 ```
 
 Then use the CLI from another terminal:
 
 ```powershell
 # 1. List top-level windows
-dotnet run --project src/Adact.Cli -- list-apps
+.\adact.exe list-apps
 
 # 2. Attach to a window from the list (example: w1)
-dotnet run --project src/Adact.Cli -- attach w1
+.\adact.exe attach w1
 
 # 3. Capture a UI snapshot for inspection
-dotnet run --project src/Adact.Cli -- snapshot
+.\adact.exe snapshot
 
 # 4. Perform an action on an element ref from the snapshot
-dotnet run --project src/Adact.Cli -- click s1e12
-dotnet run --project src/Adact.Cli -- fill s1e20 "hello from adact"
-dotnet run --project src/Adact.Cli -- press "Ctrl+S"
+.\adact.exe click s1e12
+.\adact.exe fill s1e20 "hello from adact"
+.\adact.exe press "Ctrl+S"
 ```
 
 If you use HTTP mode, add `--server http://127.0.0.1:41300/mcp` to client commands.
@@ -80,7 +87,7 @@ If you use HTTP mode, add `--server http://127.0.0.1:41300/mcp` to client comman
 To help AI coding clients discover the ADACT workflow, install the bundled skill files:
 
 ```powershell
-dotnet run --project src/Adact.Cli -- install --skills claude
+.\adact.exe install --skills claude
 # or: copilot / codex
 ```
 

@@ -1,0 +1,116 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CONFIGURATION: Release
+  RUNTIME_IDENTIFIER: win-x64
+
+jobs:
+  package:
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.vars.outputs.version }}
+      artifact_name: ${{ steps.vars.outputs.artifact_name }}
+      framework_zip: ${{ steps.vars.outputs.framework_zip }}
+      self_contained_zip: ${{ steps.vars.outputs.self_contained_zip }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Compute package names
+        id: vars
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "push" -and "${{ github.ref }}" -like "refs/tags/v*") {
+            $version = "${{ github.ref_name }}"
+          }
+          else {
+            $version = "manual-${{ github.run_number }}-$($env:GITHUB_SHA.Substring(0, 7))"
+          }
+
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "artifact_name=adact-$version-win-x64-packages" >> $env:GITHUB_OUTPUT
+          "framework_zip=adact-$version-win-x64-framework-dependent.zip" >> $env:GITHUB_OUTPUT
+          "self_contained_zip=adact-$version-win-x64-self-contained.zip" >> $env:GITHUB_OUTPUT
+
+      - name: Build solution
+        run: dotnet build adact.sln --configuration ${{ env.CONFIGURATION }}
+
+      - name: Run unit and integration tests
+        run: dotnet test --configuration ${{ env.CONFIGURATION }} --filter "Layer=Unit|Layer=Integration"
+
+      - name: Publish framework-dependent package
+        run: >-
+          dotnet publish src/Adact.Cli/Adact.Cli.csproj
+          --configuration ${{ env.CONFIGURATION }}
+          --runtime ${{ env.RUNTIME_IDENTIFIER }}
+          --self-contained false
+          --output artifacts/publish/framework-dependent
+
+      - name: Publish self-contained package
+        run: >-
+          dotnet publish src/Adact.Cli/Adact.Cli.csproj
+          --configuration ${{ env.CONFIGURATION }}
+          --runtime ${{ env.RUNTIME_IDENTIFIER }}
+          --self-contained true
+          --output artifacts/publish/self-contained
+
+      - name: Create ZIP packages
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts/packages | Out-Null
+
+          $frameworkZip = Join-Path (Resolve-Path artifacts/packages) "${{ steps.vars.outputs.framework_zip }}"
+          $selfContainedZip = Join-Path (Resolve-Path artifacts/packages) "${{ steps.vars.outputs.self_contained_zip }}"
+
+          if (Test-Path $frameworkZip) { Remove-Item $frameworkZip -Force }
+          if (Test-Path $selfContainedZip) { Remove-Item $selfContainedZip -Force }
+
+          Compress-Archive -Path artifacts/publish/framework-dependent/* -DestinationPath $frameworkZip
+          Compress-Archive -Path artifacts/publish/self-contained/* -DestinationPath $selfContainedZip
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.vars.outputs.artifact_name }}
+          path: |
+            artifacts/packages/${{ steps.vars.outputs.framework_zip }}
+            artifacts/packages/${{ steps.vars.outputs.self_contained_zip }}
+          if-no-files-found: error
+
+  create-release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: package
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.package.outputs.artifact_name }}
+          path: artifacts/packages
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/packages/${{ needs.package.outputs.framework_zip }}
+            artifacts/packages/${{ needs.package.outputs.self_contained_zip }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
