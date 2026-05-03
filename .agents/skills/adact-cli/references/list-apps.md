@@ -11,8 +11,8 @@ Use it before `attach` to discover the target window's `processName`,
 adact list-apps [--server <url>]
 ```
 
-No required arguments. `--server` selects the ADACT daemon endpoint; omit it
-to use `./.adact/config.json` or the default `http://127.0.0.1:41300/mcp`.
+No required arguments. `--server` selects the HTTP daemon endpoint; omit it
+to use Named Pipe (default).
 
 ## Output
 
@@ -47,7 +47,7 @@ adact attach w1
 ## Error recovery
 
 - `CONNECTION_FAILED` — the ADACT daemon is not running. Start it with
-  `adact serve` (or pass `--server <url>` to point at an existing one).
+  `adact serve pipe` (or pass `--server <url>` to use HTTP mode).
 - An empty result (only the header) means UIA returned no top-level windows,
   which is rare on a logged-in desktop. Confirm the target window is actually
   visible and not minimized to the system tray.

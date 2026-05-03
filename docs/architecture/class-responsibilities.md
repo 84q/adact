@@ -7,7 +7,7 @@ flowchart TB
 	subgraph cliLayer[CLI entry and commands]
 		Program[Program]
 		Commands[*Command]
-		LocalCommand[LocalCommand]
+
 		Helpers[CommandHelpers]
 		Validator[RefValidator]
 	end
@@ -22,7 +22,6 @@ flowchart TB
 
 	subgraph serverHostLayer[Server host layer]
 		HttpHost[HttpHost /mcp]
-		StdioServer[McpStdioServer]
 		DaemonControl[IDaemonControl]
 	end
 
@@ -44,13 +43,13 @@ flowchart TB
 	Program --> Commands
 	Commands --> Validator
 	Commands --> Helpers
-	Commands --> LocalCommand
+
 	Helpers --> Client
 	Helpers --> Parser --> Filter --> Formatter --> Writer
 	Client --> HttpHost --> Tools
-	LocalCommand --> StdioServer --> Tools
+
 	HttpHost --> DaemonControl
-	StdioServer --> DaemonControl
+
 	Tools --> Sessions
 	Tools --> Windows
 	Tools --> DaemonControl
@@ -100,7 +99,6 @@ flowchart TB
 | `CloseAllCommand` | `--server` | MCP `windows_close_all`、`FormatResults()` | session ごとの TSV 風結果。失敗があれば exit 1 |
 | `DaemonStopCommand` | `--server` | `ConnectionResolver`、localhost guard、MCP `daemon_stop` | `stopped`。応答前切断も停止済みとして成功扱い |
 | `ServeCommand` | `--port` | `HttpHost.RunAsync()` | HTTP daemon の process exit code |
-| `LocalCommand` | `--verbose` | `LoggerFactoryHelper`、`McpStdioServer.RunAsync()` | stdio MCP server の process exit code |
 | `InstallCommand` | `--skills`、`--global`、client 別 install path matrix | output 配下の `Skills/adact-cli` 探索、directory copy | install 先 path と exit code |
 | `CommandHelpers` | 共通 option と共通実行関数 | `ConnectionResolver`、`AdactMcpClient`、`McpResponse`、snapshot 変換層 | コマンド別 exit code |
 | `RefValidator` | `w<n>` / `s<n>` / `s<n>e<n>` の regex | CLI 入力検証、element ref から sessionId 抽出 | bool または `sessionId` |
@@ -132,10 +130,8 @@ snapshot は daemon から raw JSON として返り、CLI 側で人間と AI が
 | --- | --- | --- | --- |
 | `HttpHost` | `/mcp` path、対話 session guard、ASP.NET Core / MCP SDK の DI 構成 | `InteractiveSessionGuard.Probe()`、`UiaEngine` / stores / `WindowsTools` の登録、Kestrel 起動 | daemon exit code |
 | `HttpDaemonControl` | `IHostApplicationLifetime` | `StopApplication()` | `daemon_stop` 用の停止完了 task |
-| `McpStdioServer` | stdio transport の DI 構成、対話 session guard | `InteractiveSessionGuard.Probe()`、`UiaEngine` / stores / `WindowsTools` の登録、host 起動 | stdio server exit code |
-| `StdioDaemonControl` | `IsSupported=false` | 呼び出し時に例外 | stdio では `daemon_stop` 非対応であること |
 
-HTTP と stdio は transport が違うだけで、どちらも同じ `WindowsTools`、`SessionStore`、`WindowRefStore`、`UiaEngine` を DI に登録します。CLI 主経路で使うのは HTTP daemon です。
+HTTP daemon は `WindowsTools`、`SessionStore`、`WindowRefStore`、`UiaEngine` を DI に登録します。
 
 ## MCP common layer
 
@@ -146,7 +142,7 @@ HTTP と stdio は transport が違うだけで、どちらも同じ `WindowsToo
 | `WindowRefStore` | `WindowKey` -> `WindowRefEntry`、次の `w<n>` 番号 | list-apps との同期、retire、session 関連付け | `windowRef` entry |
 | `WindowKey` | HWND、processId、processStartTime | `WindowInfo` から process start time 取得 | top-level window の識別キー |
 | `ToolErrors` | MCP error code 定数 | Engine 業務例外の pattern matching | `isError:true` の `CallToolResult` |
-| `IDaemonControl` | daemon stop capability | HTTP / stdio 実装に委譲 | stop task、または非対応状態 |
+| `IDaemonControl` | daemon stop capability | HTTP 実装に委譲 | stop task |
 
 `WindowsTools` は MCP tool の境界です。ここで `SessionStore.AcquireAsync()` を取り、tool 呼び出し単位で UIA 操作を直列化します。Engine からの業務例外は `ToolErrors` で MCP error に変換し、想定外の例外は SDK 側の internal error に流します。
 
@@ -186,11 +182,10 @@ Engine は UIA 操作の不安定さを吸収する層です。`UiaEngine` と `
 | `Adact.Cli` | `Adact.Cli.Server` | `adact serve` から HTTP host を起動 | なし |
 | `Adact.Cli` | `Adact.Engine` | 現行 csproj 上の参照。通常 CLI client 操作の主経路では直接呼ばない | なし |
 | `Adact.Cli` | `Adact.Mcp.Common` | 現行 csproj 上の参照。通常操作の主経路は HTTP MCP 経由 | なし |
-| `Adact.Cli` | `Adact.Mcp.Stdio` | `adact local` から stdio server を起動 | なし |
+
 | `Adact.Cli.Server` | `Adact.Mcp.Common` | HTTP transport に `WindowsTools` を登録 | なし |
 | `Adact.Cli.Server` | `Adact.Engine` | `UiaEngine` を DI singleton として提供 | なし |
-| `Adact.Mcp.Stdio` | `Adact.Mcp.Common` | stdio transport に `WindowsTools` を登録 | なし |
-| `Adact.Mcp.Stdio` | `Adact.Engine` | `UiaEngine` を DI singleton として提供 | なし |
+
 | `Adact.Mcp.Common` | `Adact.Engine` | window/session 操作と Engine 例外変換 | なし |
 
 ### Runtime call flow / design dependency

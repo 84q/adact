@@ -320,15 +320,6 @@ flowchart TD
 6. MCP SDK に HTTP Streamable transport と `WindowsTools` を登録し、`/mcp` に map します。
 7. daemon process は CLI client からの MCP tool 呼び出しを受け、session/ref 状態を process memory に保持します。
 
-## `adact local`
-
-1. `LocalCommand` は `--verbose` を読み、stderr 用 logger を作ります。
-2. `McpStdioServer.RunAsync()` は listener 起動前に `InteractiveSessionGuard.Probe()` を実行します。
-3. DI に `UiaEngine`、`SessionStore`、`WindowRefStore`、`IDaemonControl=StdioDaemonControl` を singleton 登録します。
-4. MCP SDK に stdio transport と `WindowsTools` を登録します。
-5. stdin/stdout は MCP JSON-RPC 専用です。ログや起動時エラーは stderr に出ます。
-6. `daemon_stop` は `StdioDaemonControl.IsSupported=false` のため `LOCAL_ONLY` error になります。
-
 ## 関連文書
 
 | 文書 | 内容 |

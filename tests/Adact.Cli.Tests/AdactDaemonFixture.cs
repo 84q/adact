@@ -10,7 +10,7 @@ namespace Adact.Cli.Tests;
 /// <summary>
 /// <c>adact.exe serve</c> をサブプロセスとして一度だけ起動し、test collection 全体で共有する fixture。
 /// ephemeral port (TcpListener.Start(0)) を OS から確保し、HEAD リクエストで起動完了をポーリングする。
-/// Dispose 時はまず <c>adact daemon-stop</c> で graceful 停止を試み、失敗時は <see cref="Process.Kill()"/> へフォールバック。
+/// Dispose 時は <see cref="Process.Kill()"/> でプロセスを終了する。
 /// </summary>
 /// <remarks>
 /// 本 fixture の前提: <c>xunit.runner.json</c> で <c>parallelizeAssembly: false</c> が設定されていること。
@@ -60,7 +60,7 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
         var psi = new ProcessStartInfo
         {
             FileName = CliProcess.ExePath,
-            Arguments = $"serve --port {Port}",
+            Arguments = $"serve http --port {Port}",
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -96,7 +96,9 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
     }
 
     /// <summary>
-    /// daemon-stop で graceful 停止を試み、失敗・タイムアウト時は Kill にフォールバックし、診断ログを stderr へ出力する。
+    /// サブプロセスを終了し、診断ログを stderr へ出力する。
+    /// HTTP モードの daemon は --server 指定で daemon-stop すると LOCAL_ONLY エラーになるため、
+    /// 直接 Kill を使用する。
     /// </summary>
     /// <returns>解放完了タスク。</returns>
     public async Task DisposeAsync()
@@ -104,60 +106,22 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
         if (_usesExternalServer) return;
         if (_serveProcess is null) return;
 
-        // graceful: daemon-stop CLI 経由で停止依頼。失敗・タイムアウトしたら Kill。
-        CliResult? stopResult = null;
-        Exception? stopEx = null;
         try
         {
-            var stopTask = Task.Run(() =>
+            if (!_serveProcess.HasExited)
             {
                 try
                 {
-                    return CliProcess.RunWithServer("daemon-stop", BaseUrl, timeout: StopTimeout);
+                    _serveProcess.Kill(entireProcessTree: true);
+                    _diagnostics.AppendLine("Kill() called.");
                 }
-                catch (Exception ex)
-                {
-                    stopEx = ex;
-                    return null;
-                }
-            });
-            if (stopTask.Wait(StopTimeout))
-            {
-                stopResult = stopTask.Result;
-            }
-            else
-            {
-                _diagnostics.AppendLine("daemon-stop wait exceeded StopTimeout.");
-            }
-        }
-        catch (Exception ex)
-        {
-            stopEx = ex;
-        }
-
-        if (stopResult is { } r)
-        {
-            _diagnostics.AppendLine($"daemon-stop exit={r.ExitCode}");
-            if (!string.IsNullOrEmpty(r.Stdout)) _diagnostics.AppendLine($"daemon-stop stdout: {r.Stdout.Trim()}");
-            if (!string.IsNullOrEmpty(r.Stderr)) _diagnostics.AppendLine($"daemon-stop stderr: {r.Stderr.Trim()}");
-        }
-        else if (stopEx is not null)
-        {
-            _diagnostics.AppendLine($"daemon-stop threw: {stopEx.GetType().Name}: {stopEx.Message}");
-        }
-
-        try
-        {
-            if (!_serveProcess.WaitForExit(2000))
-            {
-                _diagnostics.AppendLine("serve did not exit within 2s after daemon-stop; falling back to Kill.");
-                try { _serveProcess.Kill(entireProcessTree: true); }
                 catch (Exception ex)
                 {
                     _diagnostics.AppendLine($"Kill threw: {ex.GetType().Name}: {ex.Message}");
                 }
-                try { _serveProcess.WaitForExit(3000); } catch { }
             }
+
+            _serveProcess.WaitForExit(5000);
 
             if (_serveProcess.HasExited)
             {
@@ -165,7 +129,7 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
             }
             else
             {
-                _diagnostics.AppendLine("serve still running after Kill fallback.");
+                _diagnostics.AppendLine("serve still running after Kill.");
             }
         }
         catch (Exception ex)

@@ -20,8 +20,7 @@ adact launch <executable> [--cwd <dir>] [--env KEY=VALUE]... [-- <arg>...]
   Not allowed when the target is UWP.
 - `-- <arg>...` — everything after `--` is passed as raw arguments to the
   target executable; ADACT does not interpret it.
-- `--server <url>` — daemon endpoint (otherwise resolved from
-  `./.adact/config.json` or `http://127.0.0.1:41300/mcp`).
+- `--server <url>` — HTTP daemon endpoint; omit to use Named Pipe (default).
 
 ## Output
 
@@ -77,4 +76,4 @@ adact launch shell:AppsFolder\Microsoft.WindowsCalculator_8wekyb3d8bbwe!App
   with a `shell:AppsFolder\` target, or `--env` was missing the `=` separator.
   Drop the unsupported flags or rewrite the entry as `KEY=VALUE`.
 - `CONNECTION_FAILED` — the ADACT daemon is not running. Start it with
-  `adact serve`.
+  `adact serve pipe` (or `adact serve http` for HTTP mode).

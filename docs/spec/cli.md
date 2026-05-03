@@ -1,13 +1,13 @@
 # CLI 仕様
 
-ADACT の主インターフェースは `adact <subcommand>` CLI です。CLI は短命プロセスとして起動し、既定では `http://127.0.0.1:41300/mcp` の HTTP MCP daemon (`adact serve`) に接続します。
+ADACT の主インターフェースは `adact <subcommand>` CLI です。CLI は短命プロセスとして起動し、既定では Named Pipe で MCP daemon (`adact serve pipe`) に接続します。
 
 ## サブコマンド一覧
 
 | カテゴリ | コマンド | 役割 |
 | --- | --- | --- |
-| Runtime | `serve` | HTTP MCP daemon を起動する |
-| Runtime | `local` | stdio MCP server を起動する |
+| Runtime | `serve http` | HTTP MCP daemon を起動する |
+| Runtime | `serve pipe` | Named Pipe MCP daemon を起動する |
 | Discovery | `list-apps` | top-level window 一覧を TSV で出力する |
 | Session | `attach` | window に attach し、`sessionId` と `windowRef` を得る |
 | Snapshot | `snapshot` | active session または指定 session の snapshot を `.txt` ファイルに保存する |
@@ -39,7 +39,7 @@ ADACT の主インターフェースは `adact <subcommand>` CLI です。CLI �
 | Lifecycle | `close` | attached window を閉じ、session を解放する |
 | Lifecycle | `kill` | attached window の process を強制終了し、session を解放する |
 | Lifecycle | `close-all` | すべての attached window を閉じる |
-| Lifecycle | `daemon-stop` | localhost の HTTP daemon を停止する |
+| Lifecycle | `daemon-stop` | Named Pipe daemon を停止する（HTTP 非対応） |
 | Install | `install --skills` | AI coding client 向け Skill ファイルを展開する |
 
 Phase 8 で追加された Mouse / Keyboard / Toggle / Window カテゴリのうち、状態変化を伴うものは既定で操作後 snapshot を自動取得します。Wait / Inspect カテゴリは取得・同期系のため auto-snapshot は発火しません。詳細は [snapshot.md](snapshot.md) と [#auto-snapshot 対象](#auto-snapshot-対象) を参照してください。
@@ -48,10 +48,10 @@ Phase 8 で追加された Mouse / Keyboard / Toggle / Window カテゴリのう
 
 | コマンド | 主な引数 | stdout | stderr |
 | --- | --- | --- | --- |
-| `adact serve` | `--port <0-65535>` | 通常使わない | daemon ログ、起動時の対話セッション判定 |
-| `adact local` | `--verbose` | MCP JSON-RPC 専用 | ログ、起動時エラー |
+| `adact serve http` | `--port <0-65535>` | 通常使わない | daemon ログ、起動時の対話セッション判定 |
+| `adact serve pipe` | (なし) | 通常使わない | daemon ログ、起動時の対話セッション判定 |
 
-`serve` と `local` は対話 desktop 内で起動する必要があります。非対話 session では `NO_INTERACTIVE_SESSION`、exit code `4` で起動を拒否します。
+`serve http` と `serve pipe` は対話 desktop 内で起動する必要があります。非対話 session では `NO_INTERACTIVE_SESSION`、exit code `4` で起動を拒否します。
 
 ## Client commands
 
@@ -97,10 +97,11 @@ Client commands の接続先は次の優先順位で決まります。
 | 優先度 | 入力 | 例 |
 | ---: | --- | --- |
 | 1 | `--server` | `adact list-apps --server http://127.0.0.1:41300/mcp` |
-| 2 | `.adact/config.json` の `server` | `{ "server": "http://127.0.0.1:41300/mcp" }` |
-| 3 | 既定値 | `http://127.0.0.1:41300/mcp` |
+| 2 | Named Pipe (既定) | ワークスペースパスから自動生成 |
 
-`.adact/config.json` は current directory から親 directory に向かって探索されます。`.adact/` が見つかった時点で探索を止め、`config.json` がなければ既定値へ fallback します。
+`--server` 未指定時は Named Pipe に接続します。Pipe 名はワークスペースパスから自動生成されます（`.adact/` ディレクトリの存在を確認）。
+
+HTTP モードを使用する場合は明示的に `--server` を指定してください。
 
 ## 出力形式概要
 

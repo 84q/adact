@@ -14,18 +14,31 @@ namespace Adact.Cli.Commands;
 /// </summary>
 internal static class CommandHelpers
 {
-    internal static Func<ServerEndpoint, CancellationToken, Task<IAdactMcpClient>> ConnectClientAsync { get; set; }
+    internal static Func<ServerEndpoint, CancellationToken, Task<IAdactMcpClient>> ConnectHttpClientAsync { get; set; }
         = static async (endpoint, ct) => await AdactMcpClient.ConnectAsync(
             endpoint,
             loggerFactory: null,
             ct).ConfigureAwait(false);
+
+    internal static Func<NamedPipeEndPoint, CancellationToken, Task<IAdactMcpClient>> ConnectNamedPipeClientAsync { get; set; }
+        = static async (endpoint, ct) => await NamedPipeMcpClient.ConnectAsync(
+            endpoint,
+            loggerFactory: null,
+            ct).ConfigureAwait(false);
+
+    /// <summary>
+    /// サーバーが既に起動しているか確認する関数。
+    /// テストでモック可能にするため internal static プロパティとして公開する。
+    /// </summary>
+    internal static Func<NamedPipeEndPoint, int, CancellationToken, Task<bool>> IsServerRunningAsync { get; set; }
+        = NamedPipeMcpClient.IsServerRunningAsync;
 
     /// <summary>
     /// 接続解決 → MCP 接続 → コマンド実装の呼び出し、を共通化する。
     /// 解決失敗 → INVALID_ARGUMENT (exit 2)、接続失敗 → CONNECTION_FAILED (exit 3)、
     /// その他 → INTERNAL_ERROR (exit 1)。
     /// </summary>
-    /// <param name="serverArg"><c>--server</c> の値。null なら <c>.adact/config.json</c> / 既定エンドポイントを試行する。</param>
+    /// <param name="serverArg"><c>--server</c> の値。null/空白なら Named Pipe を使用。</param>
     /// <param name="exec">接続済みクライアントを受け取り、MCP を呼び出して exit code を返すコマンド実装。</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
@@ -36,29 +49,154 @@ internal static class CommandHelpers
     {
         ArgumentNullException.ThrowIfNull(exec);
 
-        ServerEndpoint endpoint;
-        try
-        {
-            endpoint = ConnectionResolver.Resolve(serverArg);
-        }
-        catch (InvalidUrlException ex)
-        {
-            return ConnectionErrors.ReportResolutionError(ex);
-        }
-        catch (ConfigParseException ex)
-        {
-            return ConnectionErrors.ReportResolutionError(ex);
-        }
+        // --server 指定時: HTTPモード、未指定時: Named Pipe
+        var httpEndpoint = ConnectionResolver.ResolveHttpEndpoint(serverArg);
 
+        if (httpEndpoint is not null)
+        {
+            // HTTP モード
+            return await RunWithHttpClientAsync(httpEndpoint, exec, ct).ConfigureAwait(false);
+        }
+        else
+        {
+            // Named Pipe モード
+            var pipeEndpoint = ConnectionResolver.ResolveNamedPipeEndpoint();
+            return await RunWithNamedPipeClientAsync(pipeEndpoint, exec, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// HTTP クライアントで接続してコマンドを実行する。
+    /// </summary>
+    private static async Task<int> RunWithHttpClientAsync(
+        ServerEndpoint endpoint,
+        Func<IAdactMcpClient, CancellationToken, Task<int>> exec,
+        CancellationToken ct)
+    {
         try
         {
-            await using var client = await ConnectClientAsync(endpoint, ct).ConfigureAwait(false);
+            await using var client = await ConnectHttpClientAsync(endpoint, ct).ConfigureAwait(false);
             return await exec(client, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             return ConnectionErrors.ReportAndReturnExitCode(ex, endpoint);
         }
+    }
+
+    /// <summary>
+    /// Named Pipe クライアントで接続してコマンドを実行する。
+    /// 接続失敗時は CONNECTION_FAILED エラー。
+    /// </summary>
+    private static async Task<int> RunWithNamedPipeClientAsync(
+        NamedPipeEndPoint endpoint,
+        Func<IAdactMcpClient, CancellationToken, Task<int>> exec,
+        CancellationToken ct)
+    {
+        try
+        {
+            await using var client = await ConnectNamedPipeClientAsync(endpoint, ct).ConfigureAwait(false);
+            return await exec(client, ct).ConfigureAwait(false);
+        }
+        catch (TimeoutException ex)
+        {
+            // Named Pipe 接続タイムアウト時は CONNECTION_FAILED
+            return ReportNamedPipeConnectionFailed(endpoint, ex.Message);
+        }
+        catch (IOException ex)
+        {
+            // Named Pipe 接続失敗時は CONNECTION_FAILED
+            return ReportNamedPipeConnectionFailed(endpoint, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            CliError.Write(
+                ErrorCodes.InternalError,
+                $"Unexpected error while connecting to named pipe '{endpoint.PipeName}': {ex.Message}");
+            return ExitCodes.CommandFailed;
+        }
+    }
+
+    /// <summary>
+    /// Named Pipe 接続失敗を報告する。
+    /// </summary>
+    private static int ReportNamedPipeConnectionFailed(NamedPipeEndPoint endpoint, string message)
+    {
+        CliError.Write(
+            ErrorCodes.ConnectionFailed,
+            $"No ADACT server is running. {message}",
+            "Run 'adact serve pipe' to start the server with named pipe transport (local), or 'adact serve http' for remote access.");
+        return ExitCodes.ConnectionFailed;
+    }
+
+    /// <summary>
+    /// 自動起動を試みる関数。Adact.Cli 側で設定される。
+    /// </summary>
+    internal static Func<CancellationToken, Task<bool>>? TryAutoStartServerAsync { get; set; }
+
+    /// <summary>
+    /// 接続解決 → （未起動時は自動起動）→ MCP 接続 → コマンド実装の呼び出し、を共通化する。
+    /// list-apps と launch 専用。自動起動が有効な場合はサーバー未起動時に自動起動を試みる。
+    /// </summary>
+    /// <param name="serverArg"><c>--server</c> の値。null/空白なら Named Pipe を使用。</param>
+    /// <param name="exec">接続済みクライアントを受け取り、MCP を呼び出して exit code を返すコマンド実装。</param>
+    /// <param name="ct">cancellation token。</param>
+    /// <returns>exit code。</returns>
+    public static async Task<int> RunWithClientAndAutoStartAsync(
+        string? serverArg,
+        Func<IAdactMcpClient, CancellationToken, Task<int>> exec,
+        CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(exec);
+
+        // --server 指定時: HTTPモード（自動起動なし）
+        var httpEndpoint = ConnectionResolver.ResolveHttpEndpoint(serverArg);
+        if (httpEndpoint is not null)
+        {
+            return await RunWithHttpClientAsync(httpEndpoint, exec, ct).ConfigureAwait(false);
+        }
+
+        // Named Pipe モード
+        var pipeEndpoint = ConnectionResolver.ResolveNamedPipeEndpoint();
+
+        // まず、短いタイムアウトでサーバーが起動しているか確認（高速パス）
+        var isRunning = await IsServerRunningAsync(pipeEndpoint, 100, ct).ConfigureAwait(false);
+
+        if (isRunning)
+        {
+            // サーバーが起動している - 通常接続
+            try
+            {
+                await using var client = await ConnectNamedPipeClientAsync(pipeEndpoint, ct).ConfigureAwait(false);
+                return await exec(client, ct).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                return ReportNamedPipeConnectionFailed(pipeEndpoint, ex.Message);
+            }
+        }
+
+        // サーバー未起動 - 自動起動を試みる（遅延なし）
+        if (TryAutoStartServerAsync is not null)
+        {
+            var started = await TryAutoStartServerAsync(ct).ConfigureAwait(false);
+            if (started)
+            {
+                // 自動起動成功 - 再接続
+                try
+                {
+                    await using var client = await ConnectNamedPipeClientAsync(pipeEndpoint, ct).ConfigureAwait(false);
+                    return await exec(client, ct).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    return ReportNamedPipeConnectionFailed(pipeEndpoint, ex.Message);
+                }
+            }
+        }
+
+        // 自動起動失敗または無効
+        return ReportNamedPipeConnectionFailed(pipeEndpoint, "Named pipe connection failed and auto-start was not available or failed.");
     }
 
     /// <summary>

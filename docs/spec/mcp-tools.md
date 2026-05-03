@@ -1,6 +1,6 @@
 # MCP Tools 仕様
 
-ADACT の MCP tools は `src/Adact.Mcp.Common/WindowsTools.cs` および `WindowsTools.{Mouse,Keyboard,Toggle,Window,Inspect,Wait,Launch,Screenshot}.cs` (partial class) に集約され、HTTP daemon (`adact serve`) と stdio local (`adact local`) の両方から使われます。現行の主利用経路は CLI client ですが、MCP client から直接呼ぶこともできます。
+ADACT の MCP tools は `src/Adact.Mcp.Common/WindowsTools.cs` および `WindowsTools.{Mouse,Keyboard,Toggle,Window,Inspect,Wait,Launch,Screenshot}.cs` (partial class) に集約され、HTTP daemon (`adact serve`) から使われます。現行の主利用経路は CLI client ですが、MCP client から直接呼ぶこともできます。
 
 ## Tool 一覧
 
@@ -162,7 +162,6 @@ attach は行いません。起動した window に対して操作するには `
 | --- | --- |
 | 対象 | HTTP daemon mode のみ |
 | 処理 | 全 session を detach してから daemon stop を要求する |
-| stdio local | `LOCAL_ONLY` error を返す |
 | CLI 側制約 | `adact daemon-stop` は localhost target 以外では CLI 段階で `LOCAL_ONLY` になる |
 
 ## エラー応答
@@ -194,7 +193,7 @@ transport/protocol/systemic な例外は SDK により JSON-RPC error として�
 | `KILL_FAILED` | kill が失敗した |
 | `LAUNCH_FAILED` | `windows_launch` が失敗した (実行ファイル不在、Win32Exception、UWP COM 失敗等) |
 | `WAIT_TIMEOUT` | `windows_wait_for` / `windows_wait_for_window` がタイムアウトした |
-| `LOCAL_ONLY` | HTTP daemon 専用操作を stdio mode や remote target で実行した |
+| `LOCAL_ONLY` | HTTP daemon 専用操作を remote target で実行した |
 | `INTERNAL_ERROR` | daemon stop 等の内部失敗 |
 
 ## 参照

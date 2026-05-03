@@ -417,26 +417,29 @@ public class CommandActionSuccessTests
         Command command,
         string[] args)
     {
-        var originalConnect = CommandHelpers.ConnectClientAsync;
+        var originalHttpConnect = CommandHelpers.ConnectHttpClientAsync;
         var origOut = Console.Out;
         var origErr = Console.Error;
         using var outWriter = new StringWriter();
         using var errWriter = new StringWriter();
         try
         {
-            CommandHelpers.ConnectClientAsync = (_, _) => Task.FromResult<IAdactMcpClient>(client);
+            CommandHelpers.ConnectHttpClientAsync = (_, _) => Task.FromResult<IAdactMcpClient>(client);
             Console.SetOut(outWriter);
             Console.SetError(errWriter);
 
             var root = new RootCommand("test");
             root.Options.Add(CommandHelpers.ServerOption);
             root.Subcommands.Add(command);
-            var exit = await root.Parse(args).InvokeAsync().ConfigureAwait(false);
+            // HTTPモードを強制するために --server 引数を追加
+            var argsWithServer = new List<string> { "--server", "http://localhost:41300/mcp" };
+            argsWithServer.AddRange(args);
+            var exit = await root.Parse(argsWithServer.ToArray()).InvokeAsync().ConfigureAwait(false);
             return (outWriter.ToString(), errWriter.ToString(), exit);
         }
         finally
         {
-            CommandHelpers.ConnectClientAsync = originalConnect;
+            CommandHelpers.ConnectHttpClientAsync = originalHttpConnect;
             Console.SetOut(origOut);
             Console.SetError(origErr);
         }

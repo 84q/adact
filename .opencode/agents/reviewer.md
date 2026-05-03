@@ -1,7 +1,6 @@
 ---
 description: "Orchestrator から委任された変更差分やファイルを、編集せずに調査・テスト実行し、バグ・リグレッション・テスト不足・docs 不整合などを重要度順に報告する"
 mode: subagent
-model: "opencode-go/qwen3.6-plus"
 temperature: 0.1
 tools:
   write: false

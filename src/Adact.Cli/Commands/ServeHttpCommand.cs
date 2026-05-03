@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.Net;
 
 using Adact.Cli.Output;
 using Adact.Cli.Server;
@@ -6,9 +7,9 @@ using Adact.Cli.Server;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>serve</c> サブコマンド。HTTP transport で MCP daemon を 127.0.0.1:&lt;port&gt; (既定 41300) 上で起動する。
+/// <c>serve http</c> サブコマンド。HTTP transport で MCP daemon を起動する。
 /// </summary>
-internal static class ServeCommand
+internal static class ServeHttpCommand
 {
     /// <summary>--port 未指定時の既定ポート。</summary>
     private const int DefaultPort = 41300;
@@ -17,7 +18,7 @@ internal static class ServeCommand
     private const string DefaultHost = "127.0.0.1";
 
     /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>serve サブコマンド。</returns>
+    /// <returns>serve http サブコマンド。</returns>
     public static Command Build()
     {
         var port = new Option<int>("--port")
@@ -47,7 +48,7 @@ internal static class ServeCommand
             DefaultValueFactory = _ => DefaultHost,
         };
 
-        var cmd = new Command("serve", "Run as an HTTP MCP server on <host>:<port> (default 127.0.0.1:41300). (--server option is ignored for this command.)");
+        var cmd = new Command("http", "Run as an HTTP MCP server on <host>:<port> (default 127.0.0.1:41300). (--server option is ignored for this command.)");
         cmd.Options.Add(port);
         cmd.Options.Add(host);
 
@@ -56,7 +57,7 @@ internal static class ServeCommand
             var p = parseResult.GetValue(port);
             var h = parseResult.GetValue(host);
 
-            if (!System.Net.IPAddress.TryParse(h, out var ipAddress))
+            if (!IPAddress.TryParse(h, out var ipAddress))
             {
                 CliError.Write(ErrorCodes.InvalidArgument, $"--host '{h}' is not a valid IP address.");
                 return ExitCodes.UserError;

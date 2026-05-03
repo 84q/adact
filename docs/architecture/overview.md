@@ -14,9 +14,8 @@ flowchart LR
 
   actor --> cli --> daemon --> common --> tools --> engine --> app
 
-  local[stdio local]
-  cli -. adact local .-> local
-  local -. same tools .-> common
+
+
 ```
 
 ## 実行経路
@@ -46,11 +45,11 @@ AI / Human
 | --- | --- |
 | CLI client | `AdactMcpClient` で HTTP daemon に接続し、MCP tool の結果を CLI 出力に変換する |
 | HTTP daemon | `HttpHost` が ASP.NET Core + MCP SDK で `/mcp` を公開する |
-| stdio local | `McpStdioServer` が同じ `WindowsTools` を stdio MCP として公開する互換経路 |
-| Engine | `UiaEngine` と `WindowSession` が UIA 操作の実体を担う |
-| MCP Common | HTTP daemon と stdio local の共有 tool 実装を提供する |
 
-`adact serve` と `adact local` はどちらも同じ Engine と `WindowsTools` を使います。違いは transport とプロセスの使われ方です。CLI client が通常接続するのは HTTP daemon です。
+| Engine | `UiaEngine` と `WindowSession` が UIA 操作の実体を担う |
+| MCP Common | HTTP daemon の tool 実装を提供する |
+
+`adact serve` は Engine と `WindowsTools` を使います。CLI client が接続するのは HTTP daemon です。
 
 ## 主インターフェース
 
@@ -63,7 +62,7 @@ ADACT の現在の主インターフェースは `adact <subcommand>` CLI です
 | UI tree の取得 | `adact snapshot` |
 | 要素操作 | `adact click <ref>` / `adact fill <ref> <text>` |
 | lifecycle | `adact detach` / `adact close` / `adact kill` / `adact close-all` / `adact daemon-stop` |
-| MCP 互換 | `adact local`、または `adact serve` の `/mcp` |
+| MCP 互換 | `adact serve` の `/mcp` |
 
 古い検討文書では generation 付き ref (`s<sid>g<gen>e<eid>`) や MCP 直接利用が強く書かれている箇所があります。現行実装では generation は廃止済みで、CLI 主導の運用を前提にします。
 

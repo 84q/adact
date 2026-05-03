@@ -73,7 +73,8 @@ internal static class LaunchCommand
             if (!string.IsNullOrEmpty(cwdArg)) arguments["cwd"] = cwdArg;
             if (envDict.Count > 0) arguments["env"] = envDict;
 
-            return CommandHelpers.RunWithClientAsync(
+            // launch は自動起動対象
+            return CommandHelpers.RunWithClientAndAutoStartAsync(
                 serverArg,
                 (client, token) => ExecuteAsync(client, arguments, token),
                 ct);

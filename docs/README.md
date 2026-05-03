@@ -2,7 +2,7 @@
 
 ADACT (AI-driven Desktop Application CLI Tools) は、AI エージェントと人間が同じ `adact <subcommand>` CLI を使って Windows デスクトップアプリを読み取り、操作し、将来的にテストへ残すためのツール群です。Playwright MCP / Playwright Agent CLI の「snapshot と ref による構造的操作」を Windows UI Automation (UIA) に持ち込み、ブラウザではなく WPF / WinForms / UWP / Win32 などのデスクトップアプリを対象にします。
 
-現在の主インターフェースは MCP 直接利用ではなく `adact <subcommand>` CLI です。CLI は `adact serve` で起動した HTTP MCP daemon に接続し、daemon が UIA 経由で対象 Windows アプリを操作します。`adact local` は stdio MCP 互換用に残っています。
+現在の主インターフェースは MCP 直接利用ではなく `adact <subcommand>` CLI です。CLI は `adact serve` で起動した HTTP MCP daemon に接続し、daemon が UIA 経由で対象 Windows アプリを操作します。
 
 設計説明は図から読み始められるようにしています。全体構成は [architecture/overview.md](architecture/overview.md)、クラス間の関係は [architecture/class-responsibilities.md](architecture/class-responsibilities.md)、操作時の時系列は [architecture/command-flows.md](architecture/command-flows.md)、snapshot/ref の流れは [architecture/snapshot-pipeline.md](architecture/snapshot-pipeline.md) を参照してください。
 
@@ -11,7 +11,7 @@ ADACT (AI-driven Desktop Application CLI Tools) は、AI エージェントと�
 | カテゴリ | 文書 | 内容 |
 | --- | --- | --- |
 | アーキテクチャ | [architecture/overview.md](architecture/overview.md) | 全体像、コンポーネント間の関係、主インターフェース |
-| アーキテクチャ | [architecture/runtime-modes.md](architecture/runtime-modes.md) | `adact <sub>` / `adact serve` / `adact local` の違い |
+| アーキテクチャ | [architecture/runtime-modes.md](architecture/runtime-modes.md) | `adact <sub>` / `adact serve` の違い |
 | アーキテクチャ | [architecture/components.md](architecture/components.md) | 各プロジェクトと主要クラスの責務 |
 | アーキテクチャ | [architecture/class-responsibilities.md](architecture/class-responsibilities.md) | 層別の主要クラス責務、保持する状態、呼び出し先、依存方向 |
 | アーキテクチャ | [architecture/command-flows.md](architecture/command-flows.md) | CLI subcommand から MCP tool、Store、Engine、CLI 出力までの処理フロー |

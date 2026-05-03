@@ -20,8 +20,6 @@
 | 15 | OCR・Vision | UIA が弱いアプリに対して画像認識・OCR を併用する。 | 未着手 | 初期スコープ外だった領域。 |
 | 16 | state 永続化 | daemon 再起動後も session / window / 設定を復元できるようにする。 | 未着手 | 現状は daemon メモリ内状態のみ。 |
 | 17 | README.md 作成 | OSS 公開を見越したトップレベルの README.md を作成する。 | 未着手 | 内容（機能紹介、セットアップ、クイックスタート、ロードマップ等）は要検討。 |
-| 18 | デフォルト接続先を local に | MCP 接続時のデフォルト接続先を `local`（stdio）に変更する。 | 未着手 | 現状のデフォルトが TCP 等の場合の変更。 |
-| 19 | local 接続時の daemon 自動起動 | local 接続時に ADACT daemon プロセスが存在しなければ自動的に立ち上げる。 | 未着手 | ID 18 とセットで検討。 |
 | 21 | SampleApp 更新：close 拒否パターン | SampleApp に `Closing` イベントで `e.Cancel = true` するボタンを追加し、`close` コマンドが効かないパターンを検証できるようにする。 | 未着手 | discussion/032 参照。WPF/WinForms で `close` が効かないケースを再現。 |
 | 22 | SampleApp 更新：MenuItem にサブメニュー | SampleApp の MenuBar（File/Edit/View）に入れ子サブメニューを追加し、多階層メニューの操作検証を可能にする。 | 未着手 | discussion/032 参照。現在は1階層のみ（Open/Save/Exit）。マウスオーバーで右側に展開される多階層メニューの UIA 構造検証にも必要。 |
 | 23 | FileDialog 操作の解決策検討 | `OpenFileDialog` / `SaveFileDialog` を ADACT で操作する方法（ファイル選択・キャンセル）を検討・実装する。 | 未着手 | discussion/032 参照。ダイアログの button を `click` で押せるが、ファイルパスの入力方法が未定。 |
@@ -50,6 +48,8 @@
 | 3 | `REF_NOT_FOUND` 自動再 snapshot | 古い/消滅した ref に遭遇した際、AI 側判断・CLI ヒント・自動再 snapshot のどこまで担うかを実装する。 | 完了 | Engine は `REF_NOT_FOUND` を返すのみ。AI/ユーザ が snapshot 再取得を判断する責務分担で確定。CLI 側の自動リトライは不要と判断。 |
 | 6 | `CalculatorMutex` 共通化 | 3 テストプロジェクトに重複している CalculatorMutex を共有テストヘルパーに集約する。 | 完了 | `Adact.Tests.Common` を新設し、`CalculatorMutex` / `InteractiveTestGuard` / `InteractiveFactAttribute` / `ExternalServerHelper` を一括集約。`Adact.Engine.Tests` の calc.exe テストにも `CalculatorMutex` を適用。 |
 | 8 | 検証用サンプルアプリ | ADACT の主要操作を検証できる専用アプリを作成する。 | 完了 | 当面は既存アプリ（電卓・メモ帳・Chrome）で十分。modal / dynamic UI の再現性が必要になった場合に作成。技術選定（WinForms/WPF/Avalonia 等）も未決定。 |
+| 18 | デフォルト接続先を Named Pipe に | MCP 接続時のデフォルト接続先を Named Pipe に変更する。`adact local` (stdio) は廃止。 | 完了 | `adact serve pipe` を新設し、デフォルト接続先とした。HTTP (`adact serve http`) はリモート用に残す。discussion/033 参照。 |
+| 19 | Named Pipe 接続時の daemon 自動起動 | Named Pipe 接続時に ADACT daemon プロセスが存在しなければ自動的に立ち上げる。 | 完了 | `list-apps` / `launch` のみ自動起動対象。それ以外は `CONNECTION_FAILED` エラー。discussion/033 参照。 |
 | 20 | daemon-stop の local 専用化 | `daemon-stop` コマンドを local（stdio）接続時のみ有効にし、127.0.0.1 等のリモート接続時は実行不可にする。 | 完了 | ID 18・19 とセットで検討。セキュリティ観点からリモート側の誤停止を防ぐ。 |
 | 5 | `KillAsync` PID 再利用対策 | `Process.StartTime` 等を使い、意図しない別プロセス kill を防ぐ。 | 却下 | 調査の結果、通常シナリオ（数秒〜数分後の kill）では PID 再利用の実害は極めて少ない。StartTime 比較はベストエフォートに留まり絶対安全ではなく、真に堅牢にするにはプロセスハンドル保持が必要でコストが大きいため、優先度を下げて見送る。 |
 | 11 | 失敗時スクリーンショット自動添付 | 操作失敗時に自動的にスクリーンショットを撮影し、エラー出力に添付する。 | 却下 | `REF_NOT_FOUND` 自動再 snapshot と同様の理由。失敗時のスクリーンショット撮影は AI/ユーザ が手動で判断・実行する責務分担とする。 |

@@ -28,7 +28,7 @@ hint <optional recovery hint>
 | `message` | 必須 | 人間向け説明 |
 | `hint` | 任意 | 復旧手順 |
 
-`adact serve` / `adact local` の起動時 `NO_INTERACTIVE_SESSION` もこの形式です。`serve` と `local` は成功時にも stderr に `info interactive session ok ...` を出します。
+`adact serve` の起動時 `NO_INTERACTIVE_SESSION` もこの形式です。`serve` は成功時にも stderr に `info interactive session ok ...` を出します。
 
 ## CLI stdout
 
@@ -133,9 +133,9 @@ CLI client は `isError: true` を受けると stderr の `error` / `message` / 
 | `LAUNCH_FAILED` | Engine→MCP→CLI | `launch` が失敗 (実行ファイル不在、Win32Exception、UWP COM 失敗等) | 1 |
 | `WAIT_TIMEOUT` | Engine→MCP→CLI | `wait-for` / `wait-for-window` が timeout | 1 |
 | `CONNECTION_FAILED` | CLI | HTTP daemon に接続できない | 3 |
-| `LOCAL_ONLY` | CLI / MCP | remote target で `daemon-stop`、または stdio mode で `daemon_stop` | 2 または 1 |
+| `LOCAL_ONLY` | CLI / MCP | remote target で `daemon-stop` | 2 または 1 |
 | `OPERATION_BLOCKED` | Engine→MCP→CLI | デスクトップがロック / UAC / ウィンドウ非アクティブなどで操作がブロックされた | 1 |
-| `NO_INTERACTIVE_SESSION` | daemon 起動 | `serve` / `local` が非対話 desktop で起動された | 4 |
+| `NO_INTERACTIVE_SESSION` | daemon 起動 | `serve` が非対話 desktop で起動された | 4 |
 | `INTERNAL_ERROR` | CLI / MCP | 予期しない内部失敗 | 1 |
 
 ## よくある対応
@@ -143,7 +143,7 @@ CLI client は `isError: true` を受けると stderr の `error` / `message` / 
 | エラー | 対応 |
 | --- | --- |
 | `CONNECTION_FAILED` | `adact serve` が起動しているか、`--server` / `.adact/config.json` が `/mcp` を指しているか確認する |
-| `NO_INTERACTIVE_SESSION` | 対象 GUI が動く対話ログオン session 側で `adact serve` または `adact local` を起動する |
+| `NO_INTERACTIVE_SESSION` | 対象 GUI が動く対話ログオン session 側で `adact serve` を起動する |
 | `REF_NOT_FOUND` | `adact snapshot` を再取得し、新しい `[ref=...]` を使う |
 | `INVALID_WINDOW_REF` | `adact list-apps` で `w<n>` を取り直して `adact attach <w<n>>` を使う |
 | `WINDOW_NOT_FOUND` | `windowRef` に対応する window が表示されているか確認し、必要なら `list-apps` を再実行する |

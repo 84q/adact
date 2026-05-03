@@ -314,34 +314,31 @@ public class CommandHelpersTests
         Assert.True(CommandHelpers.ServerOption.Recursive);
     }
 
-    /// <summary>Verifies that invalid server arguments fail before connecting.</summary>
+    /// <summary>Verifies that invalid server arguments fail with InvalidUrlException before connecting.</summary>
     [Fact]
-    public async Task RunWithClientAsync_InvalidServer_ReturnsUserErrorWithoutConnecting()
+    public async Task RunWithClientAsync_InvalidServer_ThrowsInvalidUrlExceptionWithoutConnecting()
     {
         var connected = false;
-        var originalConnect = CommandHelpers.ConnectClientAsync;
+        var originalConnect = CommandHelpers.ConnectHttpClientAsync;
         try
         {
-            CommandHelpers.ConnectClientAsync = (_, _) =>
+            CommandHelpers.ConnectHttpClientAsync = (_, _) =>
             {
                 connected = true;
                 return Task.FromResult<IAdactMcpClient>(new FakeClient());
             };
 
-            var (stdout, stderr, exit) = await CaptureAsync(() =>
+            await Assert.ThrowsAsync<InvalidUrlException>(() =>
                 CommandHelpers.RunWithClientAsync(
                     "ftp://localhost/mcp",
                     (_, _) => Task.FromResult(ExitCodes.Success),
                     CancellationToken.None));
 
-            Assert.Equal(ExitCodes.UserError, exit);
             Assert.False(connected);
-            Assert.Equal(string.Empty, stdout);
-            Assert.Contains("error INVALID_ARGUMENT", stderr);
         }
         finally
         {
-            CommandHelpers.ConnectClientAsync = originalConnect;
+            CommandHelpers.ConnectHttpClientAsync = originalConnect;
         }
     }
 
@@ -349,10 +346,10 @@ public class CommandHelpersTests
     [Fact]
     public async Task RunWithClientAsync_ConnectionFailure_ReturnsConnectionFailed()
     {
-        var originalConnect = CommandHelpers.ConnectClientAsync;
+        var originalConnect = CommandHelpers.ConnectHttpClientAsync;
         try
         {
-            CommandHelpers.ConnectClientAsync = (_, _) => throw new HttpRequestException("daemon unavailable");
+            CommandHelpers.ConnectHttpClientAsync = (_, _) => throw new HttpRequestException("daemon unavailable");
 
             var (stdout, stderr, exit) = await CaptureAsync(() =>
                 CommandHelpers.RunWithClientAsync(
@@ -367,7 +364,7 @@ public class CommandHelpersTests
         }
         finally
         {
-            CommandHelpers.ConnectClientAsync = originalConnect;
+            CommandHelpers.ConnectHttpClientAsync = originalConnect;
         }
     }
 
@@ -375,10 +372,10 @@ public class CommandHelpersTests
     [Fact]
     public async Task RunWithClientAsync_UnexpectedConnectorException_ReturnsCommandFailed()
     {
-        var originalConnect = CommandHelpers.ConnectClientAsync;
+        var originalConnect = CommandHelpers.ConnectHttpClientAsync;
         try
         {
-            CommandHelpers.ConnectClientAsync = (_, _) => throw new InvalidOperationException("boom");
+            CommandHelpers.ConnectHttpClientAsync = (_, _) => throw new InvalidOperationException("boom");
 
             var (stdout, stderr, exit) = await CaptureAsync(() =>
                 CommandHelpers.RunWithClientAsync(
@@ -393,7 +390,7 @@ public class CommandHelpersTests
         }
         finally
         {
-            CommandHelpers.ConnectClientAsync = originalConnect;
+            CommandHelpers.ConnectHttpClientAsync = originalConnect;
         }
     }
 

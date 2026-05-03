@@ -116,7 +116,9 @@ ref.
 
 ## Connecting to the daemon
 
-All subcommands optionally accept `--server <url>`. With no flag they look at
-`./.adact/config.json` and finally fall back to `http://127.0.0.1:41300/mcp`.
+All subcommands optionally accept `--server <url>` for HTTP mode. With no flag
+they connect via Named Pipe, which is resolved automatically from the workspace
+path.
 
-To start a local daemon: `adact serve` (HTTP) or `adact local` (stdio MCP).
+To start a local daemon: `adact serve http` (HTTP) or `adact serve pipe` (Named
+Pipe, default).

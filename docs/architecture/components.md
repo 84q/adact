@@ -1,20 +1,17 @@
 # Components
 
-ADACT は 5 つの production project と 5 つの test project で構成されています。production 側は CLI、HTTP host、MCP 共通層、stdio MCP、UIA Engine に分かれます。
+ADACT は 4 つの production project と 4 つの test project で構成されています。production 側は CLI、HTTP host、MCP 共通層、UIA Engine に分かれます。
 
 ```mermaid
 flowchart LR
 	cli[Adact.Cli]
 	server[Adact.Cli.Server]
 	common[Adact.Mcp.Common]
-	stdio[Adact.Mcp.Stdio]
 	engine[Adact.Engine]
 	app[Windows App]
 
 	cli --> server
-	cli --> stdio
 	server --> common
-	stdio --> common
 	common --> engine
 	engine --> app
 ```
@@ -25,11 +22,11 @@ flowchart LR
 
 | Project | 責務 | 主な型 |
 | --- | --- | --- |
-| `src/Adact.Cli/` | `adact.exe` の entry point。CLI client、`serve` / `local` 起動、Skill install、CLI 出力変換 | `Program`, `*Command`, `AdactMcpClient`, `SnapshotTextFormatter` |
+| `src/Adact.Cli/` | `adact.exe` の entry point。CLI client、`serve` 起動、Skill install、CLI 出力変換 | `Program`, `*Command`, `AdactMcpClient`, `SnapshotTextFormatter` |
 | `src/Adact.Cli.Server/` | HTTP MCP daemon の host | `HttpHost`, `HttpDaemonControl` |
 | `src/Adact.Engine/` | FlaUI.UIA3 による Windows UIA 操作の実体 | `UiaEngine` (partial: `UiaEngine.cs`, `UiaEngine.Launch.cs`, `UiaEngine.WaitForWindow.cs`)、`WindowSession` (partial: `WindowSession.cs`, `WindowSession.{Mouse,Keyboard,Toggle,Window,Inspect,Wait,Screenshot}.cs`)、`SnapshotBuilder`, `RefRegistry`, `InteractiveSessionGuard`、Phase 8 で追加された `MouseTarget`, `WaitForState`, `WaitForElementQuery`, `WaitForResult`, `WindowSearchQuery`, `LaunchRequest`, `LaunchResult`, `InspectResult`, `ScreenshotResult` 等の値型と `Exceptions/{LaunchFailedException,WaitTimeoutException}` |
-| `src/Adact.Mcp.Common/` | HTTP / stdio 共通の MCP tool 実装と session/ref 管理 | `WindowsTools` (partial: `WindowsTools.cs`, `WindowsTools.{Mouse,Keyboard,Toggle,Window,Inspect,Wait,Launch,Screenshot}.cs`)、`SessionStore`, `WindowRefStore`, `ToolErrors` |
-| `src/Adact.Mcp.Stdio/` | stdio MCP server の host | `McpStdioServer`, `StdioDaemonControl` |
+| `src/Adact.Mcp.Common/` | MCP tool 実装と session/ref 管理 | `WindowsTools` (partial: `WindowsTools.cs`, `WindowsTools.{Mouse,Keyboard,Toggle,Window,Inspect,Wait,Launch,Screenshot}.cs`)、`SessionStore`, `WindowRefStore`, `ToolErrors` |
+
 
 ## Test projects
 
@@ -39,7 +36,7 @@ flowchart LR
 | `tests/Adact.Cli.Tests/` | CLI command、snapshot formatter、connection、Skill install、CLI E2E |
 | `tests/Adact.Mcp.Common.Tests/` | MCP tools、lifecycle、WindowRefStore |
 | `tests/Adact.Mcp.Http.Tests/` | HTTP daemon smoke / E2E |
-| `tests/Adact.Mcp.Stdio.Tests/` | stdio MCP E2E |
+
 
 ## 主要クラス
 
@@ -53,7 +50,7 @@ flowchart LR
 | `WindowRefStore` | `Adact.Mcp.Common` | top-level window に `w<n>` を払い出し、window 一覧と attach をつなぐ |
 | `WindowsTools` | `Adact.Mcp.Common` | `windows_list_apps` などの MCP tools を実装し、Engine 例外を MCP tool error に変換する |
 | `HttpHost` | `Adact.Cli.Server` | ASP.NET Core + MCP SDK で `/mcp` HTTP daemon を構築・起動する |
-| `McpStdioServer` | `Adact.Mcp.Stdio` | stdio MCP transport で同じ `WindowsTools` を公開する |
+
 
 ## UIA 操作の直列化
 
@@ -87,9 +84,9 @@ UIA 操作は foreground / focus / window state の影響を受けやすいた�
 | `Adact.Cli` | `Adact.Cli.Server` | `adact serve` 起動 |
 | `Adact.Cli` | `Adact.Engine` | 現行 csproj 上の参照。通常 CLI client 操作の主経路では直接呼ばない |
 | `Adact.Cli` | `Adact.Mcp.Common` | 現行 csproj 上の参照。通常操作の主経路は HTTP MCP 経由 |
-| `Adact.Cli` | `Adact.Mcp.Stdio` | `adact local` 起動 |
+
 | `Adact.Cli.Server` | `Adact.Mcp.Common`, `Adact.Engine` | HTTP daemon の DI 構成 |
-| `Adact.Mcp.Stdio` | `Adact.Mcp.Common`, `Adact.Engine` | stdio server の DI 構成 |
+
 | `Adact.Mcp.Common` | `Adact.Engine` | UIA 操作呼び出しと例外変換 |
 
 ### Runtime call flow / design dependency
@@ -101,7 +98,7 @@ UIA 操作は foreground / focus / window state の影響を受けやすいた�
 | HTTP daemon | `WindowsTools` (`Adact.Mcp.Common`) | MCP tool 実装へ dispatch する |
 | `WindowsTools` | `Adact.Engine` | UIA 操作呼び出しと例外変換 |
 
-通常の CLI client サブコマンドの主経路は `AdactMcpClient` -> HTTP daemon -> `WindowsTools` -> Engine です。`Adact.Cli` は build-time dependency として `Adact.Cli.Server` / `Adact.Engine` / `Adact.Mcp.Common` / `Adact.Mcp.Stdio` へ `ProjectReference` を持ちますが、通常操作では Engine や MCP common を直接呼ぶ経路ではなく HTTP MCP 経由で進みます。
+通常の CLI client サブコマンドの主経路は `AdactMcpClient` -> HTTP daemon -> `WindowsTools` -> Engine です。`Adact.Cli` は build-time dependency として `Adact.Cli.Server` / `Adact.Engine` / `Adact.Mcp.Common` へ `ProjectReference` を持ちますが、通常操作では Engine や MCP common を直接呼ぶ経路ではなく HTTP MCP 経由で進みます。
 
 ## 参照
 

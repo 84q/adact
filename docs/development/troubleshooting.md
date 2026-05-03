@@ -8,7 +8,7 @@ ADACT は Windows UIA と daemon process の状態に依存します。問題が
 | --- | --- |
 | exit code | `4` |
 | stderr | `error NO_INTERACTIVE_SESSION` |
-| 発生箇所 | `adact serve` / `adact local` 起動時 |
+| 発生箇所 | `adact serve` 起動時 |
 | 原因 | SSH、Windows service、SessionId 0 など、対話 desktop ではない場所で daemon を起動した |
 
 復旧:

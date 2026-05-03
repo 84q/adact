@@ -20,7 +20,8 @@ internal static class ListAppsCommand
         cmd.SetAction((parseResult, ct) =>
         {
             var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
-            return CommandHelpers.RunWithClientAsync(serverArg, ExecuteAsync, ct);
+            // list-apps は自動起動対象
+            return CommandHelpers.RunWithClientAndAutoStartAsync(serverArg, ExecuteAsync, ct);
         });
 
         return cmd;

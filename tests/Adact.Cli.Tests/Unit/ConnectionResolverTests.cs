@@ -5,7 +5,7 @@ using Xunit;
 namespace Adact.Cli.Tests.Unit;
 
 /// <summary>
-/// <see cref="ConnectionResolver.Resolve"/> の --server / config.json / デフォルトの優先順位・エラー伝播を検証する Unit テスト。
+/// <see cref="ConnectionResolver.ResolveHttpEndpoint"/> の --server / config.json / デフォルトの優先順位・エラー伝播を検証する Unit テスト。
 /// CLI 接続先解決仕様 (cli.md §--server) の回帰防止。
 /// </summary>
 [Trait("Layer", "Unit")]
@@ -42,8 +42,9 @@ public class ConnectionResolverTests : IDisposable
     {
         WriteConfig("""{ "server": "http://from-config:41300/mcp" }""");
 
-        var ep = ConnectionResolver.Resolve("http://explicit:41300/mcp", _tempRoot);
+        var ep = ConnectionResolver.ResolveHttpEndpoint("http://explicit:41300/mcp", _tempRoot);
 
+        Assert.NotNull(ep);
         Assert.Equal("http://explicit:41300/mcp", ep.Url.ToString().TrimEnd('/'));
     }
 
@@ -53,20 +54,32 @@ public class ConnectionResolverTests : IDisposable
     {
         WriteConfig("""{ "server": "http://from-config:41300/mcp" }""");
 
-        var ep = ConnectionResolver.Resolve(null, _tempRoot);
+        var ep = ConnectionResolver.ResolveHttpEndpoint(null, _tempRoot);
 
+        Assert.NotNull(ep);
         Assert.Equal("http://from-config:41300/mcp", ep.Url.ToString().TrimEnd('/'));
     }
 
-    /// <summary>--server も config も無いとき DefaultUrl (localhost) にフォールバックし、IsLocalhost=true となることを確認する。</summary>
+    /// <summary>--server も config も無いとき HTTP エンドポイントは解決されず null が返される（Named Pipe モード）。</summary>
     [Fact]
-    public void Resolve_NoExplicitNoConfig_UsesDefault()
+    public void Resolve_NoExplicitNoConfig_ReturnsNullForHttpMode()
     {
         // _tempRoot 配下に .adact/ なし。親方向にも (CI / 開発環境共に) 通常存在しない想定。
-        var ep = ConnectionResolver.Resolve(null, _tempRoot);
+        var ep = ConnectionResolver.ResolveHttpEndpoint(null, _tempRoot);
 
-        Assert.Equal(ConnectionResolver.DefaultUrl, ep.Url.ToString().TrimEnd('/'));
-        Assert.True(ep.IsLocalhost);
+        // --server未指定かつconfig.json未設定時は、HTTPではなくNamed Pipeモードを使用するためnullが返される
+        Assert.Null(ep);
+    }
+
+    /// <summary>--server も config も無いとき Named Pipe エンドポイントが取得できることを確認する。</summary>
+    [Fact]
+    public void Resolve_NoExplicitNoConfig_ProvidesNamedPipeEndpoint()
+    {
+        // Named Pipe エンドポイントは常に取得可能
+        var pipeEp = ConnectionResolver.ResolveNamedPipeEndpoint(_tempRoot);
+
+        Assert.NotNull(pipeEp);
+        Assert.False(string.IsNullOrEmpty(pipeEp.PipeName));
     }
 
     /// <summary>--server が空白のみという未指定相当のとき config.json にフォールバックすることを確認する。</summary>
@@ -75,8 +88,9 @@ public class ConnectionResolverTests : IDisposable
     {
         WriteConfig("""{ "server": "http://from-config:41300/mcp" }""");
 
-        var ep = ConnectionResolver.Resolve("   ", _tempRoot);
+        var ep = ConnectionResolver.ResolveHttpEndpoint("   ", _tempRoot);
 
+        Assert.NotNull(ep);
         Assert.Equal("http://from-config:41300/mcp", ep.Url.ToString().TrimEnd('/'));
     }
 
@@ -84,7 +98,7 @@ public class ConnectionResolverTests : IDisposable
     [Fact]
     public void Resolve_InvalidExplicit_Throws()
     {
-        Assert.Throws<InvalidUrlException>(() => ConnectionResolver.Resolve("not-a-url", _tempRoot));
+        Assert.Throws<InvalidUrlException>(() => ConnectionResolver.ResolveHttpEndpoint("not-a-url", _tempRoot));
     }
 
     /// <summary>config.json 側の server が不正 URL のときも InvalidUrlException を伝播することを確認する。</summary>
@@ -93,6 +107,6 @@ public class ConnectionResolverTests : IDisposable
     {
         WriteConfig("""{ "server": "not-a-url" }""");
 
-        Assert.Throws<InvalidUrlException>(() => ConnectionResolver.Resolve(null, _tempRoot));
+        Assert.Throws<InvalidUrlException>(() => ConnectionResolver.ResolveHttpEndpoint(null, _tempRoot));
     }
 }

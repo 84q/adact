@@ -77,9 +77,9 @@ ADACT のテストは以下の 5 レベルに分類する。レベルが上が�
 
 ### L5: MCP / CLI 経由 E2E
 
-- **対象**: MCP クライアントまたは CLI client から ADACT (`adact local` / `adact serve` + HTTP daemon) を叩いて、実アプリを操作するまでを通す
-- **テストプロジェクト**: `tests/Adact.Mcp.Stdio.Tests/`、`tests/Adact.Mcp.Http.Tests/`、`tests/Adact.Cli.Tests/` の transport / client 別 E2E
-- **起動方式**: stdio はビルド済 `adact local` を `Process.Start` で spawn → stdin/stdout で接続する。HTTP / CLI は `adact serve` を対話 Windows session 側で起動し、client が `/mcp` に接続する
+- **対象**: MCP クライアントまたは CLI client から ADACT (`adact serve` + HTTP daemon) を叩いて、実アプリを操作するまでを通す
+- **テストプロジェクト**: `tests/Adact.Mcp.Http.Tests/`、`tests/Adact.Cli.Tests/` の transport / client 別 E2E
+- **起動方式**: HTTP / CLI は `adact serve` を対話 Windows session 側で起動し、client が `/mcp` に接続する
 - **クライアント SDK**: 公式 `ModelContextProtocol` C# SDK のクライアント API (`ModelContextProtocol.Client` 名前空間) を使用。生 JSON-RPC を手で組まない
 - **対象アプリの起動**: L4 と同じく test fixture 側で `Process.Start` を使う。現行実装に `launch` / `windows_launch` はない
 - **代表ケース**:
@@ -97,7 +97,6 @@ ADACT のテストは以下の 5 レベルに分類する。レベルが上が�
 | `tests/Adact.Cli.Tests/` | CLI command、connection、output、snapshot text pipeline、Skill install、CLI E2E | `Unit`, `Integration`, `Smoke`, `E2E` |
 | `tests/Adact.Mcp.Common.Tests/` | `WindowsTools`、`WindowRefStore`、lifecycle tools | `Unit` |
 | `tests/Adact.Mcp.Http.Tests/` | HTTP daemon smoke / Calculator E2E | `Smoke`, `E2E` |
-| `tests/Adact.Mcp.Stdio.Tests/` | stdio MCP E2E | `E2E` |
 
 実装フェーズの履歴ではなく、変更対象がどの Layer / project に属するかで追加・更新するテストを決める。`Unit` / `Integration` は常時実行候補、実アプリを扱う `IntegrationUia` / `Smoke` / `E2E` はローカル開発者マシン中心で扱う。
 
@@ -113,10 +112,9 @@ tests/
 ├── Adact.Cli.Tests/                (L1/L2/L4/L5: command、snapshot text pipeline、CLI E2E)
 ├── Adact.Mcp.Common.Tests/         (L1: tools / store / lifecycle)
 ├── Adact.Mcp.Http.Tests/           (L4/L5: HTTP daemon smoke / E2E)
-└── Adact.Mcp.Stdio.Tests/          (L5: stdio MCP E2E)
 ```
 
-L5 (MCP / CLI 経由) は transport ごとの test project で扱う。stdio は `adact local` を `Process.Start` で spawn し、公式 `ModelContextProtocol.Client` API で JSON-RPC を叩く。HTTP / CLI は `adact serve` で起動した daemon に接続する。詳細は L5 の項参照。
+L5 (MCP / CLI 経由) は transport ごとの test project で扱う。HTTP / CLI は `adact serve` で起動した daemon に接続する。HTTP / CLI は `adact serve` で起動した daemon に接続する。詳細は L5 の項参照。
 
 ## 命名規約
 

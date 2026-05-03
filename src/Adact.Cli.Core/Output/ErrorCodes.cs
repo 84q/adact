@@ -47,4 +47,7 @@ internal static class ErrorCodes
 
     /// <summary>その他の内部エラー。</summary>
     public const string InternalError = "INTERNAL_ERROR";
+
+    /// <summary>デーモンが既に起動している。</summary>
+    public const string AlreadyRunning = "ALREADY_RUNNING";
 }

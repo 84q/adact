@@ -10,7 +10,7 @@ ADACT のテストは xUnit と Layer Trait で分類します。詳細方針の
 | `tests/Adact.Cli.Tests/` | CLI command、connection、output、snapshot text pipeline、Skill install、CLI E2E | `Unit`, `Integration`, `Smoke`, `E2E` |
 | `tests/Adact.Mcp.Common.Tests/` | `WindowsTools`, `WindowRefStore`, lifecycle tools | `Unit` |
 | `tests/Adact.Mcp.Http.Tests/` | HTTP daemon smoke / Calculator E2E | `Smoke`, `E2E` |
-| `tests/Adact.Mcp.Stdio.Tests/` | stdio MCP E2E | `E2E` |
+
 
 ## Layer Trait
 
@@ -28,7 +28,7 @@ Trait は `[Trait("Layer", "Unit")]` のように指定します。実アプリ�
 
 | 項目 | 注意 |
 | --- | --- |
-| 対話 session | `adact serve` / `adact local` / UIA smoke は対象 GUI と同じ対話 Windows session で実行する。非対話 SSH session では GUI session 必須テストは skip される |
+| 対話 session | `adact serve` / UIA smoke は対象 GUI と同じ対話 Windows session で実行する。非対話 SSH session では GUI session 必須テストは skip される |
 | Calculator | 複数 test assembly が Calculator を使うため、named semaphore `Global\AdactCalculatorE2E` で直列化している |
 | Notepad++ | Win32 代表の smoke 対象。インストール有無や環境差に注意する |
 | UIA focus | click/fill は foreground や focus に影響されるため、実行中に人間が同じ desktop を触ると flaky になりうる |
@@ -90,7 +90,7 @@ dotnet test tests/Adact.Mcp.Http.Tests/Adact.Mcp.Http.Tests.csproj --filter "Lay
 未設定の場合は従来どおり、CLI fixture は一時的な local daemon subprocess を起動し、
 HTTP fixture は in-process `WebApplication` を起動する。
 
-`Adact.Engine.Tests` の L3/L4、`Adact.Mcp.Stdio.Tests`、HTTP の in-process 実行など、
+
 test runner 側が直接 UIA や対象アプリを扱うテストは非対話 session では実行対象にしない。
 これらは `InteractiveFact` / `InteractiveTestGuard` により対話 desktop がない場合に skip される。
 

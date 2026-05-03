@@ -16,6 +16,9 @@ internal static class Program
     /// <returns>サブコマンドが返した exit code (設計 docs/spec/errors-and-output.md)。</returns>
     public static async Task<int> Main(string[] args)
     {
+        // 自動起動関数を設定
+        CommandHelpers.TryAutoStartServerAsync = Daemon.DaemonSpawner.EnsureServerRunningAsync;
+
         var root = BuildRoot();
         var parseResult = root.Parse(args);
         return await parseResult.InvokeAsync().ConfigureAwait(false);
@@ -29,8 +32,12 @@ internal static class Program
     {
         var root = new RootCommand("ADACT - AI-driven Desktop Application CLI Tools");
         root.Options.Add(CommandHelpers.ServerOption);
-        root.Subcommands.Add(LocalCommand.Build());
-        root.Subcommands.Add(ServeCommand.Build());
+
+        // serve サブコマンド（http / pipe）
+        var serveCmd = new Command("serve", "Run as an MCP server (http or pipe transport).");
+        serveCmd.Subcommands.Add(ServeHttpCommand.Build());
+        serveCmd.Subcommands.Add(ServePipeCommand.Build());
+        root.Subcommands.Add(serveCmd);
         root.Subcommands.Add(ListAppsCommand.Build());
         root.Subcommands.Add(AttachCommand.Build());
         root.Subcommands.Add(SnapshotCommand.Build());
