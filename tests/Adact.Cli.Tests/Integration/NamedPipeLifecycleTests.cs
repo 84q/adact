@@ -15,7 +15,6 @@ namespace Adact.Cli.Tests.Integration;
 /// Named Pipe MCP サーバーの起動・停止ライフサイクルを検証する統合テスト。
 /// 対話デスクトップセッションが必要。
 /// </summary>
-[Trait("Layer", "Integration")]
 public sealed class NamedPipeLifecycleTests
 {
     private static NamedPipeEndPoint CreateUniqueEndpoint()
@@ -40,6 +39,7 @@ public sealed class NamedPipeLifecycleTests
     /// NamedPipeHost を起動し、NamedPipeMcpClient で接続して daemon_stop を呼び出すと
     /// サーバーが停止し、2回目の接続で失敗することを確認する。
     /// </summary>
+    [Trait("Layer", "Integration")]
     [InteractiveFact]
     public async Task NamedPipeServer_StartAndStop_Success()
     {
@@ -103,6 +103,7 @@ public sealed class NamedPipeLifecycleTests
     /// <summary>
     /// サーバーを起動して daemon_stop した後、再度接続を試みると失敗することを確認する。
     /// </summary>
+    [Trait("Layer", "Integration")]
     [InteractiveFact]
     public async Task NamedPipeServer_DoubleStop_SecondReturnsNoDaemon()
     {
@@ -160,6 +161,7 @@ public sealed class NamedPipeLifecycleTests
         }
     }
 
+    [Trait("Layer", "E2E")]
     [InteractiveFact]
     public async Task NamedPipeServer_ListAppsAndAttachAcrossConnections_SharesDaemonState()
     {
