@@ -49,6 +49,8 @@
 
 以下は、今回の SampleApp 検証結果から見て、`inspect` 拡張の次に検討価値が高い候補である。
 
+なお、取得系コマンドの命名は `get-*` に揃える前提で整理する。
+
 ### `get-selection`
 
 #### 何をするコマンドか
@@ -77,12 +79,12 @@ ListBox、ComboBox、ListView、DataGrid、TreeView などに対して、現在�
 
 マウスホイールや `scroll-into-view` で代替できる場面はあるが、対象依存・画面依存になりやすい。安定性の観点では専用化の価値がある。
 
-### `grid-info` / `grid-get`
+### `get-grid-info` / `get-grid-cell`
 
 #### 何をするコマンドか
 
-- `grid-info`: グリッドの行数・列数など構造情報を取得する。
-- `grid-get`: 行・列指定でセルまたは該当要素を取得する。
+- `get-grid-info`: グリッドの行数・列数など構造情報を取得する。
+- `get-grid-cell`: 行・列指定でセルまたは該当要素を取得する。
 
 #### なぜ必要か
 
@@ -92,7 +94,7 @@ DataGrid や表形式 ListView は業務 UI で頻出であり、行列ベース
 
 既存の `snapshot` や要素探索だけでも近いことはできるが、構造把握とセル取得を安定して行うには厳しい。今回の検証結果からは、`get-selection` と並んで優先度が高い。
 
-### `table-headers`
+### `get-table-headers`
 
 #### 何をするコマンドか
 
@@ -147,7 +149,7 @@ Name / Value だけで読める場面もあるが、一般化しづらい。特�
 
 #### 現状の既存操作で代替できるか
 
-SampleApp 検証の範囲では必須場面は限定的だったが、既存操作だけでは本質的に代替しづらい。将来の必要性は高いが、優先順位は `inspect` / `get-selection` / `grid-get` より一段下と見るのが妥当。
+SampleApp 検証の範囲では必須場面は限定的だったが、既存操作だけでは本質的に代替しづらい。将来の必要性は高いが、優先順位は `inspect` / `get-selection` / `get-grid-cell` より一段下と見るのが妥当。
 
 ### `expand` / `collapse`
 
@@ -205,7 +207,7 @@ TreeViewItem、ComboBox、MenuItem など ExpandCollapsePattern を持つ要素�
 
 - 何をするものか: スプレッドシート固有のセル式や注釈などを扱う。
 - 今は追加しなくてよい理由: Excel 互換領域に寄っており、汎用 Windows UI 自動化の中核とは言いにくい。
-- 既存手段との関係: まずは `grid-info` / `grid-get` / `table-headers` の汎用表形式支援を整える方が先。
+- 既存手段との関係: まずは `get-grid-info` / `get-grid-cell` / `get-table-headers` の汎用表形式支援を整える方が先。
 
 ### `TransformPattern2`
 
@@ -233,7 +235,7 @@ TreeViewItem、ComboBox、MenuItem など ExpandCollapsePattern を持つ要素�
 
 - `inspect` の Pattern 固有情報を拡充する
 - `get-selection` を追加する
-- 可能なら `grid-info` を早期に入れ、グリッド構造を把握しやすくする
+- 可能なら `get-grid-info` を早期に入れ、グリッド構造を把握しやすくする
 
 この段階の狙いは、専用操作を増やす前に「何が相手なのか」を正しく把握できる状態を作ることにある。
 
@@ -252,16 +254,16 @@ TreeViewItem、ComboBox、MenuItem など ExpandCollapsePattern を持つ要素�
 
 最後に、既存操作では本質的に苦しい領域へ進む。
 
-- `grid-get`
-- `table-headers`
+- `get-grid-cell`
+- `get-table-headers`
 - `get-text`
 - `find-item` / `realize`
 - `drag` / `drag-to`
 
-実際には `grid-get` は Phase 1 〜 2 相当の優先度で前倒ししてよく、ここでの Phase 3 はあくまで「汎用支援を超えて、より領域特化の操作へ入る段階」として見るのがよい。
+実際には `get-grid-cell` は Phase 1 〜 2 相当の優先度で前倒ししてよく、ここでの Phase 3 はあくまで「汎用支援を超えて、より領域特化の操作へ入る段階」として見るのがよい。
 
 ## 結論
 
-今回の SampleApp 検証結果から見ると、まず優先すべきなのは **`inspect` 拡張** である。そのうえで、次点として **`get-selection`** と **`grid-get`（必要に応じて `grid-info` を含む）** を優先するのがよい。
+今回の SampleApp 検証結果から見ると、まず優先すべきなのは **`inspect` 拡張** である。そのうえで、次点として **`get-selection`** と **`get-grid-cell`（必要に応じて `get-grid-info` を含む）** を優先するのがよい。
 
 理由は、現在の不足が主に「操作不能」ではなく「状態把握不足」と「表形式 UI の扱いづらさ」に集中しているためである。まず観測力を高め、次に選択状態とグリッド操作を補強する流れが、今回の検証結果に最も整合的な推奨ロードマップと考えられる。
