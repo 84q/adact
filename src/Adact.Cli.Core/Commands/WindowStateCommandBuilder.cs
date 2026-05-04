@@ -37,7 +37,7 @@ internal static class WindowStateCommandBuilder
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
                 (client, token) => CommandHelpers.RunSessionOperationAndAutoSnapshotAsync(
-                    client, toolName, args, sidArg, noSnap, dirArg, token),
+                    client, name, toolName, args, sidArg, noSnap, dirArg, token),
                 ct);
         });
 

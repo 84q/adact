@@ -43,8 +43,14 @@ internal static class CloseAllCommand
         if (errorExit is { } code) return code;
 
         var info = McpResponse.GetJson(result);
-        var (output, exit) = FormatResults(info);
-        Console.Out.Write(output);
+        var (rows, exit, errorMessage) = FormatResults(info);
+        if (errorMessage is not null)
+        {
+            CliError.Write(ErrorCodes.InternalError, errorMessage);
+            return ExitCodes.CommandFailed;
+        }
+
+        CliOutput.WriteTsvResult(exit == ExitCodes.Success, ["sessionId", "result", "error"], rows);
         return exit;
     }
 
@@ -53,38 +59,46 @@ internal static class CloseAllCommand
     /// 設計 §4.5 / §5.2。1 つでも fail があれば exit 1、すべて ok なら exit 0、空配列も exit 0。
     /// </summary>
     /// <param name="info"><c>windows_close_all</c> のレスポンス JSON オブジェクト。</param>
-    /// <returns>(stdout に書き出すべき TSV テキスト, exit code)</returns>
-    internal static (string output, int exit) FormatResults(JsonElement info)
+    /// <returns>(stdout に書き出すべき TSV 行, exit code, malformed 時のエラーメッセージ)</returns>
+    internal static (IReadOnlyList<string?[]> rows, int exit, string? errorMessage) FormatResults(JsonElement info)
     {
-        var sb = new StringBuilder();
+        var rows = new List<string?[]>();
         var hasFailure = false;
 
-        if (info.ValueKind == JsonValueKind.Object
-            && info.TryGetProperty("results", out var results)
-            && results.ValueKind == JsonValueKind.Array)
+        if (info.ValueKind != JsonValueKind.Object
+            || !info.TryGetProperty("results", out var results)
+            || results.ValueKind != JsonValueKind.Array)
         {
-            foreach (var entry in results.EnumerateArray())
+            return (rows, ExitCodes.CommandFailed,
+                "windows_close_all response missing 'results' array.");
+        }
+
+        foreach (var entry in results.EnumerateArray())
+        {
+            if (entry.ValueKind != JsonValueKind.Object)
             {
-                if (entry.ValueKind != JsonValueKind.Object) continue;
-
-                var sid = JsonHelpers.GetStringOrNull(entry, "sessionId") ?? "";
-                var resultStr = JsonHelpers.GetStringOrNull(entry, "result") ?? "";
-                var error = JsonHelpers.GetStringOrNull(entry, "error");
-
-                sb.Append(sid).Append('\t').Append(resultStr);
-                if (!string.Equals(resultStr, "ok", StringComparison.Ordinal))
-                {
-                    hasFailure = true;
-                    if (!string.IsNullOrEmpty(error))
-                    {
-                        sb.Append('\t').Append(error);
-                    }
-                }
-                sb.Append('\n');
+                return (rows, ExitCodes.CommandFailed,
+                    "windows_close_all response contains a non-object entry in 'results'.");
             }
+
+            var sid = JsonHelpers.GetStringOrNull(entry, "sessionId") ?? "";
+            var resultStr = JsonHelpers.GetStringOrNull(entry, "result") ?? "";
+            var error = JsonHelpers.GetStringOrNull(entry, "error");
+
+            var outputResult = string.Equals(resultStr, "ok", StringComparison.Ordinal) ? "true" : "false";
+            string? outputError = null;
+            if (!string.Equals(resultStr, "ok", StringComparison.Ordinal))
+            {
+                hasFailure = true;
+                if (!string.IsNullOrEmpty(error))
+                {
+                    outputError = error;
+                }
+            }
+            rows.Add([sid, outputResult, outputError]);
         }
 
         var exit = hasFailure ? ExitCodes.CommandFailed : ExitCodes.Success;
-        return (sb.ToString(), exit);
+        return (rows, exit, null);
     }
 }

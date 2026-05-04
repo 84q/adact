@@ -18,7 +18,7 @@ public class CloseAllOutputTests
         => JsonSerializer.Deserialize<JsonElement>(json);
 
     /// <summary>
-    /// 全件 ok のとき Success exit と "sid\tok\n" 形式の TSV を返すことを確認する。
+    /// 全件 ok のとき Success exit と true 行を返すことを確認する。
     /// </summary>
     [Fact]
     public void FormatResults_AllOk_ReturnsTsvAndExitZero()
@@ -32,10 +32,17 @@ public class CloseAllOutputTests
         }
         """);
 
-        var (output, exit) = CloseAllCommand.FormatResults(info);
+        var (rows, exit, error) = CloseAllCommand.FormatResults(info);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal("s1\tok\ns2\tok\n", output);
+        Assert.Null(error);
+        Assert.Equal(2, rows.Count);
+        Assert.Equal("s1", rows[0][0]);
+        Assert.Equal("true", rows[0][1]);
+        Assert.Null(rows[0][2]);
+        Assert.Equal("s2", rows[1][0]);
+        Assert.Equal("true", rows[1][1]);
+        Assert.Null(rows[1][2]);
     }
 
     /// <summary>
@@ -53,11 +60,16 @@ public class CloseAllOutputTests
         }
         """);
 
-        var (output, exit) = CloseAllCommand.FormatResults(info);
+        var (rows, exit, error) = CloseAllCommand.FormatResults(info);
 
         Assert.Equal(ExitCodes.CommandFailed, exit);
-        Assert.Contains("s1\tok\n", output);
-        Assert.Contains("s2\tfail\tCLOSE_FAILED\n", output);
+        Assert.Null(error);
+        Assert.Equal("s1", rows[0][0]);
+        Assert.Equal("true", rows[0][1]);
+        Assert.Null(rows[0][2]);
+        Assert.Equal("s2", rows[1][0]);
+        Assert.Equal("false", rows[1][1]);
+        Assert.Equal("CLOSE_FAILED", rows[1][2]);
     }
 
     /// <summary>
@@ -74,10 +86,14 @@ public class CloseAllOutputTests
         }
         """);
 
-        var (output, exit) = CloseAllCommand.FormatResults(info);
+        var (rows, exit, error) = CloseAllCommand.FormatResults(info);
 
         Assert.Equal(ExitCodes.CommandFailed, exit);
-        Assert.Equal("s2\tfail\n", output);
+        Assert.Null(error);
+        var row = Assert.Single(rows);
+        Assert.Equal("s2", row[0]);
+        Assert.Equal("false", row[1]);
+        Assert.Null(row[2]);
     }
 
     /// <summary>
@@ -88,23 +104,40 @@ public class CloseAllOutputTests
     {
         var info = Parse("""{ "results": [] }""");
 
-        var (output, exit) = CloseAllCommand.FormatResults(info);
+        var (rows, exit, error) = CloseAllCommand.FormatResults(info);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal(string.Empty, output);
+        Assert.Null(error);
+        Assert.Empty(rows);
     }
 
     /// <summary>
-    /// results フィールド自体が不在のときも、例外ではなく空出力と Success exit として扱うことを確認する。
+    /// results フィールド自体が不在のときは malformed response として INTERNAL_ERROR 相当になることを確認する。
     /// </summary>
     [Fact]
-    public void FormatResults_MissingResultsField_ReturnsEmptyAndExitZero()
+    public void FormatResults_MissingResultsField_ReturnsMalformedError()
     {
         var info = Parse("""{ }""");
 
-        var (output, exit) = CloseAllCommand.FormatResults(info);
+        var (rows, exit, error) = CloseAllCommand.FormatResults(info);
 
-        Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal(string.Empty, output);
+        Assert.Equal(ExitCodes.CommandFailed, exit);
+        Assert.Empty(rows);
+        Assert.Contains("results", error);
+    }
+
+    /// <summary>
+    /// results が配列でないときも malformed response として扱うことを確認する。
+    /// </summary>
+    [Fact]
+    public void FormatResults_NonArrayResults_ReturnsMalformedError()
+    {
+        var info = Parse("""{ "results": {} }""");
+
+        var (rows, exit, error) = CloseAllCommand.FormatResults(info);
+
+        Assert.Equal(ExitCodes.CommandFailed, exit);
+        Assert.Empty(rows);
+        Assert.Contains("results", error);
     }
 }

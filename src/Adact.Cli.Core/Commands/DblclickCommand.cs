@@ -62,7 +62,7 @@ internal static class DblclickCommand
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
                 (client, token) => CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
-                    client, "windows_dblclick", args, refValue!, noSnap, dirArg, token),
+                    client, "dblclick", "windows_dblclick", args, refValue!, noSnap, dirArg, token),
                 ct);
         });
         return cmd;

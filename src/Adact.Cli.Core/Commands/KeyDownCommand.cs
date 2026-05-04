@@ -33,7 +33,8 @@ internal static class KeyDownCommand
                 async (client, token) =>
                 {
                     var r = await client.CallToolAsync("windows_key_down", args, token).ConfigureAwait(false);
-                    return McpResponse.TryReportError(r) ?? ExitCodes.Success;
+                    var err = McpResponse.TryReportError(r);
+                    return err ?? CommandHelpers.WriteToolSuccess("key-down", [CliOutput.Field("key", key)]);
                 },
                 ct);
         });

@@ -25,11 +25,12 @@ public class ResizeCommandTests
     [InlineData("-1")]
     public async Task Resize_NonPositiveWidth_ReturnsUserError(string width)
     {
-        var (_, stderr, exit) = await RunAsync(["resize", "--width", width, "--height", "100"]);
+        var (stdout, stderr, exit) = await RunAsync(["resize", "--width", width, "--height", "100"]);
 
         Assert.Equal(ExitCodes.UserError, exit);
-        Assert.Contains("error " + ErrorCodes.InvalidArgument, stderr, StringComparison.Ordinal);
-        Assert.Contains("--width", stderr, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
+        Assert.Contains("--width", stdout, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -41,11 +42,12 @@ public class ResizeCommandTests
     [InlineData("-1")]
     public async Task Resize_NonPositiveHeight_ReturnsUserError(string height)
     {
-        var (_, stderr, exit) = await RunAsync(["resize", "--width", "100", "--height", height]);
+        var (stdout, stderr, exit) = await RunAsync(["resize", "--width", "100", "--height", height]);
 
         Assert.Equal(ExitCodes.UserError, exit);
-        Assert.Contains("error " + ErrorCodes.InvalidArgument, stderr, StringComparison.Ordinal);
-        Assert.Contains("--height", stderr, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
+        Assert.Contains("--height", stdout, StringComparison.Ordinal);
     }
 
     /// <summary>

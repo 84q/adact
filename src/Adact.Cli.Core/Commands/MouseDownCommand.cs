@@ -40,7 +40,8 @@ internal static class MouseDownCommand
                 async (client, token) =>
                 {
                     var r = await client.CallToolAsync("windows_mouse_down", args, token).ConfigureAwait(false);
-                    return McpResponse.TryReportError(r) ?? ExitCodes.Success;
+                    var err = McpResponse.TryReportError(r);
+                    return err ?? CommandHelpers.WriteToolSuccess("mouse-down", [CliOutput.Field("target", target), CliOutput.Field("button", btn)]);
                 },
                 ct);
         });

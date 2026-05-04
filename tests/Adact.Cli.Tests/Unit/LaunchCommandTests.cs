@@ -59,10 +59,11 @@ public class LaunchCommandTests
     [Fact]
     public async Task Launch_InvalidEnv_ReturnsUserError()
     {
-        var (_, stderr, exit) = await RunAsync(["launch", "notepad.exe", "--env", "INVALID"]);
+        var (stdout, stderr, exit) = await RunAsync(["launch", "notepad.exe", "--env", "INVALID"]);
 
         Assert.Equal(ExitCodes.UserError, exit);
-        Assert.Contains("error " + ErrorCodes.InvalidArgument, stderr, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
     }
 
     /// <summary>executable 引数を省略すると System.CommandLine が UserError を返す。</summary>

@@ -90,7 +90,8 @@ internal static class ScreenshotCommand
         if (errorExit is { } code) return code;
 
         var json = McpResponse.GetJson(result);
-        Console.Out.WriteLine(JsonSerializer.Serialize(json));
+        var fields = CliOutput.JsonObjectToFields(json, "sessionId", "path", "width", "height");
+        CliOutput.WriteYamlSuccess(metaFields: null, fields);
         return ExitCodes.Success;
     }
 }

@@ -2,6 +2,8 @@
 
 ADACT の MCP tools は `src/Adact.Mcp.Common/WindowsTools.cs` および `WindowsTools.{Mouse,Keyboard,Toggle,Window,Inspect,Wait,Launch,Screenshot}.cs` (partial class) に集約され、HTTP daemon (`adact serve`) から使われます。現行の主利用経路は CLI client ですが、MCP client から直接呼ぶこともできます。
 
+CLI はこれらの MCP レスポンスをそのまま表示せず、`discussion/042_CLI出力形式統一設計.md` に従って yaml風 / TSV風 / snapshot 形式へ再整形します。
+
 ## Tool 一覧
 
 | カテゴリ | Tool | 役割 | 主な引数 | 主な戻り値 |
@@ -27,8 +29,8 @@ ADACT の MCP tools は `src/Adact.Mcp.Common/WindowsTools.cs` および `Window
 | Window | `windows_resize` | アタッチ済みウィンドウのサイズを変更 | `width`, `height`, `sessionId?` | 成功時 content 空 |
 | Window | `windows_minimize` / `windows_maximize` / `windows_restore` | アタッチ済みウィンドウの状態変更 | `sessionId?` | 成功時 content 空 |
 | Inspect | `windows_inspect` | UIA プロパティ詳細を返す | `ref` | inspect JSON (詳細は後述) |
-| Inspect | `windows_screenshot` | PNG を保存する | `ref?`, `out?`, `sessionId?` | `{ path, width, height }` |
-| Wait | `windows_wait_for` | 要素の state を待つ | `ref?` または `name?`/`controlType?`/`automationId?`/`className?`、`state?`, `timeoutMs?`, `sessionId?` | `{ ref, state }` |
+| Inspect | `windows_screenshot` | PNG を保存する | `ref?`, `out?`, `sessionId?` | `{ sessionId, path, width, height }` |
+| Wait | `windows_wait_for` | 要素の state を待つ | `ref?` または `name?`/`controlType?`/`automationId?`/`className?`、`state?`, `timeoutMs?`, `sessionId?` | `{ sessionId, ref, state }` |
 | Wait | `windows_wait_for_window` | top-level window の出現を待つ (attach なし) | `title?`, `className?`, `processName?`, `executable?`, `timeoutMs?` | `{ processId, processName, windowTitle, controlType, className, nativeWindowHandle }` |
 | Lifecycle | `windows_launch` | Win32 / .NET / UWP プロセスを起動する (attach なし) | `executable`, `args?`, `cwd?`, `env?` | `{ pid, processName, executablePath }` |
 | Lifecycle | `windows_detach` | session record を解放する | `sessionId?` | `sessionId`, `detached: true` |
@@ -113,8 +115,8 @@ CLI の `adact snapshot` はこの raw JSON を受け取り、CLI 側で `operab
 | --- | --- |
 | 入力 | `ref?` (省略でウィンドウ全体)、`out?` (PNG パス、省略で `.adact/screenshot-<sid>-<UTC ts>.png`)、`sessionId?` |
 | 処理 | `ref` 指定時は要素の bounding rect でクリップして PNG 保存。形式は PNG のみ |
-| 戻り値 | `{ path, width, height }` |
-| 代表エラー | `INVALID_ARGUMENT` (拡張子が `.png` 以外)、`INVALID_REF_FORMAT`, `REF_NOT_FOUND`, `NO_ACTIVE_SESSION`, `NOT_FOUND` |
+| 戻り値 | `{ sessionId, path, width, height }` |
+| 代表エラー | `INVALID_ARGUMENT` (拡張子が `.png` 以外、ref/sessionId 組合せ不正、未知 session / ref を含む)、`NO_ACTIVE_SESSION` |
 
 ### `windows_wait_for`
 
@@ -122,8 +124,8 @@ CLI の `adact snapshot` はこの raw JSON を受け取り、CLI 側で `operab
 | --- | --- |
 | 入力 | `ref?` または検索条件 `name?`/`controlType?`/`automationId?`/`className?` (排他必須、すべて case-insensitive exact match)、`state?` (`attached`/`detached`/`visible`/`hidden`/`enabled`/`disabled`、default `visible`)、`timeoutMs?` (default 5000)、`sessionId?` (検索条件モード時のみ。ref モードでは ref から自動解決) |
 | 処理 | ref モードでは `WaitForRefAsync`、検索条件モードでは `WaitForQueryAsync` をポーリング呼び出し。`detached` state は ref モード専用 |
-| 戻り値 | `{ ref, state }` |
-| 代表エラー | `INVALID_ARGUMENT`, `INVALID_REF_FORMAT`, `REF_NOT_FOUND`, `NO_ACTIVE_SESSION`, `NOT_FOUND`, `WAIT_TIMEOUT` |
+| 戻り値 | `{ sessionId, ref, state }` |
+| 代表エラー | `INVALID_ARGUMENT`, `REF_NOT_FOUND`, `NO_ACTIVE_SESSION`, `NOT_FOUND`, `WAIT_TIMEOUT` |
 
 ### `windows_wait_for_window`
 
@@ -203,3 +205,7 @@ transport/protocol/systemic な例外は SDK により JSON-RPC error として�
 | [cli.md](cli.md) | CLI からの利用方法 |
 | [ref-ids.md](ref-ids.md) | ref / session の形式 |
 | [errors-and-output.md](errors-and-output.md) | MCP error と CLI error の対応 |
+
+## 2026-05 CLI 出力統一補足
+
+CLI は本書の MCP レスポンスをそのまま表示せず、`discussion/042_CLI出力形式統一設計.md` に従って yaml風 / TSV風 / snapshot 形式へ再整形する。

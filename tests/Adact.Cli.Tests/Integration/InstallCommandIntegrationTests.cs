@@ -44,7 +44,7 @@ public class InstallCommandIntegrationTests
         AssertSuccess(result);
         var targetDir = Path.Combine(temp.Path, relativeTail.Replace('/', Path.DirectorySeparatorChar));
         AssertSkillFilesExist(targetDir);
-        Assert.Contains(targetDir, result.Stdout);
+        Assert.Contains("installed: true", result.Stdout);
     }
 
     /// <summary>
@@ -76,7 +76,7 @@ public class InstallCommandIntegrationTests
         AssertSuccess(result);
         var targetDir = Path.Combine(home.Path, relativeTail.Replace('/', Path.DirectorySeparatorChar));
         AssertSkillFilesExist(targetDir);
-        Assert.Contains(targetDir, result.Stdout);
+        Assert.Contains("installed: true", result.Stdout);
 
         // cwd 側には何も書き込まれないこと。
         // This is the last line of defence verifying that the USERPROFILE override

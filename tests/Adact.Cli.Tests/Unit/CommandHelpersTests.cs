@@ -37,7 +37,7 @@ public class CommandHelpersTests
         }
     }
 
-    /// <summary>Verifies that a successful snapshot writes sessionId and snapshot path.</summary>
+    /// <summary>Verifies that a successful snapshot writes unified metadata and snapshot path.</summary>
     [Fact]
     public async Task WriteSnapshotResultAsync_Success_WritesSessionAndSnapshotPath()
     {
@@ -52,10 +52,11 @@ public class CommandHelpersTests
 
             Assert.Equal(ExitCodes.Success, exit);
             Assert.Equal(string.Empty, stderr);
-            Assert.Contains("sessionId s3", stdout);
+            Assert.Contains("result: true", stdout);
+            Assert.Contains("sessionId: s3", stdout);
             var snapshotLine = stdout.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
-                .Single(l => l.StartsWith("snapshot ", StringComparison.Ordinal));
-            var snapshotPath = snapshotLine["snapshot ".Length..];
+                .Single(l => l.StartsWith("snapshotPath:", StringComparison.Ordinal));
+            var snapshotPath = snapshotLine["snapshotPath: ".Length..].Split(" (")[0].Trim('"');
             Assert.True(File.Exists(Path.GetFullPath(snapshotPath)), snapshotPath);
             Assert.Contains("filter: operable", File.ReadAllText(Path.GetFullPath(snapshotPath)));
 
@@ -84,8 +85,8 @@ public class CommandHelpersTests
                 filter: "compact"));
 
         Assert.Equal(ExitCodes.UserError, exit);
-        Assert.Equal(string.Empty, stdout);
-        Assert.Contains("error INVALID_ARGUMENT", stderr);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: INVALID_ARGUMENT", stdout);
         Assert.Empty(client.Calls);
     }
 
@@ -100,9 +101,9 @@ public class CommandHelpersTests
             CommandHelpers.WriteSnapshotResultAsync(client, "s1", snapshotDir: null, CancellationToken.None));
 
         Assert.Equal(ExitCodes.CommandFailed, exit);
-        Assert.Equal(string.Empty, stdout);
-        Assert.Contains("error SNAPSHOT_FAILED", stderr);
-        Assert.Contains("message snapshot failed", stderr);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: SNAPSHOT_FAILED", stdout);
+        Assert.Contains("message: snapshot failed", stdout);
         Assert.Equal("windows_snapshot", Assert.Single(client.Calls).Name);
     }
 
@@ -117,9 +118,9 @@ public class CommandHelpersTests
             CommandHelpers.WriteSnapshotResultAsync(client, sessionId: null, snapshotDir: null, CancellationToken.None));
 
         Assert.Equal(ExitCodes.CommandFailed, exit);
-        Assert.Equal(string.Empty, stdout);
-        Assert.Contains("error INTERNAL_ERROR", stderr);
-        Assert.Contains("windows_snapshot response missing sessionId", stderr);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: INTERNAL_ERROR", stdout);
+        Assert.Contains("windows_snapshot response missing sessionId", stdout);
     }
 
     /// <summary>Verifies that invalid snapshot JSON text returns an internal parse error.</summary>
@@ -142,9 +143,9 @@ public class CommandHelpersTests
             CommandHelpers.WriteSnapshotResultAsync(client, "s1", snapshotDir: null, CancellationToken.None));
 
         Assert.Equal(ExitCodes.CommandFailed, exit);
-        Assert.Equal(string.Empty, stdout);
-        Assert.Contains("error INTERNAL_ERROR", stderr);
-        Assert.Contains("Failed to parse snapshot response", stderr);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: INTERNAL_ERROR", stdout);
+        Assert.Contains("Failed to parse snapshot response", stdout);
     }
 
     /// <summary>Verifies that an explicit raw filter is passed through to the snapshot text output.</summary>
@@ -168,8 +169,8 @@ public class CommandHelpersTests
             Assert.Equal(ExitCodes.Success, exit);
             Assert.Equal(string.Empty, stderr);
             var snapshotLine = stdout.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
-                .Single(l => l.StartsWith("snapshot ", StringComparison.Ordinal));
-            var text = File.ReadAllText(Path.GetFullPath(snapshotLine["snapshot ".Length..]));
+                .Single(l => l.StartsWith("snapshotPath:", StringComparison.Ordinal));
+            var text = File.ReadAllText(Path.GetFullPath(snapshotLine["snapshotPath: ".Length..].Split(" (")[0].Trim('"')));
             Assert.Contains("filter: raw", text);
         }
         finally
@@ -178,25 +179,29 @@ public class CommandHelpersTests
         }
     }
 
-    /// <summary>Verifies that no-snapshot ref operations write only the session id.</summary>
+    /// <summary>Verifies that no-snapshot ref operations write minimal yaml output.</summary>
     [Fact]
-    public async Task RunRefOperationAndAutoSnapshotAsync_NoSnapshot_WritesSessionFromElementRef()
+    public async Task RunRefOperationAndAutoSnapshotAsync_NoSnapshot_WritesMinimalOutput()
     {
         var client = new FakeClient();
         client.Enqueue(SuccessResult());
 
         var (stdout, stderr, exit) = await CaptureAsync(() =>
-            CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
-                client,
-                "windows_click",
-                new Dictionary<string, object?> { ["ref"] = "s7e9" },
-                "s7e9",
-                noSnapshot: true,
-                snapshotDir: null,
-                CancellationToken.None));
+                CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
+                    client,
+                    "click",
+                    "windows_click",
+                    new Dictionary<string, object?> { ["ref"] = "s7e9" },
+                    "s7e9",
+                    true,
+                    null,
+                    CancellationToken.None));
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal("sessionId s7" + Environment.NewLine, stdout);
+        Assert.Contains("result: true", stdout);
+        Assert.Contains("---", stdout);
+        Assert.DoesNotContain("action:", stdout);
+        Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = Assert.Single(client.Calls);
         Assert.Equal("windows_click", call.Name);
@@ -211,18 +216,19 @@ public class CommandHelpersTests
         client.Enqueue(ErrorResult("ELEMENT_INTERACTION_FAILED", "click failed"));
 
         var (stdout, stderr, exit) = await CaptureAsync(() =>
-            CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
-                client,
-                "windows_click",
-                new Dictionary<string, object?> { ["ref"] = "s1e2" },
-                "s1e2",
-                noSnapshot: false,
-                snapshotDir: null,
-                CancellationToken.None));
+                CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
+                    client,
+                    "click",
+                    "windows_click",
+                    new Dictionary<string, object?> { ["ref"] = "s1e2" },
+                    "s1e2",
+                    false,
+                    null,
+                    CancellationToken.None));
 
         Assert.Equal(ExitCodes.CommandFailed, exit);
-        Assert.Equal(string.Empty, stdout);
-        Assert.Contains("error ELEMENT_INTERACTION_FAILED", stderr);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: ELEMENT_INTERACTION_FAILED", stdout);
         Assert.Equal("windows_click", Assert.Single(client.Calls).Name);
     }
 
@@ -240,16 +246,19 @@ public class CommandHelpersTests
             var (stdout, stderr, exit) = await CaptureAsync(() =>
                 CommandHelpers.RunSessionOperationAndAutoSnapshotAsync(
                     client,
+                    "resize",
                     "windows_resize",
                     new Dictionary<string, object?> { ["sessionId"] = "s4", ["width"] = 800, ["height"] = 600 },
                     "s4",
-                    noSnapshot: false,
+                    false,
                     dir,
                     CancellationToken.None));
 
             Assert.Equal(ExitCodes.Success, exit);
             Assert.Equal(string.Empty, stderr);
-            Assert.Contains("sessionId s4", stdout);
+            Assert.Contains("snapshotPath:", stdout);
+            Assert.DoesNotContain("sessionId:", stdout);
+            Assert.DoesNotContain("action:", stdout);
             Assert.Equal(["windows_resize", "windows_snapshot"], client.Calls.Select(c => c.Name));
             Assert.Equal("s4", client.Calls[1].Arguments!["sessionId"]);
         }
@@ -267,40 +276,45 @@ public class CommandHelpersTests
         client.Enqueue(ErrorResult("WINDOW_NOT_FOUND", "window missing"));
 
         var (stdout, stderr, exit) = await CaptureAsync(() =>
-            CommandHelpers.RunSessionOperationAndAutoSnapshotAsync(
-                client,
-                "windows_resize",
-                new Dictionary<string, object?> { ["sessionId"] = "s2" },
-                "s2",
-                noSnapshot: false,
-                snapshotDir: null,
-                CancellationToken.None));
+                CommandHelpers.RunSessionOperationAndAutoSnapshotAsync(
+                    client,
+                    "resize",
+                    "windows_resize",
+                    new Dictionary<string, object?> { ["sessionId"] = "s2" },
+                    "s2",
+                    false,
+                    null,
+                    CancellationToken.None));
 
         Assert.Equal(ExitCodes.CommandFailed, exit);
-        Assert.Equal(string.Empty, stdout);
-        Assert.Contains("error WINDOW_NOT_FOUND", stderr);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: WINDOW_NOT_FOUND", stdout);
         Assert.Equal("windows_resize", Assert.Single(client.Calls).Name);
     }
 
-    /// <summary>Verifies that no-snapshot session operations write the explicit session id.</summary>
+    /// <summary>Verifies that no-snapshot session operations write minimal yaml output.</summary>
     [Fact]
-    public async Task RunSessionOperationAndAutoSnapshotAsync_NoSnapshot_WritesSessionId()
+    public async Task RunSessionOperationAndAutoSnapshotAsync_NoSnapshot_WritesMinimalOutput()
     {
         var client = new FakeClient();
         client.Enqueue(SuccessResult());
 
         var (stdout, stderr, exit) = await CaptureAsync(() =>
-            CommandHelpers.RunSessionOperationAndAutoSnapshotAsync(
-                client,
-                "windows_maximize",
-                new Dictionary<string, object?> { ["sessionId"] = "s5" },
-                "s5",
-                noSnapshot: true,
-                snapshotDir: null,
-                CancellationToken.None));
+                CommandHelpers.RunSessionOperationAndAutoSnapshotAsync(
+                    client,
+                    "maximize",
+                    "windows_maximize",
+                    new Dictionary<string, object?> { ["sessionId"] = "s5" },
+                    "s5",
+                    true,
+                    null,
+                    CancellationToken.None));
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal("sessionId s5" + Environment.NewLine, stdout);
+        Assert.Contains("result: true", stdout);
+        Assert.Contains("---", stdout);
+        Assert.DoesNotContain("action:", stdout);
+        Assert.DoesNotContain("sessionId:", stdout);
         Assert.Equal(string.Empty, stderr);
         Assert.Equal("windows_maximize", Assert.Single(client.Calls).Name);
     }
@@ -355,9 +369,9 @@ public class CommandHelpersTests
                 CancellationToken.None));
 
         Assert.Equal(ExitCodes.ConnectionFailed, exit);
-        Assert.Equal(string.Empty, stdout);
-        Assert.Contains("error CONNECTION_FAILED", stderr);
-        Assert.Contains("daemon unavailable", stderr);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: CONNECTION_FAILED", stdout);
+        Assert.Contains("daemon unavailable", stdout);
     }
 
     /// <summary>Verifies that unexpected connector exceptions are reported as INTERNAL_ERROR.</summary>
@@ -377,9 +391,9 @@ public class CommandHelpersTests
                 CancellationToken.None));
 
         Assert.Equal(ExitCodes.CommandFailed, exit);
-        Assert.Equal(string.Empty, stdout);
-        Assert.Contains("error INTERNAL_ERROR", stderr);
-        Assert.Contains("boom", stderr);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: INTERNAL_ERROR", stdout);
+        Assert.Contains("boom", stdout);
     }
 
     private static CallToolResult SuccessResult() => new()

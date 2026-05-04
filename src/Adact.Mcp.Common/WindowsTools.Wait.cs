@@ -135,6 +135,7 @@ public sealed partial class WindowsTools
 
             var json = new JsonObject
             {
+                ["sessionId"] = $"s{session!.SessionId}",
                 ["ref"] = result.Ref,
                 ["state"] = WaitForStateParser.ToWireString(result.State),
             };

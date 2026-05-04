@@ -59,7 +59,10 @@ public class CommandActionSuccessTests
             ]);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal("sessionId s2" + Environment.NewLine, stdout);
+        Assert.Contains("result: true", stdout);
+        Assert.Contains("---", stdout);
+        Assert.DoesNotContain("action:", stdout);
+        Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = Assert.Single(client.Calls);
         Assert.Equal("windows_click", call.Name);
@@ -84,7 +87,10 @@ public class CommandActionSuccessTests
             ["fill", "s3e4", "hello world", "--no-snapshot"]);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal("sessionId s3" + Environment.NewLine, stdout);
+        Assert.Contains("result: true", stdout);
+        Assert.Contains("---", stdout);
+        Assert.DoesNotContain("action:", stdout);
+        Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = Assert.Single(client.Calls);
         Assert.Equal("windows_fill", call.Name);
@@ -105,7 +111,10 @@ public class CommandActionSuccessTests
             ["type", "s4e8", "abc", "--delay-ms", "15", "--no-snapshot"]);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal("sessionId s4" + Environment.NewLine, stdout);
+        Assert.Contains("result: true", stdout);
+        Assert.Contains("---", stdout);
+        Assert.DoesNotContain("action:", stdout);
+        Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = Assert.Single(client.Calls);
         Assert.Equal("windows_type", call.Name);
@@ -127,7 +136,10 @@ public class CommandActionSuccessTests
             ["resize", "--width", "800", "--height", "600", "--sid", "s9", "--no-snapshot"]);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal("sessionId s9" + Environment.NewLine, stdout);
+        Assert.Contains("result: true", stdout);
+        Assert.Contains("---", stdout);
+        Assert.DoesNotContain("action:", stdout);
+        Assert.DoesNotContain("sessionId:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = Assert.Single(client.Calls);
         Assert.Equal("windows_resize", call.Name);
@@ -155,7 +167,10 @@ public class CommandActionSuccessTests
             ]);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal("sessionId s5" + Environment.NewLine, stdout);
+        Assert.Contains("result: true", stdout);
+        Assert.Contains("---", stdout);
+        Assert.DoesNotContain("action:", stdout);
+        Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = AssertSingleCall(client, "windows_dblclick");
         Assert.Equal("s5e6", call["ref"]);
@@ -178,7 +193,10 @@ public class CommandActionSuccessTests
             ["hover", "s6e7", "--modifier", "Shift", "--position", "8,9", "--no-snapshot"]);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal("sessionId s6" + Environment.NewLine, stdout);
+        Assert.Contains("result: true", stdout);
+        Assert.Contains("---", stdout);
+        Assert.DoesNotContain("action:", stdout);
+        Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = AssertSingleCall(client, "windows_hover");
         Assert.Equal("s6e7", call["ref"]);
@@ -207,7 +225,10 @@ public class CommandActionSuccessTests
             ["select", "s7e3", option, value, "--no-snapshot"]);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal("sessionId s7" + Environment.NewLine, stdout);
+        Assert.Contains("result: true", stdout);
+        Assert.Contains("---", stdout);
+        Assert.DoesNotContain("action:", stdout);
+        Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = AssertSingleCall(client, "windows_select");
         Assert.Equal("s7e3", call["ref"]);
@@ -228,7 +249,10 @@ public class CommandActionSuccessTests
             [command.Name, "s8e4", "--no-snapshot"]);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal("sessionId s8" + Environment.NewLine, stdout);
+        Assert.Contains("result: true", stdout);
+        Assert.Contains("---", stdout);
+        Assert.DoesNotContain("action:", stdout);
+        Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = AssertSingleCall(client, toolName);
         Assert.Equal("s8e4", call["ref"]);
@@ -248,7 +272,8 @@ public class CommandActionSuccessTests
             [command.Name, "s9e4"]);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal(string.Empty, stdout);
+        Assert.Contains($"action: {command.Name}", stdout);
+        Assert.Contains("target: s9e4", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = AssertSingleCall(client, toolName);
         Assert.Equal("s9e4", call["ref"]);
@@ -269,7 +294,8 @@ public class CommandActionSuccessTests
         var (stdout, stderr, exit) = await RunWithClientAsync(client, command, args);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal(string.Empty, stdout);
+        Assert.Contains($"action: {command.Name}", stdout);
+        Assert.Contains("target: 10,20", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = AssertSingleCall(client, toolName);
         Assert.Equal("10,20", call["target"]);
@@ -292,7 +318,10 @@ public class CommandActionSuccessTests
             ["mouse-wheel", "s10e2", "--delta-x", "-1", "--delta-y", "3", "--no-snapshot"]);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal(string.Empty, stdout);
+        Assert.Contains("result: true", stdout);
+        Assert.Contains("---", stdout);
+        Assert.DoesNotContain("action:", stdout);
+        Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = AssertSingleCall(client, "windows_mouse_wheel");
         Assert.Equal("s10e2", call["target"]);
@@ -313,7 +342,11 @@ public class CommandActionSuccessTests
             ["press", "Ctrl+Shift+E", "--ref", "s11e5", "--no-snapshot"]);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal(string.Empty, stdout);
+        Assert.Contains("result: true", stdout);
+        Assert.Contains("---", stdout);
+        Assert.DoesNotContain("action:", stdout);
+        Assert.DoesNotContain("target:", stdout);
+        Assert.DoesNotContain("key:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = AssertSingleCall(client, "windows_press");
         Assert.Equal("Ctrl+Shift+E", call["key"]);
@@ -334,7 +367,8 @@ public class CommandActionSuccessTests
             [command.Name, "Shift"]);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal(string.Empty, stdout);
+        Assert.Contains($"action: {command.Name}", stdout);
+        Assert.Contains("key: Shift", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = AssertSingleCall(client, toolName);
         Assert.Equal("Shift", call["key"]);
@@ -354,7 +388,10 @@ public class CommandActionSuccessTests
             [command.Name, "--sid", "s12", "--no-snapshot"]);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Equal("sessionId s12" + Environment.NewLine, stdout);
+        Assert.Contains("result: true", stdout);
+        Assert.Contains("---", stdout);
+        Assert.DoesNotContain("action:", stdout);
+        Assert.DoesNotContain("sessionId:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = AssertSingleCall(client, toolName);
         Assert.Equal("s12", call["sessionId"]);

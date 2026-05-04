@@ -55,15 +55,15 @@ internal static class MouseWheelCommand
 
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
-                async (client, token) =>
-                {
-                    var r = await client.CallToolAsync("windows_mouse_wheel", args, token).ConfigureAwait(false);
-                    var err = McpResponse.TryReportError(r);
-                    if (err is { } code) return code;
-                    if (noSnap) return ExitCodes.Success;
-                    var sid = RefValidator.IsElementRef(target) ? RefValidator.ExtractSessionId(target) : null;
-                    return await CommandHelpers.WriteSnapshotResultAsync(client, sid, dirArg, token).ConfigureAwait(false);
-                },
+                (client, token) => CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
+                    client,
+                    "mouse-wheel",
+                    "windows_mouse_wheel",
+                    args,
+                    RefValidator.IsElementRef(target) ? target : string.Empty,
+                    noSnap,
+                    dirArg,
+                    token),
                 ct);
         });
         return cmd;

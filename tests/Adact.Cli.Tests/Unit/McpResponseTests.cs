@@ -82,9 +82,9 @@ public class McpResponseTests
             Assert.Equal(ExitCodes.CommandFailed, exit);
         });
 
-        Assert.Equal(string.Empty, stdout);
-        Assert.Contains("error AMBIGUOUS_ATTACH", stderr);
-        Assert.Contains("message two windows match", stderr);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: AMBIGUOUS_ATTACH", stdout);
+        Assert.Contains("message: two windows match", stdout);
     }
 
     /// <summary>structured が無いエラーレスポンスでは INTERNAL_ERROR として raw text を表示することを確認する。</summary>
@@ -97,14 +97,15 @@ public class McpResponseTests
             Content = [new TextContentBlock { Text = "raw error text" }],
         };
 
-        var (_, stderr) = CapturedConsole.Run(() =>
+        var (stdout, stderr) = CapturedConsole.Run(() =>
         {
             var exit = McpResponse.TryReportError(result);
             Assert.Equal(ExitCodes.CommandFailed, exit);
         });
 
-        Assert.Contains("error INTERNAL_ERROR", stderr);
-        Assert.Contains("raw error text", stderr);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: INTERNAL_ERROR", stdout);
+        Assert.Contains("raw error text", stdout);
     }
 
     /// <summary>structured に hint があるとき stderr に hint 行も出力されることを確認する。</summary>
@@ -130,9 +131,9 @@ public class McpResponseTests
             Assert.Equal(ExitCodes.CommandFailed, exit);
         });
 
-        Assert.Equal(string.Empty, stdout);
-        Assert.Contains("error STALE_REF", stderr);
-        Assert.Contains("message ref not found in current snapshot", stderr);
-        Assert.Contains("hint rerun snapshot", stderr);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: STALE_REF", stdout);
+        Assert.Contains("message: ref not found in current snapshot", stdout);
+        Assert.Contains("hint: rerun snapshot", stdout);
     }
 }

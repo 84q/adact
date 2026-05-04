@@ -50,15 +50,15 @@ internal static class PressCommand
 
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
-                async (client, token) =>
-                {
-                    var r = await client.CallToolAsync("windows_press", args, token).ConfigureAwait(false);
-                    var err = McpResponse.TryReportError(r);
-                    if (err is { } code) return code;
-                    if (noSnap) return ExitCodes.Success;
-                    var sid = refValue is not null ? RefValidator.ExtractSessionId(refValue) : null;
-                    return await CommandHelpers.WriteSnapshotResultAsync(client, sid, dirArg, token).ConfigureAwait(false);
-                },
+                (client, token) => CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
+                    client,
+                    "press",
+                    "windows_press",
+                    args,
+                    refValue ?? string.Empty,
+                    noSnap,
+                    dirArg,
+                    token),
                 ct);
         });
         return cmd;

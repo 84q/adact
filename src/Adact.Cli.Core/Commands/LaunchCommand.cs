@@ -133,7 +133,9 @@ internal static class LaunchCommand
         if (errorExit is { } code) return code;
 
         var json = McpResponse.GetJson(result);
-        Console.Out.WriteLine(JsonSerializer.Serialize(json));
+        CliOutput.WriteYamlSuccess(
+            metaFields: null,
+            CliOutput.JsonObjectToFields(json, "pid", "processName", "executablePath"));
         return ExitCodes.Success;
     }
 }

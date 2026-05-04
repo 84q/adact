@@ -147,3 +147,10 @@ ADACT は Windows アプリの UI text を扱うため、snapshot text では Un
 | [../../discussion/017_Phase7_完了.md](../../discussion/017_Phase7_完了.md) | `.txt` snapshot 化の完了記録 |
 | [ref-ids.md](ref-ids.md) | `[ref=...]` の形式 |
 | [cli.md](cli.md) | `snapshot` / `--filter` / `--snapshot-dir` |
+
+## 2026-05 CLI 出力統一補足
+
+- snapshot file 自体は従来どおり frontmatter + tree の `.txt` として保存する。
+- `adact snapshot` の stdout は `result: true`、`snapshotPath`、`---`、`sessionId`、空行、tree を出す。
+- `attach` と auto-snapshot 対象コマンドは snapshot 本文を stdout に出さず、メタの `snapshotPath: ... (changed|unchanged)` だけを返す。
+- `--no-snapshot` 時は `snapshotPath` を出さない。

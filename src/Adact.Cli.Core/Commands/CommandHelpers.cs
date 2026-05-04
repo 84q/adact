@@ -349,19 +349,26 @@ internal static class CommandHelpers
         var sidNum = ParseSidNumber(resolvedSid);
         var (path, isNew) = SnapshotFileWriter.Write(text, sidNum, snapshotDir);
 
-        if (writeSessionId)
-        {
-            KeyValueWriter.Write("sessionId", resolvedSid);
-        }
-        KeyValueWriter.Write("snapshot", path);
-        if (!isNew)
-        {
-            KeyValueWriter.Write("unchanged", "true");
-        }
+        var snapshotPath = $"{path} {(isNew ? "(changed)" : "(unchanged)")}";
+        var treeText = ExtractSnapshotTreeText(text);
 
         if (writeContentToStdout)
         {
-            Console.Out.WriteLine(text);
+            CliOutput.WriteSnapshotSuccess(
+                snapshotPath,
+                [CliOutput.Field("sessionId", resolvedSid)],
+                treeText);
+        }
+        else
+        {
+            var metaFields = new[] { CliOutput.Field("snapshotPath", snapshotPath) };
+            var bodyFields = new List<KeyValuePair<string, string?>>();
+            if (writeSessionId)
+            {
+                bodyFields.Add(CliOutput.Field("sessionId", resolvedSid));
+            }
+
+            CliOutput.WriteYamlSuccess(metaFields, bodyFields);
         }
         return ExitCodes.Success;
     }
@@ -371,6 +378,7 @@ internal static class CommandHelpers
     /// 設計 009 §4.4 / §5.2。snapshot 部分は <see cref="WriteSnapshotResultAsync"/> に委譲する。
     /// </summary>
     /// <param name="client">接続済み MCP クライアント。</param>
+    /// <param name="actionName">CLI 側のアクション名 (例: <c>click</c>)。</param>
     /// <param name="operationToolName">"windows_click" または "windows_fill" など。</param>
     /// <param name="operationArgs">操作ツールに渡す引数。</param>
     /// <param name="elementRef">操作対象の Element Ref ID。snapshot 用 sessionId 抽出に利用。</param>
@@ -380,6 +388,7 @@ internal static class CommandHelpers
     /// <returns>exit code。</returns>
     public static async Task<int> RunRefOperationAndAutoSnapshotAsync(
         IAdactMcpClient client,
+        string actionName,
         string operationToolName,
         Dictionary<string, object?> operationArgs,
         string elementRef,
@@ -388,6 +397,7 @@ internal static class CommandHelpers
         CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(actionName);
         ArgumentNullException.ThrowIfNull(operationToolName);
         ArgumentNullException.ThrowIfNull(operationArgs);
         ArgumentNullException.ThrowIfNull(elementRef);
@@ -398,23 +408,21 @@ internal static class CommandHelpers
 
         var sessionRef = RefValidator.ExtractSessionId(elementRef);
 
-        if (noSnapshot)
-        {
-            // snapshot 抑制時は最低限の手掛かりとして ref から抽出した sessionId のみ出力する。
-            if (!string.IsNullOrEmpty(sessionRef))
-            {
-                KeyValueWriter.Write("sessionId", sessionRef);
-            }
-            return ExitCodes.Success;
-        }
-
-        return await WriteSnapshotResultAsync(client, sessionRef, snapshotDir, ct).ConfigureAwait(false);
+        return await WriteRefOperationSuccessAsync(
+            client,
+            actionName,
+            operationArgs,
+            sessionRef,
+            noSnapshot,
+            snapshotDir,
+            ct).ConfigureAwait(false);
     }
 
     /// <summary>
     /// session id ベースの操作 (resize/minimize/maximize/restore 等) を呼び、成功時に auto-snapshot を取得する共通フロー。
     /// </summary>
     /// <param name="client">接続済み MCP クライアント。</param>
+    /// <param name="actionName">CLI 側のアクション名 (例: <c>resize</c>)。</param>
     /// <param name="operationToolName">"windows_resize" など操作 MCP ツール名。</param>
     /// <param name="operationArgs">操作ツールに渡す引数 (sessionId は呼び出し側で詰めること)。</param>
     /// <param name="sessionId">対象 session ID (例 "s1")。null は active session。</param>
@@ -424,6 +432,7 @@ internal static class CommandHelpers
     /// <returns>exit code。</returns>
     public static async Task<int> RunSessionOperationAndAutoSnapshotAsync(
         IAdactMcpClient client,
+        string actionName,
         string operationToolName,
         Dictionary<string, object?> operationArgs,
         string? sessionId,
@@ -432,6 +441,7 @@ internal static class CommandHelpers
         CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(actionName);
         ArgumentNullException.ThrowIfNull(operationToolName);
         ArgumentNullException.ThrowIfNull(operationArgs);
 
@@ -439,20 +449,136 @@ internal static class CommandHelpers
         var opErrorExit = McpResponse.TryReportError(opResult);
         if (opErrorExit is { } code) return code;
 
+        return await WriteSessionOperationSuccessAsync(
+            client,
+            actionName,
+            operationArgs,
+            sessionId,
+            noSnapshot,
+            snapshotDir,
+            ct).ConfigureAwait(false);
+    }
+
+    public static int WriteToolSuccess(string actionName, IEnumerable<KeyValuePair<string, string?>> bodyFields)
+    {
+        CliOutput.WriteYamlSuccess(metaFields: null, bodyFields.Prepend(CliOutput.Field("action", actionName)));
+        return ExitCodes.Success;
+    }
+
+    private static async Task<int> WriteRefOperationSuccessAsync(
+        IAdactMcpClient client,
+        string actionName,
+        Dictionary<string, object?> operationArgs,
+        string? sessionId,
+        bool noSnapshot,
+        string? snapshotDir,
+        CancellationToken ct)
+    {
+        _ = actionName;
+        _ = operationArgs;
+
         if (noSnapshot)
         {
-            // snapshot 抑制時は手掛かりとして sessionId のみ出力する (明示指定があれば)。
-            if (!string.IsNullOrEmpty(sessionId))
-            {
-                KeyValueWriter.Write("sessionId", sessionId);
-            }
+            CliOutput.WriteYamlSuccess(metaFields: null, Array.Empty<KeyValuePair<string, string?>>());
             return ExitCodes.Success;
         }
 
-        // minimize 後は座標取得が失敗し snapshot 自体が SNAPSHOT_FAILED を返し得るが、
-        // ツール側で invalid 化した snapshot レスポンスはエラーマップ済みなので CLI は通常通り扱う。
-        // ユーザは --no-snapshot を併用することで snapshot をスキップ可能。
-        return await WriteSnapshotResultAsync(client, sessionId, snapshotDir, ct).ConfigureAwait(false);
+        return await WriteSnapshotMetadataAndBodyAsync(client, sessionId, snapshotDir, Array.Empty<KeyValuePair<string, string?>>(), ct).ConfigureAwait(false);
+    }
+
+    private static async Task<int> WriteSessionOperationSuccessAsync(
+        IAdactMcpClient client,
+        string actionName,
+        Dictionary<string, object?> operationArgs,
+        string? sessionId,
+        bool noSnapshot,
+        string? snapshotDir,
+        CancellationToken ct)
+    {
+        _ = actionName;
+        _ = operationArgs;
+
+        if (noSnapshot)
+        {
+            CliOutput.WriteYamlSuccess(metaFields: null, Array.Empty<KeyValuePair<string, string?>>());
+            return ExitCodes.Success;
+        }
+
+        return await WriteSnapshotMetadataAndBodyAsync(client, sessionId, snapshotDir, Array.Empty<KeyValuePair<string, string?>>(), ct).ConfigureAwait(false);
+    }
+
+    private static async Task<int> WriteSnapshotMetadataAndBodyAsync(
+        IAdactMcpClient client,
+        string? sessionId,
+        string? snapshotDir,
+        IReadOnlyList<KeyValuePair<string, string?>> bodyFields,
+        CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+
+        IReadOnlyDictionary<string, object?>? snapArgs = string.IsNullOrEmpty(sessionId)
+            ? null
+            : new Dictionary<string, object?> { ["sessionId"] = sessionId };
+
+        var snapResult = await client.CallToolAsync("windows_snapshot", snapArgs, ct).ConfigureAwait(false);
+        var snapErrorExit = McpResponse.TryReportError(snapResult);
+        if (snapErrorExit is { } snapCode) return snapCode;
+
+        var snapJson = McpResponse.GetJson(snapResult);
+        var meta = snapJson.ValueKind == JsonValueKind.Object && snapJson.TryGetProperty("_meta", out var m)
+            ? m
+            : default;
+        var resolvedSid = (meta.ValueKind == JsonValueKind.Object
+            ? JsonHelpers.GetStringOrNull(meta, "sessionId")
+            : null) ?? sessionId;
+
+        if (string.IsNullOrEmpty(resolvedSid))
+        {
+            CliError.Write(ErrorCodes.InternalError, "windows_snapshot response missing sessionId.");
+            return ExitCodes.CommandFailed;
+        }
+
+        var raw = ExtractSnapshotJsonText(snapResult, snapJson);
+        string text;
+        try
+        {
+            var (parsedMeta, parsedRoot) = SnapshotJsonParser.Parse(raw);
+            var filtered = SnapshotTreeFilter.Apply(parsedRoot, SnapshotTreeFilter.FilterOperable);
+            text = SnapshotTextFormatter.Format(parsedMeta, filtered, SnapshotTreeFilter.FilterOperable);
+        }
+        catch (JsonException ex)
+        {
+            CliError.Write(ErrorCodes.InternalError,
+                $"Failed to parse snapshot response: {ex.Message}");
+            return ExitCodes.CommandFailed;
+        }
+
+        var sidNum = ParseSidNumber(resolvedSid);
+        var (path, isNew) = SnapshotFileWriter.Write(text, sidNum, snapshotDir);
+        var snapshotPath = $"{path} {(isNew ? "(changed)" : "(unchanged)")}";
+        CliOutput.WriteYamlSuccess(
+            [CliOutput.Field("snapshotPath", snapshotPath)],
+            bodyFields);
+        return ExitCodes.Success;
+    }
+
+    private static string ExtractSnapshotTreeText(string snapshotText)
+    {
+        ArgumentNullException.ThrowIfNull(snapshotText);
+
+        const string separator = "---\n";
+        if (!snapshotText.StartsWith(separator, StringComparison.Ordinal))
+        {
+            return snapshotText;
+        }
+
+        var second = snapshotText.IndexOf(separator, separator.Length, StringComparison.Ordinal);
+        if (second < 0)
+        {
+            return snapshotText;
+        }
+
+        return snapshotText[(second + separator.Length)..];
     }
 
     /// <summary>セッション ID 文字列 (<c>s1</c> など) から数値部分 (1) を取り出す。不正形式は 0 を返す。</summary>

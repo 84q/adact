@@ -59,7 +59,9 @@ internal static class InspectCommand
         if (errorExit is { } code) return code;
 
         var json = McpResponse.GetJson(result);
-        Console.Out.WriteLine(JsonSerializer.Serialize(json));
+        CliOutput.WriteYamlSuccess(
+            metaFields: null,
+            CliOutput.JsonObjectToFields(json, "ref", "name", "controlType", "automationId", "className", "helpText", "value", "boundingRect", "isEnabled", "isOffscreen", "isKeyboardFocusable", "hasKeyboardFocus", "patterns"));
         return ExitCodes.Success;
     }
 }

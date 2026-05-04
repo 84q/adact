@@ -12,7 +12,6 @@
 | 2 | `--verbose` 全コマンド展開 | `attach`/`click`/`fill` 等、すべての CLI コマンドで詳細ログを有効化できるようにする。 | 未着手 | 現状は `adact local --verbose` のみ対応。 |
 | 4 | `.adact/config.json` 拡充 | `defaultSnapshotDir` / `outputFormat` 等、接続先以外の永続設定を追加する。 | 未実装 | `server` フィールドは完了。個人設定とリポジトリ共有設定の分離も含む。discussion/009 §3.3 参照。 |
 | 7 | recipes 提供 | 電卓・メモ帳等の典型操作テンプレートを配布する。 | 未着手 | `adact-cli` Skill 内に含めるか、別 Skill/ディレクトリとして提供するか未決定。 |
-| 9 | 配布・インストール導線 | `adact` コマンド名だけで起動できるようにする。 | 未着手 | .NET tool / 自己完結バイナリ / installer / wrapper 等の方式を比較して決定する。 |
 | 10 | FlaUI テストコード生成 | AI が探索した操作を FlaUI を用いた自動シナリオテストとして生成する。 | 未着手 | Codegen / recipes / Skill 拡張と合わせて設計。出力形式（xUnit+FlaUI 直接 or 中間シナリオ定義）と AI 探索・テスト生成の責務境界も未決定。 |
 | 12 | evaluate コマンド | UIA / アプリ固有操作の escape hatch として汎用実行コマンドを提供する。 | 未着手 | 安全性・API 境界を慎重に設計してから追加。採否未決定。 |
 | 13 | 認証・TLS・CORS | リモート daemon 運用時の保護方針を決め、必要最小限を実装する。 | 未着手 | リモート daemon をどの時点で本格サポート扱いにするか未決定。 |
@@ -29,7 +28,6 @@
 | 24 | ComboBox 選択要素取得のスキル化 | `inspect` で子 ListItem を確認する方法、または `snapshot` の `[selected]` フラグを使った選択確認方法を `adact-cli` Skill に記載する。 | 未着手 | discussion/032 参照。ComboBox 自身の inspect では `IsSelected` が出ず、子 ListItem の inspect が必要。 |
 | 30 | TreeView 展開操作サポート | TreeItem の `click` では子ノードが展開されない（WPF 仕様）。`expand` / `collapse` コマンドの追加、または `click` に `--expand` オプションを追加する。 | 未着手 | discussion/032 参照。現状は Expander ボタンを個別に `click` する必要がある。 |
 | 31 | Slider/ProgressBar の値変更操作 | `RangeValuePattern` を使った `set-value` コマンドを追加し、Slider の値を直接設定できるようにする。 | 未着手 | SampleApp の Basic Controls タブに Slider があるが、値変更コマンドがない。 |
-| 32 | ContextMenu（右クリック）操作 | `right-click <ref>` コマンドを追加する。現状は `click` のみで右クリックメニューが開けない。 | 未着手 | SampleApp の Tree & Menu タブに ContextMenu があるが検証不可。 |
 | 33 | snapshot diff 機能 | `adact diff <file1> <file2>` で2つの snapshot の差分を表示する機能を追加。UI の変化を追跡するのに有用。 | 未着手 | テスト自動化やリグレッション検出に活用可能。 |
 | 34 | XML ドキュメントコメント warning 解消 | `dotnet build` で毎回出る CS1574/CS1734 warning（10件以上）を解消する。同時に、今後同様の warning が発生しないように Skill またはガイドラインに記載する。 | 未着手 | `SnapshotFileWriter.cs`（CS1734）、`SnapshotTreeFilter.cs`（CS1574）、`HttpHost.cs`（CS1570）等。CI 導入時に blocker になりうる。 |
 | 35 | Adact.Cli と Adact.Cli.Client の Program.cs 重複解消 | 両プロジェクトでほぼ同じサブコマンド登録コードがある。共通化またはコード生成を検討する。 | 未着手 | `BuildRoot()` の内容がほぼ同一。`LocalCommand` / `ServeCommand` / `DaemonStopCommand` の有無だけの差。 |
@@ -54,3 +52,6 @@
 | 11 | 失敗時スクリーンショット自動添付 | 操作失敗時に自動的にスクリーンショットを撮影し、エラー出力に添付する。 | 却下 | `REF_NOT_FOUND` 自動再 snapshot と同様の理由。失敗時のスクリーンショット撮影は AI/ユーザ が手動で判断・実行する責務分担とする。 |
 | 16 | state 永続化 | daemon 再起動後も session / window / 設定を復元できるようにする。 | 却下 | 現状は daemon メモリ内状態のみ。 |
 | 17 | README.md 作成 | OSS 公開を見越したトップレベルの README.md を作成する。 | 完了 | 内容（機能紹介、セットアップ、クイックスタート、ロードマップ等）は要検討。 |
+| 32 | ContextMenu（右クリック）操作 | `right-click <ref>` コマンドを追加する。現状は `click` のみで右クリックメニューが開けない。 | 却下 | SampleApp の Tree & Menu タブに ContextMenu があるが検証不可。 |
+| 41 | CLI 出力形式統一 | サブコマンドごとに JSON / TSV / snapshot / 1行 / 出力なし とバラバラだった CLI の stdout を統一する。 | 完了 | yaml風 / TSV風 / snapshot の 3 パターンに統一。すべて stdout に出力。`result` を必須化。`--json` は未導入。discussion/042 参照。 |
+| 9 | 配布・インストール導線 | `adact` コマンド名だけで起動できるようにする。 | 完了 | .NET tool / 自己完結バイナリ / installer / wrapper 等の方式を比較して決定する。 |

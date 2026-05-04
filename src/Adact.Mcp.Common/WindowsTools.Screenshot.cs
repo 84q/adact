@@ -64,8 +64,10 @@ public sealed partial class WindowsTools
         try
         {
             var result = await session!.ScreenshotAsync(string.IsNullOrEmpty(@ref) ? null : @ref, @out, ct).ConfigureAwait(false);
+            var resolvedSessionId = $"s{session.SessionId}";
             var json = new JsonObject
             {
+                ["sessionId"] = resolvedSessionId,
                 ["path"] = result.Path,
                 ["width"] = result.Width,
                 ["height"] = result.Height,

@@ -1,7 +1,10 @@
 using System.CommandLine;
+using System.Text.Json;
 
 using Adact.Cli.Connection;
 using Adact.Cli.Output;
+
+using ModelContextProtocol.Protocol;
 
 namespace Adact.Cli.Commands;
 
@@ -108,7 +111,9 @@ internal static class AttachCommand
 
         var info = McpResponse.GetJson(attachResult);
         var sessionId = JsonHelpers.GetStringOrNull(info, "sessionId");
-        var windowRef = JsonHelpers.GetStringOrNull(info, "windowRef");
+        var windowInfo = info.TryGetProperty("windowInfo", out var wi) ? wi : default;
+        var processId = JsonHelpers.GetIntAsStringOrNull(windowInfo, "processId");
+        var title = JsonHelpers.GetStringOrNull(windowInfo, "windowTitle");
 
         if (string.IsNullOrEmpty(sessionId))
         {
@@ -116,25 +121,57 @@ internal static class AttachCommand
             return ExitCodes.CommandFailed;
         }
 
-        // 出力順は sessionId / windowRef / snapshot (設計 009 §5.2、011 §4.5)。
-        // sessionId / windowRef は attach 結果から書き出し、snapshot は
-        // WriteSnapshotResultAsync (writeSessionId=false) に委譲する。
-        KeyValueWriter.Write("sessionId", sessionId);
-        if (!string.IsNullOrEmpty(windowRef))
+        var bodyFields = new List<KeyValuePair<string, string?>>
         {
-            KeyValueWriter.Write("windowRef", windowRef);
-        }
+            CliOutput.Field("sessionId", sessionId),
+            CliOutput.Field("processId", processId),
+            CliOutput.Field("title", title),
+        };
 
         if (noSnapshot)
         {
+            CliOutput.WriteYamlSuccess(metaFields: null, bodyFields);
             return ExitCodes.Success;
         }
 
-        return await CommandHelpers.WriteSnapshotResultAsync(
-            client,
-            sessionId,
-            snapshotDir,
-            ct,
-            writeSessionId: false).ConfigureAwait(false);
+        return await WriteAttachWithSnapshotAsync(client, sessionId, snapshotDir, bodyFields, ct).ConfigureAwait(false);
+    }
+
+    private static async Task<int> WriteAttachWithSnapshotAsync(
+        IAdactMcpClient client,
+        string sessionId,
+        string? snapshotDir,
+        IReadOnlyList<KeyValuePair<string, string?>> bodyFields,
+        CancellationToken ct)
+    {
+        var snapshotResult = await client.CallToolAsync(
+            "windows_snapshot",
+            new Dictionary<string, object?> { ["sessionId"] = sessionId },
+            ct).ConfigureAwait(false);
+        var errorExit = McpResponse.TryReportError(snapshotResult);
+        if (errorExit is { } code) return code;
+
+        var snapJson = McpResponse.GetJson(snapshotResult);
+        var raw = snapshotResult.Content is { Count: > 0 } content && content[0] is TextContentBlock tcb && !string.IsNullOrEmpty(tcb.Text)
+            ? tcb.Text
+            : snapJson.GetRawText();
+
+        string text;
+        try
+        {
+            var (meta, root) = Snapshots.SnapshotJsonParser.Parse(raw);
+            var filtered = Snapshots.SnapshotTreeFilter.Apply(root, Snapshots.SnapshotTreeFilter.FilterOperable);
+            text = Snapshots.SnapshotTextFormatter.Format(meta, filtered, Snapshots.SnapshotTreeFilter.FilterOperable);
+        }
+        catch (JsonException ex)
+        {
+            CliError.Write(ErrorCodes.InternalError, $"Failed to parse snapshot response: {ex.Message}");
+            return ExitCodes.CommandFailed;
+        }
+
+        var (path, isNew) = Snapshots.SnapshotFileWriter.Write(text, int.Parse(sessionId[1..], System.Globalization.CultureInfo.InvariantCulture), snapshotDir);
+        var snapshotPath = $"{path} {(isNew ? "(changed)" : "(unchanged)")}";
+        CliOutput.WriteYamlSuccess([CliOutput.Field("snapshotPath", snapshotPath)], bodyFields);
+        return ExitCodes.Success;
     }
 }

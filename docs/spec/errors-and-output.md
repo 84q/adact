@@ -1,6 +1,9 @@
 # Errors and Output
 
-ADACT は CLI と MCP の両方で、成功データとエラーを明確に分けます。CLI の stdout は成功時の機械可読データ、stderr はエラーとログです。MCP の業務エラーは `isError: true` の tool result として返します。
+ADACT は CLI と MCP の両方で、成功データとエラーを明確に分けます。
+
+- CLI は通常の成功/失敗情報を **stdout に統一**します
+- MCP の業務エラーは `isError: true` の tool result として返します
 
 ## Exit codes
 
@@ -12,94 +15,83 @@ ADACT は CLI と MCP の両方で、成功データとエラーを明確に分�
 | 3 | ConnectionFailed | daemon への接続失敗 |
 | 4 | EnvironmentNotSupported | daemon 起動環境が不適切。現行では `NO_INTERACTIVE_SESSION` |
 
-## CLI stderr
+## CLI 標準出力
 
-CLI エラーは stderr に key-value 形式で出します。
+### 共通形
 
 ```text
-error <CODE>
-message <human-readable message>
-hint <optional recovery hint>
+result: true|false
+<必要なら追加メタ>
+---
+<本文>
 ```
 
-| 行 | 必須 | 内容 |
+### 共通失敗形
+
+```text
+result: false
+error: <CODE>
+---
+message: <human-readable message>
+hint: <optional recovery hint>
+```
+
+- 成功時は `result: true`
+- 失敗時は `result: false` と `error: <CODE>`
+- `hint` は必要なときだけ出す
+- `serve http` / `serve pipe` は継続実行コマンドのため通常の統一結果フォーマットの主対象外
+
+## CLI 成功形式
+
+| 形式 | コマンド | 内容 |
 | --- | --- | --- |
-| `error` | 必須 | error code |
-| `message` | 必須 | 人間向け説明 |
-| `hint` | 任意 | 復旧手順 |
+| yaml | `attach`, 操作系, lifecycle, `inspect`, `screenshot`, `wait-for`, `wait-for-window`, `launch`, `install`, `daemon-stop` | 先頭メタ + `---` + yaml風本文 |
+| TSV | `list-apps`, `close-all` | 先頭メタ + `---` + TSV 本文 |
+| snapshot | `snapshot` | `snapshotPath` をメタ、本文に `sessionId` + 空行 + tree |
 
-`adact serve` の起動時 `NO_INTERACTIVE_SESSION` もこの形式です。`serve` は成功時にも stderr に `info interactive session ok ...` を出します。
+### yaml 例
 
-## CLI stdout
+```text
+result: true
+snapshotPath: .adact/snapshots/s1/0008.txt (unchanged)
+---
+action: click
+target: s1e42
+```
 
-### key-value
+### TSV 例 (`list-apps`)
 
-多くの client command は `key value` を 1 行ずつ出します。
+```text
+result: true
+---
+windowRef	sessionId	processName	processId	className	windowTitle
+w1	s1	notepad	12345	Notepad	Untitled - Notepad
+```
 
-| コマンド | 例 |
-| --- | --- |
-| `attach` | `sessionId s1`, `windowRef w1`, `snapshot .adact/session-1-...txt` |
-| `snapshot` | `sessionId s1`, `snapshot .adact/session-1-...txt` |
-| `click` / `fill` / その他 auto-snapshot 対象 (`dblclick`, `hover`, `type`, `press`, `check`, `uncheck`, `select`, `clear`, `mouse-wheel`, `resize`, `minimize`, `maximize`, `restore`) | `sessionId s1`, `snapshot .adact/session-1-...txt` |
-| `detach` | `sessionId s1`, `detached` |
-| `close` | `sessionId s1`, `closed`, `detached` |
-| `kill` | `sessionId s1`, `killed`, `detached` |
+### snapshot 例 (`snapshot`)
 
-### TSV
+```text
+result: true
+snapshotPath: .adact/snapshots/s1/0012.txt (changed)
+---
+sessionId: s1
 
-| コマンド | 形式 |
-| --- | --- |
-| `list-apps` | header あり。`windowRef`, `sessionId`, `processName`, `processId`, `className`, `windowTitle` |
-| `close-all` | header なし。`sessionId`, `result`, optional `error` |
+- Window "Untitled - Notepad" [ref=s1e1]
+```
 
-### literal line
+## `close-all` の例外ルール
 
-| コマンド | 出力 |
-| --- | --- |
-| `daemon-stop` | `stopped` |
+`close-all` は部分失敗時だけ例外で、`result: false` としつつ本文を TSV のまま維持します。
 
-### JSON 1 行
+```text
+result: false
+---
+sessionId	result	error
+s1	true	
+s2	false	CLOSE_FAILED
+```
 
-`inspect`, `screenshot`, `wait-for`, `wait-for-window`, `launch` は `Console.WriteLine(JsonSerializer.Serialize(...))` で 1 行の JSON を stdout に出します。
-
-| コマンド | 形 |
-| --- | --- |
-| `inspect` | `{"ref":"s1e7","name":"...","controlType":"Button","automationId":"...","className":"...","helpText":"...","value":"...","boundingRect":{"x":0,"y":0,"width":0,"height":0},"isEnabled":true,"isOffscreen":false,"isKeyboardFocusable":true,"hasKeyboardFocus":false,"patterns":{...}}` |
-| `screenshot` | `{"path":".adact/screenshot-s1-....png","width":800,"height":600}` |
-| `wait-for` | `{"ref":"s1e7","state":"visible"}` (state は `attached` / `detached` / `visible` / `hidden` / `enabled` / `disabled` のいずれか) |
-| `wait-for-window` | `{"processId":1234,"processName":"notepad","windowTitle":"Untitled - Notepad","controlType":"Window","className":"Notepad","nativeWindowHandle":...}` |
-| `launch` | `{"pid":1234,"processName":"notepad.exe","executablePath":"C:\\Windows\\System32\\notepad.exe"}` |
-
-### inspect の JSON スキーマ
-
-`inspect` が返す JSON は `windows_inspect` のシリアライズと同形式で、以下のフィールドを 1 オブジェクトに含みます。
-
-| フィールド | 型 | 内容 |
-| --- | --- | --- |
-| `ref` | string | 入力と同じ element ref |
-| `name` | string? | UIA Name |
-| `controlType` | string | UIA ControlType |
-| `automationId` | string? | UIA AutomationId |
-| `className` | string? | Win32 ClassName |
-| `helpText` | string? | UIA HelpText |
-| `value` | string? | ValuePattern.Value |
-| `boundingRect` | object | `{ "x", "y", "width", "height" }` |
-| `isEnabled` | bool | UIA IsEnabled |
-| `isOffscreen` | bool | UIA IsOffscreen |
-| `isKeyboardFocusable` | bool | UIA IsKeyboardFocusable |
-| `hasKeyboardFocus` | bool | UIA HasKeyboardFocus |
-| `patterns` | object | 対応 Pattern と状態。`Toggle: { ToggleState }`、`SelectionItem: { IsSelected }`、`ExpandCollapse: { ExpandCollapseState }`、`RangeValue: { Min, Max, Value }`、`Window: { VisualState, InteractionState }` のうち取得できたもの |
-
-子要素サマリは含まれません (構造は `snapshot` で取得します)。
-
-### PNG 出力 (`screenshot`)
-
-| 項目 | 内容 |
-| --- | --- |
-| 形式 | PNG 固定。`--out` を指定する場合は拡張子 `.png` 必須 (異なれば CLI 段階で `INVALID_ARGUMENT` exit 2) |
-| 既定保存先 | `.adact/screenshot-<sid>-<UTC ts>.png` |
-| クリップ | `--ref` 指定時は要素の bounding rect、未指定はアタッチ済みウィンドウ全体 |
-| 出力 | stdout に `{ "path", "width", "height" }` JSON 1 行。`path` は CWD からの相対パス |
+ただし `windows_close_all` のレスポンス自体が malformed (`results` が無い/配列でない等) の場合は、TSV ではなく `INTERNAL_ERROR` の yaml失敗出力にします。
 
 ## MCP tool error
 
@@ -113,7 +105,7 @@ MCP tool の業務エラーは JSON-RPC error ではなく tool result として
 | `structuredContent.message` | message |
 | `structuredContent.details` | optional details |
 
-CLI client は `isError: true` を受けると stderr の `error` / `message` / `hint` 形式に変換し、通常は exit code `1` を返します。CLI 入力段階で検出できる不正は daemon に投げず exit code `2` になります。
+CLI client は `isError: true` を受けると stdout の yaml風エラー形式に変換し、通常は exit code `1` を返します。CLI 入力段階で検出できる不正は daemon に投げず exit code `2` になります。
 
 ## 代表エラーコード
 
@@ -130,32 +122,17 @@ CLI client は `isError: true` を受けると stderr の `error` / `message` / 
 | `NOT_FOUND` | MCP | lifecycle / wait-for 等の対象 session がない | 1 |
 | `CLOSE_FAILED` | MCP | window close 失敗 | 1 |
 | `KILL_FAILED` | MCP | process kill 失敗 | 1 |
-| `LAUNCH_FAILED` | Engine→MCP→CLI | `launch` が失敗 (実行ファイル不在、Win32Exception、UWP COM 失敗等) | 1 |
+| `LAUNCH_FAILED` | Engine→MCP→CLI | `launch` が失敗 | 1 |
 | `WAIT_TIMEOUT` | Engine→MCP→CLI | `wait-for` / `wait-for-window` が timeout | 1 |
-| `CONNECTION_FAILED` | CLI | HTTP daemon に接続できない | 3 |
+| `CONNECTION_FAILED` | CLI | daemon に接続できない | 3 |
 | `LOCAL_ONLY` | CLI / MCP | remote target で `daemon-stop` | 2 または 1 |
-| `OPERATION_BLOCKED` | Engine→MCP→CLI | デスクトップがロック / UAC / ウィンドウ非アクティブなどで操作がブロックされた | 1 |
+| `OPERATION_BLOCKED` | Engine→MCP→CLI | デスクトップがロック / UAC 等で操作不能 | 1 |
 | `NO_INTERACTIVE_SESSION` | daemon 起動 | `serve` が非対話 desktop で起動された | 4 |
 | `INTERNAL_ERROR` | CLI / MCP | 予期しない内部失敗 | 1 |
-
-## よくある対応
-
-| エラー | 対応 |
-| --- | --- |
-| `CONNECTION_FAILED` | `adact serve` が起動しているか、`--server` / `.adact/config.json` が `/mcp` を指しているか確認する |
-| `NO_INTERACTIVE_SESSION` | 対象 GUI が動く対話ログオン session 側で `adact serve` を起動する |
-| `REF_NOT_FOUND` | `adact snapshot` を再取得し、新しい `[ref=...]` を使う |
-| `INVALID_WINDOW_REF` | `adact list-apps` で `w<n>` を取り直して `adact attach <w<n>>` を使う |
-| `WINDOW_NOT_FOUND` | `windowRef` に対応する window が表示されているか確認し、必要なら `list-apps` を再実行する |
-| `OPERATION_BLOCKED` | 画面ロックを解除する、UAC プロンプトを閉じる、対象ウィンドウがアクティブで表示されていることを確認する |
-| `WAIT_TIMEOUT` | `--timeout` を伸ばす、待機条件 (`--state` や検索条件) を見直す、対象 UI が想定通り遷移するか確認する |
-| `LAUNCH_FAILED` | 実行ファイルパスを確認する。PATH が通っているか、Win32 / .NET は権限と実行ビットが揃っているか、UWP は `shell:AppsFolder\<AUMID>` の AUMID が正しいかを確認する |
 
 ## 参照
 
 | 文書 | 内容 |
 | --- | --- |
 | [cli.md](cli.md) | CLI コマンドごとの出力 |
-| [mcp-tools.md](mcp-tools.md) | MCP error の構造 |
-| [../development/troubleshooting.md](../development/troubleshooting.md) | 復旧手順 |
-| [../../discussion/018_対話セッション判定.md](../../discussion/018_対話セッション判定.md) | exit 4 / `NO_INTERACTIVE_SESSION` の設計 |
+| [mcp-tools.md](mcp-tools.md) | MCP tool の戻り値と error 構造 |

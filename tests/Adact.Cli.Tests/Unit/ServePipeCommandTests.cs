@@ -25,10 +25,10 @@ public class ServePipeCommandTests
         try
         {
             ServePipeCommand.IsServerRunningAsync = static (_, _, _) => Task.FromResult(true);
-            var (_, stderr, exit) = await RunAsync(["serve", "pipe"]);
+            var (stdout, stderr, exit) = await RunAsync(["serve", "pipe"]);
 
             Assert.Equal(ExitCodes.CommandFailed, exit);
-            Assert.Contains("error " + ErrorCodes.AlreadyRunning, stderr, StringComparison.Ordinal);
+            Assert.Contains("error: " + ErrorCodes.AlreadyRunning, stdout, StringComparison.Ordinal);
         }
         finally
         {

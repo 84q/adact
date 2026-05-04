@@ -136,11 +136,12 @@ public class AutoStartTests
                 return Task.FromResult(true);
             }));
 
-        var (_, stderr, exit) = await RunAsync(["click", "s1e1", "--no-snapshot"]);
+        var (stdout, stderr, exit) = await RunAsync(["click", "s1e1", "--no-snapshot"]);
 
         Assert.Equal(ExitCodes.ConnectionFailed, exit);
         Assert.False(autoStartCalled);
-        Assert.Contains("error CONNECTION_FAILED", stderr);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: CONNECTION_FAILED", stdout);
     }
 
     [Fact]

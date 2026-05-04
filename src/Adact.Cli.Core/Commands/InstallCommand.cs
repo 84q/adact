@@ -99,7 +99,13 @@ internal static class InstallCommand
             return ExitCodes.CommandFailed;
         }
 
-        Console.Out.WriteLine($"installed {SkillName} to {targetDir}");
+        CliOutput.WriteYamlSuccess(
+            metaFields: null,
+            [
+                CliOutput.Field("installed", "true"),
+                CliOutput.Field("skill", SkillName),
+                CliOutput.Field("path", targetDir),
+            ]);
         return ExitCodes.Success;
     }
 

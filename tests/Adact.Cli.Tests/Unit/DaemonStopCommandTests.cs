@@ -28,10 +28,10 @@ public class DaemonStopCommandTests
         var (stdout, stderr, exit) = await RunAsync(["daemon-stop", "--server", remote]);
 
         Assert.Equal(ExitCodes.UserError, exit);
-        Assert.Equal(string.Empty, stdout);
-        Assert.Contains("error " + ErrorCodes.LocalOnly, stderr, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: " + ErrorCodes.LocalOnly, stdout, StringComparison.Ordinal);
         // 接続前に弾けたことの確認 (CONNECTION_FAILED は出ない)。
-        Assert.DoesNotContain(ErrorCodes.ConnectionFailed, stderr, StringComparison.Ordinal);
+        Assert.DoesNotContain(ErrorCodes.ConnectionFailed, stdout, StringComparison.Ordinal);
     }
 
     /// <summary>--server 指定時は HTTP 非対応として LOCAL_ONLY エラーとなることを確認する。</summary>
@@ -39,11 +39,12 @@ public class DaemonStopCommandTests
     [Fact]
     public async Task DaemonStop_WithServer_ReturnsLocalOnly()
     {
-        var (_, stderr, exit) = await RunAsync(["daemon-stop", "--server", "http://127.0.0.1:41300/mcp"]);
+        var (stdout, stderr, exit) = await RunAsync(["daemon-stop", "--server", "http://127.0.0.1:41300/mcp"]);
 
         Assert.Equal(ExitCodes.UserError, exit);
-        Assert.Contains("error " + ErrorCodes.LocalOnly, stderr, StringComparison.Ordinal);
-        Assert.Contains("not supported for HTTP mode", stderr, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: " + ErrorCodes.LocalOnly, stdout, StringComparison.Ordinal);
+        Assert.Contains("not supported for HTTP mode", stdout, StringComparison.Ordinal);
     }
 
     // Phase5 #8 M1/m2: CallToolAsync 経路で daemon が落ちた際の切断系例外は benign 扱いとする。

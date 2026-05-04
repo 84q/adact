@@ -100,3 +100,8 @@ ADACT の Element Ref は Playwright MCP の `_ariaRef` に近い考え方で、
 | [../../discussion/011_ref安定化.md](../../discussion/011_ref安定化.md) | generation 廃止と RuntimeId ベース安定化の設計 |
 | [snapshot.md](snapshot.md) | snapshot 内での ref 表示形式 |
 | [mcp-tools.md](mcp-tools.md) | MCP tools の ref 引数 |
+
+## 2026-05 CLI 出力統一補足
+
+- `sessionId` は CLI の通常メタ領域には出さず、必要なコマンドの本文でのみ表示する。
+- `windowRef` は通常成功出力から廃止し、`list-apps` の TSV 本文列としてのみ残す。

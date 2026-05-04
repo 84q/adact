@@ -50,7 +50,7 @@ internal static class ResizeCommand
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
                 (client, token) => CommandHelpers.RunSessionOperationAndAutoSnapshotAsync(
-                    client, "windows_resize", args, sidArg, noSnap, dirArg, token),
+                    client, "resize", "windows_resize", args, sidArg, noSnap, dirArg, token),
                 ct);
         });
 

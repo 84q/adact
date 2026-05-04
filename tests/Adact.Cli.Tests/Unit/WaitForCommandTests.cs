@@ -19,63 +19,70 @@ public class WaitForCommandTests
     [Fact]
     public async Task WaitFor_RefAndQuery_ReturnsUserError()
     {
-        var (_, stderr, exit) = await RunWaitForAsync(["wait-for", "--ref", "s1e1", "--name", "OK"]);
+        var (stdout, stderr, exit) = await RunWaitForAsync(["wait-for", "--ref", "s1e1", "--name", "OK"]);
         Assert.Equal(ExitCodes.UserError, exit);
-        Assert.Contains("error " + ErrorCodes.InvalidArgument, stderr, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
     }
 
     /// <summary>wait-for: ref も検索条件も無いと INVALID_ARGUMENT。</summary>
     [Fact]
     public async Task WaitFor_NoConditions_ReturnsUserError()
     {
-        var (_, stderr, exit) = await RunWaitForAsync(["wait-for"]);
+        var (stdout, stderr, exit) = await RunWaitForAsync(["wait-for"]);
         Assert.Equal(ExitCodes.UserError, exit);
-        Assert.Contains("error " + ErrorCodes.InvalidArgument, stderr, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
     }
 
     /// <summary>wait-for: 形式不正な --ref は INVALID_REF_FORMAT。</summary>
     [Fact]
     public async Task WaitFor_MalformedRef_ReturnsUserError()
     {
-        var (_, stderr, exit) = await RunWaitForAsync(["wait-for", "--ref", "not-a-ref"]);
+        var (stdout, stderr, exit) = await RunWaitForAsync(["wait-for", "--ref", "not-a-ref"]);
         Assert.Equal(ExitCodes.UserError, exit);
-        Assert.Contains("error " + ErrorCodes.InvalidRefFormat, stderr, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: " + ErrorCodes.InvalidRefFormat, stdout, StringComparison.Ordinal);
     }
 
     /// <summary>wait-for: 未知の --state は INVALID_ARGUMENT。</summary>
     [Fact]
     public async Task WaitFor_UnknownState_ReturnsUserError()
     {
-        var (_, stderr, exit) = await RunWaitForAsync(["wait-for", "--ref", "s1e1", "--state", "focused"]);
+        var (stdout, stderr, exit) = await RunWaitForAsync(["wait-for", "--ref", "s1e1", "--state", "focused"]);
         Assert.Equal(ExitCodes.UserError, exit);
-        Assert.Contains("error " + ErrorCodes.InvalidArgument, stderr, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
     }
 
     /// <summary>wait-for: --timeout 0 は INVALID_ARGUMENT。</summary>
     [Fact]
     public async Task WaitFor_ZeroTimeout_ReturnsUserError()
     {
-        var (_, stderr, exit) = await RunWaitForAsync(["wait-for", "--ref", "s1e1", "--timeout", "0"]);
+        var (stdout, stderr, exit) = await RunWaitForAsync(["wait-for", "--ref", "s1e1", "--timeout", "0"]);
         Assert.Equal(ExitCodes.UserError, exit);
-        Assert.Contains("error " + ErrorCodes.InvalidArgument, stderr, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
     }
 
     /// <summary>wait-for-window: 条件未指定は INVALID_ARGUMENT。</summary>
     [Fact]
     public async Task WaitForWindow_NoConditions_ReturnsUserError()
     {
-        var (_, stderr, exit) = await RunWaitForWindowAsync(["wait-for-window"]);
+        var (stdout, stderr, exit) = await RunWaitForWindowAsync(["wait-for-window"]);
         Assert.Equal(ExitCodes.UserError, exit);
-        Assert.Contains("error " + ErrorCodes.InvalidArgument, stderr, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
     }
 
     /// <summary>wait-for-window: --timeout 0 は INVALID_ARGUMENT。</summary>
     [Fact]
     public async Task WaitForWindow_ZeroTimeout_ReturnsUserError()
     {
-        var (_, stderr, exit) = await RunWaitForWindowAsync(["wait-for-window", "--title", "x", "--timeout", "0"]);
+        var (stdout, stderr, exit) = await RunWaitForWindowAsync(["wait-for-window", "--title", "x", "--timeout", "0"]);
         Assert.Equal(ExitCodes.UserError, exit);
-        Assert.Contains("error " + ErrorCodes.InvalidArgument, stderr, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
     }
 
     /// <summary>wait-for は期待オプションを公開している。</summary>

@@ -47,11 +47,13 @@ internal static class LifecycleCommandImpl
             return ExitCodes.CommandFailed;
         }
 
-        KeyValueWriter.Write("sessionId", resolvedSid);
+        var bodyFields = new List<KeyValuePair<string, string?>> { CliOutput.Field("sessionId", resolvedSid) };
         foreach (var line in literalLines)
         {
-            Console.Out.WriteLine(line);
+            bodyFields.Add(CliOutput.Field(line, "true"));
         }
+
+        CliOutput.WriteYamlSuccess(metaFields: null, bodyFields);
         return ExitCodes.Success;
     }
 }

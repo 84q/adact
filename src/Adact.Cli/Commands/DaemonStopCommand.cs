@@ -51,7 +51,7 @@ internal static class DaemonStopCommand
         await using var client = await ConnectNamedPipeAsync(endpoint, ct).ConfigureAwait(false);
         if (client is null)
         {
-            Console.Out.WriteLine("No daemon is running");
+            CliOutput.WriteYamlSuccess(metaFields: null, [CliOutput.Field("stopped", "false"), CliOutput.Field("message", "No daemon is running")]);
             return ExitCodes.Success;
         }
 
@@ -64,7 +64,7 @@ internal static class DaemonStopCommand
         {
             // daemon_stop の応答前に daemon が落ちてセッションが切断されるケース。
             // 切断は「既に停止した」と見なし success 扱い。
-            Console.Out.WriteLine("stopped");
+            CliOutput.WriteYamlSuccess(metaFields: null, [CliOutput.Field("stopped", "true")]);
             return ExitCodes.Success;
         }
 
@@ -84,7 +84,7 @@ internal static class DaemonStopCommand
             return ExitCodes.CommandFailed;
         }
 
-        Console.Out.WriteLine("stopped");
+        CliOutput.WriteYamlSuccess(metaFields: null, [CliOutput.Field("stopped", "true")]);
         return ExitCodes.Success;
     }
 

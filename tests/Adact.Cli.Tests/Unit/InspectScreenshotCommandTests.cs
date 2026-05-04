@@ -19,10 +19,11 @@ public class InspectScreenshotCommandTests
     [Fact]
     public async Task Inspect_MalformedRef_ReturnsUserError()
     {
-        var (_, stderr, exit) = await RunInspectAsync(["inspect", "not-a-ref"]);
+        var (stdout, stderr, exit) = await RunInspectAsync(["inspect", "not-a-ref"]);
 
         Assert.Equal(ExitCodes.UserError, exit);
-        Assert.Contains("error " + ErrorCodes.InvalidRefFormat, stderr, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: " + ErrorCodes.InvalidRefFormat, stdout, StringComparison.Ordinal);
     }
 
     /// <summary>adact inspect は ref positional argument が必須なので省略するとパーサエラーとなり 0 以外を返す。</summary>
@@ -38,11 +39,12 @@ public class InspectScreenshotCommandTests
     [Fact]
     public async Task Screenshot_MalformedRef_ReturnsUserError()
     {
-        var (_, stderr, exit) = await RunScreenshotAsync(["screenshot", "--ref", "bad"]);
+        var (stdout, stderr, exit) = await RunScreenshotAsync(["screenshot", "--ref", "bad"]);
 
         Assert.Equal(ExitCodes.UserError, exit);
-        Assert.Contains("error " + ErrorCodes.InvalidRefFormat, stderr, StringComparison.Ordinal);
-        Assert.Contains("--ref", stderr, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, stderr);
+        Assert.Contains("error: " + ErrorCodes.InvalidRefFormat, stdout, StringComparison.Ordinal);
+        Assert.Contains("--ref", stdout, StringComparison.Ordinal);
     }
 
     /// <summary>inspect は ref を positional argument として公開していることを検証する。</summary>

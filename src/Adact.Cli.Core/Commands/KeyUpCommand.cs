@@ -33,7 +33,8 @@ internal static class KeyUpCommand
                 async (client, token) =>
                 {
                     var r = await client.CallToolAsync("windows_key_up", args, token).ConfigureAwait(false);
-                    return McpResponse.TryReportError(r) ?? ExitCodes.Success;
+                    var err = McpResponse.TryReportError(r);
+                    return err ?? CommandHelpers.WriteToolSuccess("key-up", [CliOutput.Field("key", key)]);
                 },
                 ct);
         });

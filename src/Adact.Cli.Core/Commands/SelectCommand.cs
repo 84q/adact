@@ -70,7 +70,7 @@ internal static class SelectCommand
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
                 (client, token) => CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
-                    client, "windows_select", args, refValue!, noSnap, dirArg, token),
+                    client, "select", "windows_select", args, refValue!, noSnap, dirArg, token),
                 ct);
         });
         return cmd;

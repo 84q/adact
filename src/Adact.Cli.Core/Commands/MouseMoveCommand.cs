@@ -33,7 +33,8 @@ internal static class MouseMoveCommand
                 async (client, token) =>
                 {
                     var r = await client.CallToolAsync("windows_mouse_move", args, token).ConfigureAwait(false);
-                    return McpResponse.TryReportError(r) ?? ExitCodes.Success;
+                    var err = McpResponse.TryReportError(r);
+                    return err ?? CommandHelpers.WriteToolSuccess("mouse-move", [CliOutput.Field("target", target)]);
                 },
                 ct);
         });

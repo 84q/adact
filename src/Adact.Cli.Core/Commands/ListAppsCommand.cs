@@ -58,17 +58,22 @@ internal static class ListAppsCommand
             return ExitCodes.CommandFailed;
         }
 
-        TsvWriter.WriteHeader("windowRef", "sessionId", "processName", "processId", "className", "windowTitle");
+        var rows = new List<string?[]>();
         foreach (var entry in windows.EnumerateArray())
         {
-            TsvWriter.WriteRow(
+            rows.Add(
+            [
                 JsonHelpers.GetStringOrNull(entry, "windowRef"),
                 JsonHelpers.GetStringOrNull(entry, "sessionId"),
                 JsonHelpers.GetStringOrNull(entry, "processName"),
                 JsonHelpers.GetIntAsStringOrNull(entry, "processId"),
                 JsonHelpers.GetStringOrNull(entry, "className"),
-                JsonHelpers.GetStringOrNull(entry, "windowTitle"));
+                JsonHelpers.GetStringOrNull(entry, "windowTitle")]);
         }
+
+        CliOutput.WriteTsvResult(true,
+            ["windowRef", "sessionId", "processName", "processId", "className", "windowTitle"],
+            rows);
 
         return ExitCodes.Success;
     }

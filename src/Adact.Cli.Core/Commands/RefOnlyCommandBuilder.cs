@@ -53,7 +53,7 @@ internal static class RefOnlyCommandBuilder
                 return CommandHelpers.RunWithClientAsync(
                     serverArg,
                     (client, token) => CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
-                        client, toolName, args, refValue!, noSnap, dirArg, token),
+                        client, name, toolName, args, refValue!, noSnap, dirArg, token),
                     ct);
             }
             return CommandHelpers.RunWithClientAsync(
@@ -61,7 +61,8 @@ internal static class RefOnlyCommandBuilder
                 async (client, token) =>
                 {
                     var r = await client.CallToolAsync(toolName, args, token).ConfigureAwait(false);
-                    return McpResponse.TryReportError(r) ?? ExitCodes.Success;
+                    var err = McpResponse.TryReportError(r);
+                    return err ?? CommandHelpers.WriteToolSuccess(name, [CliOutput.Field("target", refValue)]);
                 },
                 ct);
         });
