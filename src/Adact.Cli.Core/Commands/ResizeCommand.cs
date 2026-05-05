@@ -15,14 +15,14 @@ internal static class ResizeCommand
     {
         var width = new Option<int?>("--width") { Description = "New window width in pixels (must be > 0).", Required = true };
         var height = new Option<int?>("--height") { Description = "New window height in pixels (must be > 0).", Required = true };
-        var sid = new Option<string?>("--sid") { Description = "Target session ID (default: active session)." };
+        var sid = new Argument<string?>("sid") { Arity = ArgumentArity.ZeroOrOne, Description = "Target session ID (default: active session)." };
         var noSnapshot = OperationOptions.NoSnapshot();
         var snapshotDir = OperationOptions.SnapshotDir();
 
         var cmd = new Command("resize", "Resize the attached window via UIA TransformPattern.Resize.");
         cmd.Options.Add(width);
         cmd.Options.Add(height);
-        cmd.Options.Add(sid);
+        cmd.Arguments.Add(sid);
         cmd.Options.Add(noSnapshot);
         cmd.Options.Add(snapshotDir);
 

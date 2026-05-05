@@ -18,6 +18,7 @@ public class WaitAndScreenshotSuccessTests
     private sealed class FakeClient : IAdactMcpClient
     {
         private readonly Queue<CallToolResult> _results = new();
+        public List<(string Name, IReadOnlyDictionary<string, object?>? Arguments)> Calls { get; } = [];
 
         public void Enqueue(CallToolResult result) => _results.Enqueue(result);
 
@@ -27,7 +28,10 @@ public class WaitAndScreenshotSuccessTests
             string name,
             IReadOnlyDictionary<string, object?>? arguments,
             CancellationToken cancellationToken)
-            => ValueTask.FromResult(_results.Dequeue());
+        {
+            Calls.Add((name, arguments));
+            return ValueTask.FromResult(_results.Dequeue());
+        }
     }
 
     [Fact]
@@ -37,12 +41,31 @@ public class WaitAndScreenshotSuccessTests
         client.Enqueue(JsonResult(new { sessionId = "s3", path = "shot.png", width = 100, height = 50 }));
 
         var (stdout, stderr, exit) = await RunWithClientAsync(client, ScreenshotCommand.Build(),
-            ["screenshot", "--ref", "s3e7"]);
+            ["screenshot", "s3e7"]);
 
         Assert.Equal(ExitCodes.Success, exit);
         Assert.Equal(string.Empty, stderr);
         Assert.Contains("sessionId: s3", stdout);
         Assert.Contains("path: shot.png", stdout);
+        var call = Assert.Single(client.Calls);
+        Assert.Equal("windows_screenshot", call.Name);
+        Assert.Equal("s3e7", call.Arguments!["ref"]);
+    }
+
+    [Fact]
+    public async Task Screenshot_WithSidPositional_PassesSessionId()
+    {
+        var client = new FakeClient();
+        client.Enqueue(JsonResult(new { sessionId = "s1", path = "shot.png", width = 10, height = 10 }));
+
+        var (_, _, exit) = await RunWithClientAsync(client, ScreenshotCommand.Build(),
+            ["screenshot", "s1"]);
+
+        Assert.Equal(ExitCodes.Success, exit);
+        var call = Assert.Single(client.Calls);
+        Assert.Equal("windows_screenshot", call.Name);
+        Assert.Equal("s1", call.Arguments!["sessionId"]);
+        Assert.DoesNotContain("ref", call.Arguments.Keys);
     }
 
     [Fact]

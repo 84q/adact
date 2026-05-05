@@ -12,12 +12,16 @@ internal static class SnapshotCommand
     /// <returns>snapshot サブコマンド。</returns>
     public static Command Build()
     {
-        var sid = new Option<string?>("--sid") { Description = "Target session ID (default: active session)." };
+        var sid = new Argument<string?>("sid")
+        {
+            Arity = ArgumentArity.ZeroOrOne,
+            Description = "Target session ID (default: active session).",
+        };
         var snapshotDir = new Option<string?>("--snapshot-dir") { Description = "Snapshot output directory (default '.adact/')." };
         var filter = new Option<string?>("--filter") { Description = "Tree filter: 'operable' (default) or 'raw'." };
 
         var cmd = new Command("snapshot", "Capture a UIA snapshot of the active or specified session.");
-        cmd.Options.Add(sid);
+        cmd.Arguments.Add(sid);
         cmd.Options.Add(snapshotDir);
         cmd.Options.Add(filter);
 

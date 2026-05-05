@@ -35,16 +35,13 @@ public class InspectScreenshotCommandTests
         Assert.NotEqual(ExitCodes.Success, exit);
     }
 
-    /// <summary>adact screenshot --ref に不正形式を渡すと UserError + INVALID_REF_FORMAT を返す。</summary>
+    /// <summary>adact screenshot positional target は ref でなければ sid 扱いになるため parser では拒否しない。</summary>
     [Fact]
-    public async Task Screenshot_MalformedRef_ReturnsUserError()
+    public async Task Screenshot_NonRefTarget_IsAcceptedAsSessionId()
     {
-        var (stdout, stderr, exit) = await RunScreenshotAsync(["screenshot", "--ref", "bad"]);
-
-        Assert.Equal(ExitCodes.UserError, exit);
+        var (_, stderr, exit) = await RunScreenshotAsync(["screenshot", "bad"]);
         Assert.Equal(string.Empty, stderr);
-        Assert.Contains("error: " + ErrorCodes.InvalidRefFormat, stdout, StringComparison.Ordinal);
-        Assert.Contains("--ref", stdout, StringComparison.Ordinal);
+        Assert.NotEqual(ExitCodes.UserError, exit);
     }
 
     /// <summary>inspect は ref を positional argument として公開していることを検証する。</summary>
@@ -57,17 +54,17 @@ public class InspectScreenshotCommandTests
         Assert.NotNull(refArg);
     }
 
-    /// <summary>screenshot は --ref / --out をオプショナルとして公開していることを検証する。</summary>
+    /// <summary>screenshot は target 位置引数(任意) と --out を公開していることを検証する。</summary>
     [Fact]
     public void Screenshot_HasOptionalRefAndOut()
     {
         var cmd = ScreenshotCommand.Build();
         Assert.Equal("screenshot", cmd.Name);
-        var refOpt = cmd.Options.FirstOrDefault(o => o.Name == "--ref");
+        var targetArg = cmd.Arguments.FirstOrDefault(a => a.Name == "target");
         var outOpt = cmd.Options.FirstOrDefault(o => o.Name == "--out");
-        Assert.NotNull(refOpt);
+        Assert.NotNull(targetArg);
         Assert.NotNull(outOpt);
-        Assert.False(refOpt!.Required);
+        Assert.Equal(ArgumentArity.ZeroOrOne, targetArg!.Arity);
         Assert.False(outOpt!.Required);
     }
 

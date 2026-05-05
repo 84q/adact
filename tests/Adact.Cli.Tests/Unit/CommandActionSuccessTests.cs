@@ -133,7 +133,7 @@ public class CommandActionSuccessTests
         var (stdout, stderr, exit) = await RunWithClientAsync(
             client,
             ResizeCommand.Build(),
-            ["resize", "--width", "800", "--height", "600", "--sid", "s9", "--no-snapshot"]);
+            ["resize", "s9", "--width", "800", "--height", "600", "--no-snapshot"]);
 
         Assert.Equal(ExitCodes.Success, exit);
         Assert.Contains("result: true", stdout);
@@ -395,7 +395,7 @@ public class CommandActionSuccessTests
         var (stdout, stderr, exit) = await RunWithClientAsync(
             client,
             command,
-            [command.Name, "--sid", "s12", "--no-snapshot"]);
+            [command.Name, "s12", "--no-snapshot"]);
 
         Assert.Equal(ExitCodes.Success, exit);
         Assert.Contains("result: true", stdout);

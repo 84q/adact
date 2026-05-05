@@ -11,10 +11,10 @@ internal static class CloseCommand
     /// <returns>close サブコマンド。</returns>
     public static Command Build()
     {
-        var sid = new Option<string?>("--sid") { Description = "Target session ID (default: active session)." };
+        var sid = new Argument<string?>("sid") { Arity = ArgumentArity.ZeroOrOne, Description = "Target session ID (default: active session)." };
 
         var cmd = new Command("close", "Close a window via UIA WindowPattern.Close (auto-detach on success).");
-        cmd.Options.Add(sid);
+        cmd.Arguments.Add(sid);
 
         cmd.SetAction((parseResult, ct) =>
         {

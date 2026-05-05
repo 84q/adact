@@ -128,6 +128,19 @@ message: No active session. Call windows_attach first or specify sessionId expli
 - `--no-snapshot` 時は `snapshotPath` を出さない
 - `snapshot` 本文を stdout に出すのは `snapshot` コマンドだけ
 
+## session 指定インターフェース
+
+一部コマンドは session 指定を `--sid` ではなく **任意位置引数 `sid`** で受け取る。
+
+- 対象: `snapshot`, `resize`, `minimize`, `maximize`, `restore`, `close`, `kill`
+- 省略時は従来どおり active session を解決する
+
+`screenshot` は任意位置引数 `target` を 1 つ受け取り、自動判別する。
+
+- `s<digits>e<digits>` なら element ref として扱う
+- それ以外は session id として扱う
+- 未指定時は active session を使う
+
 ## Runtime commands
 
 | コマンド | 主な引数 | 備考 |

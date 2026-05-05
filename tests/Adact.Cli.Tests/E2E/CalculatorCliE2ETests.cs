@@ -106,9 +106,9 @@ public class CalculatorCliE2ETests
                 $"button not found in post-click snapshot: {resolvedClickSnapshot}");
             Assert.Equal(buttonRef, refAfterClick);
 
-            // (4) close --sid <sid>
+            // (4) close <sid>
             var closeResult = CliProcess.RunWithServer(
-                $"close --sid {sessionId}", _fixture.BaseUrl, tempDir);
+                $"close {sessionId}", _fixture.BaseUrl, tempDir);
             Assert.True(closeResult.ExitCode == 0,
                 $"close exit={closeResult.ExitCode}\nstdout: {closeResult.Stdout}\nstderr: {closeResult.Stderr}");
             Assert.Contains("closed", closeResult.Stdout, StringComparison.Ordinal);

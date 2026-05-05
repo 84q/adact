@@ -3,8 +3,7 @@ using System.CommandLine;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// minimize / maximize / restore の共通ビルダ。--sid / --no-snapshot / --snapshot-dir / --server のみを持ち、
-/// 引数は不要なシンプル形式。auto-snapshot あり。
+/// minimize / maximize / restore の共通ビルダ。sid(位置引数, 任意) / --no-snapshot / --snapshot-dir / --server を持つ。
 /// </summary>
 internal static class WindowStateCommandBuilder
 {
@@ -15,12 +14,12 @@ internal static class WindowStateCommandBuilder
     /// <returns>System.CommandLine の <see cref="Command"/>。</returns>
     public static Command Build(string name, string description, string toolName)
     {
-        var sid = new Option<string?>("--sid") { Description = "Target session ID (default: active session)." };
+        var sid = new Argument<string?>("sid") { Arity = ArgumentArity.ZeroOrOne, Description = "Target session ID (default: active session)." };
         var noSnapshot = OperationOptions.NoSnapshot();
         var snapshotDir = OperationOptions.SnapshotDir();
 
         var cmd = new Command(name, description);
-        cmd.Options.Add(sid);
+        cmd.Arguments.Add(sid);
         cmd.Options.Add(noSnapshot);
         cmd.Options.Add(snapshotDir);
 
