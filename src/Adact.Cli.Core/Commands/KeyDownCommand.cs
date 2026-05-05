@@ -17,7 +17,7 @@ internal static class KeyDownCommand
             Description = "Single key name (e.g. 'Shift', 'A', 'F1'). '+' combinations are not allowed.",
         };
 
-        var cmd = new Command("key-down", "Press and hold a single key on the active session's window.");
+        var cmd = new Command("key-down", "Press and hold a single key.");
         cmd.Arguments.Add(keyArg);
 
         cmd.SetAction((pr, ct) =>
@@ -34,7 +34,9 @@ internal static class KeyDownCommand
                 {
                     var r = await client.CallToolAsync("windows_key_down", args, token).ConfigureAwait(false);
                     var err = McpResponse.TryReportError(r);
-                    return err ?? CommandHelpers.WriteToolSuccess("key-down", [CliOutput.Field("key", key)]);
+                    if (err is { } code) return code;
+                    CliOutput.WriteEmptySuccess();
+                    return ExitCodes.Success;
                 },
                 ct);
         });

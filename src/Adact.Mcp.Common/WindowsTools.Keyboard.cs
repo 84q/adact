@@ -2,6 +2,8 @@ using System.ComponentModel;
 
 using Adact.Engine;
 
+using FlaUI.Core.Input;
+
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 
@@ -9,18 +11,15 @@ namespace Adact.Mcp.Common;
 
 public sealed partial class WindowsTools
 {
-    /// <summary>キーコンボ ("Ctrl+Shift+E" 等) を 1 回 press する。ref 指定時はそれにフォーカスしてから送出。</summary>
+    /// <summary>キーコンボ ("Ctrl+Shift+E" 等) を 1 回 press する。session は参照しない。</summary>
     /// <param name="key">キー記述。"Enter", "F5", "Ctrl+C" など。</param>
-    /// <param name="ref">フォーカス対象 (任意)。null の場合は active session のウィンドウ。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "windows_press")]
-    [Description("Press a key combo such as 'Ctrl+C' or 'Enter'. If 'ref' is provided, that element is focused first; otherwise the active session's window is used.")]
+    [Description("Press a key combo such as 'Ctrl+C' or 'Enter'. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> PressAsync(
         [Description("Key combo (e.g. 'Enter', 'F5', 'Ctrl+Shift+E').")]
         string key,
-        [Description("Optional element ref to focus before pressing. Omit to use the active session's window.")]
-        string? @ref = null,
         CancellationToken ct = default)
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
@@ -28,22 +27,13 @@ public sealed partial class WindowsTools
         if (string.IsNullOrEmpty(key))
             return ToolErrors.Error(ToolErrors.InvalidArgument, "key must be a non-empty string.");
 
-        IWindowSession? session;
-        if (@ref is null)
-        {
-            session = _store.GetActiveOrNull();
-            if (session is null)
-                return ToolErrors.Error(ToolErrors.NoActiveSession,
-                    "No active session: attach to a window first or specify 'ref'.");
-        }
-        else
-        {
-            if (!ValidateRef(@ref, out session, out var refError)) return refError!;
-        }
-
         try
         {
-            await session!.PressAsync(key, @ref, ct).ConfigureAwait(false);
+            var (mods, main) = KeyParser.Parse(key);
+            using (PressModifiers(mods))
+            {
+                Keyboard.Type(main);
+            }
             return new CallToolResult { Content = [] };
         }
         catch (ArgumentException ex)
@@ -53,12 +43,12 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "windows_press"); }
     }
 
-    /// <summary>単一キーを押し下げる (release は <see cref="KeyUpAsync"/>)。active session のウィンドウに送る。</summary>
+    /// <summary>単一キーを押し下げる (release は <see cref="KeyUpAsync"/>)。session は参照しない。</summary>
     /// <param name="key">単一キー名。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "windows_key_down")]
-    [Description("Press and hold a single key on the active session's window. Pair with windows_key_up to release.")]
+    [Description("Press and hold a single key. Pair with windows_key_up to release. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> KeyDownAsync(
         [Description("Single key name (e.g. 'Shift', 'A', 'F1'). Combinations with '+' are not allowed here.")]
         string key,
@@ -68,14 +58,9 @@ public sealed partial class WindowsTools
         if (string.IsNullOrEmpty(key))
             return ToolErrors.Error(ToolErrors.InvalidArgument, "key must be a non-empty string.");
 
-        var session = _store.GetActiveOrNull();
-        if (session is null)
-            return ToolErrors.Error(ToolErrors.NoActiveSession,
-                "No active session: attach to a window first.");
-
         try
         {
-            await session.KeyDownAsync(key, ct).ConfigureAwait(false);
+            Keyboard.Press(KeyParser.ParseSingle(key));
             return new CallToolResult { Content = [] };
         }
         catch (ArgumentException ex)
@@ -90,7 +75,7 @@ public sealed partial class WindowsTools
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "windows_key_up")]
-    [Description("Release a single key previously pressed by windows_key_down on the active session's window.")]
+    [Description("Release a single key previously pressed by windows_key_down. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> KeyUpAsync(
         [Description("Single key name (must match the one passed to windows_key_down).")]
         string key,
@@ -100,14 +85,9 @@ public sealed partial class WindowsTools
         if (string.IsNullOrEmpty(key))
             return ToolErrors.Error(ToolErrors.InvalidArgument, "key must be a non-empty string.");
 
-        var session = _store.GetActiveOrNull();
-        if (session is null)
-            return ToolErrors.Error(ToolErrors.NoActiveSession,
-                "No active session: attach to a window first.");
-
         try
         {
-            await session.KeyUpAsync(key, ct).ConfigureAwait(false);
+            Keyboard.Release(KeyParser.ParseSingle(key));
             return new CallToolResult { Content = [] };
         }
         catch (ArgumentException ex)
@@ -147,5 +127,24 @@ public sealed partial class WindowsTools
             return new CallToolResult { Content = [] };
         }
         catch (Exception ex) { return MapOrLog(ex, "windows_type"); }
+    }
+
+    private static ModifierReleaseScope PressModifiers(IReadOnlyList<FlaUI.Core.WindowsAPI.VirtualKeyShort> modifiers)
+    {
+        foreach (var k in modifiers) Keyboard.Press(k);
+        return new ModifierReleaseScope(modifiers);
+    }
+
+    private sealed class ModifierReleaseScope(IReadOnlyList<FlaUI.Core.WindowsAPI.VirtualKeyShort> modifiers) : IDisposable
+    {
+        private readonly IReadOnlyList<FlaUI.Core.WindowsAPI.VirtualKeyShort> _modifiers = modifiers;
+
+        public void Dispose()
+        {
+            for (var i = _modifiers.Count - 1; i >= 0; i--)
+            {
+                Keyboard.Release(_modifiers[i]);
+            }
+        }
     }
 }

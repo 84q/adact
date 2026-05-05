@@ -5,7 +5,7 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
-/// <summary><c>mouse-move</c> コマンド。要素 ref または "x,y" 座標へカーソルを移動する (低レベル: auto-snapshot なし)。</summary>
+/// <summary><c>mouse-move</c> コマンド。"x,y" 座標へカーソルを移動する (低レベル: auto-snapshot なし)。</summary>
 internal static class MouseMoveCommand
 {
     /// <summary>mouse-move サブコマンドを構築する。</summary>
@@ -14,10 +14,10 @@ internal static class MouseMoveCommand
     {
         var targetArg = new Argument<string>("target")
         {
-            Description = "Either an element ref ('s<sid>e<eid>') or screen coordinates ('x,y').",
+            Description = "Absolute screen coordinates ('x,y').",
         };
 
-        var cmd = new Command("mouse-move", "Move the mouse cursor to a target (element ref or 'x,y').");
+        var cmd = new Command("mouse-move", "Move the mouse cursor to absolute screen coordinates ('x,y').");
         cmd.Arguments.Add(targetArg);
 
         cmd.SetAction((pr, ct) =>
@@ -34,7 +34,9 @@ internal static class MouseMoveCommand
                 {
                     var r = await client.CallToolAsync("windows_mouse_move", args, token).ConfigureAwait(false);
                     var err = McpResponse.TryReportError(r);
-                    return err ?? CommandHelpers.WriteToolSuccess("mouse-move", [CliOutput.Field("target", target)]);
+                    if (err is { } code) return code;
+                    CliOutput.WriteEmptySuccess();
+                    return ExitCodes.Success;
                 },
                 ct);
         });

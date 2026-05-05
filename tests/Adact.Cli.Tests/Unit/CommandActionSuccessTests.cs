@@ -279,13 +279,14 @@ public class CommandActionSuccessTests
         Assert.Equal("s9e4", call["ref"]);
     }
 
-    /// <summary>Verifies low-level mouse commands map target and button options.</summary>
+    /// <summary>Verifies low-level mouse commands map arguments to expected tools.</summary>
     [Theory]
     [MemberData(nameof(MouseLowLevelCommands))]
     public async Task MouseLowLevelCommands_Success_MapTargetToExpectedTool(
         Command command,
         string toolName,
         string[] args,
+        string expectedTarget,
         string? expectedButton)
     {
         var client = new FakeClient();
@@ -294,11 +295,19 @@ public class CommandActionSuccessTests
         var (stdout, stderr, exit) = await RunWithClientAsync(client, command, args);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Contains($"action: {command.Name}", stdout);
-        Assert.Contains("target: 10,20", stdout);
+        Assert.Contains("result: true", stdout);
+        Assert.DoesNotContain("action:", stdout);
+        Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = AssertSingleCall(client, toolName);
-        Assert.Equal("10,20", call["target"]);
+        if (!string.IsNullOrEmpty(expectedTarget))
+        {
+            Assert.Equal(expectedTarget, call["target"]);
+        }
+        else
+        {
+            Assert.DoesNotContain("target", call.Keys);
+        }
         if (expectedButton is not null)
         {
             Assert.Equal(expectedButton, call["button"]);
@@ -315,7 +324,7 @@ public class CommandActionSuccessTests
         var (stdout, stderr, exit) = await RunWithClientAsync(
             client,
             MouseWheelCommand.Build(),
-            ["mouse-wheel", "s10e2", "--delta-x", "-1", "--delta-y", "3", "--no-snapshot"]);
+            ["mouse-wheel", "--delta-x", "-1", "--delta-y", "3"]);
 
         Assert.Equal(ExitCodes.Success, exit);
         Assert.Contains("result: true", stdout);
@@ -324,14 +333,14 @@ public class CommandActionSuccessTests
         Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = AssertSingleCall(client, "windows_mouse_wheel");
-        Assert.Equal("s10e2", call["target"]);
+        Assert.DoesNotContain("target", call.Keys);
         Assert.Equal(-1, call["deltaX"]);
         Assert.Equal(3, call["deltaY"]);
     }
 
-    /// <summary>Verifies that press maps key and optional ref into windows_press.</summary>
+    /// <summary>Verifies that press maps key into windows_press.</summary>
     [Fact]
-    public async Task Press_Success_MapsKeyAndRefToWindowsPress()
+    public async Task Press_Success_MapsKeyToWindowsPress()
     {
         var client = new FakeClient();
         client.Enqueue(SuccessResult());
@@ -339,7 +348,7 @@ public class CommandActionSuccessTests
         var (stdout, stderr, exit) = await RunWithClientAsync(
             client,
             PressCommand.Build(),
-            ["press", "Ctrl+Shift+E", "--ref", "s11e5", "--no-snapshot"]);
+            ["press", "Ctrl+Shift+E"]);
 
         Assert.Equal(ExitCodes.Success, exit);
         Assert.Contains("result: true", stdout);
@@ -350,7 +359,7 @@ public class CommandActionSuccessTests
         Assert.Equal(string.Empty, stderr);
         var call = AssertSingleCall(client, "windows_press");
         Assert.Equal("Ctrl+Shift+E", call["key"]);
-        Assert.Equal("s11e5", call["ref"]);
+        Assert.DoesNotContain("ref", call.Keys);
     }
 
     /// <summary>Verifies key down/up map key names into the expected tools.</summary>
@@ -367,8 +376,9 @@ public class CommandActionSuccessTests
             [command.Name, "Shift"]);
 
         Assert.Equal(ExitCodes.Success, exit);
-        Assert.Contains($"action: {command.Name}", stdout);
-        Assert.Contains("key: Shift", stdout);
+        Assert.Contains("result: true", stdout);
+        Assert.DoesNotContain("action:", stdout);
+        Assert.DoesNotContain("key:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = AssertSingleCall(client, toolName);
         Assert.Equal("Shift", call["key"]);
@@ -421,9 +431,9 @@ public class CommandActionSuccessTests
     /// <summary>Provides low-level mouse command builders, CLI args, and expected MCP tool names.</summary>
     public static IEnumerable<object[]> MouseLowLevelCommands()
     {
-        yield return [MouseMoveCommand.Build(), "windows_mouse_move", new[] { "mouse-move", "10,20" }, null!];
-        yield return [MouseDownCommand.Build(), "windows_mouse_down", new[] { "mouse-down", "10,20", "--button", "right" }, "right"];
-        yield return [MouseUpCommand.Build(), "windows_mouse_up", new[] { "mouse-up", "10,20", "--button", "middle" }, "middle"];
+        yield return [MouseMoveCommand.Build(), "windows_mouse_move", new[] { "mouse-move", "10,20" }, "10,20", null!];
+        yield return [MouseDownCommand.Build(), "windows_mouse_down", new[] { "mouse-down", "--button", "right" }, string.Empty, "right"];
+        yield return [MouseUpCommand.Build(), "windows_mouse_up", new[] { "mouse-up", "--button", "middle" }, string.Empty, "middle"];
     }
 
     /// <summary>Provides key command builders and expected MCP tool names.</summary>

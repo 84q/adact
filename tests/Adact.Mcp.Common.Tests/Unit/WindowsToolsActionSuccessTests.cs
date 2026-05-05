@@ -275,15 +275,14 @@ public class WindowsToolsActionSuccessTests
         try
         {
             Assert.True((await tools.PressAsync("Enter")).IsError != true);
-            Assert.True((await tools.PressAsync("Ctrl+A", "s1e2")).IsError != true);
+            Assert.True((await tools.PressAsync("Ctrl+A")).IsError != true);
             Assert.True((await tools.KeyDownAsync("Shift")).IsError != true);
             Assert.True((await tools.KeyUpAsync("Shift")).IsError != true);
             Assert.True((await tools.TypeAsync("s1e2", "abc", delayMs: 5)).IsError != true);
 
-            Assert.Contains("press:Enter:<window>", session.Calls);
-            Assert.Contains("press:Ctrl+A:s1e2", session.Calls);
-            Assert.Contains("key-down:Shift", session.Calls);
-            Assert.Contains("key-up:Shift", session.Calls);
+            Assert.DoesNotContain(session.Calls, c => c.StartsWith("press:", StringComparison.Ordinal));
+            Assert.DoesNotContain(session.Calls, c => c.StartsWith("key-down:", StringComparison.Ordinal));
+            Assert.DoesNotContain(session.Calls, c => c.StartsWith("key-up:", StringComparison.Ordinal));
             Assert.Contains("type:s1e2:abc:5", session.Calls);
         }
         finally { store.Dispose(); }
@@ -301,16 +300,16 @@ public class WindowsToolsActionSuccessTests
             Assert.True((await tools.DblclickAsync("s1e2", button: "middle", positionX: 7, positionY: 8)).IsError != true);
             Assert.True((await tools.HoverAsync("s1e2", positionX: 1, positionY: 2)).IsError != true);
             Assert.True((await tools.MouseMoveAsync("10,20")).IsError != true);
-            Assert.True((await tools.MouseDownAsync("s1e2", button: "right")).IsError != true);
-            Assert.True((await tools.MouseUpAsync("s1e2", button: "right")).IsError != true);
-            Assert.True((await tools.MouseWheelAsync("10,20", deltaY: 3, deltaX: 4)).IsError != true);
+            Assert.True((await tools.MouseDownAsync(button: "right")).IsError != true);
+            Assert.True((await tools.MouseUpAsync(button: "right")).IsError != true);
+            Assert.True((await tools.MouseWheelAsync(deltaY: 3, deltaX: 4)).IsError != true);
 
             Assert.Contains("dblclick:s1e2:Middle:7:8", session.Calls);
             Assert.Contains("hover:s1e2:1:2", session.Calls);
-            Assert.Contains("mouse-move:10,20", session.Calls);
-            Assert.Contains("mouse-down:s1e2:Right", session.Calls);
-            Assert.Contains("mouse-up:s1e2:Right", session.Calls);
-            Assert.Contains("mouse-wheel:10,20:4:3", session.Calls);
+            Assert.DoesNotContain(session.Calls, c => c.StartsWith("mouse-move:", StringComparison.Ordinal));
+            Assert.DoesNotContain(session.Calls, c => c.StartsWith("mouse-down:", StringComparison.Ordinal));
+            Assert.DoesNotContain(session.Calls, c => c.StartsWith("mouse-up:", StringComparison.Ordinal));
+            Assert.DoesNotContain(session.Calls, c => c.StartsWith("mouse-wheel:", StringComparison.Ordinal));
         }
         finally { store.Dispose(); }
     }

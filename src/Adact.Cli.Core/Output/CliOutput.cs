@@ -16,6 +16,11 @@ internal static class CliOutput
         WriteYamlDocument(result: true, errorCode: null, metaFields, bodyFields);
     }
 
+    public static void WriteEmptySuccess()
+    {
+        WriteYamlSuccess(metaFields: null, bodyFields: Array.Empty<KeyValuePair<string, string?>>());
+    }
+
     public static void WriteYamlFailure(
         string errorCode,
         string message,

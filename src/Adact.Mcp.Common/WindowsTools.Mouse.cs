@@ -5,6 +5,8 @@ using Adact.Engine.Snapshot;
 
 using Microsoft.Extensions.Logging;
 
+using FlaUiMouseButton = FlaUI.Core.Input.MouseButton;
+
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 
@@ -85,90 +87,89 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "windows_hover"); }
     }
 
-    /// <summary>マウスカーソルを target (要素 ref または "x,y") に移動する。</summary>
-    /// <param name="target">"s&lt;sid&gt;e&lt;eid&gt;" または "x,y"。</param>
+    /// <summary>マウスカーソルを絶対座標 (x,y) に移動する。</summary>
+    /// <param name="target">"x,y"。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "windows_mouse_move")]
-    [Description("Move the mouse cursor to a target (element ref or absolute screen coordinates 'x,y').")]
+    [Description("Move the mouse cursor to absolute screen coordinates 'x,y'. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> MouseMoveAsync(
-        [Description("Either an element ref ('s<sid>e<eid>') or screen coordinates ('x,y').")]
+        [Description("Absolute screen coordinates ('x,y').")]
         string target,
         CancellationToken ct = default)
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
-        if (!ValidateMouseTarget(target, out var mt, out var session, out var error)) return error!;
+        if (!TryParsePointTarget(target, out var point, out var error)) return error!;
         try
         {
-            await session!.MouseMoveAsync(mt!, ct).ConfigureAwait(false);
+            FlaUI.Core.Input.Mouse.MoveTo(point.X, point.Y);
             return new CallToolResult { Content = [] };
         }
         catch (Exception ex) { return MapOrLog(ex, "windows_mouse_move"); }
     }
 
-    /// <summary>target の位置でマウスボタンを押下したまま保持する。</summary>
-    /// <param name="target">"s&lt;sid&gt;e&lt;eid&gt;" または "x,y"。</param>
+    /// <summary>現在カーソル位置でマウスボタンを押下したまま保持する。</summary>
     /// <param name="button">"left" (default) / "right" / "middle"。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "windows_mouse_down")]
-    [Description("Press and hold a mouse button at the target. Pair with windows_mouse_up to release.")]
+    [Description("Press and hold a mouse button at the current cursor position. Pair with windows_mouse_up to release. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> MouseDownAsync(
-        [Description("Either an element ref ('s<sid>e<eid>') or screen coordinates ('x,y').")]
-        string target,
         [Description("Mouse button: 'left' (default), 'right', or 'middle'.")]
         string? button = null,
         CancellationToken ct = default)
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
-        if (!ValidateMouseTarget(target, out var mt, out var session, out var error)) return error!;
         if (!TryParseMouseButton(button, out var btn, out var btnError))
             return ToolErrors.Error(ToolErrors.InvalidArgument, btnError);
         try
         {
-            await session!.MouseDownAsync(mt!, btn, ct).ConfigureAwait(false);
+            FlaUI.Core.Input.Mouse.Down(btn switch
+            {
+                Adact.Engine.MouseButton.Right => FlaUiMouseButton.Right,
+                Adact.Engine.MouseButton.Middle => FlaUiMouseButton.Middle,
+                _ => FlaUiMouseButton.Left,
+            });
             return new CallToolResult { Content = [] };
         }
         catch (Exception ex) { return MapOrLog(ex, "windows_mouse_down"); }
     }
 
-    /// <summary>target の位置でマウスボタンを解放する。</summary>
-    /// <param name="target">"s&lt;sid&gt;e&lt;eid&gt;" または "x,y"。</param>
+    /// <summary>現在カーソル位置でマウスボタンを解放する。</summary>
     /// <param name="button">"left" (default) / "right" / "middle"。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "windows_mouse_up")]
-    [Description("Release a mouse button at the target. Pair with windows_mouse_down.")]
+    [Description("Release a mouse button at the current cursor position. Pair with windows_mouse_down. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> MouseUpAsync(
-        [Description("Either an element ref ('s<sid>e<eid>') or screen coordinates ('x,y').")]
-        string target,
         [Description("Mouse button: 'left' (default), 'right', or 'middle'.")]
         string? button = null,
         CancellationToken ct = default)
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
-        if (!ValidateMouseTarget(target, out var mt, out var session, out var error)) return error!;
         if (!TryParseMouseButton(button, out var btn, out var btnError))
             return ToolErrors.Error(ToolErrors.InvalidArgument, btnError);
         try
         {
-            await session!.MouseUpAsync(mt!, btn, ct).ConfigureAwait(false);
+            FlaUI.Core.Input.Mouse.Up(btn switch
+            {
+                Adact.Engine.MouseButton.Right => FlaUiMouseButton.Right,
+                Adact.Engine.MouseButton.Middle => FlaUiMouseButton.Middle,
+                _ => FlaUiMouseButton.Left,
+            });
             return new CallToolResult { Content = [] };
         }
         catch (Exception ex) { return MapOrLog(ex, "windows_mouse_up"); }
     }
 
-    /// <summary>target 位置でマウスホイールをスクロールする。<paramref name="deltaY"/> 正値=下、<paramref name="deltaX"/> 正値=右。</summary>
-    /// <param name="target">"s&lt;sid&gt;e&lt;eid&gt;" または "x,y"。</param>
+    /// <summary>現在カーソル位置でマウスホイールをスクロールする。<paramref name="deltaY"/> 正値=下、<paramref name="deltaX"/> 正値=右。</summary>
     /// <param name="deltaY">垂直スクロール量 (notch)。正値で下方向。</param>
     /// <param name="deltaX">水平スクロール量 (notch)。正値で右方向。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "windows_mouse_wheel")]
-    [Description("Scroll the mouse wheel at the target. deltaY > 0 scrolls down, deltaX > 0 scrolls right.")]
+    [Description("Scroll the mouse wheel at the current cursor position. deltaY > 0 scrolls down, deltaX > 0 scrolls right. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> MouseWheelAsync(
-        [Description("Either an element ref ('s<sid>e<eid>') or screen coordinates ('x,y').")]
-        string target,
         [Description("Vertical scroll amount in notches (positive = down).")]
         int deltaY = 0,
         [Description("Horizontal scroll amount in notches (positive = right).")]
@@ -176,10 +177,16 @@ public sealed partial class WindowsTools
         CancellationToken ct = default)
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
-        if (!ValidateMouseTarget(target, out var mt, out var session, out var error)) return error!;
         try
         {
-            await session!.MouseWheelAsync(mt!, deltaX, deltaY, ct).ConfigureAwait(false);
+            if (deltaY != 0)
+            {
+                FlaUI.Core.Input.Mouse.Scroll(-deltaY);
+            }
+            if (deltaX != 0)
+            {
+                FlaUI.Core.Input.Mouse.HorizontalScroll(deltaX);
+            }
             return new CallToolResult { Content = [] };
         }
         catch (Exception ex) { return MapOrLog(ex, "windows_mouse_wheel"); }
@@ -214,16 +221,14 @@ public sealed partial class WindowsTools
         return true;
     }
 
-    /// <summary>target を <see cref="MouseTarget"/> に解析し、ByRef なら ref から、ByPoint なら active session を取得する。</summary>
+    /// <summary>target を <c>x,y</c> 座標として解析する。</summary>
     /// <param name="target">入力文字列。</param>
-    /// <param name="parsed">解析結果。</param>
-    /// <param name="session">対応 session。</param>
+    /// <param name="point">解析結果。</param>
     /// <param name="error">エラー結果。</param>
     /// <returns>成功時 true。</returns>
-    private bool ValidateMouseTarget(string target, out MouseTarget? parsed, out IWindowSession? session, out CallToolResult? error)
+    private static bool TryParsePointTarget(string target, out MouseTarget.ByPoint point, out CallToolResult? error)
     {
-        parsed = null;
-        session = null;
+        point = null!;
         if (string.IsNullOrEmpty(target))
         {
             error = ToolErrors.Error(ToolErrors.InvalidArgument, "target must be a non-empty string.");
@@ -232,33 +237,19 @@ public sealed partial class WindowsTools
 
         try
         {
-            parsed = MouseTarget.Parse(target);
+            var parsed = MouseTarget.Parse(target);
+            if (parsed is not MouseTarget.ByPoint byPoint)
+            {
+                error = ToolErrors.Error(ToolErrors.InvalidArgument,
+                    "target must be absolute screen coordinates in 'x,y' form.");
+                return false;
+            }
+            point = byPoint;
         }
         catch (ArgumentException ex)
         {
             error = ToolErrors.Error(ToolErrors.InvalidArgument, ex.Message);
             return false;
-        }
-
-        if (parsed is MouseTarget.ByRef byRef)
-        {
-            session = _store.ResolveByRef(byRef.Ref);
-            if (session is null)
-            {
-                error = ToolErrors.Error(ToolErrors.RefNotFound,
-                    $"Ref ID '{byRef.Ref}' does not match any known session.");
-                return false;
-            }
-        }
-        else
-        {
-            session = _store.GetActiveOrNull();
-            if (session is null)
-            {
-                error = ToolErrors.Error(ToolErrors.NoActiveSession,
-                    "No active session: attach to a window first or use a ref-based target.");
-                return false;
-            }
         }
         error = null;
         return true;

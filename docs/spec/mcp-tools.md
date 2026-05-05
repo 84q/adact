@@ -14,12 +14,12 @@ CLI はこれらの MCP レスポンスをそのまま表示せず、`discussion
 | Mouse | `windows_click` | Element Ref の要素を click する | `ref`, `button?`, `count?`, `modifiers[]?`, `positionX?`, `positionY?` | 成功時 content 空 |
 | Mouse | `windows_dblclick` | Element Ref の要素をダブルクリックする | `ref`, `button?`, `modifiers[]?`, `positionX?`, `positionY?` | 成功時 content 空 |
 | Mouse | `windows_hover` | Element Ref の要素へ hover する | `ref`, `modifiers[]?`, `positionX?`, `positionY?` | 成功時 content 空 |
-| Mouse | `windows_mouse_move` | element ref または `x,y` 座標へカーソルを移動する | `target` | 成功時 content 空 |
-| Mouse | `windows_mouse_down` / `windows_mouse_up` | element ref または `x,y` でボタンを press / release | `target`, `button?` | 成功時 content 空 |
-| Mouse | `windows_mouse_wheel` | element ref または `x,y` でスクロールする | `target`, `deltaX?`, `deltaY?` | 成功時 content 空 |
+| Mouse | `windows_mouse_move` | `x,y` 座標へカーソルを移動する | `target` | 成功時 content 空 |
+| Mouse | `windows_mouse_down` / `windows_mouse_up` | 現在カーソル位置でボタンを press / release | `button?` | 成功時 content 空 |
+| Mouse | `windows_mouse_wheel` | 現在カーソル位置でスクロールする | `deltaX?`, `deltaY?` | 成功時 content 空 |
 | Keyboard | `windows_fill` | Element Ref の要素に値を入力する | `ref`, `value` | 成功時 content 空 |
 | Keyboard | `windows_type` | Element Ref の要素にテキストを 1 文字ずつ送出する | `ref`, `text`, `delayMs?` | 成功時 content 空 |
-| Keyboard | `windows_press` | キーコンボを送出する | `key`, `ref?` | 成功時 content 空 |
+| Keyboard | `windows_press` | キーコンボを送出する | `key` | 成功時 content 空 |
 | Keyboard | `windows_key_down` / `windows_key_up` | 単キーを press / release | `key` | 成功時 content 空 |
 | Toggle | `windows_check` / `windows_uncheck` | チェック/トグル要素を On/Off にする | `ref` | 成功時 content 空 |
 | Toggle | `windows_select` | リスト/コンボボックスの項目を選択する | `ref`, `name?` / `index?` / `itemRef?` のいずれか | 成功時 content 空 |
@@ -85,10 +85,11 @@ CLI の `adact snapshot` はこの raw JSON を受け取り、CLI 側で `operab
 | Tool | 入力 | 処理概要 |
 | --- | --- | --- |
 | `windows_dblclick` / `windows_hover` | `ref`, `modifiers[]?`, `positionX?`, `positionY?` (`dblclick` のみ `button?`) | element を解決して dblclick / hover |
-| `windows_mouse_move` / `windows_mouse_down` / `windows_mouse_up` | `target` (element ref `s<sid>e<eid>` または `x,y` 文字列)、`button?` | `MouseTarget.Parse` で ByRef / ByPoint を分岐し低レベルマウス操作を実行 |
-| `windows_mouse_wheel` | `target`, `deltaX?`, `deltaY?` (Playwright/DOM 流: 正値=下/右、負値=上/左) | 指定座標または要素中央でホイール操作 |
+| `windows_mouse_move` | `target` (`x,y` 文字列) | `MouseTarget.Parse` で座標を解釈し低レベルマウス移動を実行 |
+| `windows_mouse_down` / `windows_mouse_up` | `button?` | 現在カーソル位置で低レベルマウス押下 / 解放を実行 |
+| `windows_mouse_wheel` | `deltaX?`, `deltaY?` (Playwright/DOM 流: 正値=下/右、負値=上/左) | 現在カーソル位置でホイール操作 |
 | `windows_type` | `ref`, `text`, `delayMs?` | フォーカス後にテキストを 1 文字ずつ送出する |
-| `windows_press` | `key`, `ref?` | `KeyParser` で組合せキー (`Ctrl+Shift+E` 等) を解析し送出。`ref` 指定時は事前にフォーカス |
+| `windows_press` | `key` | `KeyParser` で組合せキー (`Ctrl+Shift+E` 等) を解析し送出 |
 | `windows_key_down` / `windows_key_up` | `key` | 単キーを press / release。修飾キーの保持にも使う |
 | `windows_check` / `windows_uncheck` | `ref` | TogglePattern または SelectionItemPattern で On/Off |
 | `windows_select` | `ref`, `name?` / `index?` / `itemRef?` | リスト要素を `name` exact match、0-based index、または直接 `itemRef` で選択。必要に応じて ExpandCollapse を Expand |
@@ -96,7 +97,7 @@ CLI の `adact snapshot` はこの raw JSON を受け取り、CLI 側で `operab
 | `windows_resize` | `width`, `height`, `sessionId?` | TransformPattern または Win32 でウィンドウサイズを変更 |
 | `windows_minimize` / `windows_maximize` / `windows_restore` | `sessionId?` | WindowPattern.SetWindowVisualState を呼ぶ |
 
-代表エラー: `INVALID_ARGUMENT`, `INVALID_REF_FORMAT`, `REF_NOT_FOUND`, `ELEMENT_INTERACTION_FAILED`, `NO_ACTIVE_SESSION`, `NOT_FOUND`。
+代表エラー: `INVALID_ARGUMENT`, `INVALID_REF_FORMAT`, `REF_NOT_FOUND`, `ELEMENT_INTERACTION_FAILED`, `NOT_FOUND`。
 
 ### `windows_inspect`
 

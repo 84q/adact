@@ -37,9 +37,11 @@ result: true|false
 | Discovery | `list-apps` | TSV | top-level window 一覧 |
 | Session | `attach` | yaml | window に attach し session を作成 |
 | Snapshot | `snapshot` | snapshot | active / 指定 session の snapshot を保存・表示 |
-| Mouse | `click`, `dblclick`, `hover`, `mouse-wheel` | yaml | UI 操作。auto-snapshot 対象 |
+| Mouse | `click`, `dblclick`, `hover` | yaml | UI 操作。auto-snapshot 対象 |
 | Mouse | `mouse-move`, `mouse-down`, `mouse-up` | yaml | 低レベルマウス操作 |
-| Keyboard | `fill`, `type`, `press` | yaml | UI 操作。auto-snapshot 対象 |
+| Mouse | `mouse-wheel` | yaml | 低レベルマウス操作 |
+| Keyboard | `fill`, `type` | yaml | UI 操作。auto-snapshot 対象 |
+| Keyboard | `press` | yaml | 低レベルキー操作 |
 | Keyboard | `key-down`, `key-up` | yaml | 低レベルキー操作 |
 | Toggle | `check`, `uncheck`, `select`, `clear` | yaml | UI 操作。auto-snapshot 対象 |
 | Toggle | `focus`, `scroll-into-view` | yaml | 補助操作 |
@@ -121,7 +123,7 @@ message: No active session. Call windows_attach first or specify sessionId expli
 
 `--no-snapshot` を持ち、成功時に CLI が snapshot を自動取得するコマンド:
 
-`attach`, `click`, `fill`, `dblclick`, `hover`, `mouse-wheel`, `press`, `type`, `check`, `uncheck`, `select`, `clear`, `resize`, `minimize`, `maximize`, `restore`
+`attach`, `click`, `fill`, `dblclick`, `hover`, `type`, `check`, `uncheck`, `select`, `clear`, `resize`, `minimize`, `maximize`, `restore`
 
 - `--no-snapshot` 時は `snapshotPath` を出さない
 - `snapshot` 本文を stdout に出すのは `snapshot` コマンドだけ

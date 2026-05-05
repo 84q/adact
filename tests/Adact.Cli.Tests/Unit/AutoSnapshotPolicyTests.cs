@@ -17,7 +17,7 @@ public class AutoSnapshotPolicyTests
     private const string NoSnapshotOptionName = "--no-snapshot";
 
     /// <summary>
-    /// 設計書で「auto-snapshot あり」分類とされているコマンド (14 コマンド) は、
+    /// 設計書で「auto-snapshot あり」分類とされているコマンドは、
     /// Build() で生成された <see cref="Command"/> に <c>--no-snapshot</c> Option を持たねばならない。
     /// </summary>
     /// <param name="commandName">CLI サブコマンド名。</param>
@@ -30,8 +30,6 @@ public class AutoSnapshotPolicyTests
     [InlineData("uncheck")]
     [InlineData("select")]
     [InlineData("clear")]
-    [InlineData("press")]
-    [InlineData("mouse-wheel")]
     [InlineData("resize")]
     [InlineData("minimize")]
     [InlineData("maximize")]
@@ -44,7 +42,7 @@ public class AutoSnapshotPolicyTests
     }
 
     /// <summary>
-    /// 設計書で「auto-snapshot なし (補助 / 取得・同期)」分類とされているコマンド (11 コマンド) は、
+    /// 設計書で「auto-snapshot なし (補助 / 取得・同期)」分類とされているコマンドは、
     /// Build() で生成された <see cref="Command"/> に <c>--no-snapshot</c> Option を持ってはならない。
     /// </summary>
     /// <param name="commandName">CLI サブコマンド名。</param>
@@ -54,6 +52,8 @@ public class AutoSnapshotPolicyTests
     [InlineData("mouse-move")]
     [InlineData("mouse-down")]
     [InlineData("mouse-up")]
+    [InlineData("mouse-wheel")]
+    [InlineData("press")]
     [InlineData("key-down")]
     [InlineData("key-up")]
     [InlineData("inspect")]

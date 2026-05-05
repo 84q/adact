@@ -11,7 +11,7 @@ namespace Adact.Engine;
 /// 修飾キー列 + メインキーに分解し、<see cref="VirtualKeyShort"/> に解決するヘルパー。
 /// <c>press</c> / <c>key-down</c> / <c>key-up</c> コマンドの引数解析で使う。
 /// </summary>
-internal static class KeyParser
+public static class KeyParser
 {
     /// <summary>
     /// <c>"Ctrl+Shift+E"</c> 形式のキー記述をトークン化する。最後のトークンがメインキー、それ以外は修飾キー扱い。
