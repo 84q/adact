@@ -16,7 +16,7 @@ public sealed partial class WindowsTools
     /// <summary>指定要素をダブルクリックする。修飾キー / 位置 / ボタンは任意。</summary>
     /// <param name="ref">snapshot 由来の element ref。</param>
     /// <param name="button">"left" (default) / "right" / "middle"。</param>
-    /// <param name="modifiers">押下する修飾キー名 (Shift/Control/Alt/Meta/ControlOrMeta)。</param>
+    /// <param name="modifiers">押下する修飾キー名 (Shift/Control/Alt/Meta/Win/Windows)。</param>
     /// <param name="positionX">要素左上基準 X オフセット (px)。</param>
     /// <param name="positionY">要素左上基準 Y オフセット (px)。</param>
     /// <param name="ct">キャンセルトークン。</param>
@@ -28,7 +28,7 @@ public sealed partial class WindowsTools
         string @ref,
         [Description("Mouse button: 'left' (default), 'right', or 'middle'.")]
         string? button = null,
-        [Description("Modifier keys held during the click. Allowed: 'Shift', 'Control', 'Ctrl', 'Alt', 'Meta', 'ControlOrMeta'.")]
+        [Description("Modifier keys held during the click. Allowed: 'Shift', 'Control', 'Ctrl', 'Alt', 'Meta', 'Win', 'Windows'.")]
         IReadOnlyList<string>? modifiers = null,
         [Description("X offset (px) from the element's bounding-rectangle top-left. Omit to click center.")]
         int? positionX = null,
@@ -68,7 +68,7 @@ public sealed partial class WindowsTools
     public async Task<CallToolResult> HoverAsync(
         [Description("Ref ID in the form 's<sid>e<eid>' obtained from a recent windows_snapshot.")]
         string @ref,
-        [Description("Modifier keys held during hover. Allowed: 'Shift', 'Control', 'Ctrl', 'Alt', 'Meta', 'ControlOrMeta'.")]
+        [Description("Modifier keys held during hover. Allowed: 'Shift', 'Control', 'Ctrl', 'Alt', 'Meta', 'Win', 'Windows'.")]
         IReadOnlyList<string>? modifiers = null,
         [Description("X offset (px) from the element's bounding-rectangle top-left. Omit to hover the center.")]
         int? positionX = null,

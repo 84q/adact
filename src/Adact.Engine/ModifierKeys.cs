@@ -6,8 +6,7 @@ namespace Adact.Engine;
 
 /// <summary>
 /// click / hover / dblclick の <c>--modifier</c> 引数 (Playwright 流) を <see cref="VirtualKeyShort"/> 列に変換するヘルパー。
-/// 受理する修飾キー名: <c>Shift</c>, <c>Control</c> (alias <c>Ctrl</c>), <c>Alt</c>, <c>Meta</c>, <c>ControlOrMeta</c>。
-/// Windows プラットフォーム上では <c>ControlOrMeta</c> は Control にマップする。
+/// 受理する修飾キー名: <c>Shift</c>, <c>Control</c> (alias <c>Ctrl</c>), <c>Alt</c>, <c>Meta</c> (alias <c>Win</c>, <c>Windows</c>)。
 /// </summary>
 internal static class ModifierKeys
 {
@@ -45,10 +44,9 @@ internal static class ModifierKeys
             "shift" => VirtualKeyShort.SHIFT,
             "control" or "ctrl" => VirtualKeyShort.CONTROL,
             "alt" => VirtualKeyShort.ALT,
-            "meta" => VirtualKeyShort.LWIN,
-            "controlormeta" => VirtualKeyShort.CONTROL,
+            "meta" or "win" or "windows" => VirtualKeyShort.LWIN,
             _ => throw new System.ArgumentException(
-                $"Unknown modifier '{name}'. Expected one of: Shift, Control (Ctrl), Alt, Meta, ControlOrMeta.",
+                $"Unknown modifier '{name}'. Expected one of: Shift, Control (Ctrl), Alt, Meta (Win, Windows).",
                 nameof(name)),
         };
     }

@@ -262,7 +262,7 @@ public sealed partial class WindowsTools
     /// <param name="ref">snapshot 由来の element ref (例: <c>s1e7</c>)。</param>
     /// <param name="button">"left"/"right"/"middle"。null は "left"。</param>
     /// <param name="count">連打回数 (>=1)。null は 1。</param>
-    /// <param name="modifiers">押下する修飾キー名 (Shift/Control/Ctrl/Alt/Meta/ControlOrMeta)。</param>
+    /// <param name="modifiers">押下する修飾キー名 (Shift/Control/Ctrl/Alt/Meta/Win/Windows)。</param>
     /// <param name="positionX">要素左上基準 X オフセット (px)。null で中央。</param>
     /// <param name="positionY">要素左上基準 Y オフセット (px)。null で中央。</param>
     /// <param name="ct">キャンセル トークン。</param>
@@ -279,7 +279,7 @@ public sealed partial class WindowsTools
         string? button = null,
         [Description("Number of consecutive clicks (>= 1). Defaults to 1.")]
         int? count = null,
-        [Description("Modifier keys held during the click. Allowed: 'Shift', 'Control', 'Ctrl', 'Alt', 'Meta', 'ControlOrMeta'.")]
+        [Description("Modifier keys held during the click. Allowed: 'Shift', 'Control', 'Ctrl', 'Alt', 'Meta', 'Win', 'Windows'.")]
         IReadOnlyList<string>? modifiers = null,
         [Description("X offset (px) from the element's bounding-rectangle top-left. Omit to click center.")]
         int? positionX = null,

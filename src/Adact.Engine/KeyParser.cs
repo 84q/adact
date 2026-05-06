@@ -9,6 +9,7 @@ namespace Adact.Engine;
 /// <summary>
 /// Playwright 流のキー指定 (<c>"Ctrl+Shift+E"</c>, <c>"Enter"</c>, <c>"F1"</c> 等) を
 /// 修飾キー列 + メインキーに分解し、<see cref="VirtualKeyShort"/> に解決するヘルパー。
+/// 修飾キー名: Shift, Control (Ctrl), Alt, Meta (Win, Windows)。
 /// <c>press</c> / <c>key-down</c> / <c>key-up</c> コマンドの引数解析で使う。
 /// </summary>
 public static class KeyParser
@@ -63,7 +64,7 @@ public static class KeyParser
         return ResolveKey(input.Trim());
     }
 
-    /// <summary>修飾キー名 (<c>Shift</c>, <c>Ctrl</c>, <c>Alt</c>, <c>Meta</c>, <c>ControlOrMeta</c>) を解決する。</summary>
+    /// <summary>修飾キー名 (<c>Shift</c>, <c>Ctrl</c>, <c>Alt</c>, <c>Meta</c> / <c>Win</c> / <c>Windows</c>) を解決する。</summary>
     /// <param name="name">トークン文字列。</param>
     /// <returns>対応する仮想キー。</returns>
     /// <exception cref="ArgumentException">未知の修飾キー名の場合。</exception>
@@ -74,10 +75,9 @@ public static class KeyParser
             "shift" => VirtualKeyShort.SHIFT,
             "control" or "ctrl" => VirtualKeyShort.CONTROL,
             "alt" => VirtualKeyShort.ALT,
-            "meta" => VirtualKeyShort.LWIN,
-            "controlormeta" => VirtualKeyShort.CONTROL,
+            "meta" or "win" or "windows" => VirtualKeyShort.LWIN,
             _ => throw new ArgumentException(
-                $"'{name}' is not a known modifier. Expected: Shift, Control (Ctrl), Alt, Meta, ControlOrMeta.",
+                $"'{name}' is not a known modifier. Expected: Shift, Control (Ctrl), Alt, Meta (Win, Windows).",
                 nameof(name)),
         };
     }
@@ -137,7 +137,7 @@ public static class KeyParser
             "shift" => VirtualKeyShort.SHIFT,
             "control" or "ctrl" => VirtualKeyShort.CONTROL,
             "alt" => VirtualKeyShort.ALT,
-            "meta" => VirtualKeyShort.LWIN,
+            "meta" or "win" or "windows" => VirtualKeyShort.LWIN,
             _ => throw new ArgumentException(
                 $"Unknown key '{name}'. Supported: A-Z, 0-9, F1-F24, Enter, Tab, Escape, Space, Backspace, Delete, Insert, Home, End, PageUp, PageDown, Arrow{{Up,Down,Left,Right}}, modifiers.",
                 nameof(name)),

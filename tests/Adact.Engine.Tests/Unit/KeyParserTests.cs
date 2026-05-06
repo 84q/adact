@@ -50,4 +50,54 @@ public class KeyParserTests
     {
         Assert.Throws<System.ArgumentException>(() => KeyParser.ParseSingle("Ctrl+A"));
     }
+
+    /// <summary>"Meta+E" は LWin 修飾と KEY_E に解析される (Meta 別名)。</summary>
+    [Fact]
+    public void Parse_MetaModifier_ResolvesToLWin()
+    {
+        var (mods, main) = KeyParser.Parse("Meta+E");
+        Assert.Single(mods, VirtualKeyShort.LWIN);
+        Assert.Equal(VirtualKeyShort.KEY_E, main);
+    }
+
+    /// <summary>"Win+E" は LWin 修飾と KEY_E に解析される (Win 別名)。</summary>
+    [Fact]
+    public void Parse_WinModifier_ResolvesToLWin()
+    {
+        var (mods, main) = KeyParser.Parse("Win+E");
+        Assert.Single(mods, VirtualKeyShort.LWIN);
+        Assert.Equal(VirtualKeyShort.KEY_E, main);
+    }
+
+    /// <summary>"Windows+E" は LWin 修飾と KEY_E に解析される (Windows 別名)。</summary>
+    [Fact]
+    public void Parse_WindowsModifier_ResolvesToLWin()
+    {
+        var (mods, main) = KeyParser.Parse("Windows+E");
+        Assert.Single(mods, VirtualKeyShort.LWIN);
+        Assert.Equal(VirtualKeyShort.KEY_E, main);
+    }
+
+    /// <summary>"ControlOrMeta" は削除されたため <see cref="System.ArgumentException"/>。</summary>
+    [Fact]
+    public void Parse_ControlOrMeta_Throws()
+    {
+        Assert.Throws<System.ArgumentException>(() => KeyParser.Parse("ControlOrMeta+E"));
+    }
+
+    /// <summary>ParseSingle で "Win" を単一キーとして指定できる。</summary>
+    [Fact]
+    public void ParseSingle_Win_ReturnsLWin()
+    {
+        var key = KeyParser.ParseSingle("Win");
+        Assert.Equal(VirtualKeyShort.LWIN, key);
+    }
+
+    /// <summary>ParseSingle で "Meta" を単一キーとして指定できる。</summary>
+    [Fact]
+    public void ParseSingle_Meta_ReturnsLWin()
+    {
+        var key = KeyParser.ParseSingle("Meta");
+        Assert.Equal(VirtualKeyShort.LWIN, key);
+    }
 }

@@ -19,14 +19,15 @@ public class ModifierKeysTests
         Assert.Empty(ModifierKeys.Resolve(System.Array.Empty<string>()));
     }
 
-    /// <summary>"Shift" / "Control" / "Alt" / "Meta" がそれぞれ対応する VK に解決される。</summary>
+    /// <summary>"Shift" / "Control" / "Alt" / "Meta" / "Win" / "Windows" がそれぞれ対応する VK に解決される。</summary>
     [Theory]
     [InlineData("Shift", VirtualKeyShort.SHIFT)]
     [InlineData("Control", VirtualKeyShort.CONTROL)]
     [InlineData("Ctrl", VirtualKeyShort.CONTROL)]
     [InlineData("Alt", VirtualKeyShort.ALT)]
     [InlineData("Meta", VirtualKeyShort.LWIN)]
-    [InlineData("ControlOrMeta", VirtualKeyShort.CONTROL)]
+    [InlineData("Win", VirtualKeyShort.LWIN)]
+    [InlineData("Windows", VirtualKeyShort.LWIN)]
     public void Resolve_KnownNames_MapToVk(string name, VirtualKeyShort expected)
     {
         var result = ModifierKeys.Resolve(new[] { name });
