@@ -78,12 +78,12 @@ public class InstallCommandTests
     /// <param name="global">--global フラグ。</param>
     /// <param name="expectedTail">期待される相対パス。</param>
     [Theory]
-    [InlineData("copilot", false, ".github/skills/adact-cli")]
-    [InlineData("claude", false, ".claude/skills/adact-cli")]
-    [InlineData("codex", false, ".agents/skills/adact-cli")]
-    [InlineData("copilot", true, ".copilot/skills/adact-cli")]
-    [InlineData("claude", true, ".claude/skills/adact-cli")]
-    [InlineData("codex", true, ".agents/skills/adact-cli")]
+    [InlineData("copilot", false, ".github/skills")]
+    [InlineData("claude", false, ".claude/skills")]
+    [InlineData("codex", false, ".agents/skills")]
+    [InlineData("copilot", true, ".copilot/skills")]
+    [InlineData("claude", true, ".claude/skills")]
+    [InlineData("codex", true, ".agents/skills")]
     public void ResolveTargetDirectory_MatchesDesignMatrix(string client, bool global, string expectedTail)
     {
         var cwd = Path.Combine(Path.GetTempPath(), "adact-cwd");
@@ -102,5 +102,17 @@ public class InstallCommandTests
     {
         Assert.Throws<System.ArgumentException>(() =>
           InstallCommand.ResolveTargetDirectory("vim", global: false, cwd: "C:\\", homeDir: "C:\\"));
+    }
+
+    /// <summary>install 対象 Skill のソースディレクトリが揃っていることを確認する。</summary>
+    [Fact]
+    public void SkillNames_AllHaveSourceDirectories()
+    {
+        var root = InstallCommand.ResolveSourceRootDirectory();
+
+        foreach (var skill in InstallCommand.SkillNames)
+        {
+            Assert.True(Directory.Exists(Path.Combine(root, skill)), $"missing Skill source: {skill}");
+        }
     }
 }

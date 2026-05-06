@@ -99,7 +99,7 @@ flowchart TB
 | `CloseAllCommand` | `--server` | MCP `windows_close_all`、`FormatResults()` | session ごとの TSV 風結果。失敗があれば exit 1 |
 | `DaemonStopCommand` | `--server` | `ConnectionResolver`、localhost guard、MCP `daemon_stop` | `stopped`。応答前切断も停止済みとして成功扱い |
 | `ServeCommand` | `--port` | `HttpHost.RunAsync()` | HTTP daemon の process exit code |
-| `InstallCommand` | `--skills`、`--global`、client 別 install path matrix | output 配下の `Skills/adact-cli` 探索、directory copy | install 先 path と exit code |
+| `InstallCommand` | `--skills`、`--global`、client 別 skills root path matrix、配布対象 Skill 一覧 | output 配下の `Skills/{adact-cli,adact-flaui-testgen}` 探索、各 Skill directory copy | skills root path、配布 Skill 名一覧、exit code |
 | `CommandHelpers` | 共通 option と共通実行関数 | `ConnectionResolver`、`AdactMcpClient`、`McpResponse`、snapshot 変換層 | コマンド別 exit code |
 | `RefValidator` | `w<n>` / `s<n>` / `s<n>e<n>` の regex | CLI 入力検証、element ref から sessionId 抽出 | bool または `sessionId` |
 

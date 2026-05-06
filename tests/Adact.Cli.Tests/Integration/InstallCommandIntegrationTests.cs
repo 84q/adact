@@ -13,16 +13,39 @@ namespace Adact.Cli.Tests.Integration;
 [Trait("Layer", "Integration")]
 public class InstallCommandIntegrationTests
 {
-    private static readonly string[] ExpectedFiles =
+    private static readonly IReadOnlyDictionary<string, string[]> ExpectedSkillFiles =
+      new Dictionary<string, string[]>(StringComparer.Ordinal)
+      {
+          ["adact-cli"] =
+          [
+              "SKILL.md",
+              "references/session-bootstrap.md",
+              "references/snapshots-and-inspection.md",
+              "references/element-actions.md",
+              "references/mouse-and-keyboard.md",
+              "references/selection-and-state.md",
+              "references/window-and-lifecycle.md",
+          ],
+          ["adact-flaui-testgen"] =
+          [
+              "SKILL.md",
+              "references/observation-template.md",
+              "references/output-format.md",
+              "references/flaui-xunit-guidelines.md",
+              "references/pom-guidelines.md",
+          ],
+      };
+
+    private static readonly string[] ExpectedAdactCliFiles =
     {
-    "SKILL.md",
-    "references/session-bootstrap.md",
-    "references/snapshots-and-inspection.md",
-    "references/element-actions.md",
-    "references/mouse-and-keyboard.md",
-    "references/selection-and-state.md",
-    "references/window-and-lifecycle.md",
-  };
+        "SKILL.md",
+        "references/session-bootstrap.md",
+        "references/snapshots-and-inspection.md",
+        "references/element-actions.md",
+        "references/mouse-and-keyboard.md",
+        "references/selection-and-state.md",
+        "references/window-and-lifecycle.md",
+    };
 
     /// <summary>
     /// cwd モードで install した際、クライアント別の期待パスに SKILL ファイル一式が展開されることを確認する。
@@ -124,10 +147,23 @@ public class InstallCommandIntegrationTests
     private static void AssertSkillFilesExist(string targetDir)
     {
         Assert.True(Directory.Exists(targetDir), $"target directory missing: {targetDir}");
-        foreach (var rel in ExpectedFiles)
+        foreach (var rel in ExpectedAdactCliFiles)
         {
             var path = Path.Combine(targetDir, rel.Replace('/', Path.DirectorySeparatorChar));
             Assert.True(File.Exists(path), $"expected Skill file missing: {path}");
+        }
+
+        var skillsRoot = Directory.GetParent(targetDir)?.FullName;
+        Assert.NotNull(skillsRoot);
+        foreach (var (skill, files) in ExpectedSkillFiles)
+        {
+            var skillDir = Path.Combine(skillsRoot, skill);
+            Assert.True(Directory.Exists(skillDir), $"target Skill directory missing: {skillDir}");
+            foreach (var rel in files)
+            {
+                var path = Path.Combine(skillDir, rel.Replace('/', Path.DirectorySeparatorChar));
+                Assert.True(File.Exists(path), $"expected Skill file missing: {path}");
+            }
         }
     }
 }

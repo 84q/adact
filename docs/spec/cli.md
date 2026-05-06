@@ -167,10 +167,11 @@ adact install --skills <copilot|claude|codex> [--global]
 
 | 項目 | 内容 |
 | --- | --- |
-| 目的 | AI coding client 向け Skill ファイルを展開する |
+| 目的 | AI coding client 向け Skill ファイル群を展開する |
 | 入力 | `--skills copilot|claude|codex` は必須。`--global` は user-global install |
-| 出力 | yaml (`installed: true`, `skill`, `path`) |
-| 対象 Skill | `src/Adact.Cli/Skills/adact-cli/` の `SKILL.md` と `references/*.md` |
+| 出力 | yaml (`installed: true`, `skills`, `path`)。`skills` は配布した Skill 名のカンマ区切り、`path` は client 別 skills root |
+| 対象 Skill | `src/Adact.Cli.Core/Skills/{adact-cli,adact-flaui-testgen}/` の `SKILL.md` と `references/*.md` |
+| インストール先 | client 別 skills root 配下に各 Skill ディレクトリ (`adact-cli/`, `adact-flaui-testgen/`) を展開する |
 
 ## 参照
 

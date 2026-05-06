@@ -36,7 +36,7 @@ internal static class OperationOptions
     {
         var opt = new Option<string[]>("--modifier")
         {
-            Description = "Modifier key held during the action (Shift/Control/Ctrl/Alt/Meta/ControlOrMeta). Can be specified multiple times.",
+            Description = "Modifier key held during the action (Shift/Control/Ctrl/Alt/Meta/Win/Windows). Can be specified multiple times.",
             AllowMultipleArgumentsPerToken = true,
         };
         return opt;
@@ -100,10 +100,11 @@ internal static class OperationOptions
                 case "ctrl":
                 case "alt":
                 case "meta":
-                case "controlormeta":
+                case "win":
+                case "windows":
                     continue;
                 default:
-                    error = $"Unknown modifier '{m}'. Allowed: Shift, Control, Ctrl, Alt, Meta, ControlOrMeta.";
+                    error = $"Unknown modifier '{m}'. Allowed: Shift, Control, Ctrl, Alt, Meta, Win, Windows.";
                     return false;
             }
         }

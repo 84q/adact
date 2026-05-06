@@ -12,18 +12,25 @@ internal static class InstallCommand
 {
     /// <summary>
     /// 設計 013 §3.3 のパスマトリクス。
-    /// 値: (cwd 配下の相対パス, ホーム配下の相対パス)。両方とも末尾に skill 名 (adact-cli) を含む。
+    /// 値: (cwd 配下の相対パス, ホーム配下の相対パス)。両方とも skills root を指す。
     /// </summary>
     internal static readonly IReadOnlyDictionary<string, (string CwdRelative, string HomeRelative)>
       ClientPaths = new Dictionary<string, (string, string)>(StringComparer.Ordinal)
       {
-          ["copilot"] = (".github/skills/adact-cli", ".copilot/skills/adact-cli"),
-          ["claude"] = (".claude/skills/adact-cli", ".claude/skills/adact-cli"),
-          ["codex"] = (".agents/skills/adact-cli", ".agents/skills/adact-cli"),
+          ["copilot"] = (".github/skills", ".copilot/skills"),
+          ["claude"] = (".claude/skills", ".claude/skills"),
+          ["codex"] = (".agents/skills", ".agents/skills"),
       };
 
-    /// <summary>インストールされる Skill 名 (ディレクトリ名 / SKILL.md の <c>name</c> フロントマタ)。</summary>
+    /// <summary>主 Skill 名 (ディレクトリ名 / SKILL.md の <c>name</c> フロントマタ)。</summary>
     internal const string SkillName = "adact-cli";
+
+    /// <summary>インストールされる Skill 名。</summary>
+    internal static readonly IReadOnlyList<string> SkillNames =
+    [
+        SkillName,
+        "adact-flaui-testgen",
+    ];
 
     /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
     /// <returns>install サブコマンド。</returns>
@@ -63,10 +70,10 @@ internal static class InstallCommand
     /// <returns>exit code (成功 0)。</returns>
     internal static int Execute(string client, bool global)
     {
-        string sourceDir;
+        string sourceRoot;
         try
         {
-            sourceDir = ResolveSourceDirectory();
+            sourceRoot = ResolveSourceRootDirectory();
         }
         catch (DirectoryNotFoundException ex)
         {
@@ -74,10 +81,10 @@ internal static class InstallCommand
             return ExitCodes.CommandFailed;
         }
 
-        string targetDir;
+        string targetRoot;
         try
         {
-            targetDir = ResolveTargetDirectory(
+            targetRoot = ResolveTargetDirectory(
               client,
               global,
               cwd: Directory.GetCurrentDirectory(),
@@ -91,7 +98,12 @@ internal static class InstallCommand
 
         try
         {
-            CopyDirectory(sourceDir, targetDir);
+            foreach (var skill in SkillNames)
+            {
+                CopyDirectory(
+                  Path.Combine(sourceRoot, skill),
+                  Path.Combine(targetRoot, skill));
+            }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -103,27 +115,48 @@ internal static class InstallCommand
             metaFields: null,
             [
                 CliOutput.Field("installed", "true"),
-                CliOutput.Field("skill", SkillName),
-                CliOutput.Field("path", targetDir),
+                CliOutput.Field("skills", string.Join(",", SkillNames)),
+                CliOutput.Field("path", targetRoot),
             ]);
         return ExitCodes.Success;
     }
 
     /// <summary>
-    /// 出力ディレクトリ配下の <c>Skills/adact-cli/</c> を探す。csproj で
+    /// 出力ディレクトリ配下の <c>Skills/</c> を探す。csproj で
     /// CopyToOutputDirectory=PreserveNewest 指定済み (設計 013 §4.2)。
     /// </summary>
-    /// <returns>Skill ソースディレクトリの絶対パス。</returns>
+    /// <returns>Skill ソース root ディレクトリの絶対パス。</returns>
     /// <exception cref="DirectoryNotFoundException">ソースディレクトリが見つからない場合。</exception>
-    internal static string ResolveSourceDirectory()
+    internal static string ResolveSourceRootDirectory()
     {
-        var dir = Path.Combine(AppContext.BaseDirectory, "Skills", SkillName);
+        var dir = Path.Combine(AppContext.BaseDirectory, "Skills");
         if (!Directory.Exists(dir))
         {
             throw new DirectoryNotFoundException(
               $"Skill source directory not found at '{dir}'. The adact build may be incomplete.");
         }
+
+        foreach (var skill in SkillNames)
+        {
+            var skillDir = Path.Combine(dir, skill);
+            if (!Directory.Exists(skillDir))
+            {
+                throw new DirectoryNotFoundException(
+                  $"Skill source directory not found at '{skillDir}'. The adact build may be incomplete.");
+            }
+        }
+
         return dir;
+    }
+
+    /// <summary>
+    /// 出力ディレクトリ配下の <c>Skills/adact-cli/</c> を探す。
+    /// </summary>
+    /// <returns>Skill ソースディレクトリの絶対パス。</returns>
+    /// <exception cref="DirectoryNotFoundException">ソースディレクトリが見つからない場合。</exception>
+    internal static string ResolveSourceDirectory()
+    {
+        return Path.Combine(ResolveSourceRootDirectory(), SkillName);
     }
 
     /// <summary>
