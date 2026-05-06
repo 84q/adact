@@ -1,13 +1,13 @@
 namespace Adact.Tests.Common;
 
 /// <summary>
-/// calc.exe を使う E2E テストを system-wide に直列化するための named semaphore ヘルパー。
+/// SampleApp を使うテストを system-wide に直列化するための named semaphore ヘルパー。
 /// 異なる VSTest プロセス (アセンブリ間並列) でも有効。
 /// async/await でスレッドが切り替わっても解放できるよう Mutex ではなく Semaphore を使用する。
 /// </summary>
-public sealed class CalculatorMutex : IDisposable
+public sealed class SampleAppMutex : IDisposable
 {
-    private const string SemaphoreName = @"Global\AdactCalculatorE2E";
+    private const string SemaphoreName = @"Global\AdactSampleAppE2E";
     private static readonly TimeSpan WaitTimeout = TimeSpan.FromSeconds(60);
 
     private readonly Semaphore _semaphore;
@@ -17,7 +17,7 @@ public sealed class CalculatorMutex : IDisposable
     /// named semaphore を取得する。
     /// </summary>
     /// <exception cref="TimeoutException">タイムアウトした場合。</exception>
-    public CalculatorMutex()
+    public SampleAppMutex()
     {
         _semaphore = new Semaphore(initialCount: 1, maximumCount: 1, name: SemaphoreName);
         _owned = _semaphore.WaitOne(WaitTimeout);

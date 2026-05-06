@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Adact.Engine;
 using Adact.Engine.Exceptions;
 using Adact.Engine.Snapshot;
+using Adact.Mcp.Common.InputDrivers;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -33,6 +34,10 @@ public sealed partial class WindowsTools
     private readonly IDaemonControl _daemonControl;
     /// <summary>業務例外以外の予期せぬ失敗を記録するロガー。</summary>
     private readonly ILogger<WindowsTools> _logger;
+    /// <summary>低レベルマウス操作の抽象化 (テスト時に差し替え可能)。</summary>
+    private readonly IMouseDriver _mouseDriver;
+    /// <summary>低レベルキーボード操作の抽象化 (テスト時に差し替え可能)。</summary>
+    private readonly IKeyboardDriver _keyboardDriver;
 
 
     /// <summary>
@@ -42,12 +47,22 @@ public sealed partial class WindowsTools
     /// <param name="refStore"><c>w&lt;n&gt;</c> ref を発行・同期する <see cref="WindowRefStore"/>。</param>
     /// <param name="daemonControl"><c>daemon_stop</c> を実行するためのモード固有の実装。</param>
     /// <param name="logger">未マップ例外用ロガー。<c>null</c> の場合は <see cref="NullLogger{T}"/> を使用する。</param>
-    public WindowsTools(SessionStore store, WindowRefStore refStore, IDaemonControl daemonControl, ILogger<WindowsTools>? logger = null)
+    /// <param name="mouseDriver">低レベルマウス操作の実装。省略時は FlaUI 本番実装。</param>
+    /// <param name="keyboardDriver">低レベルキーボード操作の実装。省略時は FlaUI 本番実装。</param>
+    public WindowsTools(
+        SessionStore store,
+        WindowRefStore refStore,
+        IDaemonControl daemonControl,
+        ILogger<WindowsTools>? logger = null,
+        IMouseDriver? mouseDriver = null,
+        IKeyboardDriver? keyboardDriver = null)
     {
         _store = store;
         _refStore = refStore;
         _daemonControl = daemonControl;
         _logger = logger ?? NullLogger<WindowsTools>.Instance;
+        _mouseDriver = mouseDriver ?? new FlaUiMouseDriver();
+        _keyboardDriver = keyboardDriver ?? new FlaUiKeyboardDriver();
     }
 
     /// <summary>

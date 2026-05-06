@@ -205,13 +205,17 @@ public class WindowsToolsActionSuccessTests
             };
     }
 
-    private static (WindowsTools Tools, SessionStore Store, FakeWindowSession Session) CreateTools()
+    private static (WindowsTools Tools, SessionStore Store, FakeWindowSession Session, FakeMouseDriver Mouse, FakeKeyboardDriver Keyboard) CreateTools()
     {
         var store = new SessionStore(new UiaEngine());
         var session = new FakeWindowSession();
         store.Register(session);
-        var tools = new WindowsTools(store, new WindowRefStore(), new FakeDaemonControl());
-        return (tools, store, session);
+        var mouse = new FakeMouseDriver();
+        var keyboard = new FakeKeyboardDriver();
+        var tools = new WindowsTools(
+            store, new WindowRefStore(), new FakeDaemonControl(),
+            mouseDriver: mouse, keyboardDriver: keyboard);
+        return (tools, store, session, mouse, keyboard);
     }
 
     /// <summary>
@@ -220,7 +224,7 @@ public class WindowsToolsActionSuccessTests
     [Fact]
     public async Task Click_Default_DelegatesToSessionClick()
     {
-        var (tools, store, session) = CreateTools();
+        var (tools, store, session, _, _) = CreateTools();
         try
         {
             var result = await tools.ClickAsync("s1e2");
@@ -237,7 +241,7 @@ public class WindowsToolsActionSuccessTests
     [Fact]
     public async Task Click_WithOptions_DelegatesToSessionClickWithOptions()
     {
-        var (tools, store, session) = CreateTools();
+        var (tools, store, session, _, _) = CreateTools();
         try
         {
             var result = await tools.ClickAsync("s1e2", button: "right", count: 2, positionX: 3, positionY: 4);
@@ -254,7 +258,7 @@ public class WindowsToolsActionSuccessTests
     [Fact]
     public async Task Fill_DelegatesToSession()
     {
-        var (tools, store, session) = CreateTools();
+        var (tools, store, session, _, _) = CreateTools();
         try
         {
             var result = await tools.FillAsync("s1e2", "value");
@@ -266,12 +270,12 @@ public class WindowsToolsActionSuccessTests
     }
 
     /// <summary>
-    /// Keyboard action tools delegate to IWindowSession.
+    /// Keyboard action tools delegate to IWindowSession (press/key-down/key-up are low-level and go through IKeyboardDriver instead).
     /// </summary>
     [Fact]
     public async Task KeyboardActions_DelegateToSession()
     {
-        var (tools, store, session) = CreateTools();
+        var (tools, store, session, _, keyboard) = CreateTools();
         try
         {
             Assert.True((await tools.PressAsync("Enter")).IsError != true);
@@ -280,21 +284,30 @@ public class WindowsToolsActionSuccessTests
             Assert.True((await tools.KeyUpAsync("Shift")).IsError != true);
             Assert.True((await tools.TypeAsync("s1e2", "abc", delayMs: 5)).IsError != true);
 
+            // press/key-down/key-up はセッションを通さず、IKeyboardDriver へ委譲される
             Assert.DoesNotContain(session.Calls, c => c.StartsWith("press:", StringComparison.Ordinal));
             Assert.DoesNotContain(session.Calls, c => c.StartsWith("key-down:", StringComparison.Ordinal));
             Assert.DoesNotContain(session.Calls, c => c.StartsWith("key-up:", StringComparison.Ordinal));
             Assert.Contains("type:s1e2:abc:5", session.Calls);
+
+            // FakeKeyboardDriver で実際の呼び出しを検証
+            Assert.Contains(keyboard.Calls, c => c.Contains("type:ENTER", StringComparison.Ordinal));
+            Assert.Contains(keyboard.Calls, c => c.Contains("press:CONTROL", StringComparison.Ordinal));
+            Assert.Contains(keyboard.Calls, c => c.Contains("type:KEY_A", StringComparison.Ordinal));
+            Assert.Contains(keyboard.Calls, c => c.Contains("release:CONTROL", StringComparison.Ordinal));
+            Assert.Contains(keyboard.Calls, c => c.Contains("press:SHIFT", StringComparison.Ordinal));
+            Assert.Contains(keyboard.Calls, c => c.Contains("release:SHIFT", StringComparison.Ordinal));
         }
         finally { store.Dispose(); }
     }
 
     /// <summary>
-    /// Mouse action tools delegate to IWindowSession with parsed targets.
+    /// Mouse action tools delegate to IWindowSession (mouse-move/down/up/wheel are low-level and go through IMouseDriver instead).
     /// </summary>
     [Fact]
     public async Task MouseActions_DelegateToSession()
     {
-        var (tools, store, session) = CreateTools();
+        var (tools, store, session, mouse, _) = CreateTools();
         try
         {
             Assert.True((await tools.DblclickAsync("s1e2", button: "middle", positionX: 7, positionY: 8)).IsError != true);
@@ -306,10 +319,18 @@ public class WindowsToolsActionSuccessTests
 
             Assert.Contains("dblclick:s1e2:Middle:7:8", session.Calls);
             Assert.Contains("hover:s1e2:1:2", session.Calls);
+            // mouse-move/down/up/wheel はセッションを通さず、IMouseDriver へ委譲される
             Assert.DoesNotContain(session.Calls, c => c.StartsWith("mouse-move:", StringComparison.Ordinal));
             Assert.DoesNotContain(session.Calls, c => c.StartsWith("mouse-down:", StringComparison.Ordinal));
             Assert.DoesNotContain(session.Calls, c => c.StartsWith("mouse-up:", StringComparison.Ordinal));
             Assert.DoesNotContain(session.Calls, c => c.StartsWith("mouse-wheel:", StringComparison.Ordinal));
+
+            // FakeMouseDriver で実際の呼び出しを検証
+            Assert.Contains("move:10,20", mouse.Calls);
+            Assert.Contains("down:Right", mouse.Calls);
+            Assert.Contains("up:Right", mouse.Calls);
+            Assert.Contains("scroll:-3", mouse.Calls);
+            Assert.Contains("hscroll:4", mouse.Calls);
         }
         finally { store.Dispose(); }
     }
@@ -320,7 +341,7 @@ public class WindowsToolsActionSuccessTests
     [Fact]
     public async Task ToggleAndFocusActions_DelegateToSession()
     {
-        var (tools, store, session) = CreateTools();
+        var (tools, store, session, _, _) = CreateTools();
         try
         {
             Assert.True((await tools.CheckAsync("s1e2")).IsError != true);
@@ -346,7 +367,7 @@ public class WindowsToolsActionSuccessTests
     [Fact]
     public async Task WindowActions_DelegateToSession()
     {
-        var (tools, store, session) = CreateTools();
+        var (tools, store, session, _, _) = CreateTools();
         try
         {
             Assert.True((await tools.ResizeAsync(800, 600)).IsError != true);
@@ -370,7 +391,7 @@ public class WindowsToolsActionSuccessTests
     [InlineData("kill")]
     public async Task LifecycleActions_DelegateAndDetachOnSuccess(string action)
     {
-        var (tools, store, session) = CreateTools();
+        var (tools, store, session, _, _) = CreateTools();
         try
         {
             var result = action == "close"

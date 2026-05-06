@@ -12,12 +12,12 @@ using Xunit;
 namespace Adact.Mcp.Http.Tests.E2E;
 
 /// <summary>
-/// HTTP daemon 経由で実 calc.exe に attach し、snapshot まで一連の MCP ツールを E2E で検証するテスト群。
+/// HTTP daemon 経由で実 SampleApp に attach し、snapshot まで一連の MCP ツールを E2E で検証するテスト群。
 /// HTTP トランスポートと UIA 操作パイプライン全体の回帰を E2E レイヤーで防ぐため。
 /// </summary>
 [Trait("Layer", "E2E")]
 [Collection("AdactHttp")]
-public class CalculatorHttpE2ETests
+public class SampleAppHttpE2ETests
 {
     private readonly AdactHttpServerFixture _fixture;
 
@@ -25,7 +25,7 @@ public class CalculatorHttpE2ETests
     /// 共有 HTTP サーバーフィクスチャを受け取る xUnit コンストラクタ。
     /// </summary>
     /// <param name="fixture">テスト全体で共有される <see cref="AdactHttpServerFixture"/>。</param>
-    public CalculatorHttpE2ETests(AdactHttpServerFixture fixture)
+    public SampleAppHttpE2ETests(AdactHttpServerFixture fixture)
     {
         _fixture = fixture;
     }
@@ -41,21 +41,21 @@ public class CalculatorHttpE2ETests
     }
 
     /// <summary>
-    /// 電卓 (calc.exe) を起動し HTTP MCP 経由で windows_attach → windows_snapshot を実行し、
+    /// SampleApp を起動し HTTP MCP 経由で windows_attach → windows_snapshot を実行し、
     /// snapshot tree に複数の Button ノードが含まれることを確認する。
     /// HTTP トランスポート + UIA + ref 採番の E2E 通しシナリオの回帰防止。
     /// </summary>
     /// <returns>テスト完了タスク。</returns>
     [InteractiveFact]
-    public async Task AttachAndSnapshot_OnCalculator_ReturnsTreeWithButtons()
+    public async Task AttachAndSnapshot_OnSampleApp_ReturnsTreeWithButtons()
     {
         InteractiveTestGuard.SkipIfNotInteractive();
 
-        // calc.exe を使う E2E をアセンブリ間並列でも直列化するための named semaphore
-        using var _calcLock = new CalculatorMutex();
-        var calculator = _fixture.UsesExternalServer
+        // SampleApp を使う E2E をアセンブリ間並列でも直列化するための named semaphore
+        using var _appLock = new SampleAppMutex();
+        var sampleApp = _fixture.UsesExternalServer
             ? null
-            : await CalculatorTestHelper.StartFreshCalculatorAsync(TimeSpan.FromSeconds(10));
+            : await SampleAppTestHelper.StartFreshSampleAppAsync(TimeSpan.FromSeconds(10));
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
@@ -65,7 +65,7 @@ public class CalculatorHttpE2ETests
             {
                 var launch = await client.CallToolAsync(
                     "windows_launch",
-                    new Dictionary<string, object?> { ["executable"] = "calc.exe" },
+                    new Dictionary<string, object?> { ["executable"] = "SampleApp.exe" },
                     cancellationToken: cts.Token);
                 Assert.False(launch.IsError ?? false,
                     $"windows_launch failed: {(launch.Content.FirstOrDefault() as TextContentBlock)?.Text}");
@@ -82,7 +82,7 @@ public class CalculatorHttpE2ETests
                 listText = (listResult.Content[0] as TextContentBlock)?.Text;
                 Assert.NotNull(listText);
 
-                windowRef = CalculatorWindowFinder.FindWindowRef(listText!);
+                windowRef = SampleAppWindowFinder.FindWindowRef(listText!);
                 if (!string.IsNullOrEmpty(windowRef))
                 {
                     break;
@@ -91,7 +91,7 @@ public class CalculatorHttpE2ETests
                 await Task.Delay(200, cts.Token);
             }
             Assert.False(string.IsNullOrEmpty(windowRef),
-                $"Calculator windowRef not found in windows_list_apps output: {listText}");
+                $"SampleApp windowRef not found in windows_list_apps output: {listText}");
 
             // attach (windowRef 経由)
             var attach = await client.CallToolAsync(
@@ -112,7 +112,7 @@ public class CalculatorHttpE2ETests
             var tree = doc.RootElement.GetProperty("tree");
             var buttonCount = CountByRole(tree, "Button");
             Assert.True(buttonCount > 1,
-                $"Calculator snapshot should contain multiple Button nodes; got {buttonCount}.");
+                $"SampleApp snapshot should contain multiple Button nodes; got {buttonCount}.");
 
             if (_fixture.UsesExternalServer)
             {
@@ -123,9 +123,9 @@ public class CalculatorHttpE2ETests
         {
             if (!_fixture.UsesExternalServer)
             {
-                CalculatorTestHelper.KillCalculatorProcesses();
+                SampleAppTestHelper.KillSampleAppProcesses();
             }
-            try { calculator?.Dispose(); } catch { }
+            try { sampleApp?.Dispose(); } catch { }
         }
     }
 

@@ -8,12 +8,12 @@ using Xunit;
 namespace Adact.Cli.Tests.E2E;
 
 /// <summary>
-/// L5 E2E: <c>adact.exe</c> サブプロセスを直接起動して daemon に接続し、実 calc.exe を操作する通しフロー。
+/// L5 E2E: <c>adact.exe</c> サブプロセスを直接起動して daemon に接続し、実 SampleApp を操作する通しフロー。
 /// 設計 009 §9.2 (E2E シナリオ): list-apps → attach → snapshot → click → close。
 /// </summary>
 [Trait("Layer", "E2E")]
 [Collection("AdactCli")]
-public class CalculatorCliE2ETests
+public class SampleAppCliE2ETests
 {
     private readonly AdactDaemonFixture _fixture;
 
@@ -21,36 +21,36 @@ public class CalculatorCliE2ETests
     /// 共有 daemon フィクスチャを受け取る xUnit コンストラクタ。
     /// </summary>
     /// <param name="fixture">テスト全体で共有される <see cref="AdactDaemonFixture"/>。</param>
-    public CalculatorCliE2ETests(AdactDaemonFixture fixture)
+    public SampleAppCliE2ETests(AdactDaemonFixture fixture)
     {
         _fixture = fixture;
     }
 
     /// <summary>
-    /// 実 calc.exe に対して list-apps → attach → click → close の一連の CLI コマンドを逓次実行し、
+    /// 実 SampleApp に対して list-apps → attach → click → close の一連の CLI コマンドを逓次実行し、
     /// stdout の key/value ・snapshot ファイル・ref 安定性・close 出力まで含めて検証する。
     /// CLI と daemon と UIA を含む E2E テスト (設計 009 §9.2) のテスト。
     /// </summary>
     [Fact]
-    public async Task ListAttachSnapshotClickCloseFlow_OnCalculator_Succeeds()
+    public async Task ListAttachSnapshotClickCloseFlow_OnSampleApp_Succeeds()
     {
-        using var _calcLock = new CalculatorMutex();
+        using var _appLock = new SampleAppMutex();
 
         // snapshot を一時ディレクトリに書き出すため、cwd = 専用 temp dir。
         var tempDir = Path.Combine(Path.GetTempPath(), "adact-cli-e2e-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempDir);
 
-        var calculator = await CalculatorTestHelper.StartFreshCalculatorAsync(TimeSpan.FromSeconds(10));
+        var sampleApp = await SampleAppTestHelper.StartFreshSampleAppAsync(TimeSpan.FromSeconds(10));
         try
         {
-            // (1) list-apps → 電卓行から windowRef を抽出
+            // (1) list-apps → SampleApp 行から windowRef を抽出
             var listResult = CliProcess.RunWithServer("list-apps", _fixture.BaseUrl, tempDir);
             Assert.True(listResult.ExitCode == 0,
                 $"list-apps exit={listResult.ExitCode}\nstdout: {listResult.Stdout}\nstderr: {listResult.Stderr}");
 
-            var windowRef = ExtractCalculatorWindowRef(listResult.Stdout);
+            var windowRef = ExtractSampleAppWindowRef(listResult.Stdout);
             Assert.False(string.IsNullOrEmpty(windowRef),
-                $"Calculator windowRef not found in list-apps output:\n{listResult.Stdout}");
+                $"SampleApp windowRef not found in list-apps output:\n{listResult.Stdout}");
 
             // (2) attach <windowRef>
             var attachResult = CliProcess.RunWithServer($"attach {windowRef}", _fixture.BaseUrl, tempDir);
@@ -64,9 +64,12 @@ public class CalculatorCliE2ETests
 
             Assert.Null(ExtractKeyValue(attachResult.Stdout, "generation"));
 
-            var snapshotPath = ExtractKeyValue(attachResult.Stdout, "snapshot");
+            var snapshotPath = ExtractKeyValue(attachResult.Stdout, "snapshotPath");
             Assert.False(string.IsNullOrEmpty(snapshotPath),
                 $"snapshot path not found in attach stdout:\n{attachResult.Stdout}");
+
+            // snapshotPath の末尾に "(changed)" / "(unchanged)" 注記があれば除去
+            snapshotPath = StripSnapshotNote(snapshotPath!);
 
             // snapshot ファイルは cwd (tempDir) の .adact/ 下に出力される (設計 §4.4)。
             var resolvedSnapshot = Path.IsPathRooted(snapshotPath!)
@@ -75,10 +78,10 @@ public class CalculatorCliE2ETests
             Assert.True(File.Exists(resolvedSnapshot),
                 $"snapshot file not found: {resolvedSnapshot}");
 
-            // (3) snapshot text から電卓ボタンの ref を抽出 → click
-            var buttonRef = FindCalculatorButtonRef(resolvedSnapshot);
+            // (3) snapshot text から Submit ボタンの ref を抽出 → click
+            var buttonRef = FindSubmitButtonRef(resolvedSnapshot);
             Assert.False(string.IsNullOrEmpty(buttonRef),
-                $"Calculator Button ref not found in snapshot file: {resolvedSnapshot}");
+                $"Submit Button ref not found in snapshot file: {resolvedSnapshot}");
             // 後で同一 button の ref 比較に使うため、Name / AutomationId も取得しておく。
             var (buttonName, buttonAutomationId) = FindNodeIdentity(resolvedSnapshot, buttonRef!);
 
@@ -89,9 +92,10 @@ public class CalculatorCliE2ETests
             // generation 行は廃止された。
             Assert.Null(ExtractKeyValue(clickResult.Stdout, "generation"));
 
-            var clickSnapshotPath = ExtractKeyValue(clickResult.Stdout, "snapshot");
+            var clickSnapshotPath = ExtractKeyValue(clickResult.Stdout, "snapshotPath");
             Assert.False(string.IsNullOrEmpty(clickSnapshotPath),
                 $"snapshot path not found in click stdout:\n{clickResult.Stdout}");
+            clickSnapshotPath = StripSnapshotNote(clickSnapshotPath!);
             var resolvedClickSnapshot = Path.IsPathRooted(clickSnapshotPath!)
                 ? clickSnapshotPath!
                 : Path.Combine(tempDir, clickSnapshotPath!);
@@ -116,31 +120,34 @@ public class CalculatorCliE2ETests
         }
         finally
         {
-            CalculatorTestHelper.KillCalculatorProcesses();
-            try { calculator?.Dispose(); } catch { }
+            SampleAppTestHelper.KillSampleAppProcesses();
+            try { sampleApp?.Dispose(); } catch { }
             try { Directory.Delete(tempDir, recursive: true); } catch { }
         }
     }
 
     /// <summary>
-    /// list-apps の TSV 出力から processName が CalculatorApp あるいは windowTitle が "電卓"
-    /// を含む行の windowRef (列 0) を返す。
+    /// list-apps の出力 (設計 042: メタ情報 + `---` + TSV 本文) から
+    /// processName が SampleApp あるいは windowTitle が "ADACT SampleApp" を含む行の windowRef (列 0) を返す。
     /// </summary>
-    private static string? ExtractCalculatorWindowRef(string stdout)
+    private static string? ExtractSampleAppWindowRef(string stdout)
     {
+        // メタ情報部をスキップして TSV 本文を探す
         var lines = stdout.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
-        // 0 行目はヘッダ。
-        foreach (var line in lines.Skip(1))
+        var inBody = false;
+        foreach (var line in lines)
         {
+            if (line == "---") { inBody = true; continue; }
+            if (!inBody) continue;
+
             var cols = line.Split('\t');
             if (cols.Length < 6) continue;
 
             var processName = cols[2];
             var windowTitle = cols[5];
 
-            if (processName.Contains("Calculator", StringComparison.OrdinalIgnoreCase)
-                || windowTitle.Contains("電卓", StringComparison.Ordinal)
-                || windowTitle.Contains("Calculator", StringComparison.OrdinalIgnoreCase))
+            if (processName.Contains("SampleApp", StringComparison.OrdinalIgnoreCase)
+                || windowTitle.Contains("ADACT SampleApp", StringComparison.Ordinal))
             {
                 return cols[0];
             }
@@ -149,20 +156,39 @@ public class CalculatorCliE2ETests
     }
 
     /// <summary>
-    /// key-value 形式 stdout (設計 §5.1) から指定 key の値を抽出する。
-    /// 区切りは空白 1 個。値に空白を含む場合 (snapshot path 等) も最初の空白以降全てを返す。
+    /// key-value 形式 stdout (設計 042: yaml風 `key: value`) から指定 key の値を抽出する。
+    /// 値の前後の `"` は自動除去する。
     /// </summary>
     private static string? ExtractKeyValue(string stdout, string key)
     {
         var lines = stdout.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         foreach (var line in lines)
         {
-            var idx = line.IndexOf(' ');
+            // yaml風: "key: value"
+            var idx = line.IndexOf(": ", StringComparison.Ordinal);
             if (idx <= 0) continue;
             if (!string.Equals(line[..idx], key, StringComparison.Ordinal)) continue;
-            return line[(idx + 1)..];
+            var value = line[(idx + 2)..];
+            // 値の前後の " を除去
+            if (value.Length >= 2 && value[0] == '"' && value[^1] == '"')
+                value = value[1..^1];
+            return value;
         }
         return null;
+    }
+
+    /// <summary>
+    /// snapshot パス末尾の <c>(changed)</c> / <c>(unchanged)</c> 注記 (設計 042) を除去する。
+    /// </summary>
+    private static string StripSnapshotNote(string path)
+    {
+        const string changed = " (changed)";
+        const string unchanged = " (unchanged)";
+        if (path.EndsWith(changed, StringComparison.Ordinal))
+            return path[..^changed.Length];
+        if (path.EndsWith(unchanged, StringComparison.Ordinal))
+            return path[..^unchanged.Length];
+        return path;
     }
 
     /// <summary>
@@ -172,14 +198,14 @@ public class CalculatorCliE2ETests
     private sealed record SnapshotLine(string Role, string? Name, string? AutomationId, string? Ref);
 
     /// <summary>
-    /// snapshot text ファイルから電卓のボタン要素の ref を探す。
-    /// 優先度: AutomationId == "num1Button" > role == "Button" の最初。
+    /// snapshot text ファイルから SampleApp の Submit ボタンの ref を探す。
+    /// 優先度: AutomationId == "BasicControls_Button_Submit" > role == "Button" の最初。
     /// </summary>
-    private static string? FindCalculatorButtonRef(string snapshotFilePath)
+    private static string? FindSubmitButtonRef(string snapshotFilePath)
     {
         foreach (var line in ReadSnapshotLines(snapshotFilePath))
         {
-            if (line.AutomationId == "num1Button") return line.Ref;
+            if (line.AutomationId == "BasicControls_Button_Submit") return line.Ref;
         }
         foreach (var line in ReadSnapshotLines(snapshotFilePath))
         {

@@ -1,8 +1,7 @@
 using System.ComponentModel;
 
 using Adact.Engine;
-
-using FlaUI.Core.Input;
+using Adact.Mcp.Common.InputDrivers;
 
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -32,7 +31,7 @@ public sealed partial class WindowsTools
             var (mods, main) = KeyParser.Parse(key);
             using (PressModifiers(mods))
             {
-                Keyboard.Type(main);
+                _keyboardDriver.TypeKey(main);
             }
             return new CallToolResult { Content = [] };
         }
@@ -60,7 +59,7 @@ public sealed partial class WindowsTools
 
         try
         {
-            Keyboard.Press(KeyParser.ParseSingle(key));
+            _keyboardDriver.PressKey(KeyParser.ParseSingle(key));
             return new CallToolResult { Content = [] };
         }
         catch (ArgumentException ex)
@@ -87,7 +86,7 @@ public sealed partial class WindowsTools
 
         try
         {
-            Keyboard.Release(KeyParser.ParseSingle(key));
+            _keyboardDriver.ReleaseKey(KeyParser.ParseSingle(key));
             return new CallToolResult { Content = [] };
         }
         catch (ArgumentException ex)
@@ -129,21 +128,19 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "windows_type"); }
     }
 
-    private static ModifierReleaseScope PressModifiers(IReadOnlyList<FlaUI.Core.WindowsAPI.VirtualKeyShort> modifiers)
+    private ModifierReleaseScope PressModifiers(IReadOnlyList<FlaUI.Core.WindowsAPI.VirtualKeyShort> modifiers)
     {
-        foreach (var k in modifiers) Keyboard.Press(k);
-        return new ModifierReleaseScope(modifiers);
+        foreach (var k in modifiers) _keyboardDriver.PressKey(k);
+        return new ModifierReleaseScope(_keyboardDriver, modifiers);
     }
 
-    private sealed class ModifierReleaseScope(IReadOnlyList<FlaUI.Core.WindowsAPI.VirtualKeyShort> modifiers) : IDisposable
+    private sealed class ModifierReleaseScope(IKeyboardDriver driver, IReadOnlyList<FlaUI.Core.WindowsAPI.VirtualKeyShort> modifiers) : IDisposable
     {
-        private readonly IReadOnlyList<FlaUI.Core.WindowsAPI.VirtualKeyShort> _modifiers = modifiers;
-
         public void Dispose()
         {
-            for (var i = _modifiers.Count - 1; i >= 0; i--)
+            for (var i = modifiers.Count - 1; i >= 0; i--)
             {
-                Keyboard.Release(_modifiers[i]);
+                driver.ReleaseKey(modifiers[i]);
             }
         }
     }

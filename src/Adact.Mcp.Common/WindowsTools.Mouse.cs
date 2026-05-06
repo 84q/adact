@@ -2,10 +2,9 @@ using System.ComponentModel;
 
 using Adact.Engine;
 using Adact.Engine.Snapshot;
+using Adact.Mcp.Common.InputDrivers;
 
 using Microsoft.Extensions.Logging;
-
-using FlaUiMouseButton = FlaUI.Core.Input.MouseButton;
 
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -102,7 +101,7 @@ public sealed partial class WindowsTools
         if (!TryParsePointTarget(target, out var point, out var error)) return error!;
         try
         {
-            FlaUI.Core.Input.Mouse.MoveTo(point.X, point.Y);
+            _mouseDriver.MoveTo(point.X, point.Y);
             return new CallToolResult { Content = [] };
         }
         catch (Exception ex) { return MapOrLog(ex, "windows_mouse_move"); }
@@ -124,12 +123,7 @@ public sealed partial class WindowsTools
             return ToolErrors.Error(ToolErrors.InvalidArgument, btnError);
         try
         {
-            FlaUI.Core.Input.Mouse.Down(btn switch
-            {
-                Adact.Engine.MouseButton.Right => FlaUiMouseButton.Right,
-                Adact.Engine.MouseButton.Middle => FlaUiMouseButton.Middle,
-                _ => FlaUiMouseButton.Left,
-            });
+            _mouseDriver.Down(btn);
             return new CallToolResult { Content = [] };
         }
         catch (Exception ex) { return MapOrLog(ex, "windows_mouse_down"); }
@@ -151,12 +145,7 @@ public sealed partial class WindowsTools
             return ToolErrors.Error(ToolErrors.InvalidArgument, btnError);
         try
         {
-            FlaUI.Core.Input.Mouse.Up(btn switch
-            {
-                Adact.Engine.MouseButton.Right => FlaUiMouseButton.Right,
-                Adact.Engine.MouseButton.Middle => FlaUiMouseButton.Middle,
-                _ => FlaUiMouseButton.Left,
-            });
+            _mouseDriver.Up(btn);
             return new CallToolResult { Content = [] };
         }
         catch (Exception ex) { return MapOrLog(ex, "windows_mouse_up"); }
@@ -181,11 +170,11 @@ public sealed partial class WindowsTools
         {
             if (deltaY != 0)
             {
-                FlaUI.Core.Input.Mouse.Scroll(-deltaY);
+                _mouseDriver.Scroll(-deltaY);
             }
             if (deltaX != 0)
             {
-                FlaUI.Core.Input.Mouse.HorizontalScroll(deltaX);
+                _mouseDriver.HorizontalScroll(deltaX);
             }
             return new CallToolResult { Content = [] };
         }

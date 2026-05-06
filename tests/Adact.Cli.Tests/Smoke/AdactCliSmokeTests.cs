@@ -22,7 +22,8 @@ public class AdactCliSmokeTests
     }
 
     /// <summary>
-    /// list-apps の stdout 先頭行が設計 §5.2 で規定された TSV ヘッダ (windowRef\tsessionId\t...) と一致することを確認する。
+    /// list-apps の出力 (設計 042: メタ情報 + `---` + TSV 本文) の TSV ヘッダが
+    /// (windowRef\tsessionId\t...) と一致することを確認する。
     /// CLI 出力スキーマの回帰を Smoke で検出するため。
     /// </summary>
     [Fact]
@@ -33,20 +34,21 @@ public class AdactCliSmokeTests
         Assert.True(result.ExitCode == 0,
             $"list-apps exit={result.ExitCode}\nstdout: {result.Stdout}\nstderr: {result.Stderr}");
 
-        var firstLine = result.Stdout
-            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-            .FirstOrDefault();
-        Assert.NotNull(firstLine);
+        var lines = result.Stdout.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+        var separatorIdx = Array.IndexOf(lines, "---");
+        Assert.True(separatorIdx >= 0, "Missing '---' separator in list-apps output.");
+        var headerLine = lines.Skip(separatorIdx + 1).FirstOrDefault();
+        Assert.NotNull(headerLine);
 
         // 設計 §5.2 / §5.3: 列順は固定。
         Assert.Equal(
             "windowRef\tsessionId\tprocessName\tprocessId\tclassName\twindowTitle",
-            firstLine);
+            headerLine);
     }
 
     /// <summary>
     /// 非ローカル URL を --server で渡した daemon-stop が CLI 段階で LOCAL_ONLY exit=2 となることを確認する。
-    /// 設計 §3.4 / §6.3 の localhost ガードの回帰防止。
+    /// 設計 §3.4 / §6.3 の localhost ガードの回帰防止。エラーは stderr ではなく stdout に出力される (設計 042)。
     /// </summary>
     [Fact]
     public void DaemonStop_NonLocalhostUrl_ReturnsLocalOnlyExit2()
@@ -56,12 +58,13 @@ public class AdactCliSmokeTests
         var result = CliProcess.Run("daemon-stop --server http://192.0.2.1:41300/mcp");
 
         Assert.Equal(2, result.ExitCode);
-        Assert.Contains("error " + Adact.Cli.Output.ErrorCodes.LocalOnly, result.Stderr, StringComparison.Ordinal);
+        Assert.Contains("error: " + Adact.Cli.Output.ErrorCodes.LocalOnly, result.Stdout, StringComparison.Ordinal);
     }
 
     /// <summary>
     /// 未知タイトルに対する attach が、daemon から NOT_FOUND エラーを受け取って exit=1 となることを確認する。
     /// daemon の windows_attach 失敗パスと CLI のエラー伝達の低コスト検出。
+    /// エラーは stderr ではなく stdout に出力される (設計 042)。
     /// </summary>
     [Fact]
     public void Attach_UnknownTitle_ReturnsExit1WithError()
@@ -74,7 +77,7 @@ public class AdactCliSmokeTests
             _fixture.BaseUrl);
 
         Assert.Equal(1, result.ExitCode);
-        Assert.Contains("error ", result.Stderr, StringComparison.Ordinal);
+        Assert.Contains("error:", result.Stdout, StringComparison.Ordinal);
     }
 }
 

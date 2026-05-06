@@ -166,10 +166,10 @@ public sealed class NamedPipeLifecycleTests
     public async Task NamedPipeServer_ListAppsAndAttachAcrossConnections_SharesDaemonState()
     {
         InteractiveTestGuard.SkipIfNotInteractive();
-        using var _calcLock = new CalculatorMutex();
+        using var _appLock = new SampleAppMutex();
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
         var endpoint = CreateUniqueEndpoint();
-        var calculator = await CalculatorTestHelper.StartFreshCalculatorAsync(TimeSpan.FromSeconds(10));
+        var sampleApp = await SampleAppTestHelper.StartFreshSampleAppAsync(TimeSpan.FromSeconds(10));
 
         using var serverCts = new CancellationTokenSource();
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(serverCts.Token, timeoutCts.Token);
@@ -195,7 +195,7 @@ public sealed class NamedPipeLifecycleTests
             {
                 var list = await client1.CallToolAsync("windows_list_apps", arguments: null, timeoutCts.Token).ConfigureAwait(false);
                 Assert.False(list.IsError ?? false);
-                windowRef = FindCalculatorWindowRef(list);
+                windowRef = FindSampleAppWindowRef(list);
             }
 
             await using var client2 = await NamedPipeMcpClient.ConnectAsync(endpoint, loggerFactory: null, timeoutCts.Token).ConfigureAwait(false);
@@ -213,13 +213,13 @@ public sealed class NamedPipeLifecycleTests
         finally
         {
             serverCts.Cancel();
-            CalculatorTestHelper.KillCalculatorProcesses();
-            try { calculator?.Dispose(); } catch { }
+            SampleAppTestHelper.KillSampleAppProcesses();
+            try { sampleApp?.Dispose(); } catch { }
             try { await serverTask.WaitAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false); } catch { }
         }
     }
 
-    private static string FindCalculatorWindowRef(CallToolResult listResult)
+    private static string FindSampleAppWindowRef(CallToolResult listResult)
     {
         var text = (listResult.Content.FirstOrDefault() as TextContentBlock)?.Text;
         Assert.NotNull(text);
@@ -234,15 +234,14 @@ public sealed class NamedPipeLifecycleTests
                 ? titleNode.GetString()
                 : null;
 
-            if ((processName?.Contains("Calculator", StringComparison.OrdinalIgnoreCase) ?? false)
-                || (windowTitle?.Contains("Calculator", StringComparison.OrdinalIgnoreCase) ?? false)
-                || (windowTitle?.Contains("電卓", StringComparison.Ordinal) ?? false))
+            if ((processName?.Contains("SampleApp", StringComparison.OrdinalIgnoreCase) ?? false)
+                || (windowTitle?.Contains("ADACT SampleApp", StringComparison.Ordinal) ?? false))
             {
                 return window.GetProperty("windowRef").GetString()
-                    ?? throw new Xunit.Sdk.XunitException("Calculator entry was missing windowRef.");
+                    ?? throw new Xunit.Sdk.XunitException("SampleApp entry was missing windowRef.");
             }
         }
 
-        throw new Xunit.Sdk.XunitException($"Calculator windowRef not found in windows_list_apps output: {text}");
+        throw new Xunit.Sdk.XunitException($"SampleApp windowRef not found in windows_list_apps output: {text}");
     }
 }

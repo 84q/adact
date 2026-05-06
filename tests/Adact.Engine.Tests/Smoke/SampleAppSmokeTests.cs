@@ -8,91 +8,86 @@ using Xunit;
 namespace Adact.Engine.Tests.Smoke;
 
 /// <summary>
-/// 電卓 (CalculatorApp) を起動し、snapshot → click → snapshot の Smoke シナリオを検証する L4 テスト。
+/// SampleApp を起動し、snapshot → click → snapshot の Smoke シナリオを検証する L4 テスト。
 /// AttachAsync・SnapshotAsync・ClickAsync の連携動作の回帰を実アプリで担保するため。
 /// </summary>
 [Trait("Layer", "Smoke")]
 [Collection("UiaSerial")]
-public class CalculatorSmokeTests : IAsyncLifetime, IDisposable
+public class SampleAppSmokeTests : IAsyncLifetime, IDisposable
 {
-    private CalculatorMutex? _calcLock;
+    private SampleAppMutex? _appLock;
 
     /// <summary>
-    /// 既存電卓を終了したうえで calc.exe を起動し、CalculatorApp.exe が現れるまで待機する。
+    /// 既存 SampleApp を終了したうえで SampleApp を起動し、メインウィンドウが現れるまで待機する。
     /// </summary>
     /// <returns>起動完了タスク。</returns>
     public async Task InitializeAsync()
     {
         InteractiveTestGuard.SkipIfNotInteractive();
-        _calcLock = new CalculatorMutex();
+        _appLock = new SampleAppMutex();
 
-        _ = await CalculatorTestHelper.StartFreshCalculatorAsync(TimeSpan.FromSeconds(10));
+        _ = await SampleAppTestHelper.StartFreshSampleAppAsync(TimeSpan.FromSeconds(10));
     }
 
     /// <summary>
-    /// 電卓プロセスをクリーンアップする。
-    /// </summary>
-    /// <returns>解放完了タスク。</returns>
-    /// <summary>
-    /// 電卓プロセスをクリーンアップする。
+    /// SampleApp プロセスをクリーンアップする。
     /// </summary>
     public void Dispose()
     {
-        _calcLock?.Dispose();
+        _appLock?.Dispose();
         GC.SuppressFinalize(this);
     }
 
     /// <summary>
-    /// 電卓プロセスをクリーンアップする。
+    /// SampleApp プロセスをクリーンアップする。
     /// </summary>
     /// <returns>解放完了タスク。</returns>
     public Task DisposeAsync()
     {
-        CalculatorTestHelper.KillCalculatorProcesses();
+        SampleAppTestHelper.KillSampleAppProcesses();
         return Task.CompletedTask;
     }
 
     /// <summary>
-    /// 電卓の "7" ボタンを ClickAsync で押し、表示領域に "7" が反映されることを確認する。
+    /// SampleApp の Submit ボタンを ClickAsync で押し、StatusLabel に "Submitted" が反映されることを確認する。
     /// click → snapshot のやり取りと ref 介した要素操作の Smoke 検証。
     /// </summary>
     /// <returns>テスト完了タスク。</returns>
     [InteractiveFact]
-    public async Task Click_Seven_DisplayShowsSeven()
+    public async Task Click_Submit_StatusLabelShowsSubmitted()
     {
         using var engine = new UiaEngine();
         WindowInfo? target = null;
-        await CalculatorTestHelper.WaitUntilAsync(
+        await SampleAppTestHelper.WaitUntilAsync(
             async () =>
             {
                 var windows = await engine.ListWindowsAsync();
-                target = windows.FirstOrDefault(CalculatorTestHelper.IsCalculatorWindow);
+                target = windows.FirstOrDefault(SampleAppTestHelper.IsSampleAppWindow);
                 return target is not null;
             },
             TimeSpan.FromSeconds(10),
-            "Calculator window did not appear in ListWindowsAsync.");
+            "SampleApp window did not appear in ListWindowsAsync.");
         Assert.NotNull(target);
         using var session = await engine.AttachByHandleAsync(target!.NativeWindowHandle);
 
         var snap1 = await session.SnapshotAsync();
-        var sevenRef = FindRefByAutomationId(snap1.Json, "num7Button")
-            ?? FindRefByName(snap1.Json, "7");
-        Assert.NotNull(sevenRef);
+        var submitRef = FindRefByAutomationId(snap1.Json, "BasicControls_Button_Submit")
+            ?? FindRefByName(snap1.Json, "Submit Button");
+        Assert.NotNull(submitRef);
 
-        await session.ClickAsync(sevenRef!);
+        await session.ClickAsync(submitRef!);
         string? snap2Json = null;
-        await CalculatorTestHelper.WaitUntilAsync(
+        await SampleAppTestHelper.WaitUntilAsync(
             async () =>
             {
                 snap2Json = (await session.SnapshotAsync()).Json;
-                return snap2Json.Contains('7');
+                // StatusLabel (BasicControls_Label_Status) のテキストが "Submitted" を含むことを確認
+                return snap2Json.Contains("Submitted", StringComparison.Ordinal);
             },
             TimeSpan.FromSeconds(5),
-            "Calculator display did not show '7' after clicking the seven button.");
+            "StatusLabel did not show 'Submitted' after clicking the Submit button.");
 
-        // 表示要素 (CalculatorResults) のテキストに "7" が含まれることを確認。
-        // モダン電卓では Name に "Display is 7" のような文字列が入る。
-        Assert.Contains("7", snap2Json);
+        Assert.Contains("Submitted", snap2Json);
     }
 
     private static string? FindRefByAutomationId(string json, string automationId)

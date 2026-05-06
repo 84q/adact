@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace Adact.Mcp.Http.Tests;
 
-internal static class CalculatorWindowFinder
+internal static class SampleAppWindowFinder
 {
     public static string? FindWindowRef(string listText)
     {
@@ -11,7 +11,7 @@ internal static class CalculatorWindowFinder
         {
             var processName = TryGetString(item, "processName");
             var windowTitle = TryGetString(item, "windowTitle");
-            if (!IsCalculatorWindow(processName, windowTitle))
+            if (!IsSampleAppWindow(processName, windowTitle))
             {
                 continue;
             }
@@ -33,15 +33,9 @@ internal static class CalculatorWindowFinder
             : null;
     }
 
-    private static bool IsCalculatorWindow(string? processName, string? windowTitle)
+    private static bool IsSampleAppWindow(string? processName, string? windowTitle)
     {
-        return ContainsCalculatorToken(processName)
-            || ContainsCalculatorToken(windowTitle)
-            || (windowTitle?.Contains("電卓", StringComparison.Ordinal) ?? false);
-    }
-
-    private static bool ContainsCalculatorToken(string? value)
-    {
-        return value?.Contains("Calculator", StringComparison.OrdinalIgnoreCase) ?? false;
+        return (processName?.Contains("SampleApp", StringComparison.OrdinalIgnoreCase) ?? false)
+            || (windowTitle?.Contains("ADACT SampleApp", StringComparison.Ordinal) ?? false);
     }
 }
