@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.7" />
     <ProjectReference Include="..\Adact.Cli.Core\Adact.Cli.Core.csproj" />
   </ItemGroup>
 

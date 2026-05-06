@@ -16,7 +16,6 @@
 | 12 | evaluate コマンド | UIA / アプリ固有操作の escape hatch として汎用実行コマンドを提供する。 | 未着手 | 安全性・API 境界を慎重に設計してから追加。採否未決定。 |
 | 13 | 認証・TLS・CORS | リモート daemon 運用時の保護方針を決め、必要最小限を実装する。 | 未着手 | リモート daemon をどの時点で本格サポート扱いにするか未決定。 |
 | 14 | Dashboard | daemon / session / window / snapshot の状態を可視化する管理 UI。 | 未着手 | 運用・デバッグ向け。 |
-| 15 | OCR・Vision | UIA が弱いアプリに対して画像認識・OCR を併用する。 | 未着手 | 初期スコープ外だった領域。 |
 | 25 | Skill と実体の乖離解消 | `adact-cli` Skill ファイルが実際の CLI 仕様と乖離している箇所を修正する（例：Skill に `close` コマンドがない、`inspect --ref` のまま等）。 | 未着手 | discussion/031（global option 化）、本日の `inspect`/`detach` 変更等。Skill ファイルは `.agents/skills/adact-cli/references/` および `src/Adact.Cli.Core/Skills/adact-cli/references/` に存在。 |
 | 26 | Skill 更新：別ウィンドウ扱いの要素説明 | ツールチップ・メニューサブメニュー・ダイアログボックス等が UIA 上で「別ウィンドウ」として snapshot に現れることを Skill に記載する。 | 未着手 | discussion/030、032 参照。Popup (`isPopup`)、Modal (`isModalDialog`) の概念を Skill の `snapshot` リファレンス等に追記。 |
 | 27 | 全サブコマンド自動統合テスト化 | discussion/032 で手動検証した内容（27コマンド）を自動テスト化。SampleApp を起動 → 操作 → 検証 → クリーンアップの一連を xUnit 化する。 | 未着手 | `Adact.Engine.Tests` または新規プロジェクトで実装。InteractiveTestGuard + CalculatorMutex パターンを参考に。 |
@@ -31,11 +30,12 @@
 | 33 | snapshot diff 機能 | `adact diff <file1> <file2>` で2つの snapshot の差分を表示する機能を追加。UI の変化を追跡するのに有用。 | 未着手 | テスト自動化やリグレッション検出に活用可能。 |
 | 34 | XML ドキュメントコメント warning 解消 | `dotnet build` で毎回出る CS1574/CS1734 warning（10件以上）を解消する。同時に、今後同様の warning が発生しないように Skill またはガイドラインに記載する。 | 未着手 | `SnapshotFileWriter.cs`（CS1734）、`SnapshotTreeFilter.cs`（CS1574）、`HttpHost.cs`（CS1570）等。CI 導入時に blocker になりうる。 |
 | 35 | Adact.Cli と Adact.Cli.Client の Program.cs 重複解消 | 両プロジェクトでほぼ同じサブコマンド登録コードがある。共通化またはコード生成を検討する。 | 未着手 | `BuildRoot()` の内容がほぼ同一。`LocalCommand` / `ServeCommand` / `DaemonStopCommand` の有無だけの差。 |
-| 36 | System.CommandLine beta5 → GA 移行 | 現在 `2.0.0-beta5.25306.1` を使用。`Recursive` 等の API が GA で確定しているか確認し、移行コストを見積もる。 | 未着手 | discussion/031 参照。beta → GA で API の破壊的変更がある可能性。 |
+| 36 | System.CommandLine beta5 → GA 移行 | 現在 `2.0.0-beta5.25306.1` を使用。`Recursive` 等の API が GA で確定しているか確認し、移行コストを見積もる。 | 完了 | 2.0.7 にアップデート。ビルド・Unit テストともに問題なし。 |
 | 37 | エラーコード一覧整備 | `ErrorCodes` クラスと実際のエラーメッセージの対応表を `docs/` に作成。AI やユーザーがエラーの意味を素早く理解できるようにする。 | 未着手 | `CONNECTION_FAILED`、`OPERATION_BLOCKED`、`REF_NOT_FOUND` 等の対処法を含む。 |
 | 38 | 操作履歴・ログの永続化 | 現状は操作ログが stdout/stderr のみ。`.adact/history/` にタイムスタンプ付きでログを残し、デバッグ・再現性向上に役立てる。 | 未着手 | セキュリティ考慮（パスワード等の機密情報フィルタリング）が必要。 |
 | 39 | HTTP プロキシ対応 | `http_proxy` / `https_proxy` 環境変数または `.adact/config.json` 経由で HTTP プロキシを設定できるようにする。現状は `HttpClientTransport` がデフォルト `HttpClient` を使用しており、環境変数を無視する。 | 未着手 | `AdactMcpClient.cs` で `HttpClientHandler` をカスタマイズし `Proxy` プロパティを設定する必要がある。MCP SDK 1.2.0 使用。 |
 | 40 | relay コマンド| AI実行環境とテスト実行環境が遠い(直接つながっていない)場合に、途中のマシンを中継サーバとして利用するためのコマンド | 未着手 | |
+| 15 | OCR・Vision | UIA が弱いアプリに対して画像認識・OCR を併用する。 | 未着手 | 初期スコープ外だった領域。 |
 
 # 終了タスク
 
