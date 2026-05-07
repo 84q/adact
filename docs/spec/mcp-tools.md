@@ -8,40 +8,40 @@ CLI はこれらの MCP レスポンスをそのまま表示せず、`discussion
 
 | カテゴリ | Tool | 役割 | 主な引数 | 主な戻り値 |
 | --- | --- | --- | --- | --- |
-| Discovery | `windows_list_apps` | 現在の desktop の top-level window を列挙する | なし | `windows[]`。各要素に `windowRef`, `sessionId?`, `processName`, `processId`, `className?`, `windowTitle` |
-| Session | `windows_attach` | 1 つの window に attach する | `windowRef` (required) | `sessionId`, `windowRef`, `windowInfo` |
-| Session | `windows_snapshot` | attached window の raw UIA snapshot を返す | `sessionId?` | raw JSON (`_meta`, `tree`) |
-| Mouse | `windows_click` | Element Ref の要素を click する | `ref`, `button?`, `count?`, `modifiers[]?`, `positionX?`, `positionY?` | 成功時 content 空 |
-| Mouse | `windows_dblclick` | Element Ref の要素をダブルクリックする | `ref`, `button?`, `modifiers[]?`, `positionX?`, `positionY?` | 成功時 content 空 |
-| Mouse | `windows_hover` | Element Ref の要素へ hover する | `ref`, `modifiers[]?`, `positionX?`, `positionY?` | 成功時 content 空 |
-| Mouse | `windows_mouse_move` | `x,y` 座標へカーソルを移動する | `target` | 成功時 content 空 |
-| Mouse | `windows_mouse_down` / `windows_mouse_up` | 現在カーソル位置でボタンを press / release | `button?` | 成功時 content 空 |
-| Mouse | `windows_mouse_wheel` | 現在カーソル位置でスクロールする | `deltaX?`, `deltaY?` | 成功時 content 空 |
-| Keyboard | `windows_fill` | Element Ref の要素に値を入力する | `ref`, `value` | 成功時 content 空 |
-| Keyboard | `windows_type` | Element Ref の要素にテキストを 1 文字ずつ送出する | `ref`, `text`, `delayMs?` | 成功時 content 空 |
-| Keyboard | `windows_press` | キーコンボを送出する | `key` | 成功時 content 空 |
-| Keyboard | `windows_key_down` / `windows_key_up` | 単キーを press / release | `key` | 成功時 content 空 |
-| Toggle | `windows_check` / `windows_uncheck` | チェック/トグル要素を On/Off にする | `ref` | 成功時 content 空 |
-| Toggle | `windows_select` | リスト/コンボボックスの項目を選択する | `ref`, `name?` / `index?` / `itemRef?` のいずれか | 成功時 content 空 |
-| Toggle | `windows_focus` | キーボードフォーカスを移す | `ref` | 成功時 content 空 |
-| Toggle | `windows_clear` | 入力要素の値を空にする | `ref` | 成功時 content 空 |
-| Toggle | `windows_scroll_into_view` | 要素が見える位置までスクロールさせる | `ref` | 成功時 content 空 |
-| Window | `windows_resize` | アタッチ済みウィンドウのサイズを変更 | `width`, `height`, `sessionId?` | 成功時 content 空 |
-| Window | `windows_minimize` / `windows_maximize` / `windows_restore` | アタッチ済みウィンドウの状態変更 | `sessionId?` | 成功時 content 空 |
-| Inspect | `windows_inspect` | UIA プロパティ詳細を返す | `ref` | inspect JSON (詳細は後述) |
-| Inspect | `windows_screenshot` | PNG を保存する | `ref?`, `out?`, `sessionId?` | `{ sessionId, path, width, height }` |
-| Wait | `windows_wait_for` | 要素の state を待つ | `ref?` または `name?`/`controlType?`/`automationId?`/`className?`、`state?`, `timeoutMs?`, `sessionId?` | `{ sessionId, ref, state }` |
-| Wait | `windows_wait_for_window` | top-level window の出現を待つ (attach なし) | `title?`, `className?`, `processName?`, `executable?`, `timeoutMs?` | `{ processId, processName, windowTitle, controlType, className, nativeWindowHandle }` |
-| Lifecycle | `windows_launch` | Win32 / .NET / UWP プロセスを起動する (attach なし) | `executable`, `args?`, `cwd?`, `env?` | `{ pid, processName, executablePath }` |
-| Lifecycle | `windows_detach` | session record を解放する | `sessionId?` | `sessionId`, `detached: true` |
-| Lifecycle | `windows_close` | attached window を閉じ、session を解放する | `sessionId?` | `sessionId`, `closed: true`, `detached: true` |
-| Lifecycle | `windows_kill` | attached window の process を強制終了し、session を解放する | `sessionId?` | `sessionId`, `killed: true`, `detached: true` |
-| Lifecycle | `windows_close_all` | 全 attached window を close する | なし | `results[]`。session ごとに `ok` / `fail` |
-| Daemon | `daemon_stop` | HTTP daemon を停止する | なし | `stopped: true` |
+| Discovery | `adact_list_windows` | 現在の desktop の top-level window を列挙する | なし | `windows[]`。各要素に `windowRef`, `sessionId?`, `processName`, `processId`, `className?`, `windowTitle` |
+| Session | `adact_attach` | 1 つの window に attach する | `windowRef` (required) | `sessionId`, `windowRef`, `windowInfo` |
+| Session | `adact_snapshot` | attached window の raw UIA snapshot を返す | `sessionId?` | raw JSON (`_meta`, `tree`) |
+| Mouse | `adact_click` | Element Ref の要素を click する | `ref`, `button?`, `count?`, `modifiers[]?`, `positionX?`, `positionY?` | 成功時 content 空 |
+| Mouse | `adact_doubleclick` | Element Ref の要素をダブルクリックする | `ref`, `button?`, `modifiers[]?`, `positionX?`, `positionY?` | 成功時 content 空 |
+| Mouse | `adact_hover` | Element Ref の要素へ hover する | `ref`, `modifiers[]?`, `positionX?`, `positionY?` | 成功時 content 空 |
+| Mouse | `adact_mousemove` | `x,y` 座標へカーソルを移動する | `target` | 成功時 content 空 |
+| Mouse | `adact_mousedown` / `adact_mouseup` | 現在カーソル位置でボタンを press / release | `button?` | 成功時 content 空 |
+| Mouse | `adact_mousewheel` | 現在カーソル位置でスクロールする | `deltaX?`, `deltaY?` | 成功時 content 空 |
+| Keyboard | `adact_fill` | Element Ref の要素に値を入力する | `ref`, `value` | 成功時 content 空 |
+| Keyboard | `adact_type` | Element Ref の要素にテキストを 1 文字ずつ送出する | `ref`, `text`, `delayMs?` | 成功時 content 空 |
+| Keyboard | `adact_keypress` | キーコンボを送出する | `key` | 成功時 content 空 |
+| Keyboard | `adact_keydown` / `adact_keyup` | 単キーを press / release | `key` | 成功時 content 空 |
+| Toggle | `adact_check` / `adact_uncheck` | チェック/トグル要素を On/Off にする | `ref` | 成功時 content 空 |
+| Toggle | `adact_select` | リスト/コンボボックスの項目を選択する | `ref`, `name?` / `index?` / `itemRef?` のいずれか | 成功時 content 空 |
+| Toggle | `adact_focus` | キーボードフォーカスを移す | `ref` | 成功時 content 空 |
+| Toggle | `adact_clear` | 入力要素の値を空にする | `ref` | 成功時 content 空 |
+| Toggle | `adact_scroll` | 要素が見える位置までスクロールさせる | `ref` | 成功時 content 空 |
+| Window | `adact_resize_window` | アタッチ済みウィンドウのサイズを変更 | `width`, `height`, `sessionId?` | 成功時 content 空 |
+| Window | `adact_minimize_window` / `adact_maximize_window` / `adact_restore_window` | アタッチ済みウィンドウの状態変更 | `sessionId?` | 成功時 content 空 |
+| Inspect | `adact_inspect` | UIA プロパティ詳細を返す | `ref` | inspect JSON (詳細は後述) |
+| Inspect | `adact_screenshot` | PNG を保存する | `ref?`, `out?`, `sessionId?` | `{ sessionId, path, width, height }` |
+| Wait | `adact_wait_for_element` | 要素の state を待つ | `ref?` または `name?`/`controlType?`/`automationId?`/`className?`、`state?`, `timeoutMs?`, `sessionId?` | `{ sessionId, ref, state }` |
+| Wait | `adact_wait_for_window` | top-level window の出現を待つ (attach なし) | `title?`, `className?`, `processName?`, `executable?`, `timeoutMs?` | `{ processId, processName, windowTitle, controlType, className, nativeWindowHandle }` |
+| Lifecycle | `adact_launch` | Win32 / .NET / UWP プロセスを起動する (attach なし) | `executable`, `args?`, `cwd?`, `env?` | `{ pid, processName, executablePath }` |
+| Lifecycle | `adact_detach` | session record を解放する | `sessionId?` | `sessionId`, `detached: true` |
+| Lifecycle | `adact_close_window` | attached window を閉じ、session を解放する | `sessionId?` | `sessionId`, `closed: true`, `detached: true` |
+| Lifecycle | `adact_kill` | attached window の process を強制終了し、session を解放する | `sessionId?` | `sessionId`, `killed: true`, `detached: true` |
+| Lifecycle | `adact_close_all` | 全 attached window を close する | なし | `results[]`。session ごとに `ok` / `fail` |
+| Daemon | `adact_daemon_stop` | HTTP daemon を停止する | なし | `stopped: true` |
 
 ## Tool 詳細
 
-### `windows_list_apps`
+### `adact_list_windows`
 
 | 項目 | 内容 |
 | --- | --- |
@@ -50,7 +50,7 @@ CLI はこれらの MCP レスポンスをそのまま表示せず、`discussion
 | 戻り値 | structured content `{ "windows": [...] }`。text content は raw array JSON |
 | 注意 | list から消えた window は retired 扱いになり、既存 `windowRef` は解決できなくなる |
 
-### `windows_attach`
+### `adact_attach`
 
 | 項目 | 内容 |
 | --- | --- |
@@ -61,7 +61,7 @@ CLI はこれらの MCP レスポンスをそのまま表示せず、`discussion
 
 同じ window に既に session が紐づいている場合は idempotent に既存 session を返します。
 
-### `windows_snapshot`
+### `adact_snapshot`
 
 | 項目 | 内容 |
 | --- | --- |
@@ -71,12 +71,12 @@ CLI はこれらの MCP レスポンスをそのまま表示せず、`discussion
 
 CLI の `adact snapshot` はこの raw JSON を受け取り、CLI 側で `operable` / `raw` filter と text formatting を行います。
 
-### `windows_click` / `windows_fill`
+### `adact_click` / `adact_fill`
 
 | Tool | 入力 | 処理 | 代表エラー |
 | --- | --- | --- | --- |
-| `windows_click` | `ref`, `button?`, `count?`, `modifiers[]?`, `positionX?`, `positionY?` | ref prefix から session を解決し、対象要素を click。`count` は汎用 N 連打であり OS のダブルクリック判定は保証しない (必要時は `windows_dblclick`) | `INVALID_ARGUMENT`, `INVALID_REF_FORMAT`, `REF_NOT_FOUND`, `ELEMENT_INTERACTION_FAILED` |
-| `windows_fill` | `ref`, `value` | ref prefix から session を解決し、対象要素へ value を入力 | `INVALID_ARGUMENT`, `INVALID_REF_FORMAT`, `REF_NOT_FOUND`, `ELEMENT_INTERACTION_FAILED` |
+| `adact_click` | `ref`, `button?`, `count?`, `modifiers[]?`, `positionX?`, `positionY?` | ref prefix から session を解決し、対象要素を click。`count` は汎用 N 連打であり OS のダブルクリック判定は保証しない (必要時は `adact_doubleclick`) | `INVALID_ARGUMENT`, `INVALID_REF_FORMAT`, `REF_NOT_FOUND`, `ELEMENT_INTERACTION_FAILED` |
+| `adact_fill` | `ref`, `value` | ref prefix から session を解決し、対象要素へ value を入力 | `INVALID_ARGUMENT`, `INVALID_REF_FORMAT`, `REF_NOT_FOUND`, `ELEMENT_INTERACTION_FAILED` |
 
 両 tool とも sessionId 引数は取りません。`s<sid>e<eid>` の `sid` から `SessionStore` が session を解決します。
 
@@ -84,22 +84,22 @@ CLI の `adact snapshot` はこの raw JSON を受け取り、CLI 側で `operab
 
 | Tool | 入力 | 処理概要 |
 | --- | --- | --- |
-| `windows_dblclick` / `windows_hover` | `ref`, `modifiers[]?`, `positionX?`, `positionY?` (`dblclick` のみ `button?`) | element を解決して dblclick / hover |
-| `windows_mouse_move` | `target` (`x,y` 文字列) | `MouseTarget.Parse` で座標を解釈し低レベルマウス移動を実行 |
-| `windows_mouse_down` / `windows_mouse_up` | `button?` | 現在カーソル位置で低レベルマウス押下 / 解放を実行 |
-| `windows_mouse_wheel` | `deltaX?`, `deltaY?` (Playwright/DOM 流: 正値=下/右、負値=上/左) | 現在カーソル位置でホイール操作 |
-| `windows_type` | `ref`, `text`, `delayMs?` | フォーカス後にテキストを 1 文字ずつ送出する |
-| `windows_press` | `key` | `KeyParser` で組合せキー (`Ctrl+Shift+E` 等) を解析し送出 |
-| `windows_key_down` / `windows_key_up` | `key` | 単キーを press / release。修飾キーの保持にも使う |
-| `windows_check` / `windows_uncheck` | `ref` | TogglePattern または SelectionItemPattern で On/Off |
-| `windows_select` | `ref`, `name?` / `index?` / `itemRef?` | リスト要素を `name` exact match、0-based index、または直接 `itemRef` で選択。必要に応じて ExpandCollapse を Expand |
-| `windows_focus` / `windows_clear` / `windows_scroll_into_view` | `ref` | フォーカス、ValuePattern による空文字代入、ScrollItemPattern によるスクロール |
-| `windows_resize` | `width`, `height`, `sessionId?` | TransformPattern または Win32 でウィンドウサイズを変更 |
-| `windows_minimize` / `windows_maximize` / `windows_restore` | `sessionId?` | WindowPattern.SetWindowVisualState を呼ぶ |
+| `adact_doubleclick` / `adact_hover` | `ref`, `modifiers[]?`, `positionX?`, `positionY?` (`dblclick` のみ `button?`) | element を解決して dblclick / hover |
+| `adact_mousemove` | `target` (`x,y` 文字列) | `MouseTarget.Parse` で座標を解釈し低レベルマウス移動を実行 |
+| `adact_mousedown` / `adact_mouseup` | `button?` | 現在カーソル位置で低レベルマウス押下 / 解放を実行 |
+| `adact_mousewheel` | `deltaX?`, `deltaY?` (Playwright/DOM 流: 正値=下/右、負値=上/左) | 現在カーソル位置でホイール操作 |
+| `adact_type` | `ref`, `text`, `delayMs?` | フォーカス後にテキストを 1 文字ずつ送出する |
+| `adact_keypress` | `key` | `KeyParser` で組合せキー (`Ctrl+Shift+E` 等) を解析し送出 |
+| `adact_keydown` / `adact_keyup` | `key` | 単キーを press / release。修飾キーの保持にも使う |
+| `adact_check` / `adact_uncheck` | `ref` | TogglePattern または SelectionItemPattern で On/Off |
+| `adact_select` | `ref`, `name?` / `index?` / `itemRef?` | リスト要素を `name` exact match、0-based index、または直接 `itemRef` で選択。必要に応じて ExpandCollapse を Expand |
+| `adact_focus` / `adact_clear` / `adact_scroll` | `ref` | フォーカス、ValuePattern による空文字代入、ScrollItemPattern によるスクロール |
+| `adact_resize_window` | `width`, `height`, `sessionId?` | TransformPattern または Win32 でウィンドウサイズを変更 |
+| `adact_minimize_window` / `adact_maximize_window` / `adact_restore_window` | `sessionId?` | WindowPattern.SetWindowVisualState を呼ぶ |
 
 代表エラー: `INVALID_ARGUMENT`, `INVALID_REF_FORMAT`, `REF_NOT_FOUND`, `ELEMENT_INTERACTION_FAILED`, `NOT_FOUND`。
 
-### `windows_inspect`
+### `adact_inspect`
 
 | 項目 | 内容 |
 | --- | --- |
@@ -110,7 +110,7 @@ CLI の `adact snapshot` はこの raw JSON を受け取り、CLI 側で `operab
 
 子要素のサマリは含めません (snapshot に任せます)。
 
-### `windows_screenshot`
+### `adact_screenshot`
 
 | 項目 | 内容 |
 | --- | --- |
@@ -119,7 +119,7 @@ CLI の `adact snapshot` はこの raw JSON を受け取り、CLI 側で `operab
 | 戻り値 | `{ sessionId, path, width, height }` |
 | 代表エラー | `INVALID_ARGUMENT` (拡張子が `.png` 以外、ref/sessionId 組合せ不正、未知 session / ref を含む)、`NO_ACTIVE_SESSION` |
 
-### `windows_wait_for`
+### `adact_wait_for_element`
 
 | 項目 | 内容 |
 | --- | --- |
@@ -128,7 +128,7 @@ CLI の `adact snapshot` はこの raw JSON を受け取り、CLI 側で `operab
 | 戻り値 | `{ sessionId, ref, state }` |
 | 代表エラー | `INVALID_ARGUMENT`, `REF_NOT_FOUND`, `NO_ACTIVE_SESSION`, `NOT_FOUND`, `WAIT_TIMEOUT` |
 
-### `windows_wait_for_window`
+### `adact_wait_for_window`
 
 | 項目 | 内容 |
 | --- | --- |
@@ -137,7 +137,7 @@ CLI の `adact snapshot` はこの raw JSON を受け取り、CLI 側で `operab
 | 戻り値 | `{ processId, processName, windowTitle, controlType, className, nativeWindowHandle }` |
 | 代表エラー | `INVALID_ARGUMENT`, `WAIT_TIMEOUT` |
 
-### `windows_launch`
+### `adact_launch`
 
 | 項目 | 内容 |
 | --- | --- |
@@ -146,20 +146,20 @@ CLI の `adact snapshot` はこの raw JSON を受け取り、CLI 側で `operab
 | 戻り値 | `{ pid, processName, executablePath }` (UWP では `executablePath` は AUMID または null) |
 | 代表エラー | `INVALID_ARGUMENT`, `LAUNCH_FAILED` |
 
-attach は行いません。起動した window に対して操作するには `windows_wait_for_window` で出現を待ち、`windows_list_apps` -> `windows_attach` の手順で attach します。
+attach は行いません。起動した window に対して操作するには `adact_wait_for_window` で出現を待ち、`adact_list_windows` -> `adact_attach` の手順で attach します。
 
 ### Lifecycle tools
 
 | Tool | 省略時 session | 対象 window | session 処理 |
 | --- | --- | --- | --- |
-| `windows_detach` | active session | 何もしない | session record を削除 |
-| `windows_close` | active session | UIA `WindowPattern.Close()`、または `WM_CLOSE` fallback | 成功時 session record を削除 |
-| `windows_kill` | active session | `Process.Kill(entireProcessTree: true)` | 成功時 session record を削除 |
-| `windows_close_all` | すべて | session ごとに close | 成功した session は削除。失敗は result に残す |
+| `adact_detach` | active session | 何もしない | session record を削除 |
+| `adact_close_window` | active session | UIA `WindowPattern.Close()`、または `WM_CLOSE` fallback | 成功時 session record を削除 |
+| `adact_kill` | active session | `Process.Kill(entireProcessTree: true)` | 成功時 session record を削除 |
+| `adact_close_all` | すべて | session ごとに close | 成功した session は削除。失敗は result に残す |
 
-`windows_close_all` は一部失敗を tool error として throw せず、`results[]` に `fail` と error code を入れます。
+`adact_close_all` は一部失敗を tool error として throw せず、`results[]` に `fail` と error code を入れます。
 
-### `daemon_stop`
+### `adact_daemon_stop`
 
 | 項目 | 内容 |
 | --- | --- |
@@ -194,8 +194,8 @@ transport/protocol/systemic な例外は SDK により JSON-RPC error として�
 | `NOT_FOUND` | 指定 sessionId が見つからない (lifecycle / wait-for 等) |
 | `CLOSE_FAILED` | close が失敗した |
 | `KILL_FAILED` | kill が失敗した |
-| `LAUNCH_FAILED` | `windows_launch` が失敗した (実行ファイル不在、Win32Exception、UWP COM 失敗等) |
-| `WAIT_TIMEOUT` | `windows_wait_for` / `windows_wait_for_window` がタイムアウトした |
+| `LAUNCH_FAILED` | `adact_launch` が失敗した (実行ファイル不在、Win32Exception、UWP COM 失敗等) |
+| `WAIT_TIMEOUT` | `adact_wait_for_element` / `adact_wait_for_window` がタイムアウトした |
 | `LOCAL_ONLY` | HTTP daemon 専用操作を remote target で実行した |
 | `INTERNAL_ERROR` | daemon stop 等の内部失敗 |
 

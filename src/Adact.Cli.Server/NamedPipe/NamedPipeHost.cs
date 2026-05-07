@@ -92,7 +92,7 @@ public static class NamedPipeHost
         // ConcurrentDictionary を使用して thread-safe に接続を管理
         var connections = new ConcurrentDictionary<Guid, NamedPipeConnection>();
 
-        // daemon_stop からキャンセルできるように、外部トークンとリンクした CTS を作成
+        // adact_daemon_stop からキャンセルできるように、外部トークンとリンクした CTS を作成
         using var serverCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         var serverCt = serverCts.Token;
 

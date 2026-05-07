@@ -24,7 +24,7 @@ internal static class KillCommand
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
                 (client, token) => LifecycleCommandImpl.ExecuteAsync(
-                    client, "windows_kill", sidArg, ["killed", "detached"], token),
+                    client, "adact_kill", sidArg, ["killed", "detached"], token),
                 ct);
         });
 

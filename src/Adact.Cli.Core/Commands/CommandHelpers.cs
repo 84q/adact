@@ -271,7 +271,7 @@ internal static class CommandHelpers
     };
 
     /// <summary>
-    /// MCP <c>windows_snapshot</c> を呼び、結果を CLI 側で operable / raw フィルタを適用した上で
+    /// MCP <c>adact_snapshot</c> を呼び、結果を CLI 側で operable / raw フィルタを適用した上で
     /// テキスト整形して <see cref="SnapshotFileWriter"/> でファイルに書き出し、stdout に
     /// <c>sessionId / snapshot</c> を出力する。設計 009 §5.2、011 §4.5、016 §2。
     /// </summary>
@@ -312,7 +312,7 @@ internal static class CommandHelpers
             ? null
             : new Dictionary<string, object?> { ["sessionId"] = sessionId };
 
-        var snapResult = await client.CallToolAsync("windows_snapshot", snapArgs, ct).ConfigureAwait(false);
+        var snapResult = await client.CallToolAsync("adact_snapshot", snapArgs, ct).ConfigureAwait(false);
         var snapErrorExit = McpResponse.TryReportError(snapResult);
         if (snapErrorExit is { } snapCode) return snapCode;
 
@@ -327,7 +327,7 @@ internal static class CommandHelpers
 
         if (string.IsNullOrEmpty(resolvedSid))
         {
-            CliError.Write(ErrorCodes.InternalError, "windows_snapshot response missing sessionId.");
+            CliError.Write(ErrorCodes.InternalError, "adact_snapshot response missing sessionId.");
             return ExitCodes.CommandFailed;
         }
 
@@ -379,7 +379,7 @@ internal static class CommandHelpers
     /// </summary>
     /// <param name="client">接続済み MCP クライアント。</param>
     /// <param name="actionName">CLI 側のアクション名 (例: <c>click</c>)。</param>
-    /// <param name="operationToolName">"windows_click" または "windows_fill" など。</param>
+    /// <param name="operationToolName">"adact_click" または "adact_fill" など。</param>
     /// <param name="operationArgs">操作ツールに渡す引数。</param>
     /// <param name="elementRef">操作対象の Element Ref ID。snapshot 用 sessionId 抽出に利用。</param>
     /// <param name="noSnapshot">true なら snapshot 取得をスキップ。</param>
@@ -423,7 +423,7 @@ internal static class CommandHelpers
     /// </summary>
     /// <param name="client">接続済み MCP クライアント。</param>
     /// <param name="actionName">CLI 側のアクション名 (例: <c>resize</c>)。</param>
-    /// <param name="operationToolName">"windows_resize" など操作 MCP ツール名。</param>
+    /// <param name="operationToolName">"adact_resize_window" など操作 MCP ツール名。</param>
     /// <param name="operationArgs">操作ツールに渡す引数 (sessionId は呼び出し側で詰めること)。</param>
     /// <param name="sessionId">対象 session ID (例 "s1")。null は active session。</param>
     /// <param name="noSnapshot">true なら snapshot 取得をスキップし、sessionId のみ出力する。</param>
@@ -520,7 +520,7 @@ internal static class CommandHelpers
             ? null
             : new Dictionary<string, object?> { ["sessionId"] = sessionId };
 
-        var snapResult = await client.CallToolAsync("windows_snapshot", snapArgs, ct).ConfigureAwait(false);
+        var snapResult = await client.CallToolAsync("adact_snapshot", snapArgs, ct).ConfigureAwait(false);
         var snapErrorExit = McpResponse.TryReportError(snapResult);
         if (snapErrorExit is { } snapCode) return snapCode;
 
@@ -534,7 +534,7 @@ internal static class CommandHelpers
 
         if (string.IsNullOrEmpty(resolvedSid))
         {
-            CliError.Write(ErrorCodes.InternalError, "windows_snapshot response missing sessionId.");
+            CliError.Write(ErrorCodes.InternalError, "adact_snapshot response missing sessionId.");
             return ExitCodes.CommandFailed;
         }
 

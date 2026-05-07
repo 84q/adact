@@ -76,7 +76,7 @@ SSH などの非対話 session から L3+ (`IntegrationUia` / `Smoke` / `E2E`) �
 CLI / HTTP の Smoke / E2E は `ADACT_SERVER_URL` に外部 daemon の MCP endpoint を設定すると、
 テスト process 自身では daemon を起動せず、その URL に接続する。先に Windows の対話 GUI
 session 側で `adact serve --port 41300` などを起動しておく。
-HTTP の Calculator E2E では、外部 daemon 指定時も `windows_launch` を通して対話 GUI
+HTTP の Calculator E2E では、外部 daemon 指定時も `adact_launch` を通して対話 GUI
 session 側で Calculator を起動する。
 
 ```powershell

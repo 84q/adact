@@ -71,6 +71,11 @@ For each important target:
 - Fallback selector:
 - Context needed to avoid ambiguity:
 - Why coordinate / index selection is or is not avoided:
+- Inspect selector output (if available):
+  - Stability: (High / Medium / Low)
+  - Code: (FlaUI code example from inspect)
+  - Note: inspect selectors are based on a single runtime snapshot and may not
+    account for dynamic content, locale, or data variations in the test context.
 
 ## Unstable or missing information
 

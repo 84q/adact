@@ -36,7 +36,7 @@ public sealed class NamedPipeLifecycleTests
     }
 
     /// <summary>
-    /// NamedPipeHost を起動し、NamedPipeMcpClient で接続して daemon_stop を呼び出すと
+    /// NamedPipeHost を起動し、NamedPipeMcpClient で接続して adact_daemon_stop を呼び出すと
     /// サーバーが停止し、2回目の接続で失敗することを確認する。
     /// </summary>
     [Trait("Layer", "Integration")]
@@ -69,7 +69,7 @@ public sealed class NamedPipeLifecycleTests
 
             try
             {
-                var result = await client.CallToolAsync("daemon_stop", arguments: null, timeoutCts.Token).ConfigureAwait(false);
+                var result = await client.CallToolAsync("adact_daemon_stop", arguments: null, timeoutCts.Token).ConfigureAwait(false);
 
                 Assert.False(result.IsError ?? false);
                 var text = Assert.IsType<TextContentBlock>(Assert.Single(result.Content)).Text;
@@ -77,7 +77,7 @@ public sealed class NamedPipeLifecycleTests
             }
             catch (IOException)
             {
-                // daemon_stop の応答前にサーバーがシャットダウンして接続が切断されるケースは正常
+                // adact_daemon_stop の応答前にサーバーがシャットダウンして接続が切断されるケースは正常
             }
 
             // サーバーが停止するまで待機
@@ -101,7 +101,7 @@ public sealed class NamedPipeLifecycleTests
     }
 
     /// <summary>
-    /// サーバーを起動して daemon_stop した後、再度接続を試みると失敗することを確認する。
+    /// サーバーを起動して adact_daemon_stop した後、再度接続を試みると失敗することを確認する。
     /// </summary>
     [Trait("Layer", "Integration")]
     [InteractiveFact]
@@ -129,16 +129,16 @@ public sealed class NamedPipeLifecycleTests
         {
             await WaitForServerAsync(endpoint, timeoutCts.Token).ConfigureAwait(false);
 
-            // 1回目: 接続して daemon_stop を呼び出す
+            // 1回目: 接続して adact_daemon_stop を呼び出す
             await using var client = await NamedPipeMcpClient.ConnectAsync(endpoint, loggerFactory: null, timeoutCts.Token).ConfigureAwait(false);
             try
             {
-                var result = await client.CallToolAsync("daemon_stop", arguments: null, timeoutCts.Token).ConfigureAwait(false);
+                var result = await client.CallToolAsync("adact_daemon_stop", arguments: null, timeoutCts.Token).ConfigureAwait(false);
                 Assert.False(result.IsError ?? false);
             }
             catch (IOException)
             {
-                // daemon_stop の応答前にサーバーがシャットダウンして接続が切断されるケースは正常
+                // adact_daemon_stop の応答前にサーバーがシャットダウンして接続が切断されるケースは正常
             }
 
             // サーバー停止を待機
@@ -193,19 +193,19 @@ public sealed class NamedPipeLifecycleTests
             string windowRef;
             await using (var client1 = await NamedPipeMcpClient.ConnectAsync(endpoint, loggerFactory: null, timeoutCts.Token).ConfigureAwait(false))
             {
-                var list = await client1.CallToolAsync("windows_list_apps", arguments: null, timeoutCts.Token).ConfigureAwait(false);
+                var list = await client1.CallToolAsync("adact_list_windows", arguments: null, timeoutCts.Token).ConfigureAwait(false);
                 Assert.False(list.IsError ?? false);
                 windowRef = FindSampleAppWindowRef(list);
             }
 
             await using var client2 = await NamedPipeMcpClient.ConnectAsync(endpoint, loggerFactory: null, timeoutCts.Token).ConfigureAwait(false);
             var attach = await client2.CallToolAsync(
-                "windows_attach",
+                "adact_attach",
                 new Dictionary<string, object?> { ["windowRef"] = windowRef },
                 timeoutCts.Token).ConfigureAwait(false);
 
             Assert.False(attach.IsError ?? false,
-                $"windows_attach failed: {(attach.Content.FirstOrDefault() as TextContentBlock)?.Text}");
+                $"adact_attach failed: {(attach.Content.FirstOrDefault() as TextContentBlock)?.Text}");
             var payload = attach.StructuredContent!.Value;
             Assert.Equal(windowRef, payload.GetProperty("windowRef").GetString());
             Assert.StartsWith("s", payload.GetProperty("sessionId").GetString(), StringComparison.Ordinal);
@@ -242,6 +242,6 @@ public sealed class NamedPipeLifecycleTests
             }
         }
 
-        throw new Xunit.Sdk.XunitException($"SampleApp windowRef not found in windows_list_apps output: {text}");
+        throw new Xunit.Sdk.XunitException($"SampleApp windowRef not found in adact_list_windows output: {text}");
     }
 }

@@ -74,7 +74,7 @@ internal static class ClickCommand
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
                 (client, token) => CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
-                    client, "click", "windows_click", args, refValue!, noSnap, dirArg, token),
+                    client, "click", "adact_click", args, refValue!, noSnap, dirArg, token),
                 ct);
         });
 

@@ -7,7 +7,7 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>list-windows</c> コマンド。<c>windows_list_apps</c> tool を呼び、一覧を TSV で stdout に出力する。
+/// <c>list-windows</c> コマンド。<c>adact_list_windows</c> tool を呼び、一覧を TSV で stdout に出力する。
 /// </summary>
 internal static class ListWindowsCommand
 {
@@ -27,13 +27,13 @@ internal static class ListWindowsCommand
         return cmd;
     }
 
-    /// <summary><c>windows_list_apps</c> を呼び TSV として stdout に出力する。</summary>
+    /// <summary><c>adact_list_windows</c> を呼び TSV として stdout に出力する。</summary>
     /// <param name="client">接続済み MCP クライアント。</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
     private static async Task<int> ExecuteAsync(IAdactMcpClient client, CancellationToken ct)
     {
-        var result = await client.CallToolAsync("windows_list_apps", arguments: null, ct).ConfigureAwait(false);
+        var result = await client.CallToolAsync("adact_list_windows", arguments: null, ct).ConfigureAwait(false);
 
         var errorExit = McpResponse.TryReportError(result);
         if (errorExit is { } code) return code;
@@ -54,7 +54,7 @@ internal static class ListWindowsCommand
         }
         else
         {
-            CliError.Write(ErrorCodes.InternalError, "windows_list_apps response missing 'windows' array.");
+            CliError.Write(ErrorCodes.InternalError, "adact_list_windows response missing 'windows' array.");
             return ExitCodes.CommandFailed;
         }
 

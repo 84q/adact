@@ -13,7 +13,7 @@ internal static class LifecycleCommandImpl
     /// detach / close / kill の共通実装。tool を呼び出し、成功時に sessionId + literal 行を stdout に出力する。
     /// </summary>
     /// <param name="client">接続済み MCP クライアント。</param>
-    /// <param name="toolName">呼び出す MCP tool 名 (例: <c>windows_close</c>)。</param>
+    /// <param name="toolName">呼び出す MCP tool 名 (例: <c>adact_close_window</c>)。</param>
     /// <param name="sessionId">対象 session ID。null/空なら active session。</param>
     /// <param name="literalLines">sessionId 出力後に stdout へ追加する literal 行集合 (例: <c>closed</c>, <c>detached</c>)。</param>
     /// <param name="ct">cancellation token。</param>

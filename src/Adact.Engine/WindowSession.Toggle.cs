@@ -8,6 +8,7 @@ using Adact.Engine.Exceptions;
 
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
+using FlaUI.Core.Patterns;
 
 namespace Adact.Engine;
 
@@ -143,16 +144,6 @@ public sealed partial class WindowSession
     }
 
     /// <summary>
-    /// 指定入力要素を空文字で <see cref="FillAsync"/> し、内容をクリアする。
-    /// </summary>
-    /// <param name="refId">クリア対象の Element Ref。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
-    /// <exception cref="RefNotFoundException">refId が解決できない場合。</exception>
-    /// <exception cref="ElementInteractionException">UIA 操作が失敗した場合。</exception>
-    public Task ClearAsync(string refId, CancellationToken ct = default) => FillAsync(refId, string.Empty, ct);
-
-    /// <summary>
     /// 指定要素を ScrollItemPattern.ScrollIntoView で表示領域内に持ってくる。Pattern 不在時はエラー。
     /// </summary>
     /// <param name="refId">対象 Element Ref。</param>
@@ -192,6 +183,88 @@ public sealed partial class WindowSession
             }
             return Task.CompletedTask;
         }, ct);
+    }
+
+    /// <summary>
+    /// ScrollPattern を使ってコンテナ要素をスクロールする。
+    /// </summary>
+    /// <param name="refId">対象コンテナの Element Ref。</param>
+    /// <param name="mode">スクロールモード (Percent / Small / Large)。</param>
+    /// <param name="ct">キャンセルトークン。</param>
+    /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
+    /// <exception cref="RefNotFoundException">refId が解決できない場合。</exception>
+    /// <exception cref="ElementInteractionException">ScrollPattern 不在 / 操作失敗の場合。</exception>
+    public Task ScrollAsync(string refId, ScrollMode mode, CancellationToken ct = default)
+    {
+        ThrowIfDisposed();
+        ct.ThrowIfCancellationRequested();
+        return RunSerializedAsync(c =>
+        {
+            c.ThrowIfCancellationRequested();
+            var el = _registry.Resolve(refId);
+            try
+            {
+                var inner = Inner(el);
+                var pat = inner.Patterns.Scroll.PatternOrDefault;
+                if (pat is null)
+                {
+                    throw new ElementInteractionException(refId, "scroll",
+                        "element does not support ScrollPattern.");
+                }
+
+                switch (mode)
+                {
+                    case PercentMode(var h, var v):
+                        pat.SetScrollPercent(h ?? -1, v ?? -1);
+                        break;
+
+                    case SmallMode(var dh, var dv):
+                        ScrollByAmount(pat, dh, dv, small: true);
+                        break;
+
+                    case LargeMode(var dh, var dv):
+                        ScrollByAmount(pat, dh, dv, small: false);
+                        break;
+                }
+            }
+            catch (AdactException) { throw; }
+            catch (Exception ex)
+            {
+                throw new ElementInteractionException(refId, "scroll", ex.Message, ex);
+            }
+            return Task.CompletedTask;
+        }, ct);
+    }
+
+    /// <summary>Small/Large スクロールを |delta| 回繰り返す共通ヘルパー。</summary>
+    private static void ScrollByAmount(
+        FlaUI.Core.Patterns.IScrollPattern pat,
+        int? deltaH,
+        int? deltaV,
+        bool small)
+    {
+        var hAmount = ScrollAmount.NoAmount;
+        var vAmount = ScrollAmount.NoAmount;
+
+        // Vertical
+        if (deltaV is { } dv && dv != 0)
+        {
+            vAmount = dv > 0
+                ? (small ? ScrollAmount.SmallIncrement : ScrollAmount.LargeIncrement)
+                : (small ? ScrollAmount.SmallDecrement : ScrollAmount.LargeDecrement);
+            for (var i = 0; i < Math.Abs(dv); i++)
+                pat.Scroll(ScrollAmount.NoAmount, vAmount);
+        }
+
+        // Horizontal
+        if (deltaH is { } dh && dh != 0)
+        {
+            hAmount = dh > 0
+                ? (small ? ScrollAmount.SmallIncrement : ScrollAmount.LargeIncrement)
+                : (small ? ScrollAmount.SmallDecrement : ScrollAmount.LargeDecrement);
+            for (var i = 0; i < Math.Abs(dh); i++)
+                pat.Scroll(hAmount, ScrollAmount.NoAmount);
+        }
     }
 
     /// <summary>Toggle 系の共通実装: 現在の <see cref="ToggleState"/> を読み、必要なら <c>Toggle()</c> を呼ぶ。</summary>

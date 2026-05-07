@@ -48,7 +48,7 @@ flowchart LR
 | `WindowSession` | `Adact.Engine` | 1 window に対する snapshot / click / fill / close / kill を提供し、session scope の `RefRegistry` を保持する |
 | `SessionStore` | `Adact.Mcp.Common` | MCP daemon process 内の `WindowSession` を `s<n>` で管理し、active session を保持する |
 | `WindowRefStore` | `Adact.Mcp.Common` | top-level window に `w<n>` を払い出し、window 一覧と attach をつなぐ |
-| `WindowsTools` | `Adact.Mcp.Common` | `windows_list_apps` などの MCP tools を実装し、Engine 例外を MCP tool error に変換する |
+| `WindowsTools` | `Adact.Mcp.Common` | `adact_list_windows` などの MCP tools を実装し、Engine 例外を MCP tool error に変換する |
 | `HttpHost` | `Adact.Cli.Server` | ASP.NET Core + MCP SDK で `/mcp` HTTP daemon を構築・起動する |
 
 

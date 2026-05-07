@@ -36,6 +36,13 @@ When an element's Name is user data, localized text, a counter, or an error
 message that can change, avoid treating it as the sole selector. Use it for an
 assertion or fallback only when the observation supports that choice.
 
+When `adact inspect` output includes a `selector` field with stability ratings
+and FlaUI code examples, use it as a starting point for selector decisions.
+However, these candidates are derived from a single runtime snapshot and do not
+account for test context such as dynamic content, locale differences, or test
+data variations. Evaluate and adapt them to the specific test case rather than
+using them verbatim.
+
 ## Waiting
 
 - Prefer window, element, enabled / disabled, text, value, selection, or existence

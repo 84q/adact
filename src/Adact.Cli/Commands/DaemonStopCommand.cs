@@ -58,11 +58,11 @@ internal static class DaemonStopCommand
         CallToolResult result;
         try
         {
-            result = await client.CallToolAsync("daemon_stop", arguments: null, ct).ConfigureAwait(false);
+            result = await client.CallToolAsync("adact_daemon_stop", arguments: null, ct).ConfigureAwait(false);
         }
         catch (Exception ex) when (!ct.IsCancellationRequested && IsConnectionDropException(ex))
         {
-            // daemon_stop の応答前に daemon が落ちてセッションが切断されるケース。
+            // adact_daemon_stop の応答前に daemon が落ちてセッションが切断されるケース。
             // 切断は「既に停止した」と見なし success 扱い。
             CliOutput.WriteYamlSuccess(metaFields: null, [CliOutput.Field("stopped", "true")]);
             return ExitCodes.Success;
@@ -79,8 +79,8 @@ internal static class DaemonStopCommand
         {
             CliError.Write(
                 ErrorCodes.InternalError,
-                "Server did not stop after daemon_stop command.",
-                "The daemon_stop command was sent but the server is still running.");
+                "Server did not stop after adact_daemon_stop command.",
+                "The adact_daemon_stop command was sent but the server is still running.");
             return ExitCodes.CommandFailed;
         }
 

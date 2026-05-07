@@ -117,9 +117,9 @@ internal static class LaunchCommand
         return true;
     }
 
-    /// <summary><c>windows_launch</c> を呼び、結果 JSON を 1 行で stdout に出力する。</summary>
+    /// <summary><c>adact_launch</c> を呼び、結果 JSON を 1 行で stdout に出力する。</summary>
     /// <param name="client">接続済み MCP クライアント。</param>
-    /// <param name="arguments"><c>windows_launch</c> 引数。</param>
+    /// <param name="arguments"><c>adact_launch</c> 引数。</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
     private static async Task<int> ExecuteAsync(
@@ -127,7 +127,7 @@ internal static class LaunchCommand
         Dictionary<string, object?> arguments,
         CancellationToken ct)
     {
-        var result = await client.CallToolAsync("windows_launch", arguments, ct).ConfigureAwait(false);
+        var result = await client.CallToolAsync("adact_launch", arguments, ct).ConfigureAwait(false);
 
         var errorExit = McpResponse.TryReportError(result);
         if (errorExit is { } code) return code;

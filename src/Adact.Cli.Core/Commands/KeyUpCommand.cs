@@ -32,7 +32,7 @@ internal static class KeyupCommand
                 serverArg,
                 async (client, token) =>
                 {
-                    var r = await client.CallToolAsync("windows_key_up", args, token).ConfigureAwait(false);
+                    var r = await client.CallToolAsync("adact_keyup", args, token).ConfigureAwait(false);
                     var err = McpResponse.TryReportError(r);
                     if (err is { } code) return code;
                     CliOutput.WriteEmptySuccess();

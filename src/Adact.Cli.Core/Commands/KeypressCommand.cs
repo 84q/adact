@@ -32,7 +32,7 @@ internal static class KeypressCommand
                 serverArg,
                 async (client, token) =>
                 {
-                    var r = await client.CallToolAsync("windows_press", args, token).ConfigureAwait(false);
+                    var r = await client.CallToolAsync("adact_keypress", args, token).ConfigureAwait(false);
                     var err = McpResponse.TryReportError(r);
                     if (err is { } code) return code;
                     CliOutput.WriteEmptySuccess();

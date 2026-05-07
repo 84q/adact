@@ -40,7 +40,7 @@ public class WindowsToolsWaitForTests
             doc.GetProperty("message").GetString()!);
     }
 
-    /// <summary>windows_wait_for: ref と search 条件の同時指定は INVALID_ARGUMENT。</summary>
+    /// <summary>adact_wait_for_element: ref と search 条件の同時指定は INVALID_ARGUMENT。</summary>
     [Fact]
     public async Task WaitFor_RefAndQueryBoth_ReturnsInvalidArgument()
     {
@@ -54,7 +54,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>windows_wait_for: ref も検索条件も無い場合 INVALID_ARGUMENT。</summary>
+    /// <summary>adact_wait_for_element: ref も検索条件も無い場合 INVALID_ARGUMENT。</summary>
     [Fact]
     public async Task WaitFor_NoConditions_ReturnsInvalidArgument()
     {
@@ -68,7 +68,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>windows_wait_for: 未知の state 値は INVALID_ARGUMENT。</summary>
+    /// <summary>adact_wait_for_element: 未知の state 値は INVALID_ARGUMENT。</summary>
     [Fact]
     public async Task WaitFor_UnknownState_ReturnsInvalidArgument()
     {
@@ -82,7 +82,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>windows_wait_for: timeoutMs ≤ 0 は INVALID_ARGUMENT。</summary>
+    /// <summary>adact_wait_for_element: timeoutMs ≤ 0 は INVALID_ARGUMENT。</summary>
     [Fact]
     public async Task WaitFor_NonPositiveTimeout_ReturnsInvalidArgument()
     {
@@ -96,7 +96,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>windows_wait_for: timeoutMs 負値も INVALID_ARGUMENT。</summary>
+    /// <summary>adact_wait_for_element: timeoutMs 負値も INVALID_ARGUMENT。</summary>
     [Fact]
     public async Task WaitFor_NegativeTimeout_ReturnsInvalidArgument()
     {
@@ -110,7 +110,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>windows_wait_for: ref と sessionId を同時指定すると INVALID_ARGUMENT。</summary>
+    /// <summary>adact_wait_for_element: ref と sessionId を同時指定すると INVALID_ARGUMENT。</summary>
     [Fact]
     public async Task WaitFor_RefWithSessionId_ReturnsInvalidArgument()
     {
@@ -125,7 +125,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>windows_wait_for: 形式不正な ref は REF_NOT_FOUND。</summary>
+    /// <summary>adact_wait_for_element: 形式不正な ref は REF_NOT_FOUND。</summary>
     [Fact]
     public async Task WaitFor_MalformedRef_ReturnsRefNotFound()
     {
@@ -139,7 +139,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>windows_wait_for: 未登録 session の ref は REF_NOT_FOUND。</summary>
+    /// <summary>adact_wait_for_element: 未登録 session の ref は REF_NOT_FOUND。</summary>
     [Fact]
     public async Task WaitFor_UnknownSessionRef_ReturnsRefNotFound()
     {
@@ -153,7 +153,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>windows_wait_for: 検索条件モードで active session 無しなら NO_ACTIVE_SESSION。</summary>
+    /// <summary>adact_wait_for_element: 検索条件モードで active session 無しなら NO_ACTIVE_SESSION。</summary>
     [Fact]
     public async Task WaitFor_QueryMode_NoActiveSession_ReturnsNoActiveSession()
     {
@@ -167,7 +167,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>windows_wait_for: 検索条件モードで未登録 sessionId は NOT_FOUND。</summary>
+    /// <summary>adact_wait_for_element: 検索条件モードで未登録 sessionId は NOT_FOUND。</summary>
     [Fact]
     public async Task WaitFor_QueryMode_UnknownSessionId_ReturnsNotFound()
     {
@@ -181,7 +181,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>windows_wait_for_window: 条件未指定は INVALID_ARGUMENT。</summary>
+    /// <summary>adact_wait_for_window: 条件未指定は INVALID_ARGUMENT。</summary>
     [Fact]
     public async Task WaitForWindow_NoConditions_ReturnsInvalidArgument()
     {
@@ -195,7 +195,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>windows_wait_for_window: timeoutMs ≤ 0 は INVALID_ARGUMENT。</summary>
+    /// <summary>adact_wait_for_window: timeoutMs ≤ 0 は INVALID_ARGUMENT。</summary>
     [Fact]
     public async Task WaitForWindow_NonPositiveTimeout_ReturnsInvalidArgument()
     {
@@ -209,7 +209,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>windows_wait_for_window: timeoutMs 負値も INVALID_ARGUMENT。</summary>
+    /// <summary>adact_wait_for_window: timeoutMs 負値も INVALID_ARGUMENT。</summary>
     [Fact]
     public async Task WaitForWindow_NegativeTimeout_ReturnsInvalidArgument()
     {

@@ -29,6 +29,11 @@ state changes that justify the generated test.
 - ADACT observations include enough UIA details to identify stable elements:
   AutomationId when available, plus Name, ControlType, ClassName, hierarchy,
   values, state changes, screenshots, or inspect output as needed.
+- The `adact inspect` command provides a `selector` section with stability
+  ratings (High / Medium / Low) and FlaUI code examples. These serve as a
+  starting point for selector decisions but reflect a single runtime snapshot;
+  test context (dynamic content, locale, data variations) must still be
+  considered.
 
 ## Input
 

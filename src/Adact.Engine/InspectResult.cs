@@ -18,6 +18,7 @@ namespace Adact.Engine;
 /// <param name="IsKeyboardFocusable">UIA IsKeyboardFocusable プロパティ。</param>
 /// <param name="HasKeyboardFocus">UIA HasKeyboardFocus プロパティ。</param>
 /// <param name="Patterns">対応 Pattern とその状態。Pattern を持たない要素では空辞書。</param>
+/// <param name="Selector">安定セレクタ候補。算出不能時は <c>null</c>。</param>
 public sealed record InspectResult(
     string Ref,
     string? Name,
@@ -31,4 +32,5 @@ public sealed record InspectResult(
     bool IsOffscreen,
     bool IsKeyboardFocusable,
     bool HasKeyboardFocus,
-    IReadOnlyDictionary<string, IReadOnlyDictionary<string, object?>> Patterns);
+    IReadOnlyDictionary<string, IReadOnlyDictionary<string, object?>> Patterns,
+    SelectorSuggestion? Selector = null);

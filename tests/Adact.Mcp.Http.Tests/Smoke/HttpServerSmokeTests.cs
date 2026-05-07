@@ -53,7 +53,7 @@ public class HttpServerSmokeTests
     }
 
     /// <summary>
-    /// HTTP MCP 経由で windows_list_apps を呼び、生存ウィンドウが 1 件以上返ることを確認する。
+    /// HTTP MCP 経由で adact_list_windows を呼び、生存ウィンドウが 1 件以上返ることを確認する。
     /// HTTP 配線と最も軽量な UIA ツールの疎通を Smoke として検出するため。
     /// </summary>
     /// <returns>テスト完了タスク。</returns>
@@ -66,13 +66,13 @@ public class HttpServerSmokeTests
         await using var client = await McpClient.CreateAsync(CreateTransport(), cancellationToken: cts.Token);
 
         var result = await client.CallToolAsync(
-            "windows_list_apps",
+            "adact_list_windows",
             cancellationToken: cts.Token);
         Assert.False(result.IsError ?? false);
         var text = (result.Content[0] as TextContentBlock)?.Text;
         Assert.NotNull(text);
         using var doc = JsonDocument.Parse(text!);
         Assert.True(doc.RootElement.GetArrayLength() > 0,
-            "windows_list_apps should return at least one window on a running desktop session.");
+            "adact_list_windows should return at least one window on a running desktop session.");
     }
 }

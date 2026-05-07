@@ -13,5 +13,5 @@ internal static class RestoreWindowCommand
         => WindowStateCommandBuilder.Build(
             name: "restore-window",
             description: "Restore the attached window to normal state via UIA WindowPattern.SetWindowVisualState(Normal).",
-            toolName: "windows_restore");
+            toolName: "adact_restore_window");
 }

@@ -7,7 +7,7 @@ namespace Adact.Mcp.Common;
 /// </summary>
 public interface IDaemonControl
 {
-    /// <summary>このモードで <c>daemon_stop</c> が機能するか。stdio モードでは false。</summary>
+    /// <summary>このモードで <c>adact_daemon_stop</c> が機能するか。stdio モードでは false。</summary>
     bool IsSupported { get; }
 
     /// <summary>

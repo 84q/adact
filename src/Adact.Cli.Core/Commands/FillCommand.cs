@@ -59,7 +59,7 @@ internal static class FillCommand
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
                 (client, token) => CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
-                    client, "fill", "windows_fill", args, refValue!, noSnap, dirArg, token),
+                    client, "fill", "adact_fill", args, refValue!, noSnap, dirArg, token),
                 ct);
         });
 

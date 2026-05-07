@@ -45,8 +45,8 @@ family doc that covers the command you are about to run.
 | `adact hover`          | Move the cursor over an element.                      | [`references/element-actions.md`](references/element-actions.md) |
 | `adact type`           | Type text character by character into an element.     | [`references/element-actions.md`](references/element-actions.md) |
 | `adact focus`          | Set keyboard focus to an element.                     | [`references/element-actions.md`](references/element-actions.md) |
-| `adact clear`          | Clear the value of an input element.                  | [`references/element-actions.md`](references/element-actions.md) |
-| `adact scroll`         | Scroll an element into view.                        | [`references/element-actions.md`](references/element-actions.md) |
+| `adact scroll-into-view` | Scroll an element into view (ScrollItemPattern).   | [`references/element-actions.md`](references/element-actions.md) |
+| `adact scroll`         | Scroll a container element (ScrollPattern: percent/small/large). | [`references/element-actions.md`](references/element-actions.md) |
 | `adact mousemove`      | Move the cursor to an element ref or `x,y`.           | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
 | `adact mousedown`      | Press and hold a mouse button at a target.            | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
 | `adact mouseup`        | Release a mouse button at a target.                   | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
@@ -65,7 +65,7 @@ family doc that covers the command you are about to run.
 | `adact detach`         | Detach the session without closing the window.        | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
 | `adact close-window`   | Close the attached window (auto-detach on success).   | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
 | `adact kill`           | Force-kill the attached process (auto-detach on success). | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
-| `adact close-all`      | Close all attached windows and report per-session results. | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
+
 
 ## Element refs
 

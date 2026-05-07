@@ -1,6 +1,6 @@
 # Element action commands
 
-Use this for: `click`, `doubleclick`, `hover`, `fill`, `type`, `focus`, `clear`, `scroll`.
+Use this for: `click`, `doubleclick`, `hover`, `fill`, `type`, `focus`, `scroll-into-view`, `scroll`.
 
 ## Shared rules
 
@@ -16,5 +16,5 @@ Use this for: `click`, `doubleclick`, `hover`, `fill`, `type`, `focus`, `clear`,
 - `adact fill <ref> --value "..."`: replace input value.
 - `adact type <ref> --text "..."`: type text as key events.
 - `adact focus <ref>`: set keyboard focus.
-- `adact clear <ref>`: clear editable value.
-- `adact scroll <ref>`: request scrolling until element becomes visible.
+- `adact scroll-into-view <ref>`: scroll element into view (ScrollItemPattern).
+- `adact scroll <ref> --percent-v 50`: scroll container (percent/small/large modes, mutually exclusive).

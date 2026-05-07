@@ -77,11 +77,11 @@ public interface IWindowSession : IDisposable
     /// <summary>要素へ keyboard focus を移す。</summary>
     Task FocusAsync(string refId, CancellationToken ct = default);
 
-    /// <summary>入力要素を空文字で clear する。</summary>
-    Task ClearAsync(string refId, CancellationToken ct = default);
-
     /// <summary>要素を表示領域へ scroll する。</summary>
     Task ScrollIntoViewAsync(string refId, CancellationToken ct = default);
+
+    /// <summary>ScrollPattern でコンテナをスクロールする。</summary>
+    Task ScrollAsync(string refId, ScrollMode mode, CancellationToken ct = default);
 
     /// <summary>要素の詳細情報を取得する。</summary>
     Task<InspectResult> InspectAsync(string refId, CancellationToken ct = default);
@@ -89,8 +89,8 @@ public interface IWindowSession : IDisposable
     /// <summary>window または要素の screenshot を取得する。</summary>
     Task<ScreenshotResult> ScreenshotAsync(string? refId, string? outPath, CancellationToken ct = default);
 
-    /// <summary>window size を変更する。</summary>
-    Task ResizeAsync(int width, int height, CancellationToken ct = default);
+    /// <summary>window size を変更する。片方 null 時は現在値を維持する。</summary>
+    Task ResizeAsync(int? width, int? height, CancellationToken ct = default);
 
     /// <summary>window を最小化する。</summary>
     Task MinimizeAsync(CancellationToken ct = default);

@@ -24,7 +24,7 @@ internal static class DetachCommand
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
                 (client, token) => LifecycleCommandImpl.ExecuteAsync(
-                    client, "windows_detach", sidArg, ["detached"], token),
+                    client, "adact_detach", sidArg, ["detached"], token),
                 ct);
         });
 

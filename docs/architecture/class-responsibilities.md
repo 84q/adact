@@ -79,25 +79,25 @@ flowchart TB
 | 型 | 何を持つか | 何を呼ぶか | 何を返すか |
 | --- | --- | --- | --- |
 | `Program` | `RootCommand` の構築ロジック | 各 `*Command.Build()`、`Parse(args)`、`InvokeAsync()` | process exit code |
-| `ListWindowsCommand` | `--server` option | `CommandHelpers.RunWithClientAsync()`、MCP `windows_list_apps`、`TsvWriter` | window 一覧 TSV と exit code |
-| `AttachCommand` | positional `ref`、条件指定 option、`--no-snapshot`、`--snapshot-dir`、`--server` | `RefValidator`、MCP `windows_attach`、成功時に `CommandHelpers.WriteSnapshotResultAsync()` | `sessionId` / `windowRef` / snapshot path |
+| `ListWindowsCommand` | `--server` option | `CommandHelpers.RunWithClientAsync()`、MCP `adact_list_windows`、`TsvWriter` | window 一覧 TSV と exit code |
+| `AttachCommand` | positional `ref`、条件指定 option、`--no-snapshot`、`--snapshot-dir`、`--server` | `RefValidator`、MCP `adact_attach`、成功時に `CommandHelpers.WriteSnapshotResultAsync()` | `sessionId` / `windowRef` / snapshot path |
 | `SnapshotCommand` | `--sid`、`--snapshot-dir`、`--filter`、`--server` | `CommandHelpers.WriteSnapshotResultAsync()` | `sessionId` と CLI `.txt` snapshot path |
-| `ClickCommand` | element ref、`--button`、`--count`、`--modifier`、`--position`、`--no-snapshot`、`--snapshot-dir`、`--server` | `RefValidator`、`CommandHelpers.RunRefOperationAndAutoSnapshotAsync()`、MCP `windows_click` | 操作後 snapshot path、または `sessionId` のみ |
-| `FillCommand` | element ref、text、`--no-snapshot`、`--snapshot-dir`、`--server` | `RefValidator`、`CommandHelpers.RunRefOperationAndAutoSnapshotAsync()`、MCP `windows_fill` | 操作後 snapshot path、または `sessionId` のみ |
-| `DoubleclickCommand` / `HoverCommand` | element ref、`--button` (doubleclick のみ)、`--modifier`、`--position`、auto-snapshot 系 | MCP `windows_dblclick` / `windows_hover` | 操作後 snapshot path |
-| `MousemoveCommand` / `MousedownCommand` / `MouseupCommand` / `MousewheelCommand` | target (`s<sid>e<eid>` または `x,y`)、`--button` / `--delta-x` / `--delta-y` | MCP `windows_mouse_move` / `windows_mouse_down` / `windows_mouse_up` / `windows_mouse_wheel` | mousewheel のみ snapshot、それ以外は出力なし |
-| `TypeCommand` / `KeypressCommand` / `KeydownCommand` / `KeyupCommand` | text + `--ref` / `--delay-ms` / key combo | MCP `windows_type` / `windows_press` / `windows_key_down` / `windows_key_up` | keypress は snapshot、keydown/keyup は出力なし |
-| `ToggleCommands` (`check` / `uncheck`) / `SelectCommand` / `ClearCommand` | `--ref`、`select` は `--name` / `--index` / `--item-ref` 排他 | MCP `windows_check` / `windows_uncheck` / `windows_select` / `windows_clear` | snapshot path |
-| `RefOnlyCommandBuilder` で生成する `focus` / `scroll` | `--ref` のみ | MCP `windows_focus` / `windows_scroll_into_view` | 出力なし |
-| `ResizeWindowCommand` / `WindowStateCommandBuilder` で生成する `minimize-window` / `maximize-window` / `restore-window` | `resize-window` は `--width` / `--height`、その他は引数なし | MCP `windows_resize` / `windows_minimize` / `windows_maximize` / `windows_restore` | snapshot path |
-| `InspectCommand` | `--ref` | MCP `windows_inspect` | UIA プロパティ詳細の JSON 1 行 |
-| `ScreenshotCommand` | `--ref?`、`--out?`、`--sid?` | MCP `windows_screenshot` | `{ path, width, height }` JSON 1 行 |
-| `WaitForElementCommand` | `--ref` または検索条件、`--state`、`--timeout`、`--sid` | MCP `windows_wait_for` | `{ ref, state }` JSON 1 行 |
-| `WaitForWindowCommand` | `--title` / `--class-name` / `--process-name` / `--exe`、`--timeout` | MCP `windows_wait_for_window` | window info JSON 1 行。attach は行わない |
-| `LaunchCommand` | `<executable>`、`--cwd`、`--env`、`-- <args>` | MCP `windows_launch` | `{ pid, processName, executablePath }` JSON 1 行。attach は行わない |
+| `ClickCommand` | element ref、`--button`、`--count`、`--modifier`、`--position`、`--no-snapshot`、`--snapshot-dir`、`--server` | `RefValidator`、`CommandHelpers.RunRefOperationAndAutoSnapshotAsync()`、MCP `adact_click` | 操作後 snapshot path、または `sessionId` のみ |
+| `FillCommand` | element ref、text、`--no-snapshot`、`--snapshot-dir`、`--server` | `RefValidator`、`CommandHelpers.RunRefOperationAndAutoSnapshotAsync()`、MCP `adact_fill` | 操作後 snapshot path、または `sessionId` のみ |
+| `DoubleclickCommand` / `HoverCommand` | element ref、`--button` (doubleclick のみ)、`--modifier`、`--position`、auto-snapshot 系 | MCP `adact_doubleclick` / `adact_hover` | 操作後 snapshot path |
+| `MousemoveCommand` / `MousedownCommand` / `MouseupCommand` / `MousewheelCommand` | target (`s<sid>e<eid>` または `x,y`)、`--button` / `--delta-x` / `--delta-y` | MCP `adact_mousemove` / `adact_mousedown` / `adact_mouseup` / `adact_mousewheel` | mousewheel のみ snapshot、それ以外は出力なし |
+| `TypeCommand` / `KeypressCommand` / `KeydownCommand` / `KeyupCommand` | text + `--ref` / `--delay-ms` / key combo | MCP `adact_type` / `adact_keypress` / `adact_keydown` / `adact_keyup` | keypress は snapshot、keydown/keyup は出力なし |
+| `ToggleCommands` (`check` / `uncheck`) / `SelectCommand` / `ClearCommand` | `--ref`、`select` は `--name` / `--index` / `--item-ref` 排他 | MCP `adact_check` / `adact_uncheck` / `adact_select` / `adact_clear` | snapshot path |
+| `RefOnlyCommandBuilder` で生成する `focus` / `scroll` | `--ref` のみ | MCP `adact_focus` / `adact_scroll` | 出力なし |
+| `ResizeWindowCommand` / `WindowStateCommandBuilder` で生成する `minimize-window` / `maximize-window` / `restore-window` | `resize-window` は `--width` / `--height`、その他は引数なし | MCP `adact_resize_window` / `adact_minimize_window` / `adact_maximize_window` / `adact_restore_window` | snapshot path |
+| `InspectCommand` | `--ref` | MCP `adact_inspect` | UIA プロパティ詳細の JSON 1 行 |
+| `ScreenshotCommand` | `--ref?`、`--out?`、`--sid?` | MCP `adact_screenshot` | `{ path, width, height }` JSON 1 行 |
+| `WaitForElementCommand` | `--ref` または検索条件、`--state`、`--timeout`、`--sid` | MCP `adact_wait_for_element` | `{ ref, state }` JSON 1 行 |
+| `WaitForWindowCommand` | `--title` / `--class-name` / `--process-name` / `--exe`、`--timeout` | MCP `adact_wait_for_window` | window info JSON 1 行。attach は行わない |
+| `LaunchCommand` | `<executable>`、`--cwd`、`--env`、`-- <args>` | MCP `adact_launch` | `{ pid, processName, executablePath }` JSON 1 行。attach は行わない |
 | `DetachCommand` / `CloseWindowCommand` / `KillCommand` | `--sid`、`--server` | `LifecycleCommandImpl.ExecuteAsync()` と対応 MCP tool | `sessionId` と `detached` / `closed` / `killed` の literal 行 |
-| `CloseAllCommand` | `--server` | MCP `windows_close_all`、`FormatResults()` | session ごとの TSV 風結果。失敗があれば exit 1 |
-| `DaemonStopCommand` | `--server` | `ConnectionResolver`、localhost guard、MCP `daemon_stop` | `stopped`。応答前切断も停止済みとして成功扱い |
+| `CloseAllCommand` | `--server` | MCP `adact_close_all`、`FormatResults()` | session ごとの TSV 風結果。失敗があれば exit 1 |
+| `DaemonStopCommand` | `--server` | `ConnectionResolver`、localhost guard、MCP `adact_daemon_stop` | `stopped`。応答前切断も停止済みとして成功扱い |
 | `ServeCommand` | `--port` | `HttpHost.RunAsync()` | HTTP daemon の process exit code |
 | `InstallCommand` | `--skills`、`--global`、client 別 skills root path matrix、配布対象 Skill 一覧 | output 配下の `Skills/{adact-cli,adact-flaui-testgen}` 探索、各 Skill directory copy | skills root path、配布 Skill 名一覧、exit code |
 | `CommandHelpers` | 共通 option と共通実行関数 | `ConnectionResolver`、`AdactMcpClient`、`McpResponse`、snapshot 変換層 | コマンド別 exit code |
@@ -129,7 +129,7 @@ snapshot は daemon から raw JSON として返り、CLI 側で人間と AI が
 | 型 | 何を持つか | 何を呼ぶか | 何を返すか |
 | --- | --- | --- | --- |
 | `HttpHost` | `/mcp` path、対話 session guard、ASP.NET Core / MCP SDK の DI 構成 | `InteractiveSessionGuard.Probe()`、`UiaEngine` / stores / `WindowsTools` の登録、Kestrel 起動 | daemon exit code |
-| `HttpDaemonControl` | `IHostApplicationLifetime` | `StopApplication()` | `daemon_stop` 用の停止完了 task |
+| `HttpDaemonControl` | `IHostApplicationLifetime` | `StopApplication()` | `adact_daemon_stop` 用の停止完了 task |
 
 HTTP daemon は `WindowsTools`、`SessionStore`、`WindowRefStore`、`UiaEngine` を DI に登録します。
 

@@ -24,7 +24,7 @@ internal static class CloseWindowCommand
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
                 (client, token) => LifecycleCommandImpl.ExecuteAsync(
-                    client, "windows_close", sidArg, ["closed", "detached"], token),
+                    client, "adact_close_window", sidArg, ["closed", "detached"], token),
                 ct);
         });
 

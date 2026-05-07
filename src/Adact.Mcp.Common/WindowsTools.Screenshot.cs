@@ -21,7 +21,7 @@ public sealed partial class WindowsTools
     /// <param name="sessionId"><paramref name="ref"/> 未指定時のみ参照される対象 session。null はアクティブ。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>保存先 / 幅 / 高さを JSON で返す <see cref="CallToolResult"/>。</returns>
-    [McpServerTool(Name = "windows_screenshot")]
+    [McpServerTool(Name = "adact_screenshot")]
     [Description("Capture a PNG screenshot of the attached window (or a specific element when ref is provided) and save it to disk. No snapshot is taken.")]
     public async Task<CallToolResult> ScreenshotAsync(
         [Description("Element ref to clip. Omit to capture the whole attached window.")]
@@ -78,7 +78,7 @@ public sealed partial class WindowsTools
                 StructuredContent = JsonSerializer.SerializeToElement(json),
             };
         }
-        catch (Exception ex) { return MapOrLog(ex, "windows_screenshot"); }
+        catch (Exception ex) { return MapOrLog(ex, "adact_screenshot"); }
     }
 
     private bool TryResolveScreenshotRef(string @ref, out IWindowSession? session, out CallToolResult? error)

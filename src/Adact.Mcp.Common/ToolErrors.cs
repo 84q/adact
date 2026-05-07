@@ -42,7 +42,7 @@ internal static class ToolErrors
     public const string LocalOnly = "LOCAL_ONLY";
     /// <summary>業務例外として提示したい不規則例外を包んだケース (例: daemon 停止失敗)。</summary>
     public const string InternalError = "INTERNAL_ERROR";
-    /// <summary><c>windows_wait_for</c> / <c>windows_wait_for_window</c> がタイムアウト内に成功条件を満たせなかった。</summary>
+    /// <summary><c>adact_wait_for_element</c> / <c>adact_wait_for_window</c> がタイムアウト内に成功条件を満たせなかった。</summary>
     public const string WaitTimeout = "WAIT_TIMEOUT";
     /// <summary>デスクトップがロック / UAC / ウィンドウ非アクティブなどで操作がブロックされた。</summary>
     public const string OperationBlocked = "OPERATION_BLOCKED";
