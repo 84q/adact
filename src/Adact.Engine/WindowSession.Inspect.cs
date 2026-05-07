@@ -1,3 +1,5 @@
+using System.Linq;
+
 using Adact.Engine.Elements;
 using Adact.Engine.Exceptions;
 
@@ -96,7 +98,138 @@ public sealed partial class WindowSession
                 ["Min"] = p.Minimum.ValueOrDefault,
                 ["Max"] = p.Maximum.ValueOrDefault,
                 ["Value"] = p.Value.ValueOrDefault,
+                ["SmallChange"] = p.SmallChange.ValueOrDefault,
+                ["LargeChange"] = p.LargeChange.ValueOrDefault,
+                ["IsReadOnly"] = p.IsReadOnly.ValueOrDefault,
             };
+        });
+
+        TryAdd(result, "Value", () =>
+        {
+            var p = el.Patterns.Value.PatternOrDefault;
+            if (p is null) return null;
+            return new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["IsReadOnly"] = p.IsReadOnly.ValueOrDefault,
+            };
+        });
+
+        TryAdd(result, "Selection", () =>
+        {
+            var p = el.Patterns.Selection.PatternOrDefault;
+            if (p is null) return null;
+            var dict = new Dictionary<string, object?>(StringComparer.Ordinal);
+            dict["CanSelectMultiple"] = p.CanSelectMultiple.ValueOrDefault;
+            dict["IsSelectionRequired"] = p.IsSelectionRequired.ValueOrDefault;
+            try
+            {
+                var selected = p.Selection.ValueOrDefault;
+                if (selected is { Length: > 0 })
+                    dict["SelectedItems"] = selected.Select(e => e.Name ?? "").ToArray();
+            }
+            catch { /* best effort */ }
+            return dict;
+        });
+
+        TryAdd(result, "Grid", () =>
+        {
+            var p = el.Patterns.Grid.PatternOrDefault;
+            if (p is null) return null;
+            return new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["RowCount"] = p.RowCount.ValueOrDefault,
+                ["ColumnCount"] = p.ColumnCount.ValueOrDefault,
+            };
+        });
+
+        TryAdd(result, "GridItem", () =>
+        {
+            var p = el.Patterns.GridItem.PatternOrDefault;
+            if (p is null) return null;
+            return new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["Row"] = p.Row.ValueOrDefault,
+                ["Column"] = p.Column.ValueOrDefault,
+                ["RowSpan"] = p.RowSpan.ValueOrDefault,
+                ["ColumnSpan"] = p.ColumnSpan.ValueOrDefault,
+            };
+        });
+
+        TryAdd(result, "Table", () =>
+        {
+            var p = el.Patterns.Table.PatternOrDefault;
+            if (p is null) return null;
+            var dict = new Dictionary<string, object?>(StringComparer.Ordinal);
+            dict["RowOrColumnMajor"] = p.RowOrColumnMajor.ValueOrDefault.ToString();
+            try
+            {
+                var colHeaders = p.ColumnHeaders.ValueOrDefault;
+                if (colHeaders is { Length: > 0 })
+                    dict["ColumnHeaders"] = colHeaders.Select(e => e.Name ?? "").ToArray();
+            }
+            catch { /* best effort */ }
+            try
+            {
+                var rowHeaders = p.RowHeaders.ValueOrDefault;
+                if (rowHeaders is { Length: > 0 })
+                    dict["RowHeaders"] = rowHeaders.Select(e => e.Name ?? "").ToArray();
+            }
+            catch { /* best effort */ }
+            return dict;
+        });
+
+        TryAdd(result, "TableItem", () =>
+        {
+            var p = el.Patterns.TableItem.PatternOrDefault;
+            if (p is null) return null;
+            var dict = new Dictionary<string, object?>(StringComparer.Ordinal);
+            try
+            {
+                var colHeaders = p.ColumnHeaderItems.ValueOrDefault;
+                if (colHeaders is { Length: > 0 })
+                    dict["ColumnHeaders"] = colHeaders.Select(e => e.Name ?? "").ToArray();
+            }
+            catch { /* best effort */ }
+            try
+            {
+                var rowHeaders = p.RowHeaderItems.ValueOrDefault;
+                if (rowHeaders is { Length: > 0 })
+                    dict["RowHeaders"] = rowHeaders.Select(e => e.Name ?? "").ToArray();
+            }
+            catch { /* best effort */ }
+            return dict.Count > 0 ? dict : null;
+        });
+
+        TryAdd(result, "Scroll", () =>
+        {
+            var p = el.Patterns.Scroll.PatternOrDefault;
+            if (p is null) return null;
+            var dict = new Dictionary<string, object?>(StringComparer.Ordinal);
+            dict["HCanScroll"] = p.HorizontallyScrollable.ValueOrDefault;
+            dict["VCanScroll"] = p.VerticallyScrollable.ValueOrDefault;
+            dict["HPercent"] = p.HorizontalScrollPercent.ValueOrDefault;
+            dict["VPercent"] = p.VerticalScrollPercent.ValueOrDefault;
+            dict["HViewSize"] = p.HorizontalViewSize.ValueOrDefault;
+            dict["VViewSize"] = p.VerticalViewSize.ValueOrDefault;
+            return dict;
+        });
+
+        TryAdd(result, "Text", () =>
+        {
+            var p = el.Patterns.Text.PatternOrDefault;
+            if (p is null) return null;
+            var dict = new Dictionary<string, object?>(StringComparer.Ordinal);
+            try
+            {
+                var text = p.DocumentRange.GetText(-1);
+                if (text is not null)
+                {
+                    dict["Length"] = text.Length;
+                    dict["Preview"] = text.Length > 30 ? text[..30] + "..." : text;
+                }
+            }
+            catch { /* best effort */ }
+            return dict.Count > 0 ? dict : null;
         });
 
         TryAdd(result, "Window", () =>

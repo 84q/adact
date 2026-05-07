@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -62,6 +63,7 @@ public sealed partial class WindowsTools
                     string s => s,
                     int i => i,
                     double d => d,
+                    string[] arr => new JsonArray(arr.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()),
                     _ => v.ToString(),
                 };
             }
