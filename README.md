@@ -6,7 +6,7 @@ It brings a Playwright-like snapshot/ref workflow to Windows UI Automation, so A
 
 ## What it can do
 
-- Discover top-level Windows application windows with `list-apps`
+- Discover top-level Windows application windows with `list-windows`
 - Attach to a window and keep a session for follow-up commands
 - Capture text snapshots of the UI tree for agent-friendly inspection
 - Act on stable element refs with commands such as `click`, `fill`, `press`, `select`, and `screenshot`
@@ -44,7 +44,7 @@ dotnet run --project src/Adact.Cli -- <subcommand>
 Examples:
 
 ```powershell
-dotnet run --project src/Adact.Cli -- list-apps
+dotnet run --project src/Adact.Cli -- list-windows
 dotnet run --project src/Adact.Cli -- serve pipe
 ```
 
@@ -68,7 +68,7 @@ Then use the CLI from another terminal:
 
 ```powershell
 # 1. List top-level windows
-.\adact.exe list-apps
+.\adact.exe list-windows
 
 # 2. Attach to a window from the list (example: w1)
 .\adact.exe attach w1

@@ -52,13 +52,13 @@ internal static class ClearCommand
         autoSnapshot: true);
 }
 
-/// <summary><c>scroll-into-view</c> コマンド。ScrollItemPattern で要素を可視範囲にスクロールする (低レベル)。</summary>
+/// <summary><c>scroll</c> コマンド。ScrollItemPattern で要素を可視範囲にスクロールする (低レベル)。</summary>
 internal static class ScrollIntoViewCommand
 {
-    /// <summary>scroll-into-view サブコマンドを構築する。</summary>
+    /// <summary>scroll サブコマンドを構築する。</summary>
     /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build() => RefOnlyCommandBuilder.Build(
-        name: "scroll-into-view",
+        name: "scroll",
         description: "Scroll the element into view using ScrollItemPattern.",
         toolName: "windows_scroll_into_view",
         autoSnapshot: false);

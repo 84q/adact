@@ -17,7 +17,7 @@ ADACT は Windows UIA と daemon process の状態に依存します。問題が
 2. その session の terminal から `adact serve` を起動する。
 3. SSH 側や別 terminal の CLI は、その daemon の URL を `--server` または `.adact/config.json` で指定する。
 
-UIA は同一 Windows session 内の top-level window しか見えません。`list-apps` が空に見える事故を避けるため、ADACT は daemon 起動時に fail-fast します。
+UIA は同一 Windows session 内の top-level window しか見えません。`list-windows` が空に見える事故を避けるため、ADACT は daemon 起動時に fail-fast します。
 
 ## `OPERATION_BLOCKED`
 
@@ -45,7 +45,7 @@ UIA は同一 Windows session 内の top-level window しか見えません。`l
 
 ```powershell
 adact serve --port 41300
-adact list-apps --server http://127.0.0.1:41300/mcp
+adact list-windows --server http://127.0.0.1:41300/mcp
 ```
 
 `.adact/config.json` を使う場合:
@@ -68,7 +68,7 @@ adact list-apps --server http://127.0.0.1:41300/mcp
 
 1. `adact snapshot` を再実行する。
 2. 新しい `.txt` snapshot の `[ref=s...e...]` を使う。
-3. session 自体がない場合は `adact list-apps` -> `adact attach ...` からやり直す。
+3. session 自体がない場合は `adact list-windows` -> `adact attach ...` からやり直す。
 
 現行 ref は `s<sid>e<eid>` です。古い `s<sid>g<gen>e<eid>` は過去形式です。
 
@@ -76,17 +76,17 @@ adact list-apps --server http://127.0.0.1:41300/mcp
 
 | Code | 原因 | 対処 |
 | --- | --- | --- |
-| `INVALID_WINDOW_REF` | `w<n>` が未登録もしくは retired (window が閉じた / `list-apps` 後にずれた) | `adact list-apps` を再取得して新しい `w<n>` を渡す |
-| `WINDOW_NOT_FOUND` | `w<n>` 解決後の HWND attach が失敗した (window が閉じられた等) | `adact list-apps` を再取得し、対象 window が存在することを確認する |
+| `INVALID_WINDOW_REF` | `w<n>` が未登録もしくは retired (window が閉じた / `list-windows` 後にずれた) | `adact list-windows` を再取得して新しい `w<n>` を渡す |
+| `WINDOW_NOT_FOUND` | `w<n>` 解決後の HWND attach が失敗した (window が閉じられた等) | `adact list-windows` を再取得し、対象 window が存在することを確認する |
 
 例:
 
 ```powershell
-adact list-apps
+adact list-windows
 adact attach w1
 ```
 
-`attach` は `w<n>` 形式の positional 引数のみ受け付けます。process name / title 等での matching は提供しません (`list-apps` で絞り込んでから `w<n>` を渡してください)。
+`attach` は `w<n>` 形式の positional 引数のみ受け付けます。process name / title 等での matching は提供しません (`list-windows` で絞り込んでから `w<n>` を渡してください)。
 
 ## snapshot が大きい
 
@@ -124,7 +124,7 @@ adact attach w1
 | Calculator E2E が競合する | 他の test run が同時に Calculator を触っていないか確認する |
 | click/fill が時々失敗する | 実行中に同じ desktop を人間が操作しない |
 | Notepad++ smoke が skip / fail する | Notepad++ のインストール、window title、権限を確認する |
-| `list-apps` が空 | daemon が対話 session で動いているか確認する |
+| `list-windows` が空 | daemon が対話 session で動いているか確認する |
 
 ## 参照
 

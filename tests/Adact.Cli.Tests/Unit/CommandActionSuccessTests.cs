@@ -132,8 +132,8 @@ public class CommandActionSuccessTests
 
         var (stdout, stderr, exit) = await RunWithClientAsync(
             client,
-            ResizeCommand.Build(),
-            ["resize", "s9", "--width", "800", "--height", "600", "--no-snapshot"]);
+            ResizeWindowCommand.Build(),
+            ["resize-window", "s9", "--width", "800", "--height", "600", "--no-snapshot"]);
 
         Assert.Equal(ExitCodes.Success, exit);
         Assert.Contains("result: true", stdout);
@@ -148,7 +148,7 @@ public class CommandActionSuccessTests
         Assert.Equal("s9", call.Arguments["sessionId"]);
     }
 
-    /// <summary>Verifies that dblclick maps button, modifiers, and position into windows_dblclick.</summary>
+    /// <summary>Verifies that doubleclick maps button, modifiers, and position into windows_dblclick.</summary>
     [Fact]
     public async Task Dblclick_Success_MapsOptionsToWindowsDblclick()
     {
@@ -157,9 +157,9 @@ public class CommandActionSuccessTests
 
         var (stdout, stderr, exit) = await RunWithClientAsync(
             client,
-            DblclickCommand.Build(),
+            DoubleclickCommand.Build(),
             [
-                "dblclick", "s5e6",
+                "doubleclick", "s5e6",
                 "--button", "middle",
                 "--modifier", "Alt",
                 "--position", "3,4",
@@ -323,8 +323,8 @@ public class CommandActionSuccessTests
 
         var (stdout, stderr, exit) = await RunWithClientAsync(
             client,
-            MouseWheelCommand.Build(),
-            ["mouse-wheel", "--delta-x", "-1", "--delta-y", "3"]);
+            MousewheelCommand.Build(),
+            ["mousewheel", "--delta-x", "-1", "--delta-y", "3"]);
 
         Assert.Equal(ExitCodes.Success, exit);
         Assert.Contains("result: true", stdout);
@@ -347,8 +347,8 @@ public class CommandActionSuccessTests
 
         var (stdout, stderr, exit) = await RunWithClientAsync(
             client,
-            PressCommand.Build(),
-            ["press", "Ctrl+Shift+E"]);
+            KeypressCommand.Build(),
+            ["keypress", "Ctrl+Shift+E"]);
 
         Assert.Equal(ExitCodes.Success, exit);
         Assert.Contains("result: true", stdout);
@@ -431,24 +431,24 @@ public class CommandActionSuccessTests
     /// <summary>Provides low-level mouse command builders, CLI args, and expected MCP tool names.</summary>
     public static IEnumerable<object[]> MouseLowLevelCommands()
     {
-        yield return [MouseMoveCommand.Build(), "windows_mouse_move", new[] { "mouse-move", "10,20" }, "10,20", null!];
-        yield return [MouseDownCommand.Build(), "windows_mouse_down", new[] { "mouse-down", "--button", "right" }, string.Empty, "right"];
-        yield return [MouseUpCommand.Build(), "windows_mouse_up", new[] { "mouse-up", "--button", "middle" }, string.Empty, "middle"];
+        yield return [MousemoveCommand.Build(), "windows_mouse_move", new[] { "mousemove", "10,20" }, "10,20", null!];
+        yield return [MousedownCommand.Build(), "windows_mouse_down", new[] { "mousedown", "--button", "right" }, string.Empty, "right"];
+        yield return [MouseupCommand.Build(), "windows_mouse_up", new[] { "mouseup", "--button", "middle" }, string.Empty, "middle"];
     }
 
     /// <summary>Provides key command builders and expected MCP tool names.</summary>
     public static IEnumerable<object[]> KeyCommands()
     {
-        yield return [KeyDownCommand.Build(), "windows_key_down"];
-        yield return [KeyUpCommand.Build(), "windows_key_up"];
+        yield return [KeydownCommand.Build(), "windows_key_down"];
+        yield return [KeyupCommand.Build(), "windows_key_up"];
     }
 
     /// <summary>Provides window-state command builders and expected MCP tool names.</summary>
     public static IEnumerable<object[]> WindowStateCommands()
     {
-        yield return [MinimizeCommand.Build(), "windows_minimize"];
-        yield return [MaximizeCommand.Build(), "windows_maximize"];
-        yield return [RestoreCommand.Build(), "windows_restore"];
+        yield return [MinimizeWindowCommand.Build(), "windows_minimize"];
+        yield return [MaximizeWindowCommand.Build(), "windows_maximize"];
+        yield return [RestoreWindowCommand.Build(), "windows_restore"];
     }
 
     private static IReadOnlyDictionary<string, object?> AssertSingleCall(FakeClient client, string name)

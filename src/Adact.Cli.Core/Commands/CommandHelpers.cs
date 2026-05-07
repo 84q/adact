@@ -120,7 +120,7 @@ internal static class CommandHelpers
 
     /// <summary>
     /// 接続解決 → （未起動時は自動起動）→ MCP 接続 → コマンド実装の呼び出し、を共通化する。
-    /// list-apps と launch 専用。自動起動が有効な場合はサーバー未起動時に自動起動を試みる。
+    /// list-windows と launch 専用。自動起動が有効な場合はサーバー未起動時に自動起動を試みる。
     /// </summary>
     /// <param name="serverArg"><c>--server</c> の値。null/空白なら Named Pipe を使用。</param>
     /// <param name="exec">接続済みクライアントを受け取り、MCP を呼び出して exit code を返すコマンド実装。</param>

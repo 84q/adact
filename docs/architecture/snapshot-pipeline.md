@@ -31,7 +31,7 @@ Phase 7 以降、Engine は `operable` / `raw` のフィルタ選択を持ちま
 
 | データ | 発生源 | 経由 | 消費先 |
 | --- | --- | --- | --- |
-| `windowRef` (`w<n>`) | `WindowRefStore.SyncOrAssign()` | `list-apps` stdout、`windows_attach` arguments / response | window への attach と idempotent attach |
+| `windowRef` (`w<n>`) | `WindowRefStore.SyncOrAssign()` | `list-windows` stdout、`windows_attach` arguments / response | window への attach と idempotent attach |
 | `sessionId` (`s<n>`) | `UiaEngine` が `WindowSession` 作成時に採番し、`SessionStore.Register()` が文字列化 | MCP response `_meta.sessionId`、CLI stdout、element ref prefix | snapshot 対象 session、lifecycle、element ref の session 解決 |
 | `elementRef` (`s<sid>e<eid>`) | `RefRegistry.Register()` | raw JSON の各 node `ref`、CLI `.txt` snapshot | `click` / `fill` の対象解決 |
 | raw JSON | `SnapshotBuilder.Build()` | MCP `windows_snapshot` response | CLI parser / filter / formatter |
@@ -124,7 +124,7 @@ MCP tool としての `windows_snapshot` は raw JSON を返すだけです。CL
 
 ## CLI `WriteSnapshotResultAsync`
 
-`CommandHelpers.WriteSnapshotResultAsync()` は、`snapshot` command、`attach` 成功後の自動 snapshot、および Phase 8 で追加された auto-snapshot 対象コマンド (`click`, `fill`, `dblclick`, `hover`, `type`, `press`, `check`, `uncheck`, `select`, `clear`, `mouse-wheel`, `resize`, `minimize`, `maximize`, `restore`) 成功後の自動 snapshot から共通利用されます。
+`CommandHelpers.WriteSnapshotResultAsync()` は、`snapshot` command、`attach` 成功後の自動 snapshot、および Phase 8 で追加された auto-snapshot 対象コマンド (`click`, `fill`, `doubleclick`, `hover`, `type`, `keypress`, `check`, `uncheck`, `select`, `clear`, `mousewheel`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window`) 成功後の自動 snapshot から共通利用されます。
 
 1. filter 未指定なら `operable` にし、`SnapshotTreeFilter.IsKnownFilter()` で `operable` / `raw` のみ許可します。
 2. `sessionId` があれば MCP `windows_snapshot` の arguments に入れ、なければ arguments なしで active session を使います。
@@ -156,9 +156,9 @@ MCP tool としての `windows_snapshot` は raw JSON を返すだけです。CL
 
 | 分類 | コマンド | auto-snapshot |
 | --- | --- | --- |
-| 状態変化系 | `click`, `fill`, `dblclick`, `hover`, `type`, `press`, `check`, `uncheck`, `select`, `clear`, `mouse-wheel`, `resize`, `minimize`, `maximize`, `restore` | あり (`--no-snapshot` で抑止可) |
-| 低レベル補助 | `mouse-move`, `mouse-down`, `mouse-up`, `key-down`, `key-up`, `focus`, `scroll-into-view` | なし |
-| 取得・同期系 | `inspect`, `screenshot`, `wait-for`, `wait-for-window`, `launch` | なし |
+| 状態変化系 | `click`, `fill`, `doubleclick`, `hover`, `type`, `keypress`, `check`, `uncheck`, `select`, `clear`, `mousewheel`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window` | あり (`--no-snapshot` で抑止可) |
+| 低レベル補助 | `mousemove`, `mousedown`, `mouseup`, `keydown`, `keyup`, `focus`, `scroll` | なし |
+| 取得・同期系 | `inspect`, `screenshot`, `wait-for-element`, `wait-for-window`, `launch` | なし |
 
 `click` / `fill` の流れを例にすると次のようになります。
 

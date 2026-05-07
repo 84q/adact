@@ -23,10 +23,10 @@ public class WindowSessionFakeElementTests
         public void PressKey(VirtualKeyShort key) => Calls.Add($"press-key:{key}");
         public void ReleaseKey(VirtualKeyShort key) => Calls.Add($"release-key:{key}");
         public void MoveTo(int x, int y) => Calls.Add($"move:{x},{y}");
-        public void MouseDown(MouseButton button) => Calls.Add($"mouse-down:{button}");
-        public void MouseUp(MouseButton button) => Calls.Add($"mouse-up:{button}");
-        public void MouseClick(MouseButton button) => Calls.Add($"mouse-click:{button}");
-        public void MouseDoubleClick(MouseButton button) => Calls.Add($"mouse-dblclick:{button}");
+        public void MouseDown(MouseButton button) => Calls.Add($"mousedown:{button}");
+        public void MouseUp(MouseButton button) => Calls.Add($"mouseup:{button}");
+        public void MouseClick(MouseButton button) => Calls.Add($"mouseclick:{button}");
+        public void MouseDoubleClick(MouseButton button) => Calls.Add($"mousedoubleclick:{button}");
         public void Scroll(int amount) => Calls.Add($"scroll:{amount}");
         public void HorizontalScroll(int amount) => Calls.Add($"hscroll:{amount}");
         public Task WaitAfterInteractionAsync(CancellationToken ct)
@@ -245,8 +245,8 @@ public class WindowSessionFakeElementTests
 
         Assert.Contains("focus-window", driver.Calls);
         Assert.Contains("move:11,22", driver.Calls);
-        Assert.Equal(2, driver.Calls.Count(c => c == "mouse-click:Right"));
-        Assert.Contains("mouse-dblclick:Middle", driver.Calls);
+        Assert.Equal(2, driver.Calls.Count(c => c == "mouseclick:Right"));
+        Assert.Contains("mousedoubleclick:Middle", driver.Calls);
     }
 
     /// <summary>
@@ -263,8 +263,8 @@ public class WindowSessionFakeElementTests
         await session.MouseUpAsync(new MouseTarget.ByPoint(5, 6), MouseButton.Left);
         await session.MouseWheelAsync(new MouseTarget.ByPoint(5, 6), deltaX: 2, deltaY: 3);
 
-        Assert.Contains("mouse-down:Left", driver.Calls);
-        Assert.Contains("mouse-up:Left", driver.Calls);
+        Assert.Contains("mousedown:Left", driver.Calls);
+        Assert.Contains("mouseup:Left", driver.Calls);
         Assert.Contains("scroll:-3", driver.Calls);
         Assert.Contains("hscroll:2", driver.Calls);
     }

@@ -8,7 +8,7 @@ using Xunit;
 namespace Adact.Cli.Tests.Unit;
 
 /// <summary>
-/// <see cref="WaitForCommand"/> および <see cref="WaitForWindowCommand"/> (Phase 8 Step 7) の
+/// <see cref="WaitForElementCommand"/> および <see cref="WaitForWindowCommand"/> (Phase 8 Step 7) の
 /// 引数パース・ローカルバリデーション検証。daemon / UIA への接続は行わない。
 /// </summary>
 [Trait("Layer", "Unit")]
@@ -19,7 +19,7 @@ public class WaitForCommandTests
     [Fact]
     public async Task WaitFor_RefAndQuery_ReturnsUserError()
     {
-        var (stdout, stderr, exit) = await RunWaitForAsync(["wait-for", "--ref", "s1e1", "--name", "OK"]);
+        var (stdout, stderr, exit) = await RunWaitForAsync(["wait-for-element", "--ref", "s1e1", "--name", "OK"]);
         Assert.Equal(ExitCodes.UserError, exit);
         Assert.Equal(string.Empty, stderr);
         Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
@@ -29,7 +29,7 @@ public class WaitForCommandTests
     [Fact]
     public async Task WaitFor_NoConditions_ReturnsUserError()
     {
-        var (stdout, stderr, exit) = await RunWaitForAsync(["wait-for"]);
+        var (stdout, stderr, exit) = await RunWaitForAsync(["wait-for-element"]);
         Assert.Equal(ExitCodes.UserError, exit);
         Assert.Equal(string.Empty, stderr);
         Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
@@ -39,7 +39,7 @@ public class WaitForCommandTests
     [Fact]
     public async Task WaitFor_MalformedRef_ReturnsUserError()
     {
-        var (stdout, stderr, exit) = await RunWaitForAsync(["wait-for", "--ref", "not-a-ref"]);
+        var (stdout, stderr, exit) = await RunWaitForAsync(["wait-for-element", "--ref", "not-a-ref"]);
         Assert.Equal(ExitCodes.UserError, exit);
         Assert.Equal(string.Empty, stderr);
         Assert.Contains("error: " + ErrorCodes.InvalidRefFormat, stdout, StringComparison.Ordinal);
@@ -49,7 +49,7 @@ public class WaitForCommandTests
     [Fact]
     public async Task WaitFor_UnknownState_ReturnsUserError()
     {
-        var (stdout, stderr, exit) = await RunWaitForAsync(["wait-for", "--ref", "s1e1", "--state", "focused"]);
+        var (stdout, stderr, exit) = await RunWaitForAsync(["wait-for-element", "--ref", "s1e1", "--state", "focused"]);
         Assert.Equal(ExitCodes.UserError, exit);
         Assert.Equal(string.Empty, stderr);
         Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
@@ -59,7 +59,7 @@ public class WaitForCommandTests
     [Fact]
     public async Task WaitFor_ZeroTimeout_ReturnsUserError()
     {
-        var (stdout, stderr, exit) = await RunWaitForAsync(["wait-for", "--ref", "s1e1", "--timeout", "0"]);
+        var (stdout, stderr, exit) = await RunWaitForAsync(["wait-for-element", "--ref", "s1e1", "--timeout", "0"]);
         Assert.Equal(ExitCodes.UserError, exit);
         Assert.Equal(string.Empty, stderr);
         Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
@@ -89,8 +89,8 @@ public class WaitForCommandTests
     [Fact]
     public void WaitFor_ExposesExpectedOptions()
     {
-        var cmd = WaitForCommand.Build();
-        Assert.Equal("wait-for", cmd.Name);
+        var cmd = WaitForElementCommand.Build();
+        Assert.Equal("wait-for-element", cmd.Name);
         foreach (var n in new[] { "--ref", "--name", "--control-type", "--automation-id", "--class-name", "--state", "--timeout", "--sid" })
         {
             Assert.NotNull(cmd.Options.FirstOrDefault(o => o.Name == n));
@@ -109,7 +109,7 @@ public class WaitForCommandTests
         }
     }
 
-    /// <summary>WaitForCommand.ValidateArgs は組み合わせを期待どおりに弾く。</summary>
+    /// <summary>WaitForElementCommand.ValidateArgs は組み合わせを期待どおりに弾く。</summary>
     [Theory]
     [InlineData(null, null, null, null, null, null, null, ErrorCodes.InvalidArgument)] // 未指定
     [InlineData("s1e1", "OK", null, null, null, null, null, ErrorCodes.InvalidArgument)] // 排他違反
@@ -120,7 +120,7 @@ public class WaitForCommandTests
     [InlineData(null, "OK", null, null, null, "enabled", null, null)] // 妥当 (検索モード)
     public void WaitFor_ValidateArgs(string? @ref, string? name, string? controlType, string? automationId, string? className, string? state, int? timeoutMs, string? expectedCode)
     {
-        var (code, _) = WaitForCommand.ValidateArgs(@ref, name, controlType, automationId, className, state, timeoutMs);
+        var (code, _) = WaitForElementCommand.ValidateArgs(@ref, name, controlType, automationId, className, state, timeoutMs);
         Assert.Equal(expectedCode, code);
     }
 
@@ -138,7 +138,7 @@ public class WaitForCommandTests
     }
 
     private static Task<(string stdout, string stderr, int exit)> RunWaitForAsync(string[] args)
-        => RunAsync(args, root => root.Subcommands.Add(WaitForCommand.Build()));
+        => RunAsync(args, root => root.Subcommands.Add(WaitForElementCommand.Build()));
 
     private static Task<(string stdout, string stderr, int exit)> RunWaitForWindowAsync(string[] args)
         => RunAsync(args, root => root.Subcommands.Add(WaitForWindowCommand.Build()));

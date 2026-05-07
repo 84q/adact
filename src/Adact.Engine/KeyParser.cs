@@ -10,7 +10,7 @@ namespace Adact.Engine;
 /// Playwright 流のキー指定 (<c>"Ctrl+Shift+E"</c>, <c>"Enter"</c>, <c>"F1"</c> 等) を
 /// 修飾キー列 + メインキーに分解し、<see cref="VirtualKeyShort"/> に解決するヘルパー。
 /// 修飾キー名: Shift, Control (Ctrl), Alt, Meta (Win, Windows)。
-/// <c>press</c> / <c>key-down</c> / <c>key-up</c> コマンドの引数解析で使う。
+/// <c>keypress</c> / <c>keydown</c> / <c>keyup</c> コマンドの引数解析で使う。
 /// </summary>
 public static class KeyParser
 {
@@ -58,7 +58,7 @@ public static class KeyParser
         if (input.Contains('+', StringComparison.Ordinal))
         {
             throw new ArgumentException(
-                $"key '{input}' contains '+': key-down/key-up accept only a single key. Use 'press' for combinations.",
+                $"key '{input}' contains '+': keydown/keyup accept only a single key. Use 'keypress' for combinations.",
                 nameof(input));
         }
         return ResolveKey(input.Trim());

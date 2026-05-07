@@ -12,7 +12,7 @@ easy to parse.
 
 ## Workflow
 
-1. **Find the target window** with `list-apps`.
+1. **Find the target window** with `list-windows`.
 2. **Attach** to it with `attach`, which returns a `sessionId`, a `windowRef`
    and the path to an automatically-captured snapshot.
 3. **Read the snapshot** to locate the element you want to interact with and
@@ -32,7 +32,7 @@ family doc that covers the command you are about to run.
 
 | Command                | Purpose                                               | Reference                                  |
 | ---------------------- | ----------------------------------------------------- | ------------------------------------------ |
-| `adact list-apps`      | List top-level windows on this desktop.               | [`references/session-bootstrap.md`](references/session-bootstrap.md) |
+| `adact list-windows`   | List top-level windows on this desktop.               | [`references/session-bootstrap.md`](references/session-bootstrap.md) |
 | `adact attach`         | Attach to a window and start a session.               | [`references/session-bootstrap.md`](references/session-bootstrap.md) |
 | `adact launch`         | Start a Windows process (Win32 / .NET / UWP).         | [`references/session-bootstrap.md`](references/session-bootstrap.md) |
 | `adact wait-for-window`| Wait until a top-level window appears (no attach).    | [`references/session-bootstrap.md`](references/session-bootstrap.md) |
@@ -41,29 +41,29 @@ family doc that covers the command you are about to run.
 | `adact screenshot`     | Save a PNG screenshot of the window or an element.    | [`references/snapshots-and-inspection.md`](references/snapshots-and-inspection.md) |
 | `adact click`          | Click an element identified by an element ref.        | [`references/element-actions.md`](references/element-actions.md) |
 | `adact fill`           | Overwrite an input element with the given text.       | [`references/element-actions.md`](references/element-actions.md) |
-| `adact dblclick`       | Double-click an element.                              | [`references/element-actions.md`](references/element-actions.md) |
+| `adact doubleclick`    | Double-click an element.                              | [`references/element-actions.md`](references/element-actions.md) |
 | `adact hover`          | Move the cursor over an element.                      | [`references/element-actions.md`](references/element-actions.md) |
 | `adact type`           | Type text character by character into an element.     | [`references/element-actions.md`](references/element-actions.md) |
 | `adact focus`          | Set keyboard focus to an element.                     | [`references/element-actions.md`](references/element-actions.md) |
 | `adact clear`          | Clear the value of an input element.                  | [`references/element-actions.md`](references/element-actions.md) |
-| `adact scroll-into-view` | Scroll an element into view.                        | [`references/element-actions.md`](references/element-actions.md) |
-| `adact mouse-move`     | Move the cursor to an element ref or `x,y`.           | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
-| `adact mouse-down`     | Press and hold a mouse button at a target.            | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
-| `adact mouse-up`       | Release a mouse button at a target.                   | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
-| `adact mouse-wheel`    | Scroll the mouse wheel at a target.                   | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
-| `adact press`          | Press a key combo (e.g. `Ctrl+C`).                    | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
-| `adact key-down`       | Press and hold a single key.                          | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
-| `adact key-up`         | Release a single key.                                 | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
+| `adact scroll`         | Scroll an element into view.                        | [`references/element-actions.md`](references/element-actions.md) |
+| `adact mousemove`      | Move the cursor to an element ref or `x,y`.           | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
+| `adact mousedown`      | Press and hold a mouse button at a target.            | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
+| `adact mouseup`        | Release a mouse button at a target.                   | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
+| `adact mousewheel`     | Scroll the mouse wheel at a target.                   | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
+| `adact keypress`       | Press a key combo (e.g. `Ctrl+C`).                    | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
+| `adact keydown`        | Press and hold a single key.                          | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
+| `adact keyup`          | Release a single key.                                 | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
 | `adact check`          | Ensure a checkbox / toggle / radio is On.             | [`references/selection-and-state.md`](references/selection-and-state.md) |
 | `adact uncheck`        | Ensure a checkbox / toggle is Off.                    | [`references/selection-and-state.md`](references/selection-and-state.md) |
 | `adact select`         | Select a list / combo-box item by name / index / ref. | [`references/selection-and-state.md`](references/selection-and-state.md) |
-| `adact wait-for`       | Wait until an element reaches a target state.         | [`references/selection-and-state.md`](references/selection-and-state.md) |
-| `adact resize`         | Resize the attached window.                           | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
-| `adact minimize`       | Minimize the attached window.                         | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
-| `adact maximize`       | Maximize the attached window.                         | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
-| `adact restore`        | Restore the attached window to normal state.          | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
+| `adact wait-for-element` | Wait until an element reaches a target state.       | [`references/selection-and-state.md`](references/selection-and-state.md) |
+| `adact resize-window`  | Resize the attached window.                           | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
+| `adact minimize-window`| Minimize the attached window.                         | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
+| `adact maximize-window`| Maximize the attached window.                         | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
+| `adact restore-window` | Restore the attached window to normal state.          | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
 | `adact detach`         | Detach the session without closing the window.        | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
-| `adact close`          | Close the attached window (auto-detach on success).   | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
+| `adact close-window`   | Close the attached window (auto-detach on success).   | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
 | `adact kill`           | Force-kill the attached process (auto-detach on success). | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
 | `adact close-all`      | Close all attached windows and report per-session results. | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
 
@@ -77,12 +77,12 @@ Element refs use the format `s<sid>e<eid>` (for example `s1e7`):
 The CLI validates the format locally and rejects malformed refs with
 `INVALID_REF_FORMAT` (exit 2) before contacting the daemon.
 
-Window refs (returned by `list-apps`) use a simpler `w<n>` format and are only
+Window refs (returned by `list-windows`) use a simpler `w<n>` format and are only
 valid as the first positional argument of `attach`.
 
 ## Output conventions
 
-- **stdout** — line-oriented `key value` pairs, or TSV from `list-apps`. The
+- **stdout** — line-oriented `key value` pairs, or TSV from `list-windows`. The
   fields you typically need are `sessionId`, `windowRef` and `snapshot` (path
   to the snapshot text file written under `.adact/` by default).
 - **stderr** — error reports as:
@@ -102,14 +102,14 @@ valid as the first positional argument of `attach`.
 | --------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | `INVALID_ARGUMENT`    | Missing or conflicting CLI arguments.                 | Reread the reference doc and supply the required argument combination.                           |
 | `INVALID_REF_FORMAT`  | Element ref does not match `s<sid>e<eid>`.            | Use a ref copied verbatim from the latest snapshot.                                               |
-| `INVALID_WINDOW_REF`  | Window ref is well-formed but unknown / retired.      | Re-run `adact list-apps` and use a freshly printed `windowRef`.                                   |
-| `WINDOW_NOT_FOUND`    | Daemon could not attach to the HWND for the given `windowRef`. | Re-run `adact list-apps` and confirm the target window is still open. |
+| `INVALID_WINDOW_REF`  | Window ref is well-formed but unknown / retired.      | Re-run `adact list-windows` and use a freshly printed `windowRef`.                                   |
+| `WINDOW_NOT_FOUND`    | Daemon could not attach to the HWND for the given `windowRef`. | Re-run `adact list-windows` and confirm the target window is still open. |
 | `REF_NOT_FOUND`       | The element behind the ref is no longer reachable.    | Run `adact snapshot`, locate the element again from the new snapshot, then retry with the new ref. |
 | `ELEMENT_INTERACTION_FAILED` | Click/fill could not be performed on the element. | Make sure the window is foreground and the control is enabled and on-screen; re-snapshot and retry. |
 | `NO_ACTIVE_SESSION`   | `snapshot` was called without an attached session.    | Call `adact attach` first, or pass `--sid` explicitly.                                            |
 | `CONNECTION_FAILED`   | Could not reach the ADACT daemon.                     | Start the daemon with `adact serve`, or pass `--server <url>`.                                    |
 | `LOCAL_ONLY`          | Operation only valid against a localhost daemon.      | Run the command on the same host as the daemon.                                                   |
-| `WAIT_TIMEOUT`        | `wait-for` / `wait-for-window` timed out.             | Increase `--timeout`, verify the app reaches the expected state, or relax the search conditions.  |
+| `WAIT_TIMEOUT`        | `wait-for-element` / `wait-for-window` timed out.             | Increase `--timeout`, verify the app reaches the expected state, or relax the search conditions.  |
 | `LAUNCH_FAILED`       | `launch` could not start the target executable.       | Verify the path / PATH name. For UWP, double-check the `shell:AppsFolder\<AUMID>` form. Confirm permissions and that the file exists. |
 
 `REF_NOT_FOUND` is the most frequent error during automation. It means the
@@ -127,7 +127,7 @@ window layered above the app window). When this happens, inspect those extra
 window nodes and use refs from the currently visible popup subtree.
 
 The `snapshot` command writes the full snapshot text to **stdout** as well as
-to a file. Other commands (`click`, `fill`, `hover`, `type`, `press`, etc.)
+to a file. Other commands (`click`, `fill`, `hover`, `type`, `keypress`, etc.)
 only write the snapshot to a file and print the file path on stdout.
 
 ### `snapshot` command stdout

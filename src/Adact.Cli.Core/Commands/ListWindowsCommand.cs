@@ -7,20 +7,20 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>list-apps</c> コマンド。<c>windows_list_apps</c> tool を呼び、一覧を TSV で stdout に出力する。
+/// <c>list-windows</c> コマンド。<c>windows_list_apps</c> tool を呼び、一覧を TSV で stdout に出力する。
 /// </summary>
-internal static class ListAppsCommand
+internal static class ListWindowsCommand
 {
     /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>list-apps サブコマンド。</returns>
+    /// <returns>list-windows サブコマンド。</returns>
     public static Command Build()
     {
-        var cmd = new Command("list-apps", "List top-level windows on this Windows desktop.");
+        var cmd = new Command("list-windows", "List top-level windows on this Windows desktop.");
 
         cmd.SetAction((parseResult, ct) =>
         {
             var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
-            // list-apps は自動起動対象
+            // list-windows は自動起動対象
             return CommandHelpers.RunWithClientAndAutoStartAsync(serverArg, ExecuteAsync, ct);
         });
 

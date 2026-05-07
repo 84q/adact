@@ -74,8 +74,8 @@ public class WaitAndScreenshotSuccessTests
         var client = new FakeClient();
         client.Enqueue(JsonResult(new { sessionId = "s4", @ref = "s4e9", state = "visible" }));
 
-        var (stdout, stderr, exit) = await RunWithClientAsync(client, WaitForCommand.Build(),
-            ["wait-for", "--ref", "s4e9"]);
+        var (stdout, stderr, exit) = await RunWithClientAsync(client, WaitForElementCommand.Build(),
+            ["wait-for-element", "--ref", "s4e9"]);
 
         Assert.Equal(ExitCodes.Success, exit);
         Assert.Equal(string.Empty, stderr);

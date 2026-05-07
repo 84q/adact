@@ -9,7 +9,7 @@ namespace Adact.Cli.Tests.E2E;
 
 /// <summary>
 /// L5 E2E: <c>adact.exe</c> サブプロセスを直接起動して daemon に接続し、実 SampleApp を操作する通しフロー。
-/// 設計 009 §9.2 (E2E シナリオ): list-apps → attach → snapshot → click → close。
+/// 設計 009 §9.2 (E2E シナリオ): list-windows → attach → snapshot → click → close-window。
 /// </summary>
 [Trait("Layer", "E2E")]
 [Collection("AdactCli")]
@@ -27,8 +27,8 @@ public class SampleAppCliE2ETests
     }
 
     /// <summary>
-    /// 実 SampleApp に対して list-apps → attach → click → close の一連の CLI コマンドを逓次実行し、
-    /// stdout の key/value ・snapshot ファイル・ref 安定性・close 出力まで含めて検証する。
+    /// 実 SampleApp に対して list-windows → attach → click → close-window の一連の CLI コマンドを逓次実行し、
+    /// stdout の key/value ・snapshot ファイル・ref 安定性・close-window 出力まで含めて検証する。
     /// CLI と daemon と UIA を含む E2E テスト (設計 009 §9.2) のテスト。
     /// </summary>
     [Fact]
@@ -43,14 +43,14 @@ public class SampleAppCliE2ETests
         var sampleApp = await SampleAppTestHelper.StartFreshSampleAppAsync(TimeSpan.FromSeconds(10));
         try
         {
-            // (1) list-apps → SampleApp 行から windowRef を抽出
-            var listResult = CliProcess.RunWithServer("list-apps", _fixture.BaseUrl, tempDir);
+            // (1) list-windows → SampleApp 行から windowRef を抽出
+            var listResult = CliProcess.RunWithServer("list-windows", _fixture.BaseUrl, tempDir);
             Assert.True(listResult.ExitCode == 0,
-                $"list-apps exit={listResult.ExitCode}\nstdout: {listResult.Stdout}\nstderr: {listResult.Stderr}");
+                $"list-windows exit={listResult.ExitCode}\nstdout: {listResult.Stdout}\nstderr: {listResult.Stderr}");
 
             var windowRef = ExtractSampleAppWindowRef(listResult.Stdout);
             Assert.False(string.IsNullOrEmpty(windowRef),
-                $"SampleApp windowRef not found in list-apps output:\n{listResult.Stdout}");
+                $"SampleApp windowRef not found in list-windows output:\n{listResult.Stdout}");
 
             // (2) attach <windowRef>
             var attachResult = CliProcess.RunWithServer($"attach {windowRef}", _fixture.BaseUrl, tempDir);
@@ -110,11 +110,11 @@ public class SampleAppCliE2ETests
                 $"button not found in post-click snapshot: {resolvedClickSnapshot}");
             Assert.Equal(buttonRef, refAfterClick);
 
-            // (4) close <sid>
+            // (4) close-window <sid>
             var closeResult = CliProcess.RunWithServer(
-                $"close {sessionId}", _fixture.BaseUrl, tempDir);
+                $"close-window {sessionId}", _fixture.BaseUrl, tempDir);
             Assert.True(closeResult.ExitCode == 0,
-                $"close exit={closeResult.ExitCode}\nstdout: {closeResult.Stdout}\nstderr: {closeResult.Stderr}");
+                $"close-window exit={closeResult.ExitCode}\nstdout: {closeResult.Stdout}\nstderr: {closeResult.Stderr}");
             Assert.Contains("closed", closeResult.Stdout, StringComparison.Ordinal);
             Assert.Contains("detached", closeResult.Stdout, StringComparison.Ordinal);
         }
@@ -127,7 +127,7 @@ public class SampleAppCliE2ETests
     }
 
     /// <summary>
-    /// list-apps の出力 (設計 042: メタ情報 + `---` + TSV 本文) から
+    /// list-windows の出力 (設計 042: メタ情報 + `---` + TSV 本文) から
     /// processName が SampleApp あるいは windowTitle が "ADACT SampleApp" を含む行の windowRef (列 0) を返す。
     /// </summary>
     private static string? ExtractSampleAppWindowRef(string stdout)

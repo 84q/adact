@@ -17,15 +17,15 @@ public class InstallCommandTests
     private static readonly IReadOnlySet<string> ExpectedDocumentedCommands =
       new HashSet<string>(System.StringComparer.Ordinal)
       {
-    "list-apps", "attach", "snapshot", "click", "fill",
-    "dblclick", "hover", "mouse-move", "mouse-down", "mouse-up", "mouse-wheel",
-    "press", "key-down", "key-up", "type",
-    "check", "uncheck", "select", "focus", "clear", "scroll-into-view",
-    "resize", "minimize", "maximize", "restore",
+    "list-windows", "attach", "snapshot", "click", "fill",
+    "doubleclick", "hover", "mousemove", "mousedown", "mouseup", "mousewheel",
+    "keypress", "keydown", "keyup", "type",
+    "check", "uncheck", "select", "focus", "clear", "scroll",
+    "resize-window", "minimize-window", "maximize-window", "restore-window",
     "inspect", "screenshot",
     "launch",
-    "wait-for", "wait-for-window",
-    "detach", "close", "kill", "close-all",
+    "wait-for-element", "wait-for-window",
+    "detach", "close-window", "kill", "close-all",
       };
 
     private static readonly IReadOnlySet<string> ExpectedReferenceFiles =

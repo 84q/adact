@@ -4,10 +4,10 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
-/// <summary><c>dblclick</c> コマンド。要素を OS のダブルクリック判定で 2 回クリック (auto-snapshot あり)。</summary>
-internal static class DblclickCommand
+/// <summary><c>doubleclick</c> コマンド。要素を OS のダブルクリック判定で 2 回クリック (auto-snapshot あり)。</summary>
+internal static class DoubleclickCommand
 {
-    /// <summary>dblclick サブコマンドを構築する。</summary>
+    /// <summary>doubleclick サブコマンドを構築する。</summary>
     /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build()
     {
@@ -21,7 +21,7 @@ internal static class DblclickCommand
             Description = "Click point relative to the element's top-left, as 'x,y'. Defaults to center.",
         };
 
-        var cmd = new Command("dblclick", "Double-click an element identified by an Element Ref.");
+        var cmd = new Command("doubleclick", "Double-click an element identified by an Element Ref.");
         cmd.Arguments.Add(refArg);
         cmd.Options.Add(noSnapshot);
         cmd.Options.Add(snapshotDir);
@@ -62,7 +62,7 @@ internal static class DblclickCommand
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
                 (client, token) => CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
-                    client, "dblclick", "windows_dblclick", args, refValue!, noSnap, dirArg, token),
+                    client, "doubleclick", "windows_dblclick", args, refValue!, noSnap, dirArg, token),
                 ct);
         });
         return cmd;

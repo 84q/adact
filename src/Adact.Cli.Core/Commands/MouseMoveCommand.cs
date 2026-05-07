@@ -5,10 +5,10 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
-/// <summary><c>mouse-move</c> コマンド。"x,y" 座標へカーソルを移動する (低レベル: auto-snapshot なし)。</summary>
-internal static class MouseMoveCommand
+/// <summary><c>mousemove</c> コマンド。"x,y" 座標へカーソルを移動する (低レベル: auto-snapshot なし)。</summary>
+internal static class MousemoveCommand
 {
-    /// <summary>mouse-move サブコマンドを構築する。</summary>
+    /// <summary>mousemove サブコマンドを構築する。</summary>
     /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build()
     {
@@ -17,7 +17,7 @@ internal static class MouseMoveCommand
             Description = "Absolute screen coordinates ('x,y').",
         };
 
-        var cmd = new Command("mouse-move", "Move the mouse cursor to absolute screen coordinates ('x,y').");
+        var cmd = new Command("mousemove", "Move the mouse cursor to absolute screen coordinates ('x,y').");
         cmd.Arguments.Add(targetArg);
 
         cmd.SetAction((pr, ct) =>

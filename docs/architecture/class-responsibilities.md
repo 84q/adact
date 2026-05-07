@@ -79,23 +79,23 @@ flowchart TB
 | 型 | 何を持つか | 何を呼ぶか | 何を返すか |
 | --- | --- | --- | --- |
 | `Program` | `RootCommand` の構築ロジック | 各 `*Command.Build()`、`Parse(args)`、`InvokeAsync()` | process exit code |
-| `ListAppsCommand` | `--server` option | `CommandHelpers.RunWithClientAsync()`、MCP `windows_list_apps`、`TsvWriter` | window 一覧 TSV と exit code |
+| `ListWindowsCommand` | `--server` option | `CommandHelpers.RunWithClientAsync()`、MCP `windows_list_apps`、`TsvWriter` | window 一覧 TSV と exit code |
 | `AttachCommand` | positional `ref`、条件指定 option、`--no-snapshot`、`--snapshot-dir`、`--server` | `RefValidator`、MCP `windows_attach`、成功時に `CommandHelpers.WriteSnapshotResultAsync()` | `sessionId` / `windowRef` / snapshot path |
 | `SnapshotCommand` | `--sid`、`--snapshot-dir`、`--filter`、`--server` | `CommandHelpers.WriteSnapshotResultAsync()` | `sessionId` と CLI `.txt` snapshot path |
 | `ClickCommand` | element ref、`--button`、`--count`、`--modifier`、`--position`、`--no-snapshot`、`--snapshot-dir`、`--server` | `RefValidator`、`CommandHelpers.RunRefOperationAndAutoSnapshotAsync()`、MCP `windows_click` | 操作後 snapshot path、または `sessionId` のみ |
 | `FillCommand` | element ref、text、`--no-snapshot`、`--snapshot-dir`、`--server` | `RefValidator`、`CommandHelpers.RunRefOperationAndAutoSnapshotAsync()`、MCP `windows_fill` | 操作後 snapshot path、または `sessionId` のみ |
-| `DblclickCommand` / `HoverCommand` | element ref、`--button` (dblclick のみ)、`--modifier`、`--position`、auto-snapshot 系 | MCP `windows_dblclick` / `windows_hover` | 操作後 snapshot path |
-| `MouseMoveCommand` / `MouseDownCommand` / `MouseUpCommand` / `MouseWheelCommand` | target (`s<sid>e<eid>` または `x,y`)、`--button` / `--delta-x` / `--delta-y` | MCP `windows_mouse_move` / `windows_mouse_down` / `windows_mouse_up` / `windows_mouse_wheel` | mouse-wheel のみ snapshot、それ以外は出力なし |
-| `TypeCommand` / `PressCommand` / `KeyDownCommand` / `KeyUpCommand` | text + `--ref` / `--delay-ms` / key combo | MCP `windows_type` / `windows_press` / `windows_key_down` / `windows_key_up` | type/press は snapshot、key-down/key-up は出力なし |
+| `DoubleclickCommand` / `HoverCommand` | element ref、`--button` (doubleclick のみ)、`--modifier`、`--position`、auto-snapshot 系 | MCP `windows_dblclick` / `windows_hover` | 操作後 snapshot path |
+| `MousemoveCommand` / `MousedownCommand` / `MouseupCommand` / `MousewheelCommand` | target (`s<sid>e<eid>` または `x,y`)、`--button` / `--delta-x` / `--delta-y` | MCP `windows_mouse_move` / `windows_mouse_down` / `windows_mouse_up` / `windows_mouse_wheel` | mousewheel のみ snapshot、それ以外は出力なし |
+| `TypeCommand` / `KeypressCommand` / `KeydownCommand` / `KeyupCommand` | text + `--ref` / `--delay-ms` / key combo | MCP `windows_type` / `windows_press` / `windows_key_down` / `windows_key_up` | keypress は snapshot、keydown/keyup は出力なし |
 | `ToggleCommands` (`check` / `uncheck`) / `SelectCommand` / `ClearCommand` | `--ref`、`select` は `--name` / `--index` / `--item-ref` 排他 | MCP `windows_check` / `windows_uncheck` / `windows_select` / `windows_clear` | snapshot path |
-| `RefOnlyCommandBuilder` で生成する `focus` / `scroll-into-view` | `--ref` のみ | MCP `windows_focus` / `windows_scroll_into_view` | 出力なし |
-| `ResizeCommand` / `WindowStateCommandBuilder` で生成する `minimize` / `maximize` / `restore` | `resize` は `--width` / `--height`、その他は引数なし | MCP `windows_resize` / `windows_minimize` / `windows_maximize` / `windows_restore` | snapshot path |
+| `RefOnlyCommandBuilder` で生成する `focus` / `scroll` | `--ref` のみ | MCP `windows_focus` / `windows_scroll_into_view` | 出力なし |
+| `ResizeWindowCommand` / `WindowStateCommandBuilder` で生成する `minimize-window` / `maximize-window` / `restore-window` | `resize-window` は `--width` / `--height`、その他は引数なし | MCP `windows_resize` / `windows_minimize` / `windows_maximize` / `windows_restore` | snapshot path |
 | `InspectCommand` | `--ref` | MCP `windows_inspect` | UIA プロパティ詳細の JSON 1 行 |
 | `ScreenshotCommand` | `--ref?`、`--out?`、`--sid?` | MCP `windows_screenshot` | `{ path, width, height }` JSON 1 行 |
-| `WaitForCommand` | `--ref` または検索条件、`--state`、`--timeout`、`--sid` | MCP `windows_wait_for` | `{ ref, state }` JSON 1 行 |
+| `WaitForElementCommand` | `--ref` または検索条件、`--state`、`--timeout`、`--sid` | MCP `windows_wait_for` | `{ ref, state }` JSON 1 行 |
 | `WaitForWindowCommand` | `--title` / `--class-name` / `--process-name` / `--exe`、`--timeout` | MCP `windows_wait_for_window` | window info JSON 1 行。attach は行わない |
 | `LaunchCommand` | `<executable>`、`--cwd`、`--env`、`-- <args>` | MCP `windows_launch` | `{ pid, processName, executablePath }` JSON 1 行。attach は行わない |
-| `DetachCommand` / `CloseCommand` / `KillCommand` | `--sid`、`--server` | `LifecycleCommandImpl.ExecuteAsync()` と対応 MCP tool | `sessionId` と `detached` / `closed` / `killed` の literal 行 |
+| `DetachCommand` / `CloseWindowCommand` / `KillCommand` | `--sid`、`--server` | `LifecycleCommandImpl.ExecuteAsync()` と対応 MCP tool | `sessionId` と `detached` / `closed` / `killed` の literal 行 |
 | `CloseAllCommand` | `--server` | MCP `windows_close_all`、`FormatResults()` | session ごとの TSV 風結果。失敗があれば exit 1 |
 | `DaemonStopCommand` | `--server` | `ConnectionResolver`、localhost guard、MCP `daemon_stop` | `stopped`。応答前切断も停止済みとして成功扱い |
 | `ServeCommand` | `--port` | `HttpHost.RunAsync()` | HTTP daemon の process exit code |
@@ -139,7 +139,7 @@ HTTP daemon は `WindowsTools`、`SessionStore`、`WindowRefStore`、`UiaEngine`
 | --- | --- | --- | --- |
 | `WindowsTools` | `SessionStore`、`WindowRefStore`、`IDaemonControl`、logger | `UiaEngine`、`WindowSession`、stores、`ToolErrors` | MCP `CallToolResult` |
 | `SessionStore` | `UiaEngine`、`s<n>` -> `WindowSession`、active session、tool-level lock | session 登録/削除/検索、ref から session 解決 | `WindowSession` または session 一覧 |
-| `WindowRefStore` | `WindowKey` -> `WindowRefEntry`、次の `w<n>` 番号 | list-apps との同期、retire、session 関連付け | `windowRef` entry |
+| `WindowRefStore` | `WindowKey` -> `WindowRefEntry`、次の `w<n>` 番号 | list-windows との同期、retire、session 関連付け | `windowRef` entry |
 | `WindowKey` | HWND、processId、processStartTime | `WindowInfo` から process start time 取得 | top-level window の識別キー |
 | `ToolErrors` | MCP error code 定数 | Engine 業務例外の pattern matching | `isError:true` の `CallToolResult` |
 | `IDaemonControl` | daemon stop capability | HTTP 実装に委譲 | stop task |

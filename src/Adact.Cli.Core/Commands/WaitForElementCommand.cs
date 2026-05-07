@@ -7,13 +7,13 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>wait-for</c> コマンド (設計 022 §6 / §7)。指定 element ref または検索条件にマッチする要素が指定 state を満たすまで待機する。
+/// <c>wait-for-element</c> コマンド (設計 022 §6 / §7)。指定 element ref または検索条件にマッチする要素が指定 state を満たすまで待機する。
 /// auto-snapshot は発火しない。
 /// </summary>
-internal static class WaitForCommand
+internal static class WaitForElementCommand
 {
     /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>wait-for サブコマンド。</returns>
+    /// <returns>wait-for-element サブコマンド。</returns>
     public static Command Build()
     {
         var refOpt = new Option<string?>("--ref")
@@ -31,7 +31,7 @@ internal static class WaitForCommand
         var timeoutOpt = new Option<int?>("--timeout") { Description = "Polling timeout in milliseconds. Defaults to 5000." };
         var sidOpt = new Option<string?>("--sid") { Description = "Target session ID (default: active session). Only used with search conditions." };
 
-        var cmd = new Command("wait-for", "Wait until an element reaches the given state. Specify either --ref or search conditions (mutually exclusive).");
+        var cmd = new Command("wait-for-element", "Wait until an element reaches the given state. Specify either --ref or search conditions (mutually exclusive).");
         cmd.Options.Add(refOpt);
         cmd.Options.Add(nameOpt);
         cmd.Options.Add(controlTypeOpt);

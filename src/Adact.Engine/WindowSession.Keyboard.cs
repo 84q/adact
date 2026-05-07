@@ -77,7 +77,7 @@ public sealed partial class WindowSession
             }
             catch (Exception ex)
             {
-                throw new ElementInteractionException("<window>", "key-down", ex.Message, ex);
+                throw new ElementInteractionException("<window>", "keydown", ex.Message, ex);
             }
             return Task.CompletedTask;
         }, ct);
@@ -105,7 +105,7 @@ public sealed partial class WindowSession
             }
             catch (Exception ex)
             {
-                throw new ElementInteractionException("<window>", "key-up", ex.Message, ex);
+                throw new ElementInteractionException("<window>", "keyup", ex.Message, ex);
             }
             return Task.CompletedTask;
         }, ct);

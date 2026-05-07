@@ -34,7 +34,7 @@ public sealed partial class WindowSession
             try
             {
                 _interaction.FocusWindow();
-                PerformClick(el, options, dblclick: options.Double);
+                PerformClick(el, options, doubleclick: options.Double);
             }
             catch (AdactException) { throw; }
             catch (Exception ex)
@@ -65,12 +65,12 @@ public sealed partial class WindowSession
             try
             {
                 _interaction.FocusWindow();
-                PerformClick(el, options ?? new ClickOptions(), dblclick: true);
+                PerformClick(el, options ?? new ClickOptions(), doubleclick: true);
             }
             catch (AdactException) { throw; }
             catch (Exception ex)
             {
-                throw new ElementInteractionException(refId, "dblclick", ex.Message, ex);
+                throw new ElementInteractionException(refId, "doubleclick", ex.Message, ex);
             }
             await AutoWaitAfterInteractionAsync(c).ConfigureAwait(false);
         }, ct);
@@ -138,7 +138,7 @@ public sealed partial class WindowSession
             catch (AdactException) { throw; }
             catch (Exception ex)
             {
-                throw new ElementInteractionException(DescribeTarget(target), "mouse-move", ex.Message, ex);
+                throw new ElementInteractionException(DescribeTarget(target), "mousemove", ex.Message, ex);
             }
             return Task.CompletedTask;
         }, ct);
@@ -170,7 +170,7 @@ public sealed partial class WindowSession
             catch (AdactException) { throw; }
             catch (Exception ex)
             {
-                throw new ElementInteractionException(DescribeTarget(target), "mouse-down", ex.Message, ex);
+                throw new ElementInteractionException(DescribeTarget(target), "mousedown", ex.Message, ex);
             }
             return Task.CompletedTask;
         }, ct);
@@ -202,7 +202,7 @@ public sealed partial class WindowSession
             catch (AdactException) { throw; }
             catch (Exception ex)
             {
-                throw new ElementInteractionException(DescribeTarget(target), "mouse-up", ex.Message, ex);
+                throw new ElementInteractionException(DescribeTarget(target), "mouseup", ex.Message, ex);
             }
             return Task.CompletedTask;
         }, ct);
@@ -245,7 +245,7 @@ public sealed partial class WindowSession
             catch (AdactException) { throw; }
             catch (Exception ex)
             {
-                throw new ElementInteractionException(DescribeTarget(target), "mouse-wheel", ex.Message, ex);
+                throw new ElementInteractionException(DescribeTarget(target), "mousewheel", ex.Message, ex);
             }
             await AutoWaitAfterInteractionAsync(c).ConfigureAwait(false);
         }, ct);
@@ -254,16 +254,16 @@ public sealed partial class WindowSession
     /// <summary>要素のクリック動作 (修飾キー押下 + N 連打 or ダブルクリック) を実行する。</summary>
     /// <param name="el">クリック対象要素。</param>
     /// <param name="options">クリックオプション。</param>
-    /// <param name="dblclick">true の場合は OS ダブルクリック判定を意図して 1 回の <c>DoubleClick</c> を発火する。</param>
-    private void PerformClick(IElement el, ClickOptions options, bool dblclick)
+    /// <param name="doubleclick">true の場合は OS ダブルクリック判定を意図して 1 回の <c>DoubleClick</c> を発火する。</param>
+    private void PerformClick(IElement el, ClickOptions options, bool doubleclick)
     {
         var (x, y) = ComputeTargetPoint(el, options.PositionX, options.PositionY);
         var mods = ModifierKeys.Resolve(options.Modifiers);
         var btn = options.Button;
 
-        // 標準ケース (修飾なし、位置指定なし、左ボタン、Count==1、!dblclick) は
+        // 標準ケース (修飾なし、位置指定なし、左ボタン、Count==1、!doubleclick) は
         // 既存の Invoke パターン経由クリックを維持する (Phase 2 互換)。
-        if (!dblclick && options.Count <= 1 && mods.Count == 0
+        if (!doubleclick && options.Count <= 1 && mods.Count == 0
             && options.PositionX is null && options.PositionY is null
             && options.Button == MouseButton.Left)
         {
@@ -274,7 +274,7 @@ public sealed partial class WindowSession
         _interaction.MoveTo(x, y);
         using (PressModifiers(mods))
         {
-            if (dblclick)
+            if (doubleclick)
             {
                 _interaction.MouseDoubleClick(btn);
             }

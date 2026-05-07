@@ -5,10 +5,10 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
-/// <summary><c>key-down</c> コマンド。単一キーを押下保持する (低レベル)。</summary>
-internal static class KeyDownCommand
+/// <summary><c>keydown</c> コマンド。単一キーを押下保持する (低レベル)。</summary>
+internal static class KeydownCommand
 {
-    /// <summary>key-down サブコマンドを構築する。</summary>
+    /// <summary>keydown サブコマンドを構築する。</summary>
     /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build()
     {
@@ -17,7 +17,7 @@ internal static class KeyDownCommand
             Description = "Single key name (e.g. 'Shift', 'A', 'F1'). '+' combinations are not allowed.",
         };
 
-        var cmd = new Command("key-down", "Press and hold a single key.");
+        var cmd = new Command("keydown", "Press and hold a single key.");
         cmd.Arguments.Add(keyArg);
 
         cmd.SetAction((pr, ct) =>

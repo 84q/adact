@@ -246,7 +246,7 @@ public class CommandHelpersTests
             var (stdout, stderr, exit) = await CaptureAsync(() =>
                 CommandHelpers.RunSessionOperationAndAutoSnapshotAsync(
                     client,
-                    "resize",
+                    "resize-window",
                     "windows_resize",
                     new Dictionary<string, object?> { ["sessionId"] = "s4", ["width"] = 800, ["height"] = 600 },
                     "s4",
@@ -278,7 +278,7 @@ public class CommandHelpersTests
         var (stdout, stderr, exit) = await CaptureAsync(() =>
                 CommandHelpers.RunSessionOperationAndAutoSnapshotAsync(
                     client,
-                    "resize",
+                    "resize-window",
                     "windows_resize",
                     new Dictionary<string, object?> { ["sessionId"] = "s2" },
                     "s2",

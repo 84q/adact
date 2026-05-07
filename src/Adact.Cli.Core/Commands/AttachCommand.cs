@@ -28,7 +28,7 @@ internal static class AttachCommand
         var refArg = new Argument<string?>("ref")
         {
             Arity = ArgumentArity.ExactlyOne,
-            Description = "Window Ref ID like 'w1' (from list-apps).",
+            Description = "Window Ref ID like 'w1' (from list-windows).",
         };
         var noSnapshot = new Option<bool>("--no-snapshot") { Description = "Do not capture a snapshot on success." };
         var snapshotDir = new Option<string?>("--snapshot-dir") { Description = "Snapshot output directory (default '.adact/')." };
@@ -78,7 +78,7 @@ internal static class AttachCommand
         if (string.IsNullOrEmpty(args.Ref))
         {
             return (ErrorCodes.InvalidArgument,
-                "Specify a positional ref (w<n>) obtained from list-apps.");
+                "Specify a positional ref (w<n>) obtained from list-windows.");
         }
 
         if (!RefValidator.IsWindowRef(args.Ref))

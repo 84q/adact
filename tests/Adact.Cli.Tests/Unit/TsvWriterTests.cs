@@ -6,7 +6,7 @@ namespace Adact.Cli.Tests.Unit;
 
 /// <summary>
 /// <see cref="TsvWriter"/> のタブ区切りヘッダ・行出力と null/空のダッシュ代替を検証する Unit テスト。
-/// list-apps 出力フォーマットの回帰防止。
+/// list-windows 出力フォーマットの回帰防止。
 /// </summary>
 [Trait("Layer", "Unit")]
 [Collection(ConsoleCollection.Name)]

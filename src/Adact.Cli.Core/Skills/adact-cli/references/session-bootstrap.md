@@ -1,8 +1,8 @@
 # Session bootstrap commands
 
-Use this for: `list-apps`, `attach`, `launch`, `wait-for-window`.
+Use this for: `list-windows`, `attach`, `launch`, `wait-for-window`.
 
-## `adact list-apps`
+## `adact list-windows`
 
 - Purpose: list top-level windows currently visible on the interactive desktop.
 - Typical use: pick a `windowRef` (`w<n>`) before `attach`.
@@ -16,7 +16,7 @@ Use this for: `list-apps`, `attach`, `launch`, `wait-for-window`.
 ## `adact launch <target>`
 
 - Purpose: start a process (Win32/.NET executable or UWP via `shell:AppsFolder\...`).
-- Typical flow: `launch` -> `wait-for-window` -> `list-apps`/`attach`.
+- Typical flow: `launch` -> `wait-for-window` -> `list-windows`/`attach`.
 
 ## `adact wait-for-window`
 
@@ -28,6 +28,6 @@ Use this for: `list-apps`, `attach`, `launch`, `wait-for-window`.
 ```bash
 adact launch notepad
 adact wait-for-window --title "Notepad" --timeout 10000
-adact list-apps
+adact list-windows
 adact attach w1
 ```

@@ -45,8 +45,8 @@ hint: <optional recovery hint>
 
 | 形式 | コマンド | 内容 |
 | --- | --- | --- |
-| yaml | `attach`, 操作系, lifecycle, `inspect`, `screenshot`, `wait-for`, `wait-for-window`, `launch`, `install`, `daemon-stop` | 先頭メタ + `---` + yaml風本文 |
-| TSV | `list-apps`, `close-all` | 先頭メタ + `---` + TSV 本文 |
+| yaml | `attach`, 操作系, lifecycle, `inspect`, `screenshot`, `wait-for-element`, `wait-for-window`, `launch`, `install`, `daemon-stop` | 先頭メタ + `---` + yaml風本文 |
+| TSV | `list-windows`, `close-all` | 先頭メタ + `---` + TSV 本文 |
 | snapshot | `snapshot` | `snapshotPath` をメタ、本文に `sessionId` + 空行 + tree |
 
 ### yaml 例
@@ -59,7 +59,7 @@ action: click
 target: s1e42
 ```
 
-### TSV 例 (`list-apps`)
+### TSV 例 (`list-windows`)
 
 ```text
 result: true
@@ -123,7 +123,7 @@ CLI client は `isError: true` を受けると stdout の yaml風エラー形式
 | `CLOSE_FAILED` | MCP | window close 失敗 | 1 |
 | `KILL_FAILED` | MCP | process kill 失敗 | 1 |
 | `LAUNCH_FAILED` | Engine→MCP→CLI | `launch` が失敗 | 1 |
-| `WAIT_TIMEOUT` | Engine→MCP→CLI | `wait-for` / `wait-for-window` が timeout | 1 |
+| `WAIT_TIMEOUT` | Engine→MCP→CLI | `wait-for-element` / `wait-for-window` が timeout | 1 |
 | `CONNECTION_FAILED` | CLI | daemon に接続できない | 3 |
 | `LOCAL_ONLY` | CLI / MCP | remote target で `daemon-stop` | 2 または 1 |
 | `OPERATION_BLOCKED` | Engine→MCP→CLI | デスクトップがロック / UAC 等で操作不能 | 1 |

@@ -16,7 +16,7 @@ ADACT は Windows UIA 要素や window を短い ref ID で参照します。ref
 
 | 項目 | 内容 |
 | --- | --- |
-| 発行 | `windows_list_apps` / `adact list-apps` 実行時に top-level window へ割り当てる |
+| 発行 | `windows_list_apps` / `adact list-windows` 実行時に top-level window へ割り当てる |
 | 安定性 | 同じ `WindowKey` には同じ `w<n>` を再利用する |
 | 失効 | window が list から消えると retired になり、`windows_attach(windowRef)` で解決できなくなる |
 | 主用途 | window title や process name が曖昧な場合に、一覧から選んで attach する |
@@ -30,7 +30,7 @@ ADACT は Windows UIA 要素や window を短い ref ID で参照します。ref
 | 発行 | attach 成功時に `UiaEngine` が単調増加で採番する |
 | 保持 | daemon process 内の `SessionStore` |
 | active session | 最後に attach した session が active になる |
-| 失効 | `detach` / `close` / `kill` / `close-all` / `daemon-stop`、または daemon process 終了 |
+| 失効 | `detach` / `close-window` / `kill` / `close-all` / `daemon-stop`、または daemon process 終了 |
 | 再利用 | 同じ daemon process 内では再利用しない |
 
 `windows_snapshot`, `windows_detach`, `windows_close`, `windows_kill` は `sessionId` を省略すると active session を使います。active session がない場合は `NO_ACTIVE_SESSION` です。
@@ -61,26 +61,26 @@ Element Ref は「直近 snapshot で確認できる要素」を操作するた�
 
 | 操作 | `windowRef` | `sessionId` | `elementRef` |
 | --- | --- | --- | --- |
-| `list-apps` | 発行・同期 | 既存 session があれば表示されることがある | 変化なし |
+| `list-windows` | 発行・同期 | 既存 session があれば表示されることがある | 変化なし |
 | `attach` | session と関連付け | 発行または既存 session を返す | snapshot 取得時に発行 |
 | `snapshot` | 変化なし | 維持 | 現 snapshot の要素集合を更新 |
 | `click` / `fill` | 変化なし | 維持 | 操作後 snapshot で更新。RuntimeId が同じなら再利用 |
-| `wait-for` | 変化なし | 維持 | 変化なし。auto-snapshot は発火しないため ref の再採番は起こらない |
+| `wait-for-element` | 変化なし | 維持 | 変化なし。auto-snapshot は発火しないため ref の再採番は起こらない |
 | `wait-for-window` | 変化なし | 変化なし (attach は伴わない) | 変化なし。返り値は対象 window の info JSON のみで、`windowRef` の発行や session への関連付けは行わない |
-| `launch` | 変化なし | 変化なし (attach は伴わない) | 起動成功直後は `pid` のみ返る。要素操作するには `wait-for-window` -> `list-apps` -> `attach` の手順を踏む |
+| `launch` | 変化なし | 変化なし (attach は伴わない) | 起動成功直後は `pid` のみ返る。要素操作するには `wait-for-window` -> `list-windows` -> `attach` の手順を踏む |
 | `detach` | session 関連を解除 | 削除 | 失効 |
-| `close` / `kill` | session 関連を解除 | 削除 | 失効 |
+| `close-window` / `kill` | session 関連を解除 | 削除 | 失効 |
 | `daemon-stop` | daemon 終了で全消滅 | daemon 終了で全消滅 | daemon 終了で全消滅 |
 
 ## 失効時の考え方
 
 | 状況 | 代表エラー | 対処 |
 | --- | --- | --- |
-| `w<n>` が unknown / retired | `INVALID_WINDOW_REF` | `list-apps` を再実行し、最新の `windowRef` を使う |
+| `w<n>` が unknown / retired | `INVALID_WINDOW_REF` | `list-windows` を再実行し、最新の `windowRef` を使う |
 | `s<n>` が存在しない | `INVALID_ARGUMENT` または `NO_ACTIVE_SESSION` | `attach` し直す |
 | `s<sid>e<eid>` が malformed | `INVALID_REF_FORMAT` または `REF_NOT_FOUND` | snapshot の ref をそのまま使う |
 | element が現 snapshot に存在しない | `REF_NOT_FOUND` | `snapshot` を再取得し、新しい ref を選ぶ |
-| daemon が再起動した | 各種 not found / connection 状態リセット | `list-apps` からやり直す |
+| daemon が再起動した | 各種 not found / connection 状態リセット | `list-windows` からやり直す |
 
 ## 安定化の方針
 
@@ -104,4 +104,4 @@ ADACT の Element Ref は Playwright MCP の `_ariaRef` に近い考え方で、
 ## 2026-05 CLI 出力統一補足
 
 - `sessionId` は CLI の通常メタ領域には出さず、必要なコマンドの本文でのみ表示する。
-- `windowRef` は通常成功出力から廃止し、`list-apps` の TSV 本文列としてのみ残す。
+- `windowRef` は通常成功出力から廃止し、`list-windows` の TSV 本文列としてのみ残す。

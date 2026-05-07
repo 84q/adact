@@ -5,7 +5,7 @@ using FlaUI.Core.WindowsAPI;
 namespace Adact.Engine;
 
 /// <summary>
-/// click / hover / dblclick の <c>--modifier</c> 引数 (Playwright 流) を <see cref="VirtualKeyShort"/> 列に変換するヘルパー。
+/// click / hover / doubleclick の <c>--modifier</c> 引数 (Playwright 流) を <see cref="VirtualKeyShort"/> 列に変換するヘルパー。
 /// 受理する修飾キー名: <c>Shift</c>, <c>Control</c> (alias <c>Ctrl</c>), <c>Alt</c>, <c>Meta</c> (alias <c>Win</c>, <c>Windows</c>)。
 /// </summary>
 internal static class ModifierKeys

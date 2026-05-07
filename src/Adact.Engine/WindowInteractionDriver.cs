@@ -103,10 +103,10 @@ internal sealed class NoopWindowInteractionDriver : IWindowInteractionDriver
     public void PressKey(VirtualKeyShort key) => Calls.Add($"press-key:{key}");
     public void ReleaseKey(VirtualKeyShort key) => Calls.Add($"release-key:{key}");
     public void MoveTo(int x, int y) => Calls.Add($"move:{x},{y}");
-    public void MouseDown(EngineMouseButton button) => Calls.Add($"mouse-down:{button}");
-    public void MouseUp(EngineMouseButton button) => Calls.Add($"mouse-up:{button}");
-    public void MouseClick(EngineMouseButton button) => Calls.Add($"mouse-click:{button}");
-    public void MouseDoubleClick(EngineMouseButton button) => Calls.Add($"mouse-dblclick:{button}");
+    public void MouseDown(EngineMouseButton button) => Calls.Add($"mousedown:{button}");
+    public void MouseUp(EngineMouseButton button) => Calls.Add($"mouseup:{button}");
+    public void MouseClick(EngineMouseButton button) => Calls.Add($"mouseclick:{button}");
+    public void MouseDoubleClick(EngineMouseButton button) => Calls.Add($"mousedoubleclick:{button}");
     public void Scroll(int amount) => Calls.Add($"scroll:{amount}");
     public void HorizontalScroll(int amount) => Calls.Add($"hscroll:{amount}");
     public Task WaitAfterInteractionAsync(CancellationToken ct)

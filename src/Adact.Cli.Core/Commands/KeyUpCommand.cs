@@ -5,19 +5,19 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
-/// <summary><c>key-up</c> コマンド。単一キーを解放する (低レベル)。</summary>
-internal static class KeyUpCommand
+/// <summary><c>keyup</c> コマンド。単一キーを解放する (低レベル)。</summary>
+internal static class KeyupCommand
 {
-    /// <summary>key-up サブコマンドを構築する。</summary>
+    /// <summary>keyup サブコマンドを構築する。</summary>
     /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build()
     {
         var keyArg = new Argument<string>("key")
         {
-            Description = "Single key name (must match the one passed to 'key-down').",
+            Description = "Single key name (must match the one passed to 'keydown').",
         };
 
-        var cmd = new Command("key-up", "Release a single key previously pressed by 'key-down'.");
+        var cmd = new Command("keyup", "Release a single key previously pressed by 'keydown'.");
         cmd.Arguments.Add(keyArg);
 
         cmd.SetAction((pr, ct) =>

@@ -8,7 +8,7 @@ using Xunit;
 namespace Adact.Cli.Tests.Unit;
 
 /// <summary>
-/// <see cref="ResizeCommand"/> の引数検証 (Phase 8 Step 5) を検証する Unit テスト。
+/// <see cref="ResizeWindowCommand"/> の引数検証 (Phase 8 Step 5) を検証する Unit テスト。
 /// 接続前 (parser / SetAction 段階) で弾かれる --width / --height の不正値が UserError exit と
 /// INVALID_ARGUMENT エラーを返すことを確認する。実 daemon / UIA への接続は行わない。
 /// </summary>
@@ -25,7 +25,7 @@ public class ResizeCommandTests
     [InlineData("-1")]
     public async Task Resize_NonPositiveWidth_ReturnsUserError(string width)
     {
-        var (stdout, stderr, exit) = await RunAsync(["resize", "--width", width, "--height", "100"]);
+        var (stdout, stderr, exit) = await RunAsync(["resize-window", "--width", width, "--height", "100"]);
 
         Assert.Equal(ExitCodes.UserError, exit);
         Assert.Equal(string.Empty, stderr);
@@ -42,7 +42,7 @@ public class ResizeCommandTests
     [InlineData("-1")]
     public async Task Resize_NonPositiveHeight_ReturnsUserError(string height)
     {
-        var (stdout, stderr, exit) = await RunAsync(["resize", "--width", "100", "--height", height]);
+        var (stdout, stderr, exit) = await RunAsync(["resize-window", "--width", "100", "--height", height]);
 
         Assert.Equal(ExitCodes.UserError, exit);
         Assert.Equal(string.Empty, stderr);
@@ -56,7 +56,7 @@ public class ResizeCommandTests
     [Fact]
     public async Task Resize_MissingWidth_ReturnsUserError()
     {
-        var (_, _, exit) = await RunAsync(["resize", "--height", "100"]);
+        var (_, _, exit) = await RunAsync(["resize-window", "--height", "100"]);
 
         Assert.NotEqual(ExitCodes.Success, exit);
     }
@@ -73,7 +73,7 @@ public class ResizeCommandTests
             Console.SetError(errWriter);
 
             var root = new RootCommand("test");
-            root.Subcommands.Add(ResizeCommand.Build());
+            root.Subcommands.Add(ResizeWindowCommand.Build());
             var parse = root.Parse(args);
             var exit = await parse.InvokeAsync().ConfigureAwait(false);
             return (outWriter.ToString(), errWriter.ToString(), exit);

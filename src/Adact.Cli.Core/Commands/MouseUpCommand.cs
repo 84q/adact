@@ -5,16 +5,16 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
-/// <summary><c>mouse-up</c> コマンド。現在カーソル位置でマウスボタンを解放する (低レベル)。</summary>
-internal static class MouseUpCommand
+/// <summary><c>mouseup</c> コマンド。現在カーソル位置でマウスボタンを解放する (低レベル)。</summary>
+internal static class MouseupCommand
 {
-    /// <summary>mouse-up サブコマンドを構築する。</summary>
+    /// <summary>mouseup サブコマンドを構築する。</summary>
     /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build()
     {
         var button = OperationOptions.Button();
 
-        var cmd = new Command("mouse-up", "Release a mouse button at the current cursor position.");
+        var cmd = new Command("mouseup", "Release a mouse button at the current cursor position.");
         cmd.Options.Add(button);
 
         cmd.SetAction((pr, ct) =>

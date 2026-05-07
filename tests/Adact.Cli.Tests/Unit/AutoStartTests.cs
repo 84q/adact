@@ -71,7 +71,7 @@ public class AutoStartTests
     }
 
     /// <summary>
-    /// list-apps 実行時にサーバーが未起動の場合、TryAutoStartServerAsync が呼ばれることを確認する。
+    /// list-windows 実行時にサーバーが未起動の場合、TryAutoStartServerAsync が呼ばれることを確認する。
     /// </summary>
     [Fact]
     public async Task ListApps_ServerNotRunning_AutoStartsServer()
@@ -87,7 +87,7 @@ public class AutoStartTests
                 return Task.FromResult(true);
             }));
 
-        var (_, stderr, exit) = await RunAsync(["list-apps"]);
+        var (_, stderr, exit) = await RunAsync(["list-windows"]);
 
         Assert.Equal(ExitCodes.Success, exit);
         Assert.True(autoStartCalled);
@@ -163,7 +163,7 @@ public class AutoStartTests
             IsServerRunningAsync: static (_, _, _) => Task.FromResult(false),
             TryAutoStartServerAsync: static _ => Task.FromResult(true)));
 
-        var (_, stderr, exit) = await RunAsync(["list-apps"]);
+        var (_, stderr, exit) = await RunAsync(["list-windows"]);
 
         Assert.Equal(ExitCodes.Success, exit);
         Assert.Equal(string.Empty, stderr);

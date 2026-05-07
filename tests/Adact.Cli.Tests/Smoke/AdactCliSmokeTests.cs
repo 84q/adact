@@ -22,21 +22,21 @@ public class AdactCliSmokeTests
     }
 
     /// <summary>
-    /// list-apps の出力 (設計 042: メタ情報 + `---` + TSV 本文) の TSV ヘッダが
+    /// list-windows の出力 (設計 042: メタ情報 + `---` + TSV 本文) の TSV ヘッダが
     /// (windowRef\tsessionId\t...) と一致することを確認する。
     /// CLI 出力スキーマの回帰を Smoke で検出するため。
     /// </summary>
     [Fact]
     public void ListApps_ReturnsTabSeparatedHeader()
     {
-        var result = CliProcess.RunWithServer("list-apps", _fixture.BaseUrl);
+        var result = CliProcess.RunWithServer("list-windows", _fixture.BaseUrl);
 
         Assert.True(result.ExitCode == 0,
-            $"list-apps exit={result.ExitCode}\nstdout: {result.Stdout}\nstderr: {result.Stderr}");
+            $"list-windows exit={result.ExitCode}\nstdout: {result.Stdout}\nstderr: {result.Stderr}");
 
         var lines = result.Stdout.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         var separatorIdx = Array.IndexOf(lines, "---");
-        Assert.True(separatorIdx >= 0, "Missing '---' separator in list-apps output.");
+        Assert.True(separatorIdx >= 0, "Missing '---' separator in list-windows output.");
         var headerLine = lines.Skip(separatorIdx + 1).FirstOrDefault();
         Assert.NotNull(headerLine);
 
@@ -88,7 +88,7 @@ public class AdactCliSmokeTests
 public class AdactCliHelpTests
 {
     /// <summary>
-    /// adact --help が exit=0 となり、主要サブコマンド名 (list-apps / attach) がヘルプに含まれることを確認する。
+    /// adact --help が exit=0 となり、主要サブコマンド名 (list-windows / attach) がヘルプに含まれることを確認する。
     /// CommandLine ヒエラルキーの回帰 (コマンド未登録など) の Smoke 検出。
     /// </summary>
     [Fact]
@@ -99,7 +99,7 @@ public class AdactCliHelpTests
 
         Assert.Equal(0, result.ExitCode);
         // System.CommandLine 2.0 のヘルプには各サブコマンド名が含まれる。
-        Assert.Contains("list-apps", result.Stdout, StringComparison.Ordinal);
+        Assert.Contains("list-windows", result.Stdout, StringComparison.Ordinal);
         Assert.Contains("attach", result.Stdout, StringComparison.Ordinal);
     }
 }

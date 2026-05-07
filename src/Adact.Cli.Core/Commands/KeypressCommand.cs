@@ -5,10 +5,10 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
-/// <summary><c>press</c> コマンド。キーコンボを送出する (低レベル: auto-snapshot なし)。</summary>
-internal static class PressCommand
+/// <summary><c>keypress</c> コマンド。キーコンボを送出する (低レベル: auto-snapshot なし)。</summary>
+internal static class KeypressCommand
 {
-    /// <summary>press サブコマンドを構築する。</summary>
+    /// <summary>keypress サブコマンドを構築する。</summary>
     /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build()
     {
@@ -16,7 +16,7 @@ internal static class PressCommand
         {
             Description = "Key combo such as 'Enter', 'F5', or 'Ctrl+Shift+E'.",
         };
-        var cmd = new Command("press", "Press a key combo (e.g. 'Ctrl+C').");
+        var cmd = new Command("keypress", "Press a key combo (e.g. 'Ctrl+C').");
         cmd.Arguments.Add(keyArg);
 
         cmd.SetAction((pr, ct) =>

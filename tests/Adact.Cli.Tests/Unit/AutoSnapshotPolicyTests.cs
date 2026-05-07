@@ -23,17 +23,17 @@ public class AutoSnapshotPolicyTests
     /// <param name="commandName">CLI サブコマンド名。</param>
     [Theory]
     [InlineData("click")]
-    [InlineData("dblclick")]
+    [InlineData("doubleclick")]
     [InlineData("hover")]
     [InlineData("type")]
     [InlineData("check")]
     [InlineData("uncheck")]
     [InlineData("select")]
     [InlineData("clear")]
-    [InlineData("resize")]
-    [InlineData("minimize")]
-    [InlineData("maximize")]
-    [InlineData("restore")]
+    [InlineData("resize-window")]
+    [InlineData("minimize-window")]
+    [InlineData("maximize-window")]
+    [InlineData("restore-window")]
     public void AutoSnapshotCommands_HaveNoSnapshotOption(string commandName)
     {
         var cmd = BuildCommand(commandName);
@@ -48,17 +48,17 @@ public class AutoSnapshotPolicyTests
     /// <param name="commandName">CLI サブコマンド名。</param>
     [Theory]
     [InlineData("focus")]
-    [InlineData("scroll-into-view")]
-    [InlineData("mouse-move")]
-    [InlineData("mouse-down")]
-    [InlineData("mouse-up")]
-    [InlineData("mouse-wheel")]
-    [InlineData("press")]
-    [InlineData("key-down")]
-    [InlineData("key-up")]
+    [InlineData("scroll")]
+    [InlineData("mousemove")]
+    [InlineData("mousedown")]
+    [InlineData("mouseup")]
+    [InlineData("mousewheel")]
+    [InlineData("keypress")]
+    [InlineData("keydown")]
+    [InlineData("keyup")]
     [InlineData("inspect")]
     [InlineData("screenshot")]
-    [InlineData("wait-for")]
+    [InlineData("wait-for-element")]
     [InlineData("wait-for-window")]
     public void NonAutoSnapshotCommands_DoNotHaveNoSnapshotOption(string commandName)
     {
@@ -70,29 +70,29 @@ public class AutoSnapshotPolicyTests
     private static Command BuildCommand(string commandName) => commandName switch
     {
         "click" => ClickCommand.Build(),
-        "dblclick" => DblclickCommand.Build(),
+        "doubleclick" => DoubleclickCommand.Build(),
         "hover" => HoverCommand.Build(),
         "type" => TypeCommand.Build(),
         "check" => CheckCommand.Build(),
         "uncheck" => UncheckCommand.Build(),
         "select" => SelectCommand.Build(),
         "clear" => ClearCommand.Build(),
-        "press" => PressCommand.Build(),
-        "mouse-wheel" => MouseWheelCommand.Build(),
-        "resize" => ResizeCommand.Build(),
-        "minimize" => MinimizeCommand.Build(),
-        "maximize" => MaximizeCommand.Build(),
-        "restore" => RestoreCommand.Build(),
+        "keypress" => KeypressCommand.Build(),
+        "mousewheel" => MousewheelCommand.Build(),
+        "resize-window" => ResizeWindowCommand.Build(),
+        "minimize-window" => MinimizeWindowCommand.Build(),
+        "maximize-window" => MaximizeWindowCommand.Build(),
+        "restore-window" => RestoreWindowCommand.Build(),
         "focus" => FocusCommand.Build(),
-        "scroll-into-view" => ScrollIntoViewCommand.Build(),
-        "mouse-move" => MouseMoveCommand.Build(),
-        "mouse-down" => MouseDownCommand.Build(),
-        "mouse-up" => MouseUpCommand.Build(),
-        "key-down" => KeyDownCommand.Build(),
-        "key-up" => KeyUpCommand.Build(),
+        "scroll" => ScrollIntoViewCommand.Build(),
+        "mousemove" => MousemoveCommand.Build(),
+        "mousedown" => MousedownCommand.Build(),
+        "mouseup" => MouseupCommand.Build(),
+        "keydown" => KeydownCommand.Build(),
+        "keyup" => KeyupCommand.Build(),
         "inspect" => InspectCommand.Build(),
         "screenshot" => ScreenshotCommand.Build(),
-        "wait-for" => WaitForCommand.Build(),
+        "wait-for-element" => WaitForElementCommand.Build(),
         "wait-for-window" => WaitForWindowCommand.Build(),
         _ => throw new ArgumentOutOfRangeException(nameof(commandName), commandName, "Unknown command."),
     };

@@ -6,7 +6,7 @@
 
 | Phase | 状態 | 内容 |
 | --- | --- | --- |
-| Phase 5 | 完了 | CLI 基本実装。`list-apps` / `attach` / `snapshot` / `click` / `fill` と lifecycle 系 (`detach` / `close` / `kill` / `close-all` / `daemon-stop`) を実装済み |
+| Phase 5 | 完了 | CLI 基本実装。`list-windows` / `attach` / `snapshot` / `click` / `fill` と lifecycle 系 (`detach` / `close-window` / `kill` / `close-all` / `daemon-stop`) を実装済み |
 | Phase 5 post-task | 完了 | Element Ref 安定化。generation なし `s<sid>e<eid>` 形式へ移行済み |
 | Phase 6 | 完了 | `adact install --skills` による Skill 機構を実装済み |
 | Phase 7 | 実装完了 / 受入一部残 | CLI snapshot `.txt` 化、MCP raw JSON 化、CLI 側 filter/formatter への責務移譲が完了 |
@@ -40,8 +40,8 @@
 | 機能 | 目的 |
 | --- | --- |
 | `launch` | アプリ起動を CLI から扱い、attach 前の手作業を減らす |
-| `wait-for` | window / element / state の明示待機で GUI 操作を安定化する |
-| `press` | 特定要素または active element へのキー押下を扱う |
+| `wait-for-element` | window / element / state の明示待機で GUI 操作を安定化する |
+| `keypress` | 特定要素または active element へのキー押下を扱う |
 | `type` | fill では再現できない逐次入力や IME / keystroke 系検証を扱う |
 
 ### Phase 8-B: 診断・低レベル操作
@@ -90,7 +90,7 @@
 | 順序 | 内容 | 理由 |
 | ---: | --- | --- |
 | 1 | Phase 7 AI クライアント手動スモーク | `.txt` snapshot 形式の実利用受入を閉じる |
-| 2 | Phase 8-A 要件定義・設計 | `launch` / `wait-for` / `press` / `type` の責務境界を固める |
+| 2 | Phase 8-A 要件定義・設計 | `launch` / `wait-for-element` / `keypress` / `type` の責務境界を固める |
 | 3 | `--hwnd` / 画面ロック検知 / `--verbose` | 操作基盤追加前に attach 能力と診断性を上げる |
 | 4 | Phase 8-B 要件定義・設計 | `screenshot` と失敗時添付を合わせて設計する |
 | 5 | Phase 8-C / Phase 9+ 再判断 | 実利用で不足が見えたものだけを追加する |
@@ -104,8 +104,8 @@
 | --- | --- |
 | Phase 8 正式スコープ | 8-A / 8-B / 8-C の分割を採用するか |
 | `launch` | 起動対象、working directory、env、起動後 attach の扱い |
-| `wait-for` | window / element / text / value / disappearance の範囲 |
-| `press` / `type` / `keyboard` | UIA pattern と Win32 input injection の使い分け |
+| `wait-for-element` | window / element / text / value / disappearance の範囲 |
+| `keypress` / `type` / `keyboard` | UIA pattern と Win32 input injection の使い分け |
 | `mouse` | 座標指定、対象 window 外操作、DPI 補正、安全性 |
 | `evaluate` | 汎用 escape hatch として採用するか |
 | 認証 / TLS / CORS | remote daemon をどの時点で本格サポート扱いにするか |

@@ -46,7 +46,7 @@ public class WindowsToolsActionSuccessTests
 
         public Task DoubleClickAsync(string refId, ClickOptions? options = null, CancellationToken ct = default)
         {
-            Calls.Add($"dblclick:{refId}:{options?.Button}:{options?.PositionX}:{options?.PositionY}");
+            Calls.Add($"doubleclick:{refId}:{options?.Button}:{options?.PositionX}:{options?.PositionY}");
             return Task.CompletedTask;
         }
 
@@ -88,25 +88,25 @@ public class WindowsToolsActionSuccessTests
 
         public Task MouseMoveAsync(MouseTarget target, CancellationToken ct = default)
         {
-            Calls.Add($"mouse-move:{Describe(target)}");
+            Calls.Add($"mousemove:{Describe(target)}");
             return Task.CompletedTask;
         }
 
         public Task MouseDownAsync(MouseTarget target, MouseButton button, CancellationToken ct = default)
         {
-            Calls.Add($"mouse-down:{Describe(target)}:{button}");
+            Calls.Add($"mousedown:{Describe(target)}:{button}");
             return Task.CompletedTask;
         }
 
         public Task MouseUpAsync(MouseTarget target, MouseButton button, CancellationToken ct = default)
         {
-            Calls.Add($"mouse-up:{Describe(target)}:{button}");
+            Calls.Add($"mouseup:{Describe(target)}:{button}");
             return Task.CompletedTask;
         }
 
         public Task MouseWheelAsync(MouseTarget target, int deltaX, int deltaY, CancellationToken ct = default)
         {
-            Calls.Add($"mouse-wheel:{Describe(target)}:{deltaX}:{deltaY}");
+            Calls.Add($"mousewheel:{Describe(target)}:{deltaX}:{deltaY}");
             return Task.CompletedTask;
         }
 
@@ -317,13 +317,13 @@ public class WindowsToolsActionSuccessTests
             Assert.True((await tools.MouseUpAsync(button: "right")).IsError != true);
             Assert.True((await tools.MouseWheelAsync(deltaY: 3, deltaX: 4)).IsError != true);
 
-            Assert.Contains("dblclick:s1e2:Middle:7:8", session.Calls);
+            Assert.Contains("doubleclick:s1e2:Middle:7:8", session.Calls);
             Assert.Contains("hover:s1e2:1:2", session.Calls);
             // mouse-move/down/up/wheel はセッションを通さず、IMouseDriver へ委譲される
-            Assert.DoesNotContain(session.Calls, c => c.StartsWith("mouse-move:", StringComparison.Ordinal));
-            Assert.DoesNotContain(session.Calls, c => c.StartsWith("mouse-down:", StringComparison.Ordinal));
-            Assert.DoesNotContain(session.Calls, c => c.StartsWith("mouse-up:", StringComparison.Ordinal));
-            Assert.DoesNotContain(session.Calls, c => c.StartsWith("mouse-wheel:", StringComparison.Ordinal));
+            Assert.DoesNotContain(session.Calls, c => c.StartsWith("mousemove:", StringComparison.Ordinal));
+            Assert.DoesNotContain(session.Calls, c => c.StartsWith("mousedown:", StringComparison.Ordinal));
+            Assert.DoesNotContain(session.Calls, c => c.StartsWith("mouseup:", StringComparison.Ordinal));
+            Assert.DoesNotContain(session.Calls, c => c.StartsWith("mousewheel:", StringComparison.Ordinal));
 
             // FakeMouseDriver で実際の呼び出しを検証
             Assert.Contains("move:10,20", mouse.Calls);

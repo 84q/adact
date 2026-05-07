@@ -1,7 +1,7 @@
 namespace Adact.Cli;
 
 /// <summary>
-/// <c>adact wait-for</c> が待機する要素状態。Playwright と揃えるため既定は <see cref="Visible"/>。
+/// <c>adact wait-for-element</c> が待機する要素状態。Playwright と揃えるため既定は <see cref="Visible"/>。
 /// </summary>
 public enum WaitForState
 {

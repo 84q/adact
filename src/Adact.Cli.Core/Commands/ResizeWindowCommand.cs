@@ -5,12 +5,12 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>resize</c> コマンド。アタッチ済みウィンドウのサイズを変更し、成功時に snapshot を自動取得する。
+/// <c>resize-window</c> コマンド。アタッチ済みウィンドウのサイズを変更し、成功時に snapshot を自動取得する。
 /// </summary>
-internal static class ResizeCommand
+internal static class ResizeWindowCommand
 {
     /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>resize サブコマンド。</returns>
+    /// <returns>resize-window サブコマンド。</returns>
     public static Command Build()
     {
         var width = new Option<int?>("--width") { Description = "New window width in pixels (must be > 0).", Required = true };
@@ -19,7 +19,7 @@ internal static class ResizeCommand
         var noSnapshot = OperationOptions.NoSnapshot();
         var snapshotDir = OperationOptions.SnapshotDir();
 
-        var cmd = new Command("resize", "Resize the attached window via UIA TransformPattern.Resize.");
+        var cmd = new Command("resize-window", "Resize the attached window via UIA TransformPattern.Resize.");
         cmd.Options.Add(width);
         cmd.Options.Add(height);
         cmd.Arguments.Add(sid);

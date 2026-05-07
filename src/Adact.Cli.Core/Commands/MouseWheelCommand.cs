@@ -5,10 +5,10 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
-/// <summary><c>mouse-wheel</c> コマンド。現在カーソル位置でマウスホイールをスクロールする (低レベル: auto-snapshot なし)。</summary>
-internal static class MouseWheelCommand
+/// <summary><c>mousewheel</c> コマンド。現在カーソル位置でマウスホイールをスクロールする (低レベル: auto-snapshot なし)。</summary>
+internal static class MousewheelCommand
 {
-    /// <summary>mouse-wheel サブコマンドを構築する。</summary>
+    /// <summary>mousewheel サブコマンドを構築する。</summary>
     /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build()
     {
@@ -20,7 +20,7 @@ internal static class MouseWheelCommand
         {
             Description = "Horizontal scroll amount in notches (positive = right).",
         };
-        var cmd = new Command("mouse-wheel", "Scroll the mouse wheel at the current cursor position.");
+        var cmd = new Command("mousewheel", "Scroll the mouse wheel at the current cursor position.");
         cmd.Options.Add(deltaY);
         cmd.Options.Add(deltaX);
 

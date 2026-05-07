@@ -54,7 +54,7 @@ CLI はこれらの MCP レスポンスをそのまま表示せず、`discussion
 
 | 項目 | 内容 |
 | --- | --- |
-| 入力 | `windowRef` (required、`list-apps` で得た `w<n>`) |
+| 入力 | `windowRef` (required、`list-windows` で得た `w<n>`) |
 | 処理 | `WindowRefStore.TryResolve` で HWND を確定し、`UiaEngine.AttachByHandleAsync` で attach する |
 | 戻り値 | `sessionId` (`s<n>`), `windowRef` (`w<n>`), `windowInfo: { processName, windowTitle, processId }` |
 | 代表エラー | `INVALID_ARGUMENT`, `INVALID_WINDOW_REF`, `WINDOW_NOT_FOUND` |

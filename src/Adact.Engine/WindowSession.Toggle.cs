@@ -180,7 +180,7 @@ public sealed partial class WindowSession
                 var pat = inner.Patterns.ScrollItem.PatternOrDefault;
                 if (pat is null)
                 {
-                    throw new ElementInteractionException(refId, "scroll-into-view",
+                    throw new ElementInteractionException(refId, "scroll",
                         "element does not support ScrollItemPattern.");
                 }
                 pat.ScrollIntoView();
@@ -188,7 +188,7 @@ public sealed partial class WindowSession
             catch (AdactException) { throw; }
             catch (Exception ex)
             {
-                throw new ElementInteractionException(refId, "scroll-into-view", ex.Message, ex);
+                throw new ElementInteractionException(refId, "scroll", ex.Message, ex);
             }
             return Task.CompletedTask;
         }, ct);

@@ -1,25 +1,25 @@
 # Mouse and keyboard commands
 
-Use this for: `mouse-move`, `mouse-down`, `mouse-up`, `mouse-wheel`, `press`, `key-down`, `key-up`.
+Use this for: `mousemove`, `mousedown`, `mouseup`, `mousewheel`, `keypress`, `keydown`, `keyup`.
 
 ## Mouse
 
-- `adact mouse-move <ref|x,y>`: move cursor to element or screen coordinate.
-- `adact mouse-down <ref|x,y> [--button ...]`: press and hold mouse button.
-- `adact mouse-up <ref|x,y> [--button ...]`: release mouse button.
-- `adact mouse-wheel <ref|x,y> --delta <n>`: wheel scroll at target.
+- `adact mousemove <ref|x,y>`: move cursor to element or screen coordinate.
+- `adact mousedown <ref|x,y> [--button ...]`: press and hold mouse button.
+- `adact mouseup <ref|x,y> [--button ...]`: release mouse button.
+- `adact mousewheel <ref|x,y> --delta <n>`: wheel scroll at target.
 
 ## Keyboard
 
-- `adact press --key "Ctrl+S"`: press a key chord.
-- `adact key-down --key Shift`: hold one key.
-- `adact key-up --key Shift`: release one key.
+- `adact keypress --key "Ctrl+S"`: press a key chord.
+- `adact keydown --key Shift`: hold one key.
+- `adact keyup --key Shift`: release one key.
 
 ## Typical drag flow
 
 ```bash
-adact mouse-move s1e10
-adact mouse-down s1e10 --button left
-adact mouse-move s1e24
-adact mouse-up s1e24 --button left
+adact mousemove s1e10
+adact mousedown s1e10 --button left
+adact mousemove s1e24
+adact mouseup s1e24 --button left
 ```

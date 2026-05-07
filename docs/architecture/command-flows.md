@@ -31,7 +31,7 @@ flowchart LR
 | 7. Engine | `UiaEngine`, `WindowSession` | UIA 操作、snapshot、click/fill、close/kill を実行する |
 | 8. CLI output | `McpResponse`, `KeyValueWriter`, `TsvWriter`, snapshot 変換層 | MCP 結果を CLI の stdout/stderr へ変換する |
 
-## `adact list-apps`
+## `adact list-windows`
 
 | 観点 | 内容 |
 | --- | --- |
@@ -40,8 +40,8 @@ flowchart LR
 | Engine operation | `UiaEngine.ListWindowsAsync()` |
 | CLI output | header 付き TSV |
 
-1. `Program` が `ListAppsCommand` を起動します。
-2. `ListAppsCommand` は `--server` を読み、`CommandHelpers.RunWithClientAsync()` に処理を渡します。
+1. `Program` が `ListWindowsCommand` を起動します。
+2. `ListWindowsCommand` は `--server` を読み、`CommandHelpers.RunWithClientAsync()` に処理を渡します。
 3. `ConnectionResolver` が接続先を解決し、`AdactMcpClient` が HTTP MCP daemon に接続します。
 4. CLI は MCP `windows_list_apps` を呼びます。
 5. `WindowsTools.ListAppsAsync()` は `SessionStore.AcquireAsync()` で tool-level lock を取り、`UiaEngine.ListWindowsAsync()` を呼びます。
@@ -174,7 +174,7 @@ sequenceDiagram
 8. MCP tool が成功したら、CLI は element ref から `sessionId` を抽出します。
 9. `--no-snapshot` がなければ CLI が `windows_snapshot` を追加で呼び、操作後の snapshot path を出力します。`--no-snapshot` の場合は最低限 `sessionId` を出力します。
 
-## `adact wait-for`
+## `adact wait-for-element`
 
 | 観点 | 内容 |
 | --- | --- |
@@ -187,7 +187,7 @@ sequenceDiagram
 2. CLI は MCP `windows_wait_for` に必要な引数だけを渡します。検索条件モードでは `--sid` も透過します。
 3. `WindowsTools.WaitForAsync` が session を解決し (ref モードは ref の prefix から、検索条件モードは `sessionId` または active session)、ポーリングで state を待ちます。
 4. 完了すると `{ ref, state }` を返し、CLI は JSON 1 行を stdout に出します。
-5. `wait-for` は取得・同期系として扱われ、auto-snapshot は発火しません (`--no-snapshot` フラグも持ちません)。
+5. `wait-for-element` は取得・同期系として扱われ、auto-snapshot は発火しません (`--no-snapshot` フラグも持ちません)。
 
 ## `adact wait-for-window`
 
@@ -201,7 +201,7 @@ sequenceDiagram
 1. `WaitForWindowCommand` が条件のうち最低 1 つが指定されていることを CLI 段階で検証します。
 2. CLI は MCP `windows_wait_for_window` を呼びます。
 3. `UiaEngine.WaitForWindowAsync` が `WindowSearchQuery` をポーリング検出し、最初にマッチした `WindowInfo` を返します。
-4. CLI は `{ processId, processName, windowTitle, controlType, className, nativeWindowHandle }` JSON 1 行を stdout に出します。後続で attach するには `list-apps` -> `attach` の手順を踏みます。
+4. CLI は `{ processId, processName, windowTitle, controlType, className, nativeWindowHandle }` JSON 1 行を stdout に出します。後続で attach するには `list-windows` -> `attach` の手順を踏みます。
 
 ## `adact launch`
 
@@ -215,7 +215,7 @@ sequenceDiagram
 1. `LaunchCommand` が `--env KEY=VALUE` をパースし、UWP モードでは `--cwd` / `--env` が併用されていないかを `WindowsTools.LaunchAsync` 側でも検証します (UWP は `INVALID_ARGUMENT`)。
 2. `UiaEngine.LaunchAsync` は UWP プレフィックスなら `IApplicationActivationManager.ActivateApplication` を、それ以外は `Process.Start` (`UseShellExecute=false`) を呼びます。
 3. 失敗 (実行ファイル不在、`Win32Exception`、COM 失敗) は `LaunchFailedException` として `LAUNCH_FAILED` にマップされます。
-4. 成功時は `{ pid, processName, executablePath }` を JSON 1 行で stdout に出します。後続操作は `wait-for-window` -> `list-apps` -> `attach` で進めます。
+4. 成功時は `{ pid, processName, executablePath }` を JSON 1 行で stdout に出します。後続操作は `wait-for-window` -> `list-windows` -> `attach` で進めます。
 
 ## `adact inspect`
 
@@ -281,13 +281,13 @@ flowchart TD
 	daemonStop --> stop --> output
 ```
 
-### `detach` / `close` / `kill`
+### `detach` / `close-window` / `kill`
 
 1. CLI command は `--sid` と `--server` を読み、`LifecycleCommandImpl.ExecuteAsync()` に tool 名と成功時 literal 行を渡します。
 2. CLI は `windows_detach` / `windows_close` / `windows_kill` を呼びます。
 3. `WindowsTools` は `TryResolveSessionId()` で `--sid` または active session を解決します。
 4. `detach` は `SessionStore.TryRemove()` で session を削除し、window 自体は触りません。
-5. `close` は `WindowSession.CloseAsync()` で `WindowPattern.Close()`、失敗時は `WM_CLOSE` にフォールバックします。成功後に session を削除します。
+5. `close-window` は `WindowSession.CloseAsync()` で `WindowPattern.Close()`、失敗時は `WM_CLOSE` にフォールバックします。成功後に session を削除します。
 6. `kill` は `WindowSession.KillAsync()` で process tree を終了します。成功後に session を削除します。
 7. session 削除時は `WindowRefStore.TryFindBySessionId()` と `ClearSession()` で `windowRef` から `sessionId` の関連を外し、`WindowSession.Dispose()` します。
 8. CLI は MCP response の `sessionId` を出力し、`detached` / `closed` / `killed` などの literal 行を続けます。

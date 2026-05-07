@@ -3,17 +3,17 @@ using System.CommandLine;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>close</c> コマンド。UIA <c>WindowPattern.Close</c> を呼び、成功時は session も detach される。
+/// <c>close-window</c> コマンド。UIA <c>WindowPattern.Close</c> を呼び、成功時は session も detach される。
 /// </summary>
-internal static class CloseCommand
+internal static class CloseWindowCommand
 {
     /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>close サブコマンド。</returns>
+    /// <returns>close-window サブコマンド。</returns>
     public static Command Build()
     {
         var sid = new Argument<string?>("sid") { Arity = ArgumentArity.ZeroOrOne, Description = "Target session ID (default: active session)." };
 
-        var cmd = new Command("close", "Close a window via UIA WindowPattern.Close (auto-detach on success).");
+        var cmd = new Command("close-window", "Close a window via UIA WindowPattern.Close (auto-detach on success).");
         cmd.Arguments.Add(sid);
 
         cmd.SetAction((parseResult, ct) =>

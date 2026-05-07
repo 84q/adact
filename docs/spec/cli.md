@@ -16,14 +16,14 @@ result: true|false
 - 成功時は `result: true`
 - 失敗時は `result: false` と `error: <ERROR_CODE>`
 - 通常の成功/失敗情報はすべて stdout に出し、stderr は原則使わない
-- `windowRef` は通常成功出力から廃止し、`list-apps` の TSV 列としてのみ残す
+- `windowRef` は通常成功出力から廃止し、`list-windows` の TSV 列としてのみ残す
 - `sessionId` はメタには置かず、必要なコマンドの本文に出す
 
 ## 形式分類
 
 | 形式 | 対象コマンド | 備考 |
 | --- | --- | --- |
-| TSV | `list-apps`, `close-all` | 先頭メタの後ろに TSV 本文 |
+| TSV | `list-windows`, `close-all` | 先頭メタの後ろに TSV 本文 |
 | snapshot | `snapshot` | メタに `snapshotPath`、本文に `sessionId` + 空行 + tree |
 | yaml | 上記以外の 1-shot コマンド | 先頭メタの後ろに yaml風本文 |
 | 対象外 | `serve http`, `serve pipe` | サーバとして継続実行するため統一結果フォーマットの対象外 |
@@ -34,24 +34,24 @@ result: true|false
 | --- | --- | --- | --- |
 | Runtime | `serve http` | 対象外 | HTTP MCP daemon を起動する |
 | Runtime | `serve pipe` | 対象外 | Named Pipe MCP daemon を起動する |
-| Discovery | `list-apps` | TSV | top-level window 一覧 |
+| Discovery | `list-windows` | TSV | top-level window 一覧 |
 | Session | `attach` | yaml | window に attach し session を作成 |
 | Snapshot | `snapshot` | snapshot | active / 指定 session の snapshot を保存・表示 |
-| Mouse | `click`, `dblclick`, `hover` | yaml | UI 操作。auto-snapshot 対象 |
-| Mouse | `mouse-move`, `mouse-down`, `mouse-up` | yaml | 低レベルマウス操作 |
-| Mouse | `mouse-wheel` | yaml | 低レベルマウス操作 |
+| Mouse | `click`, `doubleclick`, `hover` | yaml | UI 操作。auto-snapshot 対象 |
+| Mouse | `mousemove`, `mousedown`, `mouseup` | yaml | 低レベルマウス操作 |
+| Mouse | `mousewheel` | yaml | 低レベルマウス操作 |
 | Keyboard | `fill`, `type` | yaml | UI 操作。auto-snapshot 対象 |
-| Keyboard | `press` | yaml | 低レベルキー操作 |
-| Keyboard | `key-down`, `key-up` | yaml | 低レベルキー操作 |
+| Keyboard | `keypress` | yaml | 低レベルキー操作 |
+| Keyboard | `keydown`, `keyup` | yaml | 低レベルキー操作 |
 | Toggle | `check`, `uncheck`, `select`, `clear` | yaml | UI 操作。auto-snapshot 対象 |
-| Toggle | `focus`, `scroll-into-view` | yaml | 補助操作 |
-| Window | `resize`, `minimize`, `maximize`, `restore` | yaml | window 状態変更。auto-snapshot 対象 |
+| Toggle | `focus`, `scroll` | yaml | 補助操作 |
+| Window | `resize-window`, `minimize-window`, `maximize-window`, `restore-window` | yaml | window 状態変更。auto-snapshot 対象 |
 | Inspect | `inspect` | yaml | UIA プロパティ詳細 |
 | Inspect | `screenshot` | yaml | PNG 保存 |
-| Wait | `wait-for` | yaml | 要素状態待機 |
+| Wait | `wait-for-element` | yaml | 要素状態待機 |
 | Wait | `wait-for-window` | yaml | top-level window 出現待機 |
 | Lifecycle | `launch` | yaml | Win32 / .NET / UWP 起動 |
-| Lifecycle | `detach`, `close`, `kill` | yaml | session / window の lifecycle 操作 |
+| Lifecycle | `detach`, `close-window`, `kill` | yaml | session / window の lifecycle 操作 |
 | Lifecycle | `close-all` | TSV | 全 session の close 結果 |
 | Lifecycle | `daemon-stop` | yaml | Named Pipe daemon 停止 |
 | Install | `install --skills` | yaml | Skill ファイル展開 |
@@ -91,7 +91,7 @@ sessionId: s1
   - Edit [ref=s1e2]
 ```
 
-### `list-apps`
+### `list-windows`
 
 ```text
 result: true
@@ -123,7 +123,7 @@ message: No active session. Call windows_attach first or specify sessionId expli
 
 `--no-snapshot` を持ち、成功時に CLI が snapshot を自動取得するコマンド:
 
-`attach`, `click`, `fill`, `dblclick`, `hover`, `type`, `check`, `uncheck`, `select`, `clear`, `resize`, `minimize`, `maximize`, `restore`
+`attach`, `click`, `fill`, `doubleclick`, `hover`, `type`, `check`, `uncheck`, `select`, `clear`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window`
 
 - `--no-snapshot` 時は `snapshotPath` を出さない
 - `snapshot` 本文を stdout に出すのは `snapshot` コマンドだけ
@@ -132,7 +132,7 @@ message: No active session. Call windows_attach first or specify sessionId expli
 
 一部コマンドは session 指定を `--sid` ではなく **任意位置引数 `sid`** で受け取る。
 
-- 対象: `snapshot`, `resize`, `minimize`, `maximize`, `restore`, `close`, `kill`
+- 対象: `snapshot`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window`, `close-window`, `kill`
 - 省略時は従来どおり active session を解決する
 
 `screenshot` は任意位置引数 `target` を 1 つ受け取り、自動判別する。
@@ -154,7 +154,7 @@ message: No active session. Call windows_attach first or specify sessionId expli
 
 | 優先度 | 入力 | 例 |
 | ---: | --- | --- |
-| 1 | `--server` | `adact list-apps --server http://127.0.0.1:41300/mcp` |
+| 1 | `--server` | `adact list-windows --server http://127.0.0.1:41300/mcp` |
 | 2 | Named Pipe (既定) | ワークスペースパスから自動生成 |
 
 `--server` 未指定時は Named Pipe に接続します。HTTP モードを使う場合は明示的に `--server` を指定してください。

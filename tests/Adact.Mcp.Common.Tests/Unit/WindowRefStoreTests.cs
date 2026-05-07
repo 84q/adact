@@ -6,7 +6,7 @@ namespace Adact.Mcp.Common.Tests.Unit;
 
 /// <summary>
 /// <see cref="WindowRefStore"/> の windowRef 採番・引退・session 紐付け・検索ロジックを検証する Unit テスト。
-/// MCP 経由で公開される windowRef の安定性 (ref-ids 仕様) と list-apps の引退検知が回帰しないことを担保するため。
+/// MCP 経由で公開される windowRef の安定性 (ref-ids 仕様) と list-windows の引退検知が回帰しないことを担保するため。
 /// </summary>
 [Trait("Layer", "Unit")]
 public class WindowRefStoreTests
@@ -19,7 +19,7 @@ public class WindowRefStoreTests
 
     /// <summary>
     /// 同一 <see cref="WindowKey"/> を続けて SyncOrAssign したとき、同じ windowRef ("w1") が返ることを確認する。
-    /// list-apps 連続呼び出しで ref が振り直されない仕様 (ref-ids §安定性) の回帰防止。
+    /// list-windows 連続呼び出しで ref が振り直されない仕様 (ref-ids §安定性) の回帰防止。
     /// </summary>
     [Fact]
     public void SyncOrAssign_SameKey_ReturnsSameWindowRef()
@@ -55,7 +55,7 @@ public class WindowRefStoreTests
 
     /// <summary>
     /// 引退対象 (RetireMissing で渡されない key) のエントリは TryResolve できなくなることを確認する。
-    /// list-apps 後に閉じられたウィンドウへの ref が解決されない仕様の回帰防止。
+    /// list-windows 後に閉じられたウィンドウへの ref が解決されない仕様の回帰防止。
     /// </summary>
     [Fact]
     public void RetireMissing_RemovesNonPresentEntriesFromTryResolve()
@@ -117,7 +117,7 @@ public class WindowRefStoreTests
 
     /// <summary>
     /// ListActive が引退エントリを除外し、生存中のエントリのみ返すことを確認する。
-    /// list-apps の応答に閉じられたウィンドウが混入しないようにするため。
+    /// list-windows の応答に閉じられたウィンドウが混入しないようにするため。
     /// </summary>
     [Fact]
     public void ListActive_ExcludesRetired()
@@ -158,7 +158,7 @@ public class WindowRefStoreTests
     [Fact]
     public void SyncOrAssign_RevivesRetiredEntryWithSameWindowRef()
     {
-        // 一度引退したあとに再度同じ key で list-apps されたら、同じ windowRef で復活する
+        // 一度引退したあとに再度同じ key で list-windows されたら、同じ windowRef で復活する
         var store = new WindowRefStore();
         var k = Key(100, 0x1000);
         var first = store.SyncOrAssign(k, Info(100, 0x1000));

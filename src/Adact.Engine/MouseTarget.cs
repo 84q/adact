@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 namespace Adact.Engine;
 
 /// <summary>
-/// マウス系操作 (mouse-move, mouse-down, mouse-up, mouse-wheel 等) の対象を表す共通型。
+/// マウス系操作 (mousemove, mousedown, mouseup, mousewheel 等) の対象を表す共通型。
 /// 要素 ref (<c>s&lt;sid&gt;e&lt;eid&gt;</c>) または座標 (<c>x,y</c>) のいずれかで指定する。
 /// </summary>
 public abstract record MouseTarget
