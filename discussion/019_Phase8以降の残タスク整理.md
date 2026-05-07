@@ -11,8 +11,6 @@
 | :--- | :--- | :--- | :--- | :--- |
 | 4 | `.adact/config.json` 拡充 | `defaultSnapshotDir` / `outputFormat` 等、接続先以外の永続設定を追加する。 | 未実装 | `server` フィールドは完了。個人設定とリポジトリ共有設定の分離も含む。discussion/009 §3.3 参照。 |
 | 27 | 全サブコマンド自動統合テスト化 | discussion/032 で手動検証した内容（27コマンド）を自動テスト化。SampleApp を起動 → 操作 → 検証 → クリーンアップの一連を xUnit 化する。 | 未着手 | `Adact.Engine.Tests` または新規プロジェクトで実装。InteractiveTestGuard + CalculatorMutex パターンを参考に。 |
-| 21 | SampleApp 更新：close 拒否パターン | SampleApp に `Closing` イベントで `e.Cancel = true` するボタンを追加し、`close` コマンドが効かないパターンを検証できるようにする。 | 未着手 | discussion/032 参照。WPF/WinForms で `close` が効かないケースを再現。 |
-| 22 | SampleApp 更新：MenuItem にサブメニュー | SampleApp の MenuBar（File/Edit/View）に入れ子サブメニューを追加し、多階層メニューの操作検証を可能にする。 | 未着手 | discussion/032 参照。現在は1階層のみ（Open/Save/Exit）。マウスオーバーで右側に展開される多階層メニューの UIA 構造検証にも必要。 |
 | 26 | Skill 更新：別ウィンドウ扱いの要素説明 | ツールチップ・メニューサブメニュー・ダイアログボックス等が UIA 上で「別ウィンドウ」として snapshot に現れることを Skill に記載する。 | 未着手 | discussion/030、032 参照。Popup (`isPopup`)、Modal (`isModalDialog`) の概念を Skill の `snapshot` リファレンス等に追記。 |
 | 35 | Adact.Cli と Adact.Cli.Client の Program.cs 重複解消 | 両プロジェクトでほぼ同じサブコマンド登録コードがある。共通化またはコード生成を検討する。 | 未着手 | `BuildRoot()` の内容がほぼ同一。`LocalCommand` / `ServeCommand` / `DaemonStopCommand` の有無だけの差。 |
 | 37 | エラーコード一覧整備 | `ErrorCodes` クラスと実際のエラーメッセージの対応表を `docs/` に作成。AI やユーザーがエラーの意味を素早く理解できるようにする。 | 未着手 | `CONNECTION_FAILED`、`OPERATION_BLOCKED`、`REF_NOT_FOUND` 等の対処法を含む。 |
@@ -51,3 +49,5 @@
 | 34 | XML ドキュメントコメント warning 解消 | `dotnet build` で毎回出る CS1574/CS1734 warning（10件以上）を解消する。同時に、今後同様の warning が発生しないように Skill またはガイドラインに記載する。 | 完了 | `SnapshotFileWriter.cs`（CS1734）、`SnapshotTreeFilter.cs`（CS1574）、`HttpHost.cs`（CS1570）等。CI 導入時に blocker になりうる。 |
 | 36 | System.CommandLine beta5 → GA 移行 | 現在 `2.0.0-beta5.25306.1` を使用。`Recursive` 等の API が GA で確定しているか確認し、移行コストを見積もる。 | 完了 | 2.0.7 にアップデート。ビルド・Unit テストともに問題なし。 |
 | 10 | FlaUI テストコード生成 | AI が探索した操作を FlaUI を用いた自動シナリオテストとして生成する。 | 完了 | Codegen / recipes / Skill 拡張と合わせて設計。出力形式（xUnit+FlaUI 直接 or 中間シナリオ定義）と AI 探索・テスト生成の責務境界も未決定。 |
+| 21 | SampleApp 更新：close 拒否パターン | SampleApp のメイン MenuBar の File 配下に close 拒否を切り替えるチェック項目を追加し、`Closing` イベントで `close` 要求を拒否できるようにした。 | 完了 | discussion/032 参照。`MainWindow_MenuItem_File_BlockClose` を ON にするとウィンドウ close を拒否する。 |
+| 22 | SampleApp 更新：MenuItem にサブメニュー | SampleApp のメイン MenuBar の View 配下に多階層サブメニューを追加し、メインメニュー上で入れ子メニューの検証を可能にした。 | 完了 | discussion/032 参照。`View > Layout > Navigation Pane > Favorites` などの階層を追加。 |

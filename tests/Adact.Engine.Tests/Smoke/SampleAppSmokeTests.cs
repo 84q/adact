@@ -57,18 +57,7 @@ public class SampleAppSmokeTests : IAsyncLifetime, IDisposable
     public async Task Click_Submit_StatusLabelShowsSubmitted()
     {
         using var engine = new UiaEngine();
-        WindowInfo? target = null;
-        await SampleAppTestHelper.WaitUntilAsync(
-            async () =>
-            {
-                var windows = await engine.ListWindowsAsync();
-                target = windows.FirstOrDefault(SampleAppTestHelper.IsSampleAppWindow);
-                return target is not null;
-            },
-            TimeSpan.FromSeconds(10),
-            "SampleApp window did not appear in ListWindowsAsync.");
-        Assert.NotNull(target);
-        using var session = await engine.AttachByHandleAsync(target!.NativeWindowHandle);
+        using var session = await AttachToSampleAppAsync(engine);
 
         var snap1 = await session.SnapshotAsync();
         var submitRef = FindRefByAutomationId(snap1.Json, "BasicControls_Button_Submit")
@@ -88,6 +77,105 @@ public class SampleAppSmokeTests : IAsyncLifetime, IDisposable
             "StatusLabel did not show 'Submitted' after clicking the Submit button.");
 
         Assert.Contains("Submitted", snap2Json);
+    }
+
+    /// <summary>
+    /// File &gt; Block Close を ON/OFF しながら close を実行し、チェック状態に応じて MainWindow の close 可否が変わることを確認する。
+    /// close-window 系の回帰を、実際の WPF Closing キャンセル挙動まで含めて Smoke で検出するため。
+    /// </summary>
+    /// <returns>テスト完了タスク。</returns>
+    [InteractiveFact]
+    public async Task Close_OnBlockCloseToggle_RespectsCheckedState()
+    {
+        using var engine = new UiaEngine();
+        using var session = await AttachToSampleAppAsync(engine);
+
+        await ClickMenuItemAsync(
+            session,
+            "MainWindow_MenuItem_File",
+            "MainWindow_MenuItem_File_BlockClose");
+
+        await session.CloseAsync();
+
+        await SampleAppTestHelper.WaitUntilAsync(
+            async () => await IsSampleAppWindowOpenAsync(engine),
+            TimeSpan.FromSeconds(3),
+            "SampleApp window disappeared even though Block Close was enabled.");
+
+        await ClickMenuItemAsync(
+            session,
+            "MainWindow_MenuItem_File",
+            "MainWindow_MenuItem_File_BlockClose");
+
+        await session.CloseAsync();
+
+        await SampleAppTestHelper.WaitUntilAsync(
+            async () => !await IsSampleAppWindowOpenAsync(engine),
+            TimeSpan.FromSeconds(5),
+            "SampleApp window did not close after Block Close was disabled.");
+    }
+
+    private static async Task<IWindowSession> AttachToSampleAppAsync(UiaEngine engine)
+    {
+        WindowInfo? target = null;
+        await SampleAppTestHelper.WaitUntilAsync(
+            async () =>
+            {
+                var windows = await engine.ListWindowsAsync();
+                target = windows.FirstOrDefault(SampleAppTestHelper.IsSampleAppWindow);
+                return target is not null;
+            },
+            TimeSpan.FromSeconds(10),
+            "SampleApp window did not appear in ListWindowsAsync.");
+
+        Assert.NotNull(target);
+        return await engine.AttachByHandleAsync(target!.NativeWindowHandle);
+    }
+
+    private static async Task ClickMenuItemAsync(
+        IWindowSession session,
+        string rootMenuAutomationId,
+        string childMenuAutomationId)
+    {
+        var fileMenuRef = await WaitForRefByAutomationIdAsync(
+            session,
+            rootMenuAutomationId,
+            TimeSpan.FromSeconds(5),
+            $"Menu '{rootMenuAutomationId}' was not found in SampleApp snapshot.");
+        await session.ClickAsync(fileMenuRef);
+
+        var childRef = await WaitForRefByAutomationIdAsync(
+            session,
+            childMenuAutomationId,
+            TimeSpan.FromSeconds(5),
+            $"Menu item '{childMenuAutomationId}' did not appear after opening '{rootMenuAutomationId}'.");
+        await session.ClickAsync(childRef);
+    }
+
+    private static async Task<string> WaitForRefByAutomationIdAsync(
+        IWindowSession session,
+        string automationId,
+        TimeSpan timeout,
+        string failureMessage)
+    {
+        string? foundRef = null;
+        await SampleAppTestHelper.WaitUntilAsync(
+            async () =>
+            {
+                var snapshot = await session.SnapshotAsync();
+                foundRef = FindRefByAutomationId(snapshot.Json, automationId);
+                return foundRef is not null;
+            },
+            timeout,
+            failureMessage);
+
+        return foundRef!;
+    }
+
+    private static async Task<bool> IsSampleAppWindowOpenAsync(UiaEngine engine)
+    {
+        var windows = await engine.ListWindowsAsync();
+        return windows.Any(SampleAppTestHelper.IsSampleAppWindow);
     }
 
     private static string? FindRefByAutomationId(string json, string automationId)

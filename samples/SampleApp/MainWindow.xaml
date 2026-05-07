@@ -15,6 +15,10 @@
             <MenuItem Header="File" AutomationProperties.AutomationId="MainWindow_MenuItem_File">
                 <MenuItem Header="Open" AutomationProperties.AutomationId="MainWindow_MenuItem_File_Open" />
                 <MenuItem Header="Save" AutomationProperties.AutomationId="MainWindow_MenuItem_File_Save" />
+                <MenuItem x:Name="BlockCloseMenuItem"
+                          Header="Block Close"
+                          IsCheckable="True"
+                          AutomationProperties.AutomationId="MainWindow_MenuItem_File_BlockClose" />
                 <Separator />
                 <MenuItem Header="Exit" AutomationProperties.AutomationId="MainWindow_MenuItem_File_Exit" />
             </MenuItem>
@@ -25,6 +29,16 @@
             </MenuItem>
             <MenuItem Header="View" AutomationProperties.AutomationId="MainWindow_MenuItem_View">
                 <MenuItem Header="Refresh" AutomationProperties.AutomationId="MainWindow_MenuItem_View_Refresh" />
+                <MenuItem Header="Layout" AutomationProperties.AutomationId="MainWindow_MenuItem_View_Layout">
+                    <MenuItem Header="Navigation Pane" AutomationProperties.AutomationId="MainWindow_MenuItem_View_Layout_NavigationPane">
+                        <MenuItem Header="Favorites" AutomationProperties.AutomationId="MainWindow_MenuItem_View_Layout_NavigationPane_Favorites" />
+                        <MenuItem Header="Recent Items" AutomationProperties.AutomationId="MainWindow_MenuItem_View_Layout_NavigationPane_RecentItems" />
+                    </MenuItem>
+                    <MenuItem Header="Details Pane" AutomationProperties.AutomationId="MainWindow_MenuItem_View_Layout_DetailsPane">
+                        <MenuItem Header="Compact" AutomationProperties.AutomationId="MainWindow_MenuItem_View_Layout_DetailsPane_Compact" />
+                        <MenuItem Header="Expanded" AutomationProperties.AutomationId="MainWindow_MenuItem_View_Layout_DetailsPane_Expanded" />
+                    </MenuItem>
+                </MenuItem>
             </MenuItem>
         </Menu>
 
