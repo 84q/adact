@@ -7,27 +7,29 @@ namespace Adact.Mcp.Common;
 
 public sealed partial class WindowsTools
 {
-    /// <summary>アタッチ済みウィンドウのサイズを変更する (UIA TransformPattern.Resize)。</summary>
-    /// <param name="width">新しい幅 (px、>0)。</param>
-    /// <param name="height">新しい高さ (px、>0)。</param>
+    /// <summary>アタッチ済みウィンドウのサイズを変更する (UIA TransformPattern.Resize)。片方のみ指定時はもう片方を現在値で維持。</summary>
+    /// <param name="width">新しい幅 (px、>0)。省略時は現在値を維持。</param>
+    /// <param name="height">新しい高さ (px、>0)。省略時は現在値を維持。</param>
     /// <param name="sessionId">対象 session。省略時はアクティブ session。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>成功時は空 content。Pattern 不在 / 操作失敗は <c>ELEMENT_INTERACTION_FAILED</c>。</returns>
     [McpServerTool(Name = "adact_resize_window")]
-    [Description("Resize the attached window via UIA TransformPattern.Resize. Errors with ELEMENT_INTERACTION_FAILED if the window does not support resize.")]
+    [Description("Resize the attached window via UIA TransformPattern.Resize. Provide at least one of width/height. Omitted dimension keeps its current value.")]
     public async Task<CallToolResult> ResizeAsync(
-        [Description("New window width in pixels (must be > 0).")]
-        int width,
-        [Description("New window height in pixels (must be > 0).")]
-        int height,
+        [Description("New window width in pixels (must be > 0). Omit to keep current width.")]
+        int? width = null,
+        [Description("New window height in pixels (must be > 0). Omit to keep current height.")]
+        int? height = null,
         [Description("Session ID like 's1'. Omit for active session.")]
         string? sessionId = null,
         CancellationToken ct = default)
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
-        if (width <= 0)
+        if (width is null && height is null)
+            return ToolErrors.Error(ToolErrors.InvalidArgument, "At least one of 'width' or 'height' must be specified.");
+        if (width is <= 0)
             return ToolErrors.Error(ToolErrors.InvalidArgument, "width must be > 0.");
-        if (height <= 0)
+        if (height is <= 0)
             return ToolErrors.Error(ToolErrors.InvalidArgument, "height must be > 0.");
 
         if (!TryResolveSessionId(sessionId, out var sid, out var error))

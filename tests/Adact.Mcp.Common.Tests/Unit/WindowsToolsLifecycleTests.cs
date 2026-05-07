@@ -11,7 +11,7 @@ using Xunit;
 namespace Adact.Mcp.Common.Tests.Unit;
 
 /// <summary>
-/// WindowsTools のライフサイクル系メソッド (detach / close / kill / close_all / adact_daemon_stop) を
+/// WindowsTools のライフサイクル系メソッド (detach / close / kill / adact_daemon_stop) を
 /// Engine 操作なしで検証する Unit テスト。成功パス (Engine 操作伴う) は L3 IntegrationUia /
 /// L4 Smoke (#9) で別途検証する。
 /// </summary>
@@ -45,11 +45,11 @@ public class WindowsToolsLifecycleTests
         public Task UncheckAsync(string refId, CancellationToken ct = default) => throw new NotSupportedException();
         public Task SelectAsync(string refId, string? name, int? index, string? itemRef, CancellationToken ct = default) => throw new NotSupportedException();
         public Task FocusAsync(string refId, CancellationToken ct = default) => throw new NotSupportedException();
-        public Task ClearAsync(string refId, CancellationToken ct = default) => throw new NotSupportedException();
         public Task ScrollIntoViewAsync(string refId, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task ScrollAsync(string refId, ScrollMode mode, CancellationToken ct = default) => throw new NotSupportedException();
         public Task<InspectResult> InspectAsync(string refId, CancellationToken ct = default) => throw new NotSupportedException();
         public Task<ScreenshotResult> ScreenshotAsync(string? refId, string? outPath, CancellationToken ct = default) => throw new NotSupportedException();
-        public Task ResizeAsync(int width, int height, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task ResizeAsync(int? width, int? height, CancellationToken ct = default) => throw new NotSupportedException();
         public Task MinimizeAsync(CancellationToken ct = default) => throw new NotSupportedException();
         public Task MaximizeAsync(CancellationToken ct = default) => throw new NotSupportedException();
         public Task RestoreAsync(CancellationToken ct = default) => throw new NotSupportedException();
@@ -178,26 +178,6 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// セッションが 1 つも無い状態で close_all を呼ぶと、エラー無しで空 results が返ることを確認する。
-    /// 「セッション無し」が異常終了ではなく正常応答として扱われる契約の回帰防止。
-    /// </summary>
-    [Fact]
-    public async Task CloseAll_EmptyStore_ReturnsEmptyResults()
-    {
-        var (tools, store, _, _) = CreateTools();
-        try
-        {
-            var result = await tools.CloseAllAsync();
-            Assert.True(result.IsError != true);
-            Assert.NotNull(result.StructuredContent);
-            var arr = result.StructuredContent.Value.GetProperty("results");
-            Assert.Equal(JsonValueKind.Array, arr.ValueKind);
-            Assert.Equal(0, arr.GetArrayLength());
-        }
-        finally { store.Dispose(); }
-    }
-
     [Fact]
     public async Task Detach_RemovesAssociatedWindowRefEntry()
     {
@@ -213,81 +193,6 @@ public class WindowsToolsLifecycleTests
 
             Assert.False(result.IsError ?? false);
             Assert.False(refStore.TryFindByKey(new WindowKey(0x1000, 100, DateTime.MinValue), out _));
-        }
-        finally { store.Dispose(); }
-    }
-
-    /// <summary>
-    /// close_all は CloseFailedException を個別結果へ変換しつつ残り session を継続し、hasFailures=true を返す。
-    /// </summary>
-    [Fact]
-    public async Task CloseAll_CloseFailedException_ContinuesAndReturnsFailureEntry()
-    {
-        var (tools, store, _, _) = CreateTools();
-        try
-        {
-            store.Register(new FakeWindowSession { SessionId = 1, OnCloseAsync = _ => Task.CompletedTask });
-            store.Register(new FakeWindowSession { SessionId = 2, OnCloseAsync = _ => Task.FromException(new CloseFailedException("close failed")) });
-
-            var result = await tools.CloseAllAsync();
-
-            Assert.True(result.IsError != true);
-            var payload = result.StructuredContent!.Value;
-            Assert.True(payload.GetProperty("hasFailures").GetBoolean());
-            var entries = payload.GetProperty("results").EnumerateArray().ToArray();
-            Assert.Contains(entries, e => e.GetProperty("sessionId").GetString() == "s1" && e.GetProperty("result").GetString() == "ok");
-            Assert.Contains(entries, e => e.GetProperty("sessionId").GetString() == "s2"
-                && e.GetProperty("result").GetString() == "fail"
-                && e.GetProperty("error").GetString() == ToolErrors.CloseFailed);
-            Assert.False(store.TryGet("s1", out _));
-            Assert.True(store.TryGet("s2", out _));
-        }
-        finally { store.Dispose(); }
-    }
-
-    /// <summary>
-    /// close_all は想定外例外も INTERNAL_ERROR として session 単位で結果化し、残り session の close を継続する。
-    /// </summary>
-    [Fact]
-    public async Task CloseAll_UnexpectedException_ContinuesAndReturnsInternalErrorEntry()
-    {
-        var (tools, store, _, _) = CreateTools();
-        try
-        {
-            store.Register(new FakeWindowSession { SessionId = 1, OnCloseAsync = _ => Task.FromException(new InvalidOperationException("boom")) });
-            store.Register(new FakeWindowSession { SessionId = 2, OnCloseAsync = _ => Task.CompletedTask });
-
-            var result = await tools.CloseAllAsync();
-
-            Assert.True(result.IsError != true);
-            var payload = result.StructuredContent!.Value;
-            Assert.True(payload.GetProperty("hasFailures").GetBoolean());
-            var entries = payload.GetProperty("results").EnumerateArray().ToArray();
-            Assert.Contains(entries, e => e.GetProperty("sessionId").GetString() == "s1"
-                && e.GetProperty("result").GetString() == "fail"
-                && e.GetProperty("error").GetString() == ToolErrors.InternalError
-                && e.GetProperty("message").GetString() == "boom");
-            Assert.Contains(entries, e => e.GetProperty("sessionId").GetString() == "s2" && e.GetProperty("result").GetString() == "ok");
-            Assert.True(store.TryGet("s1", out _));
-            Assert.False(store.TryGet("s2", out _));
-        }
-        finally { store.Dispose(); }
-    }
-
-    /// <summary>
-    /// close_all 中のキャンセルは握りつぶさず伝播する。
-    /// </summary>
-    [Fact]
-    public async Task CloseAll_Cancellation_Propagates()
-    {
-        var (tools, store, _, _) = CreateTools();
-        try
-        {
-            store.Register(new FakeWindowSession { SessionId = 1, OnCloseAsync = ct => Task.FromCanceled(ct) });
-
-            using var cts = new CancellationTokenSource();
-            cts.Cancel();
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => tools.CloseAllAsync(cts.Token));
         }
         finally { store.Dispose(); }
     }

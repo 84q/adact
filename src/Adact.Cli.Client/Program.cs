@@ -30,8 +30,8 @@ internal static class Program
         root.Subcommands.Add(UncheckCommand.Build());
         root.Subcommands.Add(SelectCommand.Build());
         root.Subcommands.Add(FocusCommand.Build());
-        root.Subcommands.Add(ClearCommand.Build());
         root.Subcommands.Add(ScrollIntoViewCommand.Build());
+        root.Subcommands.Add(ScrollCommand.Build());
         root.Subcommands.Add(ResizeWindowCommand.Build());
         root.Subcommands.Add(MinimizeWindowCommand.Build());
         root.Subcommands.Add(MaximizeWindowCommand.Build());
@@ -43,7 +43,6 @@ internal static class Program
         root.Subcommands.Add(DetachCommand.Build());
         root.Subcommands.Add(CloseWindowCommand.Build());
         root.Subcommands.Add(KillCommand.Build());
-        root.Subcommands.Add(CloseAllCommand.Build());
         root.Subcommands.Add(LaunchCommand.Build());
         root.Subcommands.Add(InstallCommand.Build());
         return await root.Parse(args).InvokeAsync();

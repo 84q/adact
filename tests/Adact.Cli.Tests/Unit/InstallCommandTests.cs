@@ -20,12 +20,12 @@ public class InstallCommandTests
     "list-windows", "attach", "snapshot", "click", "fill",
     "doubleclick", "hover", "mousemove", "mousedown", "mouseup", "mousewheel",
     "keypress", "keydown", "keyup", "type",
-    "check", "uncheck", "select", "focus", "clear", "scroll",
+    "check", "uncheck", "select", "focus", "scroll-into-view", "scroll",
     "resize-window", "minimize-window", "maximize-window", "restore-window",
     "inspect", "screenshot",
     "launch",
     "wait-for-element", "wait-for-window",
-    "detach", "close-window", "kill", "close-all",
+    "detach", "close-window", "kill",
       };
 
     private static readonly IReadOnlySet<string> ExpectedReferenceFiles =

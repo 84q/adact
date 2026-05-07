@@ -29,7 +29,6 @@ public class AutoSnapshotPolicyTests
     [InlineData("check")]
     [InlineData("uncheck")]
     [InlineData("select")]
-    [InlineData("clear")]
     [InlineData("resize-window")]
     [InlineData("minimize-window")]
     [InlineData("maximize-window")]
@@ -48,6 +47,7 @@ public class AutoSnapshotPolicyTests
     /// <param name="commandName">CLI サブコマンド名。</param>
     [Theory]
     [InlineData("focus")]
+    [InlineData("scroll-into-view")]
     [InlineData("scroll")]
     [InlineData("mousemove")]
     [InlineData("mousedown")]
@@ -76,7 +76,6 @@ public class AutoSnapshotPolicyTests
         "check" => CheckCommand.Build(),
         "uncheck" => UncheckCommand.Build(),
         "select" => SelectCommand.Build(),
-        "clear" => ClearCommand.Build(),
         "keypress" => KeypressCommand.Build(),
         "mousewheel" => MousewheelCommand.Build(),
         "resize-window" => ResizeWindowCommand.Build(),
@@ -84,7 +83,8 @@ public class AutoSnapshotPolicyTests
         "maximize-window" => MaximizeWindowCommand.Build(),
         "restore-window" => RestoreWindowCommand.Build(),
         "focus" => FocusCommand.Build(),
-        "scroll" => ScrollIntoViewCommand.Build(),
+        "scroll-into-view" => ScrollIntoViewCommand.Build(),
+        "scroll" => ScrollCommand.Build(),
         "mousemove" => MousemoveCommand.Build(),
         "mousedown" => MousedownCommand.Build(),
         "mouseup" => MouseupCommand.Build(),

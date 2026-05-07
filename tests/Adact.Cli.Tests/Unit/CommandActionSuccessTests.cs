@@ -418,14 +418,13 @@ public class CommandActionSuccessTests
     {
         yield return [CheckCommand.Build(), "adact_check"];
         yield return [UncheckCommand.Build(), "adact_uncheck"];
-        yield return [ClearCommand.Build(), "adact_clear"];
     }
 
     /// <summary>Provides low-level ref-only command builders and expected MCP tool names.</summary>
     public static IEnumerable<object[]> RefOnlyLowLevelCommands()
     {
         yield return [FocusCommand.Build(), "adact_focus"];
-        yield return [ScrollIntoViewCommand.Build(), "adact_scroll"];
+        yield return [ScrollIntoViewCommand.Build(), "adact_scroll_into_view"];
     }
 
     /// <summary>Provides low-level mouse command builders, CLI args, and expected MCP tool names.</summary>

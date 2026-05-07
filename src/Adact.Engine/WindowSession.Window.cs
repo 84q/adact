@@ -9,18 +9,22 @@ public sealed partial class WindowSession
     /// <summary>
     /// アタッチ済みウィンドウのサイズを変更する。UIA <c>TransformPattern.Resize</c> を使う。
     /// Pattern 不在 / <c>CanResize</c> が false の場合は <see cref="ElementInteractionException"/>。
+    /// width / height のどちらか片方のみ指定時、もう片方は現在のウィンドウサイズを維持する。
     /// </summary>
-    /// <param name="width">新しい幅 (px)。0 より大きい値。</param>
-    /// <param name="height">新しい高さ (px)。0 より大きい値。</param>
+    /// <param name="width">新しい幅 (px、>0)。null 時は現在値を維持。</param>
+    /// <param name="height">新しい高さ (px、>0)。null 時は現在値を維持。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
+    /// <exception cref="ArgumentException">width と height が両方 null の場合。</exception>
     /// <exception cref="ArgumentOutOfRangeException">width / height が 0 以下。</exception>
     /// <exception cref="ElementInteractionException">TransformPattern 不在 / 操作失敗の場合。</exception>
-    public Task ResizeAsync(int width, int height, CancellationToken ct = default)
+    public Task ResizeAsync(int? width, int? height, CancellationToken ct = default)
     {
         ThrowIfDisposed();
-        if (width <= 0) throw new ArgumentOutOfRangeException(nameof(width), "width must be > 0.");
-        if (height <= 0) throw new ArgumentOutOfRangeException(nameof(height), "height must be > 0.");
+        if (width is null && height is null)
+            throw new ArgumentException("At least one of width or height must be specified.");
+        if (width is <= 0) throw new ArgumentOutOfRangeException(nameof(width), "width must be > 0.");
+        if (height is <= 0) throw new ArgumentOutOfRangeException(nameof(height), "height must be > 0.");
         ct.ThrowIfCancellationRequested();
         return RunSerializedAsync(async c =>
         {
@@ -33,7 +37,10 @@ public sealed partial class WindowSession
                     throw new ElementInteractionException(string.Empty, "resize",
                         "Window does not support resize (TransformPattern unavailable or CanResize = false).");
                 }
-                transform.Resize(width, height);
+                var rect = _window.Properties.BoundingRectangle.ValueOrDefault;
+                var w = width ?? (int)rect.Width;
+                var h = height ?? (int)rect.Height;
+                transform.Resize(w, h);
             }
             catch (AdactException) { throw; }
             catch (Exception ex)

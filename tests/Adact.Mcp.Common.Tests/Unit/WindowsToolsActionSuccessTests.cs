@@ -134,15 +134,15 @@ public class WindowsToolsActionSuccessTests
             return Task.CompletedTask;
         }
 
-        public Task ClearAsync(string refId, CancellationToken ct = default)
-        {
-            Calls.Add($"clear:{refId}");
-            return Task.CompletedTask;
-        }
-
         public Task ScrollIntoViewAsync(string refId, CancellationToken ct = default)
         {
             Calls.Add($"scroll:{refId}");
+            return Task.CompletedTask;
+        }
+
+        public Task ScrollAsync(string refId, ScrollMode mode, CancellationToken ct = default)
+        {
+            Calls.Add($"scrollPattern:{refId}:{mode}");
             return Task.CompletedTask;
         }
 
@@ -152,7 +152,7 @@ public class WindowsToolsActionSuccessTests
         public Task<ScreenshotResult> ScreenshotAsync(string? refId, string? outPath, CancellationToken ct = default)
             => throw new NotSupportedException();
 
-        public Task ResizeAsync(int width, int height, CancellationToken ct = default)
+        public Task ResizeAsync(int? width, int? height, CancellationToken ct = default)
         {
             Calls.Add($"resize:{width}:{height}");
             return Task.CompletedTask;
@@ -348,14 +348,12 @@ public class WindowsToolsActionSuccessTests
             Assert.True((await tools.UncheckAsync("s1e2")).IsError != true);
             Assert.True((await tools.SelectAsync("s1e2", name: "Item")).IsError != true);
             Assert.True((await tools.FocusAsync("s1e2")).IsError != true);
-            Assert.True((await tools.ClearAsync("s1e2")).IsError != true);
             Assert.True((await tools.ScrollIntoViewAsync("s1e2")).IsError != true);
 
             Assert.Contains("check:s1e2", session.Calls);
             Assert.Contains("uncheck:s1e2", session.Calls);
             Assert.Contains("select:s1e2:Item::", session.Calls);
             Assert.Contains("focus:s1e2", session.Calls);
-            Assert.Contains("clear:s1e2", session.Calls);
             Assert.Contains("scroll:s1e2", session.Calls);
         }
         finally { store.Dispose(); }
