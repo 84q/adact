@@ -90,6 +90,11 @@ public sealed partial class WindowsTools
             ["isKeyboardFocusable"] = r.IsKeyboardFocusable,
             ["hasKeyboardFocus"] = r.HasKeyboardFocus,
             ["patterns"] = patterns,
+            ["selector"] = r.Selector is { } sel ? new JsonObject
+            {
+                ["stability"] = sel.Stability,
+                ["code"] = sel.Code,
+            } : null,
         };
     }
 }

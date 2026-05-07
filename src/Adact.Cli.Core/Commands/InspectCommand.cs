@@ -59,16 +59,68 @@ internal static class InspectCommand
         if (errorExit is { } code) return code;
 
         var json = McpResponse.GetJson(result);
-        CliOutput.WriteYamlSuccess(
-            metaFields: null,
-            CliOutput.JsonObjectToFields(json, "ref", "name", "controlType", "automationId", "className", "helpText", "value", "boundingRect", "isEnabled", "isOffscreen", "isKeyboardFocusable", "hasKeyboardFocus"));
+        var excludeIfEmpty = new HashSet<string> { "name", "automationId", "className", "helpText", "value" };
+        var fields = CliOutput.JsonObjectToFields(json, "ref", "name", "controlType", "automationId", "className", "helpText", "value", "boundingRect", "isEnabled", "isOffscreen", "isKeyboardFocusable", "hasKeyboardFocus")
+            .Where(kv => kv.Key != "patterns" && kv.Key != "selector" && kv.Key != "boundingRect"
+                && kv.Key != "isEnabled" && kv.Key != "isOffscreen" && kv.Key != "isKeyboardFocusable" && kv.Key != "hasKeyboardFocus"
+                && !(excludeIfEmpty.Contains(kv.Key) && string.IsNullOrEmpty(kv.Value)))
+            .ToList();
+        CliOutput.WriteYamlSuccess(metaFields: null, fields);
+
+        if (json.TryGetProperty("boundingRect", out var boundingRect) && boundingRect.ValueKind == JsonValueKind.Object)
+        {
+            FormatBoundingRect(boundingRect);
+        }
+
+        FormatState(json);
 
         if (json.TryGetProperty("patterns", out var patterns) && patterns.ValueKind == JsonValueKind.Object)
         {
             FormatPatterns(patterns);
         }
 
+        if (json.TryGetProperty("selector", out var selector) && selector.ValueKind == JsonValueKind.Object)
+        {
+            FormatSelector(selector);
+        }
+
         return ExitCodes.Success;
+    }
+
+    private static void FormatBoundingRect(JsonElement rect)
+    {
+        var x = rect.TryGetProperty("x", out var xv) ? xv.GetRawText() : "0";
+        var y = rect.TryGetProperty("y", out var yv) ? yv.GetRawText() : "0";
+        var width = rect.TryGetProperty("width", out var wv) ? wv.GetRawText() : "0";
+        var height = rect.TryGetProperty("height", out var hv) ? hv.GetRawText() : "0";
+        Console.Out.WriteLine($"boundingRect: {{x: {x}, y: {y}, width: {width}, height: {height}}}");
+    }
+
+    private static void FormatState(JsonElement json)
+    {
+        var keywords = new List<string>();
+        if (json.TryGetProperty("isEnabled", out var e) && e.ValueKind == JsonValueKind.True)
+            keywords.Add("enabled");
+        if (json.TryGetProperty("isOffscreen", out var o) && o.ValueKind == JsonValueKind.True)
+            keywords.Add("offscreen");
+        if (json.TryGetProperty("isKeyboardFocusable", out var kf) && kf.ValueKind == JsonValueKind.True)
+            keywords.Add("keyboardFocusable");
+        if (json.TryGetProperty("hasKeyboardFocus", out var hf) && hf.ValueKind == JsonValueKind.True)
+            keywords.Add("focused");
+        if (keywords.Count > 0)
+            Console.Out.WriteLine($"state: {string.Join(" ", keywords)}");
+    }
+
+    private static void FormatSelector(JsonElement selector)
+    {
+        var stability = selector.TryGetProperty("stability", out var s) ? s.GetString() : null;
+        var code = selector.TryGetProperty("code", out var c) ? c.GetString() : null;
+        if (stability is null || code is null)
+            return;
+
+        Console.Out.WriteLine("selector:");
+        Console.Out.WriteLine($"  stability: {stability}");
+        Console.Out.WriteLine($"  code: {code}");
     }
 
     private static void FormatPatterns(JsonElement patterns)

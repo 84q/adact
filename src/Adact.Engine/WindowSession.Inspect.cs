@@ -31,6 +31,15 @@ public sealed partial class WindowSession
 
             var patterns = inner is not null ? CollectPatterns(inner) : new Dictionary<string, IReadOnlyDictionary<string, object?>>();
 
+            // 安定セレクタ候補の算出
+            SelectorSuggestion? selector = null;
+            var allElements = _registry.EnumerateCurrent().Select(x => x.Element).ToList();
+            if (allElements.Count > 0)
+            {
+                var ancestors = BuildAncestorChain(inner);
+                selector = SelectorSuggester.Suggest(el, allElements, ancestors);
+            }
+
             var result = new InspectResult(
                 Ref: refId,
                 Name: el.Name,
@@ -44,10 +53,49 @@ public sealed partial class WindowSession
                 IsOffscreen: el.IsOffscreen,
                 IsKeyboardFocusable: el.IsKeyboardFocusable,
                 HasKeyboardFocus: el.HasKeyboardFocus,
-                Patterns: patterns);
+                Patterns: patterns,
+                Selector: selector);
             return Task.FromResult(result);
         }, ct);
     }
+
+    /// <summary>
+    /// FlaUI の Parent を辿り、対象ウィンドウルートまでの祖先チェーンを構築する。
+    /// </summary>
+    private IReadOnlyList<AncestorInfo> BuildAncestorChain(AutomationElement? inner)
+    {
+        if (inner is null)
+            return [];
+
+        var ancestors = new List<AncestorInfo>();
+        var windowHandle = _window.Properties.NativeWindowHandle.ValueOrDefault;
+
+        try
+        {
+            var current = inner.Parent;
+            while (current is not null)
+            {
+                // ウィンドウルートに到達したら停止
+                if (current.Properties.NativeWindowHandle.ValueOrDefault == windowHandle)
+                    break;
+
+                var automationId = NullIfEmpty(current.Properties.AutomationId.ValueOrDefault);
+                var name = NullIfEmpty(current.Properties.Name.ValueOrDefault);
+                var controlType = current.Properties.ControlType.ValueOrDefault.ToString();
+                ancestors.Add(new AncestorInfo(automationId, name, controlType));
+
+                current = current.Parent;
+            }
+        }
+        catch
+        {
+            // best effort: UIA Parent 呼び出し失敗時は途中までの祖先を返す
+        }
+
+        return ancestors;
+    }
+
+    private static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
 
     /// <summary>
     /// 対応する UIA Pattern を判定し、各 Pattern の状態を辞書で返す。
