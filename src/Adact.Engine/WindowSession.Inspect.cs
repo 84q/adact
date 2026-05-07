@@ -62,7 +62,7 @@ public sealed partial class WindowSession
     /// <summary>
     /// FlaUI の Parent を辿り、対象ウィンドウルートまでの祖先チェーンを構築する。
     /// </summary>
-    private IReadOnlyList<AncestorInfo> BuildAncestorChain(AutomationElement? inner)
+    private List<AncestorInfo> BuildAncestorChain(AutomationElement? inner)
     {
         if (inner is null)
             return [];

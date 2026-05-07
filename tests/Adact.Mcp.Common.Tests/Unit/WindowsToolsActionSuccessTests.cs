@@ -188,10 +188,10 @@ public class WindowsToolsActionSuccessTests
             return Task.CompletedTask;
         }
 
-        public Task KillAsync(CancellationToken ct = default)
+        public Task<KillMethod> KillAsync(bool force = false, int timeoutMs = 5000, CancellationToken ct = default)
         {
             Calls.Add("kill");
-            return Task.CompletedTask;
+            return Task.FromResult(force ? KillMethod.Forced : KillMethod.Graceful);
         }
 
         public void Dispose() => Disposed = true;

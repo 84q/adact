@@ -56,7 +56,7 @@ public class WindowsToolsLifecycleTests
         public Task<WaitForResult> WaitForRefAsync(string refId, WaitForState state, TimeSpan timeout, CancellationToken ct = default) => throw new NotSupportedException();
         public Task<WaitForResult> WaitForQueryAsync(WaitForElementQuery query, WaitForState state, TimeSpan timeout, CancellationToken ct = default) => throw new NotSupportedException();
         public Task CloseAsync(CancellationToken ct = default) => OnCloseAsync?.Invoke(ct) ?? Task.CompletedTask;
-        public Task KillAsync(CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<KillMethod> KillAsync(bool force = false, int timeoutMs = 5000, CancellationToken ct = default) => throw new NotSupportedException();
         public void Dispose() { }
     }
 

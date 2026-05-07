@@ -86,7 +86,7 @@ public class WindowSessionWindowTests
             NativeWindowHandle: 0,
             ProcessStartTimeUtc: null));
 
-        var ex = await Assert.ThrowsAsync<KillFailedException>(() => session.KillAsync());
+        var ex = await Assert.ThrowsAsync<KillFailedException>(() => session.KillAsync(force: true));
 
         Assert.Contains("start time is unknown", ex.Message, StringComparison.OrdinalIgnoreCase);
         Assert.False(process.HasExited);
@@ -109,7 +109,7 @@ public class WindowSessionWindowTests
             NativeWindowHandle: 0,
             ProcessStartTimeUtc: process.StartTime.ToUniversalTime().AddSeconds(-1)));
 
-        var ex = await Assert.ThrowsAsync<KillFailedException>(() => session.KillAsync());
+        var ex = await Assert.ThrowsAsync<KillFailedException>(() => session.KillAsync(force: true));
 
         Assert.Contains("different process", ex.Message, StringComparison.OrdinalIgnoreCase);
         Assert.False(process.HasExited);
@@ -132,10 +132,11 @@ public class WindowSessionWindowTests
             NativeWindowHandle: 0,
             ProcessStartTimeUtc: process.StartTime.ToUniversalTime()));
 
-        await session.KillAsync();
+        var result = await session.KillAsync(force: true);
         process.WaitForExit(5000);
 
         Assert.True(process.HasExited);
+        Assert.Equal(KillMethod.Forced, result);
     }
 
     private static Process StartSleeperProcess()

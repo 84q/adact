@@ -111,5 +111,5 @@ public interface IWindowSession : IDisposable
     Task CloseAsync(CancellationToken ct = default);
 
     /// <summary>window の backing process を kill する。</summary>
-    Task KillAsync(CancellationToken ct = default);
+    Task<KillMethod> KillAsync(bool force = false, int timeoutMs = 5000, CancellationToken ct = default);
 }

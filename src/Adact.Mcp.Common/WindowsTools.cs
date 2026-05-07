@@ -488,19 +488,26 @@ public sealed partial class WindowsTools
     }
 
     /// <summary>
-    /// <c>Process.Kill</c> によって window の背後にあるプロセスを強制終了する。成功時は session を自動的に detach する。
+    /// 対象プロセスを終了する。デフォルトは WM_CLOSE 送信後に graceful 待機し、タイムアウト時に強制終了する。
+    /// 成功時は session を自動的に detach する。
     /// </summary>
     /// <param name="sessionId">対象 session。省略するとアクティブ session を使う。</param>
-    /// <param name="ct">キャンセル トークン。</param>
+    /// <param name="force">true の場合は WM_CLOSE をスキップし即座に強制終了する。</param>
+    /// <param name="timeoutMs">graceful shutdown 待機時間（ミリ秒）。null 時はデフォルト 5000。</param>
+    /// <param name="ct">キャンセルトークン。</param>
     /// <returns>
-    /// <c>{ sessionId, killed: true, detached: true }</c> を含む <see cref="CallToolResult"/>。
+    /// <c>{ sessionId, killed: true, detached: true, method: "graceful"|"forced"|"forced_after_timeout" }</c> を含む <see cref="CallToolResult"/>。
     /// アクティブが無い場合は <c>NO_ACTIVE_SESSION</c>、session 不明は <c>NOT_FOUND</c>、kill 失敗は <c>KILL_FAILED</c>。
     /// </returns>
     [McpServerTool(Name = "adact_kill")]
-    [Description("Forcefully terminate the process backing the attached window via Process.Kill. On success, the session is automatically detached.")]
+    [Description("Terminate the process backing the attached window. By default sends WM_CLOSE and waits for graceful exit; falls back to Process.Kill on timeout. Use force=true to skip WM_CLOSE and kill immediately.")]
     public async Task<CallToolResult> KillAsync(
         [Description("Session ID like 's1'. Omit for active session.")]
         string? sessionId = null,
+        [Description("Skip WM_CLOSE and immediately kill the process (like the old behavior).")]
+        bool force = false,
+        [Description("Graceful shutdown timeout in milliseconds. Defaults to 5000.")]
+        int? timeoutMs = null,
         CancellationToken ct = default)
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
@@ -510,9 +517,10 @@ public sealed partial class WindowsTools
         if (!_store.TryGet(sid, out var session))
             return ToolErrors.Error(ToolErrors.NotFound, $"Session '{sid}' not found.");
 
+        KillMethod method;
         try
         {
-            await session.KillAsync(ct).ConfigureAwait(false);
+            method = await session.KillAsync(force, timeoutMs ?? 5000, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -526,11 +534,20 @@ public sealed partial class WindowsTools
         {
             DetachSession(sid, removed);
         }
+
+        var methodStr = method switch
+        {
+            KillMethod.Graceful => "graceful",
+            KillMethod.ForcedAfterTimeout => "forced_after_timeout",
+            _ => "forced",
+        };
+
         return SuccessJson(new JsonObject
         {
             ["sessionId"] = sid,
             ["killed"] = true,
             ["detached"] = true,
+            ["method"] = methodStr,
         });
     }
 

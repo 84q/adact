@@ -385,14 +385,16 @@ public sealed partial class WindowSession : IWindowSession
     /// 対応プロセスを <see cref="Process.Kill(bool)"/> (entireProcessTree:true) で強制終了する。
     /// 失敗時は <see cref="KillFailedException"/>。本メソッドはセッションの Dispose は行わない。
     /// </summary>
+    /// <param name="force">true の場合は WM_CLOSE をスキップし即座に Process.Kill を実行する。</param>
+    /// <param name="timeoutMs">graceful shutdown の待機時間（ミリ秒）。<paramref name="force"/> が true の場合は無視される。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
     /// <exception cref="KillFailedException">既にプロセスが終了している、PID 同一性検証に失敗した、または Kill が失敗した場合。</exception>
-    public Task KillAsync(CancellationToken ct = default)
+    public Task<KillMethod> KillAsync(bool force = false, int timeoutMs = 5000, CancellationToken ct = default)
     {
         ThrowIfDisposed();
         ct.ThrowIfCancellationRequested();
-        return RunSerializedAsync(c =>
+        return RunSerializedAsync(async c =>
         {
             c.ThrowIfCancellationRequested();
             try
@@ -421,7 +423,44 @@ public sealed partial class WindowSession : IWindowSession
                         $"Refusing to kill process {_processId} because the PID now belongs to a different process.");
                 }
 
-                p.Kill(entireProcessTree: true);
+                if (force)
+                {
+                    p.Kill(entireProcessTree: true);
+                    return KillMethod.Forced;
+                }
+
+                // Graceful: WM_CLOSE を全トップレベルウィンドウに送信
+                var pid = (uint)_processId;
+                var hwnds = new List<IntPtr>();
+                NativeMethods.EnumWindows((hwnd, lParam) =>
+                {
+#pragma warning disable CA1806 // GetWindowThreadProcessId: we only need the out param (processId)
+                    NativeMethods.GetWindowThreadProcessId(hwnd, out var windowPid);
+#pragma warning restore CA1806
+                    if (windowPid == pid)
+                        hwnds.Add(hwnd);
+                    return true;
+                }, IntPtr.Zero);
+
+                foreach (var hwnd in hwnds)
+                {
+                    NativeMethods.PostMessage(hwnd, NativeMethods.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+                }
+
+                // タイムアウト付きで終了を待機
+                using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(c);
+                timeoutCts.CancelAfter(timeoutMs);
+                try
+                {
+                    await p.WaitForExitAsync(timeoutCts.Token).ConfigureAwait(false);
+                    return KillMethod.Graceful;
+                }
+                catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !c.IsCancellationRequested)
+                {
+                    // タイムアウト → 強制終了フォールバック
+                    p.Kill(entireProcessTree: true);
+                    return KillMethod.ForcedAfterTimeout;
+                }
             }
             // プロセスが既に終了している場合も KILL_FAILED として返す (auto-detach はしない)。
             // 判断は設計 §4.5 を参照。
@@ -445,7 +484,6 @@ public sealed partial class WindowSession : IWindowSession
             {
                 throw new KillFailedException("Process kill failed.", ex);
             }
-            return Task.CompletedTask;
         }, ct);
     }
 
