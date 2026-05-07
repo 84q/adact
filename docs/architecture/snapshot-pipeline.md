@@ -5,7 +5,7 @@
 ```mermaid
 flowchart LR
 	engine[Engine raw JSON]
-	mcp[MCP windows_snapshot]
+	mcp[MCP adact_snapshot]
 	parser[CLI SnapshotJsonParser]
 	filter[SnapshotTreeFilter]
 	formatter[SnapshotTextFormatter]
@@ -22,7 +22,7 @@ flowchart LR
 
 | 境界 | 生成物 | 所有者 | 目的 |
 | --- | --- | --- | --- |
-| Engine / MCP | raw snapshot JSON | `WindowSession.SnapshotAsync()`、`SnapshotBuilder.Build()`、`windows_snapshot` | UIA から取得できる情報をできるだけ落とさず返す |
+| Engine / MCP | raw snapshot JSON | `WindowSession.SnapshotAsync()`、`SnapshotBuilder.Build()`、`adact_snapshot` | UIA から取得できる情報をできるだけ落とさず返す |
 | CLI | `.txt` snapshot | `CommandHelpers.WriteSnapshotResultAsync()`、`SnapshotJsonParser`、`SnapshotTreeFilter`、`SnapshotTextFormatter`、`SnapshotFileWriter` | AI / 人間が読みやすく、操作に必要な ref を見つけやすい形にする |
 
 Phase 7 以降、Engine は `operable` / `raw` のフィルタ選択を持ちません。Engine と MCP は raw JSON を返し、CLI が filter と field selection を担当します。
@@ -31,10 +31,10 @@ Phase 7 以降、Engine は `operable` / `raw` のフィルタ選択を持ちま
 
 | データ | 発生源 | 経由 | 消費先 |
 | --- | --- | --- | --- |
-| `windowRef` (`w<n>`) | `WindowRefStore.SyncOrAssign()` | `list-windows` stdout、`windows_attach` arguments / response | window への attach と idempotent attach |
+| `windowRef` (`w<n>`) | `WindowRefStore.SyncOrAssign()` | `list-windows` stdout、`adact_attach` arguments / response | window への attach と idempotent attach |
 | `sessionId` (`s<n>`) | `UiaEngine` が `WindowSession` 作成時に採番し、`SessionStore.Register()` が文字列化 | MCP response `_meta.sessionId`、CLI stdout、element ref prefix | snapshot 対象 session、lifecycle、element ref の session 解決 |
 | `elementRef` (`s<sid>e<eid>`) | `RefRegistry.Register()` | raw JSON の各 node `ref`、CLI `.txt` snapshot | `click` / `fill` の対象解決 |
-| raw JSON | `SnapshotBuilder.Build()` | MCP `windows_snapshot` response | CLI parser / filter / formatter |
+| raw JSON | `SnapshotBuilder.Build()` | MCP `adact_snapshot` response | CLI parser / filter / formatter |
 | `.txt` snapshot | `SnapshotTextFormatter` と `SnapshotFileWriter` | `.adact/` または `--snapshot-dir` | AI / 人間が次の操作 ref を読む |
 
 ## Engine 側: `WindowSession.SnapshotAsync`
@@ -112,7 +112,7 @@ flowchart TD
 
 この設計により、RuntimeId が安定している要素は snapshot 後も同じ ref を保ちつつ、操作対象は直近 snapshot に存在する要素に限定されます。
 
-## MCP `windows_snapshot`
+## MCP `adact_snapshot`
 
 1. `WindowsTools.SnapshotAsync()` は `SessionStore.AcquireAsync()` で tool-level lock を取ります。
 2. `sessionId` が省略された場合は `SessionStore.GetActiveOrNull()` を使います。active session がなければ `NO_ACTIVE_SESSION` です。
@@ -120,14 +120,14 @@ flowchart TD
 4. `WindowSession.SnapshotAsync()` の raw JSON を `CallToolResult.Content[0].Text` に入れます。
 5. 同じ raw JSON を deserialize し、`StructuredContent` にも入れます。
 
-MCP tool としての `windows_snapshot` は raw JSON を返すだけです。CLI `.txt` のフィルタ、整形、保存先 path は知りません。
+MCP tool としての `adact_snapshot` は raw JSON を返すだけです。CLI `.txt` のフィルタ、整形、保存先 path は知りません。
 
 ## CLI `WriteSnapshotResultAsync`
 
 `CommandHelpers.WriteSnapshotResultAsync()` は、`snapshot` command、`attach` 成功後の自動 snapshot、および Phase 8 で追加された auto-snapshot 対象コマンド (`click`, `fill`, `doubleclick`, `hover`, `type`, `keypress`, `check`, `uncheck`, `select`, `clear`, `mousewheel`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window`) 成功後の自動 snapshot から共通利用されます。
 
 1. filter 未指定なら `operable` にし、`SnapshotTreeFilter.IsKnownFilter()` で `operable` / `raw` のみ許可します。
-2. `sessionId` があれば MCP `windows_snapshot` の arguments に入れ、なければ arguments なしで active session を使います。
+2. `sessionId` があれば MCP `adact_snapshot` の arguments に入れ、なければ arguments なしで active session を使います。
 3. `McpResponse.TryReportError()` で MCP error を CLI stderr と exit code に変換します。
 4. response JSON の `_meta.sessionId` を優先して resolved sessionId を得ます。ない場合は呼び出し側の `sessionId` を使います。
 5. raw JSON 文字列は `Content[0].Text` を優先し、なければ parsed JSON の raw text を使います。
@@ -146,7 +146,7 @@ MCP tool としての `windows_snapshot` は raw JSON を返すだけです。CL
 | `SnapshotTextFormatter` | metadata、filtered tree、filter 名 | frontmatter 付き `.txt` 文字列 | Playwright 風の読みやすい snapshot にする |
 | `SnapshotFileWriter` | `.txt` 文字列、sid、保存先 | relative snapshot path | CLI 実行ごとの成果物を `.adact/` 等に保存する |
 
-`raw` filter は tree 構造をそのまま残します。ただし `.txt` として出すため、表示フィールドは `SnapshotTextFormatter` が扱う項目に絞られます。完全な raw 情報が必要な場合の canonical source は MCP `windows_snapshot` の raw JSON です。
+`raw` filter は tree 構造をそのまま残します。ただし `.txt` として出すため、表示フィールドは `SnapshotTextFormatter` が扱う項目に絞られます。完全な raw 情報が必要な場合の canonical source は MCP `adact_snapshot` の raw JSON です。
 
 `operable` filter は、button/edit/menu item など操作対象として意味のある ControlType を残し、無名の `Pane` / `Group` / `Custom` などの構造要素は flatten します。`IsOffscreen=true` の要素は子孫ごと除外します。root window は常に保持します。
 
@@ -163,13 +163,13 @@ MCP tool としての `windows_snapshot` は raw JSON を返すだけです。CL
 `click` / `fill` の流れを例にすると次のようになります。
 
 1. CLI は操作前に element ref 形式を検証します。
-2. MCP `windows_click` / `windows_fill` は ref prefix の `s<n>` から session を見つけ、`RefRegistry.Resolve()` で current snapshot の element に解決します。
+2. MCP `adact_click` / `adact_fill` は ref prefix の `s<n>` から session を見つけ、`RefRegistry.Resolve()` で current snapshot の element に解決します。
 3. Engine 操作が成功すると MCP tool は空の success result を返します。
 4. CLI は `RefValidator.ExtractSessionId(elementRef)` で `s<n>` を取り出します。
 5. `--no-snapshot` がなければ、その `sessionId` で `WriteSnapshotResultAsync()` を呼び、操作後の UI tree を保存します。
 6. `--no-snapshot` の場合、CLI は操作対象 session の手掛かりとして `sessionId` のみ stdout に出します。
 
-自動 snapshot は MCP tool の中ではなく CLI 側で行います。そのため MCP client が直接 `windows_click` を呼んだ場合は、必要に応じて client 側で `windows_snapshot` を追加で呼びます。
+自動 snapshot は MCP tool の中ではなく CLI 側で行います。そのため MCP client が直接 `adact_click` を呼んだ場合は、必要に応じて client 側で `adact_snapshot` を追加で呼びます。
 
 ## ref の寿命と失敗点
 
@@ -179,7 +179,7 @@ MCP tool としての `windows_snapshot` は raw JSON を返すだけです。CL
 | `sessionId` | `SessionStore` | attach から detach/close/kill/close-all/daemon-stop まで | unknown `s<n>` は snapshot では `INVALID_ARGUMENT`、lifecycle では `NOT_FOUND` |
 | `elementRef` | `WindowSession.RefRegistry` | session 内。操作解決は current snapshot に存在する eid のみ | malformed / 別 session / current snapshot 不在は `REF_NOT_FOUND` |
 
-`elementRef` は sessionId を含むため、MCP `windows_click` / `windows_fill` は active session に依存しません。一方で `snapshot` と lifecycle は `sessionId` 省略時に active session を使います。
+`elementRef` は sessionId を含むため、MCP `adact_click` / `adact_fill` は active session に依存しません。一方で `snapshot` と lifecycle は `sessionId` 省略時に active session を使います。
 
 ## 関連文書
 

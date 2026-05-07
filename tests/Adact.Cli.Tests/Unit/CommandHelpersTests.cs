@@ -61,7 +61,7 @@ public class CommandHelpersTests
             Assert.Contains("filter: operable", File.ReadAllText(Path.GetFullPath(snapshotPath)));
 
             var call = Assert.Single(client.Calls);
-            Assert.Equal("windows_snapshot", call.Name);
+            Assert.Equal("adact_snapshot", call.Name);
             Assert.Null(call.Arguments);
         }
         finally
@@ -90,7 +90,7 @@ public class CommandHelpersTests
         Assert.Empty(client.Calls);
     }
 
-    /// <summary>Verifies that a windows_snapshot MCP error is reported as a CLI error.</summary>
+    /// <summary>Verifies that a adact_snapshot MCP error is reported as a CLI error.</summary>
     [Fact]
     public async Task WriteSnapshotResultAsync_SnapshotError_PropagatesMcpError()
     {
@@ -104,7 +104,7 @@ public class CommandHelpersTests
         Assert.Equal(string.Empty, stderr);
         Assert.Contains("error: SNAPSHOT_FAILED", stdout);
         Assert.Contains("message: snapshot failed", stdout);
-        Assert.Equal("windows_snapshot", Assert.Single(client.Calls).Name);
+        Assert.Equal("adact_snapshot", Assert.Single(client.Calls).Name);
     }
 
     /// <summary>Verifies that a snapshot response without a session id returns an internal error.</summary>
@@ -120,7 +120,7 @@ public class CommandHelpersTests
         Assert.Equal(ExitCodes.CommandFailed, exit);
         Assert.Equal(string.Empty, stderr);
         Assert.Contains("error: INTERNAL_ERROR", stdout);
-        Assert.Contains("windows_snapshot response missing sessionId", stdout);
+        Assert.Contains("adact_snapshot response missing sessionId", stdout);
     }
 
     /// <summary>Verifies that invalid snapshot JSON text returns an internal parse error.</summary>
@@ -190,7 +190,7 @@ public class CommandHelpersTests
                 CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
                     client,
                     "click",
-                    "windows_click",
+                    "adact_click",
                     new Dictionary<string, object?> { ["ref"] = "s7e9" },
                     "s7e9",
                     true,
@@ -204,7 +204,7 @@ public class CommandHelpersTests
         Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = Assert.Single(client.Calls);
-        Assert.Equal("windows_click", call.Name);
+        Assert.Equal("adact_click", call.Name);
         Assert.Equal("s7e9", call.Arguments!["ref"]);
     }
 
@@ -219,7 +219,7 @@ public class CommandHelpersTests
                 CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
                     client,
                     "click",
-                    "windows_click",
+                    "adact_click",
                     new Dictionary<string, object?> { ["ref"] = "s1e2" },
                     "s1e2",
                     false,
@@ -229,7 +229,7 @@ public class CommandHelpersTests
         Assert.Equal(ExitCodes.CommandFailed, exit);
         Assert.Equal(string.Empty, stderr);
         Assert.Contains("error: ELEMENT_INTERACTION_FAILED", stdout);
-        Assert.Equal("windows_click", Assert.Single(client.Calls).Name);
+        Assert.Equal("adact_click", Assert.Single(client.Calls).Name);
     }
 
     /// <summary>Verifies that a successful session operation snapshots the same session.</summary>
@@ -247,7 +247,7 @@ public class CommandHelpersTests
                 CommandHelpers.RunSessionOperationAndAutoSnapshotAsync(
                     client,
                     "resize-window",
-                    "windows_resize",
+                    "adact_resize_window",
                     new Dictionary<string, object?> { ["sessionId"] = "s4", ["width"] = 800, ["height"] = 600 },
                     "s4",
                     false,
@@ -259,7 +259,7 @@ public class CommandHelpersTests
             Assert.Contains("snapshotPath:", stdout);
             Assert.DoesNotContain("sessionId:", stdout);
             Assert.DoesNotContain("action:", stdout);
-            Assert.Equal(["windows_resize", "windows_snapshot"], client.Calls.Select(c => c.Name));
+            Assert.Equal(["adact_resize_window", "adact_snapshot"], client.Calls.Select(c => c.Name));
             Assert.Equal("s4", client.Calls[1].Arguments!["sessionId"]);
         }
         finally
@@ -279,7 +279,7 @@ public class CommandHelpersTests
                 CommandHelpers.RunSessionOperationAndAutoSnapshotAsync(
                     client,
                     "resize-window",
-                    "windows_resize",
+                    "adact_resize_window",
                     new Dictionary<string, object?> { ["sessionId"] = "s2" },
                     "s2",
                     false,
@@ -289,7 +289,7 @@ public class CommandHelpersTests
         Assert.Equal(ExitCodes.CommandFailed, exit);
         Assert.Equal(string.Empty, stderr);
         Assert.Contains("error: WINDOW_NOT_FOUND", stdout);
-        Assert.Equal("windows_resize", Assert.Single(client.Calls).Name);
+        Assert.Equal("adact_resize_window", Assert.Single(client.Calls).Name);
     }
 
     /// <summary>Verifies that no-snapshot session operations write minimal yaml output.</summary>
@@ -303,7 +303,7 @@ public class CommandHelpersTests
                 CommandHelpers.RunSessionOperationAndAutoSnapshotAsync(
                     client,
                     "maximize",
-                    "windows_maximize",
+                    "adact_maximize_window",
                     new Dictionary<string, object?> { ["sessionId"] = "s5" },
                     "s5",
                     true,
@@ -316,7 +316,7 @@ public class CommandHelpersTests
         Assert.DoesNotContain("action:", stdout);
         Assert.DoesNotContain("sessionId:", stdout);
         Assert.Equal(string.Empty, stderr);
-        Assert.Equal("windows_maximize", Assert.Single(client.Calls).Name);
+        Assert.Equal("adact_maximize_window", Assert.Single(client.Calls).Name);
     }
 
     /// <summary>Verifies that ServerOption has the expected name, description, and Recursive flag.</summary>

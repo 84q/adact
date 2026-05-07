@@ -37,7 +37,7 @@ internal sealed class NamedPipeConnection : IAsyncDisposable
     /// </summary>
     /// <param name="pipeStream">Named Pipe サーバーストリーム。</param>
     /// <param name="logger">ロガー。</param>
-    /// <param name="serverCts">サーバー停止用の CancellationTokenSource（daemon_stop で使用）。</param>
+    /// <param name="serverCts">サーバー停止用の CancellationTokenSource（adact_daemon_stop で使用）。</param>
     public NamedPipeConnection(NamedPipeServerStream pipeStream, ILogger<NamedPipeConnection> logger, CancellationTokenSource serverCts)
     {
         _pipeStream = pipeStream ?? throw new ArgumentNullException(nameof(pipeStream));

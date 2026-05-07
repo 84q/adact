@@ -11,7 +11,7 @@ using Xunit;
 namespace Adact.Mcp.Common.Tests.Unit;
 
 /// <summary>
-/// WindowsTools のライフサイクル系メソッド (detach / close / kill / close_all / daemon_stop) を
+/// WindowsTools のライフサイクル系メソッド (detach / close / kill / close_all / adact_daemon_stop) を
 /// Engine 操作なしで検証する Unit テスト。成功パス (Engine 操作伴う) は L3 IntegrationUia /
 /// L4 Smoke (#9) で別途検証する。
 /// </summary>
@@ -293,7 +293,7 @@ public class WindowsToolsLifecycleTests
     }
 
     /// <summary>
-    /// IDaemonControl が未対応 (stdio モード相当) の場合、daemon_stop が LocalOnly エラーを返し StopAsync を呼ばないことを確認する。
+    /// IDaemonControl が未対応 (stdio モード相当) の場合、adact_daemon_stop が LocalOnly エラーを返し StopAsync を呼ばないことを確認する。
     /// stdio 経由では HTTP daemon を停止できない仕様の回帰防止。
     /// </summary>
     [Fact]
@@ -311,7 +311,7 @@ public class WindowsToolsLifecycleTests
     }
 
     /// <summary>
-    /// HTTP モードで daemon_stop を呼ぶと IDaemonControl.StopAsync が 1 回起動され、stopped=true が返ることを確認する。
+    /// HTTP モードで adact_daemon_stop を呼ぶと IDaemonControl.StopAsync が 1 回起動され、stopped=true が返ることを確認する。
     /// HTTP 経由の daemon 停止フロー (Phase5) の回帰防止。
     /// </summary>
     [Fact]
@@ -330,8 +330,8 @@ public class WindowsToolsLifecycleTests
     }
 
     /// <summary>
-    /// daemon_stop が StopAsync を呼ぶ時点までに全セッションが detach され、WindowRefStore の SessionId も全クリアされていることを確認する。
-    /// listener 停止前にセッションを掃除する順序契約 (Phase5 §daemon_stop) の回帰防止。
+    /// adact_daemon_stop が StopAsync を呼ぶ時点までに全セッションが detach され、WindowRefStore の SessionId も全クリアされていることを確認する。
+    /// listener 停止前にセッションを掃除する順序契約 (Phase5 §adact_daemon_stop) の回帰防止。
     /// </summary>
     [Fact]
     public async Task DaemonStop_DetachesAllSessionsBeforeStoppingListener()

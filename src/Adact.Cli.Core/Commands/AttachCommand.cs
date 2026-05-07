@@ -90,9 +90,9 @@ internal static class AttachCommand
         return (null, null);
     }
 
-    /// <summary>接続済みクライアントに対し <c>windows_attach</c> を呼び、成功時は sessionId ・ windowRef ・ snapshot を出力する。</summary>
+    /// <summary>接続済みクライアントに対し <c>adact_attach</c> を呼び、成功時は sessionId ・ windowRef ・ snapshot を出力する。</summary>
     /// <param name="client">接続済み MCP クライアント。</param>
-    /// <param name="arguments"><c>windows_attach</c> に渡す引数。</param>
+    /// <param name="arguments"><c>adact_attach</c> に渡す引数。</param>
     /// <param name="noSnapshot">true なら attach 成功後の snapshot 取得をスキップする。</param>
     /// <param name="snapshotDir">snapshot 保存先 (null なら既定 <c>.adact/</c>)。</param>
     /// <param name="ct">cancellation token。</param>
@@ -104,7 +104,7 @@ internal static class AttachCommand
         string? snapshotDir,
         CancellationToken ct)
     {
-        var attachResult = await client.CallToolAsync("windows_attach", arguments, ct).ConfigureAwait(false);
+        var attachResult = await client.CallToolAsync("adact_attach", arguments, ct).ConfigureAwait(false);
 
         var errorExit = McpResponse.TryReportError(attachResult);
         if (errorExit is { } code) return code;
@@ -117,7 +117,7 @@ internal static class AttachCommand
 
         if (string.IsNullOrEmpty(sessionId))
         {
-            CliError.Write(ErrorCodes.InternalError, "windows_attach response missing 'sessionId'.");
+            CliError.Write(ErrorCodes.InternalError, "adact_attach response missing 'sessionId'.");
             return ExitCodes.CommandFailed;
         }
 
@@ -145,7 +145,7 @@ internal static class AttachCommand
         CancellationToken ct)
     {
         var snapshotResult = await client.CallToolAsync(
-            "windows_snapshot",
+            "adact_snapshot",
             new Dictionary<string, object?> { ["sessionId"] = sessionId },
             ct).ConfigureAwait(false);
         var errorExit = McpResponse.TryReportError(snapshotResult);

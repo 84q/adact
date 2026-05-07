@@ -38,7 +38,7 @@ public class CommandActionSuccessTests
         }
     }
 
-    /// <summary>Verifies that click maps extended options into windows_click arguments.</summary>
+    /// <summary>Verifies that click maps extended options into adact_click arguments.</summary>
     [Fact]
     public async Task Click_Success_MapsOptionsToWindowsClick()
     {
@@ -65,7 +65,7 @@ public class CommandActionSuccessTests
         Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = Assert.Single(client.Calls);
-        Assert.Equal("windows_click", call.Name);
+        Assert.Equal("adact_click", call.Name);
         Assert.Equal("s2e5", call.Arguments!["ref"]);
         Assert.Equal("right", call.Arguments["button"]);
         Assert.Equal(2, call.Arguments["count"]);
@@ -74,7 +74,7 @@ public class CommandActionSuccessTests
         Assert.Equal(20, call.Arguments["positionY"]);
     }
 
-    /// <summary>Verifies that fill maps ref and value into windows_fill arguments.</summary>
+    /// <summary>Verifies that fill maps ref and value into adact_fill arguments.</summary>
     [Fact]
     public async Task Fill_Success_MapsTextToWindowsFill()
     {
@@ -93,12 +93,12 @@ public class CommandActionSuccessTests
         Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = Assert.Single(client.Calls);
-        Assert.Equal("windows_fill", call.Name);
+        Assert.Equal("adact_fill", call.Name);
         Assert.Equal("s3e4", call.Arguments!["ref"]);
         Assert.Equal("hello world", call.Arguments["value"]);
     }
 
-    /// <summary>Verifies that type maps text and delay into windows_type arguments.</summary>
+    /// <summary>Verifies that type maps text and delay into adact_type arguments.</summary>
     [Fact]
     public async Task Type_Success_MapsDelayToWindowsType()
     {
@@ -117,13 +117,13 @@ public class CommandActionSuccessTests
         Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = Assert.Single(client.Calls);
-        Assert.Equal("windows_type", call.Name);
+        Assert.Equal("adact_type", call.Name);
         Assert.Equal("s4e8", call.Arguments!["ref"]);
         Assert.Equal("abc", call.Arguments["text"]);
         Assert.Equal(15, call.Arguments["delayMs"]);
     }
 
-    /// <summary>Verifies that resize maps dimensions and session id into windows_resize arguments.</summary>
+    /// <summary>Verifies that resize maps dimensions and session id into adact_resize_window arguments.</summary>
     [Fact]
     public async Task Resize_Success_MapsDimensionsToWindowsResize()
     {
@@ -142,13 +142,13 @@ public class CommandActionSuccessTests
         Assert.DoesNotContain("sessionId:", stdout);
         Assert.Equal(string.Empty, stderr);
         var call = Assert.Single(client.Calls);
-        Assert.Equal("windows_resize", call.Name);
+        Assert.Equal("adact_resize_window", call.Name);
         Assert.Equal(800, call.Arguments!["width"]);
         Assert.Equal(600, call.Arguments["height"]);
         Assert.Equal("s9", call.Arguments["sessionId"]);
     }
 
-    /// <summary>Verifies that doubleclick maps button, modifiers, and position into windows_dblclick.</summary>
+    /// <summary>Verifies that doubleclick maps button, modifiers, and position into adact_doubleclick.</summary>
     [Fact]
     public async Task Dblclick_Success_MapsOptionsToWindowsDblclick()
     {
@@ -172,7 +172,7 @@ public class CommandActionSuccessTests
         Assert.DoesNotContain("action:", stdout);
         Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
-        var call = AssertSingleCall(client, "windows_dblclick");
+        var call = AssertSingleCall(client, "adact_doubleclick");
         Assert.Equal("s5e6", call["ref"]);
         Assert.Equal("middle", call["button"]);
         Assert.Equal(new[] { "Alt" }, Assert.IsType<string[]>(call["modifiers"]));
@@ -180,7 +180,7 @@ public class CommandActionSuccessTests
         Assert.Equal(4, call["positionY"]);
     }
 
-    /// <summary>Verifies that hover maps modifiers and position into windows_hover.</summary>
+    /// <summary>Verifies that hover maps modifiers and position into adact_hover.</summary>
     [Fact]
     public async Task Hover_Success_MapsOptionsToWindowsHover()
     {
@@ -198,14 +198,14 @@ public class CommandActionSuccessTests
         Assert.DoesNotContain("action:", stdout);
         Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
-        var call = AssertSingleCall(client, "windows_hover");
+        var call = AssertSingleCall(client, "adact_hover");
         Assert.Equal("s6e7", call["ref"]);
         Assert.Equal(new[] { "Shift" }, Assert.IsType<string[]>(call["modifiers"]));
         Assert.Equal(8, call["positionX"]);
         Assert.Equal(9, call["positionY"]);
     }
 
-    /// <summary>Verifies that select maps the chosen selector into windows_select.</summary>
+    /// <summary>Verifies that select maps the chosen selector into adact_select.</summary>
     [Theory]
     [InlineData("--name", "Option A", "name", "Option A")]
     [InlineData("--index", "2", "index", 2)]
@@ -230,7 +230,7 @@ public class CommandActionSuccessTests
         Assert.DoesNotContain("action:", stdout);
         Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
-        var call = AssertSingleCall(client, "windows_select");
+        var call = AssertSingleCall(client, "adact_select");
         Assert.Equal("s7e3", call["ref"]);
         Assert.Equal(expectedValue, call[expectedKey]);
     }
@@ -314,7 +314,7 @@ public class CommandActionSuccessTests
         }
     }
 
-    /// <summary>Verifies that mouse-wheel maps deltas into windows_mouse_wheel.</summary>
+    /// <summary>Verifies that mouse-wheel maps deltas into adact_mousewheel.</summary>
     [Fact]
     public async Task MouseWheel_Success_MapsDeltasToWindowsMouseWheel()
     {
@@ -332,13 +332,13 @@ public class CommandActionSuccessTests
         Assert.DoesNotContain("action:", stdout);
         Assert.DoesNotContain("target:", stdout);
         Assert.Equal(string.Empty, stderr);
-        var call = AssertSingleCall(client, "windows_mouse_wheel");
+        var call = AssertSingleCall(client, "adact_mousewheel");
         Assert.DoesNotContain("target", call.Keys);
         Assert.Equal(-1, call["deltaX"]);
         Assert.Equal(3, call["deltaY"]);
     }
 
-    /// <summary>Verifies that press maps key into windows_press.</summary>
+    /// <summary>Verifies that press maps key into adact_keypress.</summary>
     [Fact]
     public async Task Press_Success_MapsKeyToWindowsPress()
     {
@@ -357,7 +357,7 @@ public class CommandActionSuccessTests
         Assert.DoesNotContain("target:", stdout);
         Assert.DoesNotContain("key:", stdout);
         Assert.Equal(string.Empty, stderr);
-        var call = AssertSingleCall(client, "windows_press");
+        var call = AssertSingleCall(client, "adact_keypress");
         Assert.Equal("Ctrl+Shift+E", call["key"]);
         Assert.DoesNotContain("ref", call.Keys);
     }
@@ -416,39 +416,39 @@ public class CommandActionSuccessTests
     /// <summary>Provides auto-snapshot ref-only command builders and expected MCP tool names.</summary>
     public static IEnumerable<object[]> RefOnlyAutoSnapshotCommands()
     {
-        yield return [CheckCommand.Build(), "windows_check"];
-        yield return [UncheckCommand.Build(), "windows_uncheck"];
-        yield return [ClearCommand.Build(), "windows_clear"];
+        yield return [CheckCommand.Build(), "adact_check"];
+        yield return [UncheckCommand.Build(), "adact_uncheck"];
+        yield return [ClearCommand.Build(), "adact_clear"];
     }
 
     /// <summary>Provides low-level ref-only command builders and expected MCP tool names.</summary>
     public static IEnumerable<object[]> RefOnlyLowLevelCommands()
     {
-        yield return [FocusCommand.Build(), "windows_focus"];
-        yield return [ScrollIntoViewCommand.Build(), "windows_scroll_into_view"];
+        yield return [FocusCommand.Build(), "adact_focus"];
+        yield return [ScrollIntoViewCommand.Build(), "adact_scroll"];
     }
 
     /// <summary>Provides low-level mouse command builders, CLI args, and expected MCP tool names.</summary>
     public static IEnumerable<object[]> MouseLowLevelCommands()
     {
-        yield return [MousemoveCommand.Build(), "windows_mouse_move", new[] { "mousemove", "10,20" }, "10,20", null!];
-        yield return [MousedownCommand.Build(), "windows_mouse_down", new[] { "mousedown", "--button", "right" }, string.Empty, "right"];
-        yield return [MouseupCommand.Build(), "windows_mouse_up", new[] { "mouseup", "--button", "middle" }, string.Empty, "middle"];
+        yield return [MousemoveCommand.Build(), "adact_mousemove", new[] { "mousemove", "10,20" }, "10,20", null!];
+        yield return [MousedownCommand.Build(), "adact_mousedown", new[] { "mousedown", "--button", "right" }, string.Empty, "right"];
+        yield return [MouseupCommand.Build(), "adact_mouseup", new[] { "mouseup", "--button", "middle" }, string.Empty, "middle"];
     }
 
     /// <summary>Provides key command builders and expected MCP tool names.</summary>
     public static IEnumerable<object[]> KeyCommands()
     {
-        yield return [KeydownCommand.Build(), "windows_key_down"];
-        yield return [KeyupCommand.Build(), "windows_key_up"];
+        yield return [KeydownCommand.Build(), "adact_keydown"];
+        yield return [KeyupCommand.Build(), "adact_keyup"];
     }
 
     /// <summary>Provides window-state command builders and expected MCP tool names.</summary>
     public static IEnumerable<object[]> WindowStateCommands()
     {
-        yield return [MinimizeWindowCommand.Build(), "windows_minimize"];
-        yield return [MaximizeWindowCommand.Build(), "windows_maximize"];
-        yield return [RestoreWindowCommand.Build(), "windows_restore"];
+        yield return [MinimizeWindowCommand.Build(), "adact_minimize_window"];
+        yield return [MaximizeWindowCommand.Build(), "adact_maximize_window"];
+        yield return [RestoreWindowCommand.Build(), "adact_restore_window"];
     }
 
     private static IReadOnlyDictionary<string, object?> AssertSingleCall(FakeClient client, string name)

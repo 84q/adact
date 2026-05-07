@@ -31,13 +31,13 @@ internal static class CloseAllCommand
         return cmd;
     }
 
-    /// <summary><c>windows_close_all</c> を呼び出し、結果を TSV として stdout に書き出して exit code を決定する。</summary>
+    /// <summary><c>adact_close_all</c> を呼び出し、結果を TSV として stdout に書き出して exit code を決定する。</summary>
     /// <param name="client">接続済み MCP クライアント。</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。全 ok もしくは空配列なら 0、一つでも fail があれば 1。</returns>
     private static async Task<int> ExecuteAsync(IAdactMcpClient client, CancellationToken ct)
     {
-        var result = await client.CallToolAsync("windows_close_all", arguments: null, ct).ConfigureAwait(false);
+        var result = await client.CallToolAsync("adact_close_all", arguments: null, ct).ConfigureAwait(false);
 
         var errorExit = McpResponse.TryReportError(result);
         if (errorExit is { } code) return code;
@@ -55,10 +55,10 @@ internal static class CloseAllCommand
     }
 
     /// <summary>
-    /// <c>windows_close_all</c> レスポンスの <c>results</c> 配列を TSV 文字列 (ヘッダ無し) に変換する。
+    /// <c>adact_close_all</c> レスポンスの <c>results</c> 配列を TSV 文字列 (ヘッダ無し) に変換する。
     /// 設計 §4.5 / §5.2。1 つでも fail があれば exit 1、すべて ok なら exit 0、空配列も exit 0。
     /// </summary>
-    /// <param name="info"><c>windows_close_all</c> のレスポンス JSON オブジェクト。</param>
+    /// <param name="info"><c>adact_close_all</c> のレスポンス JSON オブジェクト。</param>
     /// <returns>(stdout に書き出すべき TSV 行, exit code, malformed 時のエラーメッセージ)</returns>
     internal static (IReadOnlyList<string?[]> rows, int exit, string? errorMessage) FormatResults(JsonElement info)
     {
@@ -70,7 +70,7 @@ internal static class CloseAllCommand
             || results.ValueKind != JsonValueKind.Array)
         {
             return (rows, ExitCodes.CommandFailed,
-                "windows_close_all response missing 'results' array.");
+                "adact_close_all response missing 'results' array.");
         }
 
         foreach (var entry in results.EnumerateArray())
@@ -78,7 +78,7 @@ internal static class CloseAllCommand
             if (entry.ValueKind != JsonValueKind.Object)
             {
                 return (rows, ExitCodes.CommandFailed,
-                    "windows_close_all response contains a non-object entry in 'results'.");
+                    "adact_close_all response contains a non-object entry in 'results'.");
             }
 
             var sid = JsonHelpers.GetStringOrNull(entry, "sessionId") ?? "";

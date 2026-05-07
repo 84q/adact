@@ -41,7 +41,7 @@ public class SampleAppHttpE2ETests
     }
 
     /// <summary>
-    /// SampleApp を起動し HTTP MCP 経由で windows_attach → windows_snapshot を実行し、
+    /// SampleApp を起動し HTTP MCP 経由で adact_attach → adact_snapshot を実行し、
     /// snapshot tree に複数の Button ノードが含まれることを確認する。
     /// HTTP トランスポート + UIA + ref 採番の E2E 通しシナリオの回帰防止。
     /// </summary>
@@ -64,11 +64,11 @@ public class SampleAppHttpE2ETests
             if (_fixture.UsesExternalServer)
             {
                 var launch = await client.CallToolAsync(
-                    "windows_launch",
+                    "adact_launch",
                     new Dictionary<string, object?> { ["executable"] = "SampleApp.exe" },
                     cancellationToken: cts.Token);
                 Assert.False(launch.IsError ?? false,
-                    $"windows_launch failed: {(launch.Content.FirstOrDefault() as TextContentBlock)?.Text}");
+                    $"adact_launch failed: {(launch.Content.FirstOrDefault() as TextContentBlock)?.Text}");
             }
 
             string? windowRef = null;
@@ -76,9 +76,9 @@ public class SampleAppHttpE2ETests
             var deadline = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(10);
             while (DateTimeOffset.UtcNow < deadline)
             {
-                var listResult = await client.CallToolAsync("windows_list_apps", cancellationToken: cts.Token);
+                var listResult = await client.CallToolAsync("adact_list_windows", cancellationToken: cts.Token);
                 Assert.False(listResult.IsError ?? false,
-                    $"windows_list_apps failed: {(listResult.Content.FirstOrDefault() as TextContentBlock)?.Text}");
+                    $"adact_list_windows failed: {(listResult.Content.FirstOrDefault() as TextContentBlock)?.Text}");
                 listText = (listResult.Content[0] as TextContentBlock)?.Text;
                 Assert.NotNull(listText);
 
@@ -91,20 +91,20 @@ public class SampleAppHttpE2ETests
                 await Task.Delay(200, cts.Token);
             }
             Assert.False(string.IsNullOrEmpty(windowRef),
-                $"SampleApp windowRef not found in windows_list_apps output: {listText}");
+                $"SampleApp windowRef not found in adact_list_windows output: {listText}");
 
             // attach (windowRef 経由)
             var attach = await client.CallToolAsync(
-                "windows_attach",
+                "adact_attach",
                 new Dictionary<string, object?> { ["windowRef"] = windowRef! },
                 cancellationToken: cts.Token);
             Assert.False(attach.IsError ?? false,
-                $"windows_attach failed: {(attach.Content.FirstOrDefault() as TextContentBlock)?.Text}");
+                $"adact_attach failed: {(attach.Content.FirstOrDefault() as TextContentBlock)?.Text}");
 
             // snapshot (active session)
-            var snap = await client.CallToolAsync("windows_snapshot", cancellationToken: cts.Token);
+            var snap = await client.CallToolAsync("adact_snapshot", cancellationToken: cts.Token);
             Assert.False(snap.IsError ?? false,
-                $"windows_snapshot failed: {(snap.Content.FirstOrDefault() as TextContentBlock)?.Text}");
+                $"adact_snapshot failed: {(snap.Content.FirstOrDefault() as TextContentBlock)?.Text}");
             var snapText = (snap.Content[0] as TextContentBlock)?.Text;
             Assert.NotNull(snapText);
 
@@ -116,7 +116,7 @@ public class SampleAppHttpE2ETests
 
             if (_fixture.UsesExternalServer)
             {
-                await client.CallToolAsync("windows_close", cancellationToken: cts.Token);
+                await client.CallToolAsync("adact_close_window", cancellationToken: cts.Token);
             }
         }
         finally

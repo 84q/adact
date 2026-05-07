@@ -17,10 +17,10 @@ public sealed partial class WindowsTools
     /// <param name="ref">snapshot 由来の element ref (例: <c>s1e7</c>)。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>UIA プロパティと対応 Pattern の状態を JSON で返す <see cref="CallToolResult"/>。</returns>
-    [McpServerTool(Name = "windows_inspect")]
+    [McpServerTool(Name = "adact_inspect")]
     [Description("Get detailed UIA properties (Name, ControlType, AutomationId, ClassName, HelpText, Value, BoundingRect, state flags, supported patterns) of the element identified by ref. No snapshot is taken.")]
     public async Task<CallToolResult> InspectAsync(
-        [Description("Ref ID in the form 's<sid>e<eid>' obtained from a recent windows_snapshot.")]
+        [Description("Ref ID in the form 's<sid>e<eid>' obtained from a recent adact_snapshot.")]
         string @ref,
         CancellationToken ct = default)
     {
@@ -39,7 +39,7 @@ public sealed partial class WindowsTools
                 StructuredContent = JsonSerializer.SerializeToElement(json),
             };
         }
-        catch (Exception ex) { return MapOrLog(ex, "windows_inspect"); }
+        catch (Exception ex) { return MapOrLog(ex, "adact_inspect"); }
     }
 
     /// <summary>

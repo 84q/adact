@@ -11,7 +11,7 @@ internal sealed class NamedPipeDaemonControl : IDaemonControl
     private readonly CancellationTokenSource _serverCts;
 
     /// <summary>
-    /// Named Pipe モードでは daemon_stop をサポートするため true。
+    /// Named Pipe モードでは adact_daemon_stop をサポートするため true。
     /// </summary>
     public bool IsSupported => true;
 

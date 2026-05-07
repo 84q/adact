@@ -56,7 +56,7 @@ internal static class HoverCommand
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
                 (client, token) => CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
-                    client, "hover", "windows_hover", args, refValue!, noSnap, dirArg, token),
+                    client, "hover", "adact_hover", args, refValue!, noSnap, dirArg, token),
                 ct);
         });
         return cmd;

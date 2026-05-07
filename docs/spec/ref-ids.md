@@ -16,9 +16,9 @@ ADACT は Windows UIA 要素や window を短い ref ID で参照します。ref
 
 | 項目 | 内容 |
 | --- | --- |
-| 発行 | `windows_list_apps` / `adact list-windows` 実行時に top-level window へ割り当てる |
+| 発行 | `adact_list_windows` / `adact list-windows` 実行時に top-level window へ割り当てる |
 | 安定性 | 同じ `WindowKey` には同じ `w<n>` を再利用する |
-| 失効 | window が list から消えると retired になり、`windows_attach(windowRef)` で解決できなくなる |
+| 失効 | window が list から消えると retired になり、`adact_attach(windowRef)` で解決できなくなる |
 | 主用途 | window title や process name が曖昧な場合に、一覧から選んで attach する |
 
 `WindowKey` は HWND、process id、process start time など window 同一性を表す情報を使います。window title が変わっても同じ window とみなせるよう、list のたびに最新情報へ同期します。
@@ -33,7 +33,7 @@ ADACT は Windows UIA 要素や window を短い ref ID で参照します。ref
 | 失効 | `detach` / `close-window` / `kill` / `close-all` / `daemon-stop`、または daemon process 終了 |
 | 再利用 | 同じ daemon process 内では再利用しない |
 
-`windows_snapshot`, `windows_detach`, `windows_close`, `windows_kill` は `sessionId` を省略すると active session を使います。active session がない場合は `NO_ACTIVE_SESSION` です。
+`adact_snapshot`, `adact_detach`, `adact_close_window`, `adact_kill` は `sessionId` を省略すると active session を使います。active session がない場合は `NO_ACTIVE_SESSION` です。
 
 ## Element Ref (`s<sid>e<eid>`)
 

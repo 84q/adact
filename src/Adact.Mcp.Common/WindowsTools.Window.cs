@@ -13,7 +13,7 @@ public sealed partial class WindowsTools
     /// <param name="sessionId">対象 session。省略時はアクティブ session。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>成功時は空 content。Pattern 不在 / 操作失敗は <c>ELEMENT_INTERACTION_FAILED</c>。</returns>
-    [McpServerTool(Name = "windows_resize")]
+    [McpServerTool(Name = "adact_resize_window")]
     [Description("Resize the attached window via UIA TransformPattern.Resize. Errors with ELEMENT_INTERACTION_FAILED if the window does not support resize.")]
     public async Task<CallToolResult> ResizeAsync(
         [Description("New window width in pixels (must be > 0).")]
@@ -40,44 +40,44 @@ public sealed partial class WindowsTools
             await session.ResizeAsync(width, height, ct).ConfigureAwait(false);
             return new CallToolResult { Content = [] };
         }
-        catch (Exception ex) { return MapOrLog(ex, "windows_resize"); }
+        catch (Exception ex) { return MapOrLog(ex, "adact_resize_window"); }
     }
 
     /// <summary>アタッチ済みウィンドウを最小化する (UIA WindowPattern.SetWindowVisualState)。</summary>
     /// <param name="sessionId">対象 session。省略時はアクティブ session。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>成功時は空 content。Pattern 不在は <c>ELEMENT_INTERACTION_FAILED</c>。</returns>
-    [McpServerTool(Name = "windows_minimize")]
+    [McpServerTool(Name = "adact_minimize_window")]
     [Description("Minimize the attached window via UIA WindowPattern.SetWindowVisualState(Minimized).")]
     public async Task<CallToolResult> MinimizeAsync(
         [Description("Session ID like 's1'. Omit for active session.")]
         string? sessionId = null,
         CancellationToken ct = default)
-        => await InvokeWindowStateAsync("windows_minimize", sessionId, s => s.MinimizeAsync(ct), ct).ConfigureAwait(false);
+        => await InvokeWindowStateAsync("adact_minimize_window", sessionId, s => s.MinimizeAsync(ct), ct).ConfigureAwait(false);
 
     /// <summary>アタッチ済みウィンドウを最大化する (UIA WindowPattern.SetWindowVisualState)。</summary>
     /// <param name="sessionId">対象 session。省略時はアクティブ session。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>成功時は空 content。Pattern 不在は <c>ELEMENT_INTERACTION_FAILED</c>。</returns>
-    [McpServerTool(Name = "windows_maximize")]
+    [McpServerTool(Name = "adact_maximize_window")]
     [Description("Maximize the attached window via UIA WindowPattern.SetWindowVisualState(Maximized).")]
     public async Task<CallToolResult> MaximizeAsync(
         [Description("Session ID like 's1'. Omit for active session.")]
         string? sessionId = null,
         CancellationToken ct = default)
-        => await InvokeWindowStateAsync("windows_maximize", sessionId, s => s.MaximizeAsync(ct), ct).ConfigureAwait(false);
+        => await InvokeWindowStateAsync("adact_maximize_window", sessionId, s => s.MaximizeAsync(ct), ct).ConfigureAwait(false);
 
     /// <summary>アタッチ済みウィンドウを通常表示に復元する (UIA WindowPattern.SetWindowVisualState)。</summary>
     /// <param name="sessionId">対象 session。省略時はアクティブ session。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>成功時は空 content。Pattern 不在は <c>ELEMENT_INTERACTION_FAILED</c>。</returns>
-    [McpServerTool(Name = "windows_restore")]
+    [McpServerTool(Name = "adact_restore_window")]
     [Description("Restore the attached window to normal state via UIA WindowPattern.SetWindowVisualState(Normal).")]
     public async Task<CallToolResult> RestoreAsync(
         [Description("Session ID like 's1'. Omit for active session.")]
         string? sessionId = null,
         CancellationToken ct = default)
-        => await InvokeWindowStateAsync("windows_restore", sessionId, s => s.RestoreAsync(ct), ct).ConfigureAwait(false);
+        => await InvokeWindowStateAsync("adact_restore_window", sessionId, s => s.RestoreAsync(ct), ct).ConfigureAwait(false);
 
     /// <summary>
     /// minimize / maximize / restore の共通実装。session 解決とエラーマッピングをまとめる。

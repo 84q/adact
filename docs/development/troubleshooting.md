@@ -61,7 +61,7 @@ adact list-windows --server http://127.0.0.1:41300/mcp
 | 症状 | 内容 |
 | --- | --- |
 | exit code | 通常 `1` |
-| 発生箇所 | `click` / `fill`、または MCP `windows_click` / `windows_fill` |
+| 発生箇所 | `click` / `fill`、または MCP `adact_click` / `adact_fill` |
 | 典型原因 | ref の typo、別 session の ref、対象 element が最新 snapshot から消えた、daemon 再起動で状態が消えた |
 
 復旧:
@@ -113,7 +113,7 @@ adact attach w1
 
 | 症状 | 原因 | 対処 |
 | --- | --- | --- |
-| `error LOCAL_ONLY` | remote host の daemon を止めようとした、または stdio mode で `daemon_stop` を呼んだ | daemon と同じ host の CLI から `adact daemon-stop` を実行する |
+| `error LOCAL_ONLY` | remote host の daemon を止めようとした、または stdio mode で `adact_daemon_stop` を呼んだ | daemon と同じ host の CLI から `adact daemon-stop` を実行する |
 
 `daemon-stop` は安全のため localhost target 専用です。
 

@@ -135,7 +135,7 @@ internal static class WaitForElementCommand
         Dictionary<string, object?> args,
         CancellationToken ct)
     {
-        var result = await client.CallToolAsync("windows_wait_for", args, ct).ConfigureAwait(false);
+        var result = await client.CallToolAsync("adact_wait_for_element", args, ct).ConfigureAwait(false);
 
         var errorExit = McpResponse.TryReportError(result);
         if (errorExit is { } code) return code;

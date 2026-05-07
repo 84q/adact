@@ -10,7 +10,7 @@ internal static class WindowStateCommandBuilder
     /// <summary>引数無しでアタッチ済みウィンドウへ操作する系コマンドを構築する。</summary>
     /// <param name="name">CLI サブコマンド名 (kebab-case)。</param>
     /// <param name="description">--help に表示する説明文。</param>
-    /// <param name="toolName">対応する MCP ツール名 (例: <c>windows_minimize</c>)。</param>
+    /// <param name="toolName">対応する MCP ツール名 (例: <c>adact_minimize_window</c>)。</param>
     /// <returns>System.CommandLine の <see cref="Command"/>。</returns>
     public static Command Build(string name, string description, string toolName)
     {

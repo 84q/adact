@@ -17,7 +17,7 @@ using ModelContextProtocol.Server;
 namespace Adact.Mcp.Common;
 
 /// <summary>
-/// Phase 3 以降で公開する MCP ツール群 (windows_* と daemon_stop)。
+/// Phase 3 以降で公開する MCP ツール群 (windows_* と adact_daemon_stop)。
 /// 詳細は docs/spec/mcp-tools.md および discussion/002_アーキテクチャ設計.md §4.1 / §6 / §8 を参照。
 /// </summary>
 [McpServerToolType]
@@ -30,7 +30,7 @@ public sealed partial class WindowsTools
     private readonly SessionStore _store;
     /// <summary>top-level window に対する <c>w&lt;n&gt;</c> ref の発行・同期を担うストア。</summary>
     private readonly WindowRefStore _refStore;
-    /// <summary>daemon プロセス停止 (<c>daemon_stop</c>) を抽象化したアダプタ。stdio モードでは <see cref="IDaemonControl.IsSupported"/> が <c>false</c>。</summary>
+    /// <summary>daemon プロセス停止 (<c>adact_daemon_stop</c>) を抽象化したアダプタ。stdio モードでは <see cref="IDaemonControl.IsSupported"/> が <c>false</c>。</summary>
     private readonly IDaemonControl _daemonControl;
     /// <summary>業務例外以外の予期せぬ失敗を記録するロガー。</summary>
     private readonly ILogger<WindowsTools> _logger;
@@ -45,7 +45,7 @@ public sealed partial class WindowsTools
     /// </summary>
     /// <param name="store">UIA 直列化 lock と sessionId 辞書を保持する <see cref="SessionStore"/>。</param>
     /// <param name="refStore"><c>w&lt;n&gt;</c> ref を発行・同期する <see cref="WindowRefStore"/>。</param>
-    /// <param name="daemonControl"><c>daemon_stop</c> を実行するためのモード固有の実装。</param>
+    /// <param name="daemonControl"><c>adact_daemon_stop</c> を実行するためのモード固有の実装。</param>
     /// <param name="logger">未マップ例外用ロガー。<c>null</c> の場合は <see cref="NullLogger{T}"/> を使用する。</param>
     /// <param name="mouseDriver">低レベルマウス操作の実装。省略時は FlaUI 本番実装。</param>
     /// <param name="keyboardDriver">低レベルキーボード操作の実装。省略時は FlaUI 本番実装。</param>
@@ -78,8 +78,8 @@ public sealed partial class WindowsTools
     /// <see cref="WindowRefStore.RetireMissing"/> により retired となり、以降 <see cref="AttachAsync"/> で解決できなくなる。
     /// すべてのツール呼び出しは <see cref="SessionStore"/> の semaphore で直列化される。
     /// </remarks>
-    [McpServerTool(Name = "windows_list_apps")]
-    [Description("List top-level windows currently running on this Windows desktop. Use this to discover candidates for windows_attach.")]
+    [McpServerTool(Name = "adact_list_windows")]
+    [Description("List top-level windows currently running on this Windows desktop. Use this to discover candidates for adact_attach.")]
     public async Task<CallToolResult> ListAppsAsync(CancellationToken ct)
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
@@ -118,7 +118,7 @@ public sealed partial class WindowsTools
         {
             var mapped = ToolErrors.TryMap(ex);
             if (mapped is not null) return mapped;
-            _logger.LogError(ex, "windows_list_apps failed unexpectedly");
+            _logger.LogError(ex, "adact_list_windows failed unexpectedly");
             throw;
         }
     }
@@ -136,10 +136,10 @@ public sealed partial class WindowsTools
     /// <remarks>
     /// 同じ window に対する再 attach は既存 session を返し、二重に sessionId を発行しない。
     /// </remarks>
-    [McpServerTool(Name = "windows_attach")]
-    [Description("Attach to a single top-level window identified by a windowRef obtained from windows_list_apps. Returns sessionId (e.g. 's1'), windowRef and windowInfo.")]
+    [McpServerTool(Name = "adact_attach")]
+    [Description("Attach to a single top-level window identified by a windowRef obtained from adact_list_windows. Returns sessionId (e.g. 's1'), windowRef and windowInfo.")]
     public async Task<CallToolResult> AttachAsync(
-        [Description("Window Ref (e.g. 'w1') obtained from windows_list_apps.")]
+        [Description("Window Ref (e.g. 'w1') obtained from adact_list_windows.")]
       string windowRef,
         CancellationToken ct = default)
     {
@@ -158,7 +158,7 @@ public sealed partial class WindowsTools
         if (!_refStore.TryResolve(windowRef, out var entry))
         {
             return ToolErrors.Error(ToolErrors.InvalidWindowRef,
-                $"Window Ref '{windowRef}' is unknown or has been retired. Re-run windows_list_apps.");
+                $"Window Ref '{windowRef}' is unknown or has been retired. Re-run adact_list_windows.");
         }
 
         try
@@ -198,7 +198,7 @@ public sealed partial class WindowsTools
         {
             var mapped = ToolErrors.TryMap(ex);
             if (mapped is not null) return mapped;
-            _logger.LogError(ex, "windows_attach failed unexpectedly");
+            _logger.LogError(ex, "adact_attach failed unexpectedly");
             throw;
         }
     }
@@ -213,7 +213,7 @@ public sealed partial class WindowsTools
     /// snapshot JSON を text content と structured content の両方で含む <see cref="CallToolResult"/>。
     /// 不明な <paramref name="sessionId"/> は <c>INVALID_ARGUMENT</c> を返す。
     /// </returns>
-    [McpServerTool(Name = "windows_snapshot")]
+    [McpServerTool(Name = "adact_snapshot")]
     [Description("Take a UIA snapshot of the attached window. Returns the raw UIA tree as JSON with all elements and properties; filtering and field selection are performed client-side. When sessionId is omitted, the active session (last attached) is used.")]
     public async Task<CallToolResult> SnapshotAsync(
         [Description("Session ID (e.g. 's1'). Omit to use the active session.")]
@@ -229,7 +229,7 @@ public sealed partial class WindowsTools
             if (session is null)
             {
                 return ToolErrors.Error(ToolErrors.NoActiveSession,
-                    "No active session. Call windows_attach first or specify sessionId explicitly.");
+                    "No active session. Call adact_attach first or specify sessionId explicitly.");
             }
         }
         else if (!_store.TryGet(sessionId, out session))
@@ -251,7 +251,7 @@ public sealed partial class WindowsTools
         {
             var mapped = ToolErrors.TryMap(ex);
             if (mapped is not null) return mapped;
-            _logger.LogError(ex, "windows_snapshot failed unexpectedly");
+            _logger.LogError(ex, "adact_snapshot failed unexpectedly");
             throw;
         }
     }
@@ -270,10 +270,10 @@ public sealed partial class WindowsTools
     /// 成功時は空の content を持つ <see cref="CallToolResult"/>。ref が空・不正・未知 session prefix の場合は
     /// <c>INVALID_ARGUMENT</c> または <c>REF_NOT_FOUND</c>、要素操作失敗時は <c>ELEMENT_INTERACTION_FAILED</c>。
     /// </returns>
-    [McpServerTool(Name = "windows_click")]
+    [McpServerTool(Name = "adact_click")]
     [Description("Click an element identified by ref. The session is determined automatically from the ref id prefix.")]
     public async Task<CallToolResult> ClickAsync(
-        [Description("Ref ID in the form 's<sid>e<eid>' obtained from a recent windows_snapshot.")]
+        [Description("Ref ID in the form 's<sid>e<eid>' obtained from a recent adact_snapshot.")]
       string @ref,
         [Description("Mouse button: 'left' (default), 'right', or 'middle'.")]
         string? button = null,
@@ -333,7 +333,7 @@ public sealed partial class WindowsTools
         {
             var mapped = ToolErrors.TryMap(ex);
             if (mapped is not null) return mapped;
-            _logger.LogError(ex, "windows_click failed unexpectedly");
+            _logger.LogError(ex, "adact_click failed unexpectedly");
             throw;
         }
     }
@@ -370,10 +370,10 @@ public sealed partial class WindowsTools
     /// 成功時は空の content を持つ <see cref="CallToolResult"/>。
     /// ref が空・不正なら <c>INVALID_ARGUMENT</c> / <c>REF_NOT_FOUND</c>、操作失敗時は <c>ELEMENT_INTERACTION_FAILED</c>。
     /// </returns>
-    [McpServerTool(Name = "windows_fill")]
+    [McpServerTool(Name = "adact_fill")]
     [Description("Fill (overwrite) an input element with the given value. The session is determined automatically from the ref id prefix.")]
     public async Task<CallToolResult> FillAsync(
-        [Description("Ref ID in the form 's<sid>e<eid>' obtained from a recent windows_snapshot.")]
+        [Description("Ref ID in the form 's<sid>e<eid>' obtained from a recent adact_snapshot.")]
       string @ref,
         [Description("Text value to set.")]
       string value,
@@ -403,7 +403,7 @@ public sealed partial class WindowsTools
         {
             var mapped = ToolErrors.TryMap(ex);
             if (mapped is not null) return mapped;
-            _logger.LogError(ex, "windows_fill failed unexpectedly");
+            _logger.LogError(ex, "adact_fill failed unexpectedly");
             throw;
         }
     }
@@ -417,7 +417,7 @@ public sealed partial class WindowsTools
     /// <c>{ sessionId, detached: true }</c> を含む <see cref="CallToolResult"/>。アクティブが無い場合は <c>NO_ACTIVE_SESSION</c>、
     /// session が見つからない場合は <c>NOT_FOUND</c>。
     /// </returns>
-    [McpServerTool(Name = "windows_detach")]
+    [McpServerTool(Name = "adact_detach")]
     [Description("Release the session record without affecting the window or process. The session ID becomes invalid.")]
     public async Task<CallToolResult> DetachAsync(
         [Description("Session ID like 's1'. Omit to detach the active session.")]
@@ -449,7 +449,7 @@ public sealed partial class WindowsTools
     /// <c>{ sessionId, closed: true, detached: true }</c> を含む <see cref="CallToolResult"/>。
     /// アクティブが無い場合は <c>NO_ACTIVE_SESSION</c>、session 不明は <c>NOT_FOUND</c>、close 失敗は <c>CLOSE_FAILED</c>。
     /// </returns>
-    [McpServerTool(Name = "windows_close")]
+    [McpServerTool(Name = "adact_close_window")]
     [Description("Close the attached window via UIA WindowPattern.Close() / WM_CLOSE. On success, the session is automatically detached.")]
     public async Task<CallToolResult> CloseAsync(
         [Description("Session ID like 's1'. Omit for active session.")]
@@ -471,7 +471,7 @@ public sealed partial class WindowsTools
         {
             var mapped = ToolErrors.TryMap(ex);
             if (mapped is not null) return mapped;
-            _logger.LogError(ex, "windows_close failed unexpectedly");
+            _logger.LogError(ex, "adact_close_window failed unexpectedly");
             throw;
         }
 
@@ -496,7 +496,7 @@ public sealed partial class WindowsTools
     /// <c>{ sessionId, killed: true, detached: true }</c> を含む <see cref="CallToolResult"/>。
     /// アクティブが無い場合は <c>NO_ACTIVE_SESSION</c>、session 不明は <c>NOT_FOUND</c>、kill 失敗は <c>KILL_FAILED</c>。
     /// </returns>
-    [McpServerTool(Name = "windows_kill")]
+    [McpServerTool(Name = "adact_kill")]
     [Description("Forcefully terminate the process backing the attached window via Process.Kill. On success, the session is automatically detached.")]
     public async Task<CallToolResult> KillAsync(
         [Description("Session ID like 's1'. Omit for active session.")]
@@ -518,7 +518,7 @@ public sealed partial class WindowsTools
         {
             var mapped = ToolErrors.TryMap(ex);
             if (mapped is not null) return mapped;
-            _logger.LogError(ex, "windows_kill failed unexpectedly");
+            _logger.LogError(ex, "adact_kill failed unexpectedly");
             throw;
         }
 
@@ -543,7 +543,7 @@ public sealed partial class WindowsTools
     /// <see cref="OperationCanceledException"/> はそのまま伝播し、それ以外の個別失敗は配列要素に結果化される。
     /// </returns>
     /// <remarks>キャンセル以外の例外は session 単位で結果化し、残り session への close 試行を継続する。</remarks>
-    [McpServerTool(Name = "windows_close_all")]
+    [McpServerTool(Name = "adact_close_all")]
     [Description("Close every attached window. Returns a per-session result array. Partial failure is reported, not thrown.")]
     public async Task<CallToolResult> CloseAllAsync(CancellationToken ct = default)
     {
@@ -581,11 +581,11 @@ public sealed partial class WindowsTools
 
                 if (ex is CloseFailedException)
                 {
-                    _logger.LogDebug(ex, "windows_close_all: closing session {Sid} failed", sid);
+                    _logger.LogDebug(ex, "adact_close_all: closing session {Sid} failed", sid);
                 }
                 else
                 {
-                    _logger.LogError(ex, "windows_close_all: closing session {Sid} failed unexpectedly", sid);
+                    _logger.LogError(ex, "adact_close_all: closing session {Sid} failed unexpectedly", sid);
                 }
             }
 
@@ -608,14 +608,14 @@ public sealed partial class WindowsTools
     /// stdio モードでは <c>LOCAL_ONLY</c>、停止処理が失敗した場合は <c>INTERNAL_ERROR</c> を返す。
     /// </returns>
     /// <remarks>設計 §4.5 に従い、ここでは window を close せず session 記録のみ解放する。</remarks>
-    [McpServerTool(Name = "daemon_stop")]
+    [McpServerTool(Name = "adact_daemon_stop")]
     [Description("Stop the daemon (HTTP listener). All sessions are detached first. Only available in HTTP mode.")]
     public async Task<CallToolResult> DaemonStopAsync(CancellationToken ct = default)
     {
         if (!_daemonControl.IsSupported)
         {
             return ToolErrors.Error(ToolErrors.LocalOnly,
-                "daemon_stop is not supported in this mode.");
+                "adact_daemon_stop is not supported in this mode.");
         }
 
         using (var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false))
@@ -636,7 +636,7 @@ public sealed partial class WindowsTools
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "daemon_stop: StopAsync failed");
+            _logger.LogError(ex, "adact_daemon_stop: StopAsync failed");
             return ToolErrors.Error(ToolErrors.InternalError, ex.Message);
         }
 
@@ -658,7 +658,7 @@ public sealed partial class WindowsTools
             if (active is null)
             {
                 error = ToolErrors.Error(ToolErrors.NoActiveSession,
-                    "No active session. Call windows_attach first or specify sessionId explicitly.");
+                    "No active session. Call adact_attach first or specify sessionId explicitly.");
                 resolvedId = string.Empty;
                 return false;
             }

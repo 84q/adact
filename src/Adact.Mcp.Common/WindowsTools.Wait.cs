@@ -29,7 +29,7 @@ public sealed partial class WindowsTools
     /// <param name="sessionId">対象 session。null はアクティブ session。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns><c>{ ref, state }</c> JSON。タイムアウトは <c>WAIT_TIMEOUT</c>。</returns>
-    [McpServerTool(Name = "windows_wait_for")]
+    [McpServerTool(Name = "adact_wait_for_element")]
     [Description("Wait until an element reaches a state. Pass either a ref (ref mode) OR search conditions (name/controlType/automationId/className) — they are mutually exclusive. State defaults to 'visible'. No snapshot is captured.")]
     public async Task<CallToolResult> WaitForAsync(
         [Description("Element ref like 's1e7' to wait on. Mutually exclusive with name/controlType/automationId/className.")]
@@ -118,7 +118,7 @@ public sealed partial class WindowsTools
                 if (session is null)
                 {
                     return ToolErrors.Error(ToolErrors.NoActiveSession,
-                        "No active session. Call windows_attach first or specify sessionId explicitly.");
+                        "No active session. Call adact_attach first or specify sessionId explicitly.");
                 }
             }
             else if (!_store.TryGet(sessionId, out session))
@@ -149,7 +149,7 @@ public sealed partial class WindowsTools
         {
             return ToolErrors.Error(ToolErrors.InvalidArgument, ex.Message);
         }
-        catch (Exception ex) { return MapOrLog(ex, "windows_wait_for"); }
+        catch (Exception ex) { return MapOrLog(ex, "adact_wait_for_element"); }
     }
 
     /// <summary>
@@ -162,7 +162,7 @@ public sealed partial class WindowsTools
     /// <param name="timeoutMs">待機タイムアウト (ms)。null は 5000。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>マッチした window の info JSON。タイムアウトは <c>WAIT_TIMEOUT</c>。</returns>
-    [McpServerTool(Name = "windows_wait_for_window")]
+    [McpServerTool(Name = "adact_wait_for_window")]
     [Description("Wait until a top-level window matching the given conditions appears. Does not attach. At least one of title/className/processName/executable must be specified. All fields are case-insensitive regex.")]
     public async Task<CallToolResult> WaitForWindowAsync(
         [Description("Window title regex (case-insensitive).")]
@@ -216,6 +216,6 @@ public sealed partial class WindowsTools
         {
             return ToolErrors.Error(ToolErrors.InvalidArgument, ex.Message);
         }
-        catch (Exception ex) { return MapOrLog(ex, "windows_wait_for_window"); }
+        catch (Exception ex) { return MapOrLog(ex, "adact_wait_for_window"); }
     }
 }

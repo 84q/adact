@@ -13,5 +13,5 @@ internal static class MinimizeWindowCommand
         => WindowStateCommandBuilder.Build(
             name: "minimize-window",
             description: "Minimize the attached window via UIA WindowPattern.SetWindowVisualState(Minimized).",
-            toolName: "windows_minimize");
+            toolName: "adact_minimize_window");
 }

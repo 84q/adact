@@ -24,7 +24,7 @@ public sealed partial class WindowsTools
     /// <param name="env">環境変数の上書き / 追加 (任意)。UWP モードでは指定不可。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <returns>成功時は <c>{ pid, processName, executablePath }</c> JSON。失敗時は LAUNCH_FAILED / INVALID_ARGUMENT。</returns>
-    [McpServerTool(Name = "windows_launch")]
+    [McpServerTool(Name = "adact_launch")]
     [Description("Start a Windows process. Use a full path or PATH-resolved name for Win32/.NET apps, or 'shell:AppsFolder\\<AUMID>' for UWP/Store apps. Returns pid only; attach is not performed.")]
     public async Task<CallToolResult> LaunchAsync(
         [Description("Executable path / PATH name / 'shell:AppsFolder\\<AUMID>'.")]
@@ -84,6 +84,6 @@ public sealed partial class WindowsTools
         {
             return ToolErrors.Error(ToolErrors.InvalidArgument, ex.Message);
         }
-        catch (Exception ex) { return MapOrLog(ex, "windows_launch"); }
+        catch (Exception ex) { return MapOrLog(ex, "adact_launch"); }
     }
 }

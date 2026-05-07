@@ -57,7 +57,7 @@ internal static class TypeCommand
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
                 (client, token) => CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
-                    client, "type", "windows_type", args, refValue!, noSnap, dirArg, token),
+                    client, "type", "adact_type", args, refValue!, noSnap, dirArg, token),
                 ct);
         });
         return cmd;

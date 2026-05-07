@@ -23,7 +23,7 @@ internal sealed class HttpDaemonControl : IDaemonControl
     }
 
     /// <summary>
-    /// HTTP モードでは常に daemon 停止操作 (<c>daemon_stop</c> ツール) をサポートするため <see langword="true"/> を返す。
+    /// HTTP モードでは常に daemon 停止操作 (<c>adact_daemon_stop</c> ツール) をサポートするため <see langword="true"/> を返す。
     /// </summary>
     public bool IsSupported => true;
 

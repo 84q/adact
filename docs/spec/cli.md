@@ -116,7 +116,7 @@ s2	false	CLOSE_FAILED
 result: false
 error: NO_ACTIVE_SESSION
 ---
-message: No active session. Call windows_attach first or specify sessionId explicitly.
+message: No active session. Call adact_attach first or specify sessionId explicitly.
 ```
 
 ## auto-snapshot 対象

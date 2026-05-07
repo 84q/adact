@@ -13,5 +13,5 @@ internal static class MaximizeWindowCommand
         => WindowStateCommandBuilder.Build(
             name: "maximize-window",
             description: "Maximize the attached window via UIA WindowPattern.SetWindowVisualState(Maximized).",
-            toolName: "windows_maximize");
+            toolName: "adact_maximize_window");
 }

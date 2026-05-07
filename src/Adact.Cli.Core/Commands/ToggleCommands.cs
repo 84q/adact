@@ -12,7 +12,7 @@ internal static class CheckCommand
     public static Command Build() => RefOnlyCommandBuilder.Build(
         name: "check",
         description: "Ensure a checkbox / toggle / radio is in the On state. Idempotent.",
-        toolName: "windows_check",
+        toolName: "adact_check",
         autoSnapshot: true);
 }
 
@@ -24,7 +24,7 @@ internal static class UncheckCommand
     public static Command Build() => RefOnlyCommandBuilder.Build(
         name: "uncheck",
         description: "Ensure a checkbox / toggle is in the Off state. Idempotent.",
-        toolName: "windows_uncheck",
+        toolName: "adact_uncheck",
         autoSnapshot: true);
 }
 
@@ -36,7 +36,7 @@ internal static class FocusCommand
     public static Command Build() => RefOnlyCommandBuilder.Build(
         name: "focus",
         description: "Set keyboard focus to the element identified by ref.",
-        toolName: "windows_focus",
+        toolName: "adact_focus",
         autoSnapshot: false);
 }
 
@@ -47,8 +47,8 @@ internal static class ClearCommand
     /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build() => RefOnlyCommandBuilder.Build(
         name: "clear",
-        description: "Clear the value of an input element (windows_fill with empty string).",
-        toolName: "windows_clear",
+        description: "Clear the value of an input element (adact_fill with empty string).",
+        toolName: "adact_clear",
         autoSnapshot: true);
 }
 
@@ -60,6 +60,6 @@ internal static class ScrollIntoViewCommand
     public static Command Build() => RefOnlyCommandBuilder.Build(
         name: "scroll",
         description: "Scroll the element into view using ScrollItemPattern.",
-        toolName: "windows_scroll_into_view",
+        toolName: "adact_scroll",
         autoSnapshot: false);
 }

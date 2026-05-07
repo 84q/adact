@@ -91,7 +91,7 @@ s1	true
 s2	false	CLOSE_FAILED
 ```
 
-ただし `windows_close_all` のレスポンス自体が malformed (`results` が無い/配列でない等) の場合は、TSV ではなく `INTERNAL_ERROR` の yaml失敗出力にします。
+ただし `adact_close_all` のレスポンス自体が malformed (`results` が無い/配列でない等) の場合は、TSV ではなく `INTERNAL_ERROR` の yaml失敗出力にします。
 
 ## MCP tool error
 

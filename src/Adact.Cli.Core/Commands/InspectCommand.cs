@@ -45,7 +45,7 @@ internal static class InspectCommand
         return cmd;
     }
 
-    /// <summary><c>windows_inspect</c> を呼び、結果 JSON を 1 行で stdout に出力する。</summary>
+    /// <summary><c>adact_inspect</c> を呼び、結果 JSON を 1 行で stdout に出力する。</summary>
     /// <param name="client">接続済み MCP クライアント。</param>
     /// <param name="refValue">対象 Element Ref。</param>
     /// <param name="ct">cancellation token。</param>
@@ -53,7 +53,7 @@ internal static class InspectCommand
     private static async Task<int> ExecuteAsync(IAdactMcpClient client, string refValue, CancellationToken ct)
     {
         var args = new Dictionary<string, object?> { ["ref"] = refValue };
-        var result = await client.CallToolAsync("windows_inspect", args, ct).ConfigureAwait(false);
+        var result = await client.CallToolAsync("adact_inspect", args, ct).ConfigureAwait(false);
 
         var errorExit = McpResponse.TryReportError(result);
         if (errorExit is { } code) return code;

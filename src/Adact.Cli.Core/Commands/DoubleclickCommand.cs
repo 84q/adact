@@ -62,7 +62,7 @@ internal static class DoubleclickCommand
             return CommandHelpers.RunWithClientAsync(
                 serverArg,
                 (client, token) => CommandHelpers.RunRefOperationAndAutoSnapshotAsync(
-                    client, "doubleclick", "windows_dblclick", args, refValue!, noSnap, dirArg, token),
+                    client, "doubleclick", "adact_doubleclick", args, refValue!, noSnap, dirArg, token),
                 ct);
         });
         return cmd;

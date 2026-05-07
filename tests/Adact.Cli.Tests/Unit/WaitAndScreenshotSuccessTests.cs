@@ -48,7 +48,7 @@ public class WaitAndScreenshotSuccessTests
         Assert.Contains("sessionId: s3", stdout);
         Assert.Contains("path: shot.png", stdout);
         var call = Assert.Single(client.Calls);
-        Assert.Equal("windows_screenshot", call.Name);
+        Assert.Equal("adact_screenshot", call.Name);
         Assert.Equal("s3e7", call.Arguments!["ref"]);
     }
 
@@ -63,7 +63,7 @@ public class WaitAndScreenshotSuccessTests
 
         Assert.Equal(ExitCodes.Success, exit);
         var call = Assert.Single(client.Calls);
-        Assert.Equal("windows_screenshot", call.Name);
+        Assert.Equal("adact_screenshot", call.Name);
         Assert.Equal("s1", call.Arguments!["sessionId"]);
         Assert.DoesNotContain("ref", call.Arguments.Keys);
     }

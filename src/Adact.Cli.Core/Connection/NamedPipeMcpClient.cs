@@ -142,7 +142,7 @@ internal sealed class NamedPipeMcpClient : IAdactMcpClient, IAsyncDisposable
     /// <summary>
     /// 指定 tool を呼び出す。<paramref name="arguments" /> が null なら引数なしで呼ぶ。
     /// </summary>
-    /// <param name="name">tool 名 (例: <c>windows_attach</c>)。</param>
+    /// <param name="name">tool 名 (例: <c>adact_attach</c>)。</param>
     /// <param name="arguments">tool に渡すキーバリューペア。</param>
     /// <param name="cancellationToken">cancellation token。</param>
     /// <returns>MCP <see cref="CallToolResult" />。</returns>

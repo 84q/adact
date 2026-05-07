@@ -7,7 +7,7 @@ using Xunit;
 namespace Adact.Mcp.Common.Tests.Unit;
 
 /// <summary>
-/// WindowsTools の Window 系メソッド (windows_resize / windows_minimize / windows_maximize / windows_restore)
+/// WindowsTools の Window 系メソッド (adact_resize_window / adact_minimize_window / adact_maximize_window / adact_restore_window)
 /// の引数検証および session 解決エラー (Phase 8 Step 5) を検証する Unit テスト。
 /// 実 UIA を呼ばない範囲 (引数検証 / セッション未解決) のみを対象とし、成功パスは L3 IntegrationUia /
 /// L4 Smoke で別途検証する。
@@ -42,7 +42,7 @@ public class WindowsToolsWindowTests
     }
 
     /// <summary>
-    /// width が 0 以下の場合、windows_resize は INVALID_ARGUMENT を返すことを確認する。
+    /// width が 0 以下の場合、adact_resize_window は INVALID_ARGUMENT を返すことを確認する。
     /// session 解決前に引数検証が走る契約の回帰防止。
     /// </summary>
     [Theory]
@@ -62,7 +62,7 @@ public class WindowsToolsWindowTests
     }
 
     /// <summary>
-    /// height が 0 以下の場合、windows_resize は INVALID_ARGUMENT を返すことを確認する。
+    /// height が 0 以下の場合、adact_resize_window は INVALID_ARGUMENT を返すことを確認する。
     /// </summary>
     [Theory]
     [InlineData(0)]
@@ -99,7 +99,7 @@ public class WindowsToolsWindowTests
 
     /// <summary>
     /// 有効な width/height だが active session が無く sessionId も未指定の場合、
-    /// windows_resize は NO_ACTIVE_SESSION を返すことを確認する。
+    /// adact_resize_window は NO_ACTIVE_SESSION を返すことを確認する。
     /// </summary>
     [Fact]
     public async Task Resize_ValidArgsNoActiveSession_ReturnsNoActiveSession()
@@ -115,7 +115,7 @@ public class WindowsToolsWindowTests
     }
 
     /// <summary>
-    /// active session が無く sessionId 未指定の場合、windows_minimize は NO_ACTIVE_SESSION を返すことを確認する。
+    /// active session が無く sessionId 未指定の場合、adact_minimize_window は NO_ACTIVE_SESSION を返すことを確認する。
     /// </summary>
     [Fact]
     public async Task Minimize_NoActiveSession_ReturnsNoActiveSession()
@@ -131,7 +131,7 @@ public class WindowsToolsWindowTests
     }
 
     /// <summary>
-    /// 未登録 sessionId で windows_minimize を呼ぶと NOT_FOUND を返すことを確認する。
+    /// 未登録 sessionId で adact_minimize_window を呼ぶと NOT_FOUND を返すことを確認する。
     /// </summary>
     [Fact]
     public async Task Minimize_UnknownSessionId_ReturnsNotFound()
@@ -148,7 +148,7 @@ public class WindowsToolsWindowTests
     }
 
     /// <summary>
-    /// active session が無く sessionId 未指定の場合、windows_maximize は NO_ACTIVE_SESSION を返すことを確認する。
+    /// active session が無く sessionId 未指定の場合、adact_maximize_window は NO_ACTIVE_SESSION を返すことを確認する。
     /// </summary>
     [Fact]
     public async Task Maximize_NoActiveSession_ReturnsNoActiveSession()
@@ -164,7 +164,7 @@ public class WindowsToolsWindowTests
     }
 
     /// <summary>
-    /// 未登録 sessionId で windows_maximize を呼ぶと NOT_FOUND を返すことを確認する。
+    /// 未登録 sessionId で adact_maximize_window を呼ぶと NOT_FOUND を返すことを確認する。
     /// </summary>
     [Fact]
     public async Task Maximize_UnknownSessionId_ReturnsNotFound()
@@ -180,7 +180,7 @@ public class WindowsToolsWindowTests
     }
 
     /// <summary>
-    /// active session が無く sessionId 未指定の場合、windows_restore は NO_ACTIVE_SESSION を返すことを確認する。
+    /// active session が無く sessionId 未指定の場合、adact_restore_window は NO_ACTIVE_SESSION を返すことを確認する。
     /// </summary>
     [Fact]
     public async Task Restore_NoActiveSession_ReturnsNoActiveSession()
@@ -196,7 +196,7 @@ public class WindowsToolsWindowTests
     }
 
     /// <summary>
-    /// 未登録 sessionId で windows_restore を呼ぶと NOT_FOUND を返すことを確認する。
+    /// 未登録 sessionId で adact_restore_window を呼ぶと NOT_FOUND を返すことを確認する。
     /// </summary>
     [Fact]
     public async Task Restore_UnknownSessionId_ReturnsNotFound()

@@ -57,7 +57,7 @@ internal static class ScreenshotCommand
         return cmd;
     }
 
-    /// <summary><c>windows_screenshot</c> を呼び、結果 JSON を stdout に出力する。</summary>
+    /// <summary><c>adact_screenshot</c> を呼び、結果 JSON を stdout に出力する。</summary>
     /// <param name="client">接続済み MCP クライアント。</param>
     /// <param name="refValue">ref 値。null/空ならウィンドウ全体。</param>
     /// <param name="outValue"><c>--out</c> の値。null/空ならデフォルトパス。</param>
@@ -76,7 +76,7 @@ internal static class ScreenshotCommand
         if (!string.IsNullOrEmpty(outValue)) args["out"] = outValue;
         if (!string.IsNullOrEmpty(sidValue)) args["sessionId"] = sidValue;
 
-        var result = await client.CallToolAsync("windows_screenshot", args, ct).ConfigureAwait(false);
+        var result = await client.CallToolAsync("adact_screenshot", args, ct).ConfigureAwait(false);
 
         var errorExit = McpResponse.TryReportError(result);
         if (errorExit is { } code) return code;

@@ -81,10 +81,10 @@ ADACT のテストは以下の 5 レベルに分類する。レベルが上が�
 - **テストプロジェクト**: `tests/Adact.Mcp.Http.Tests/`、`tests/Adact.Cli.Tests/` の transport / client 別 E2E
 - **起動方式**: HTTP / CLI は `adact serve` を対話 Windows session 側で起動し、client が `/mcp` に接続する
 - **クライアント SDK**: 公式 `ModelContextProtocol` C# SDK のクライアント API (`ModelContextProtocol.Client` 名前空間) を使用。生 JSON-RPC を手で組まない
-- **対象アプリの起動**: L4 と同じく test fixture 側で `Process.Start` を使う。現行実装に `launch` / `windows_launch` はない
+- **対象アプリの起動**: L4 と同じく test fixture 側で `Process.Start` を使う。現行実装に `launch` / `adact_launch` はない
 - **代表ケース**:
-  - `windows_list_apps` ツールを呼んで結果が取得できること
-  - 電卓を起動 → `windows_attach` → `windows_snapshot` → tree に Button が含まれること
+  - `adact_list_windows` ツールを呼んで結果が取得できること
+  - 電卓を起動 → `adact_attach` → `adact_snapshot` → tree に Button が含まれること
   - CLI client / HTTP daemon 経由で attach、snapshot、click などの主要フローが通ること
 - **量**: transport / client ごとの代表フローを薄く保ち、重い網羅は L1 / L2 に寄せる
 - **命名規約・Trait**: L1〜L4 と同じ (`<操作>_<前提>_<期待>` 形式、`Trait("Layer", "E2E")`)
@@ -172,7 +172,7 @@ dotnet test
 
 ## アプリ起動の扱い
 
-現行 ADACT は `launch` / `windows_launch` を提供しない。テスト準備で実アプリを起動する場合は fixture 側で `System.Diagnostics.Process.Start` を直接呼ぶ。
+現行 ADACT は `launch` / `adact_launch` を提供しない。テスト準備で実アプリを起動する場合は fixture 側で `System.Diagnostics.Process.Start` を直接呼ぶ。
 
 `launch` は Phase 8-A 候補として `docs/roadmap/phase8-and-beyond.md` に整理済み。テストコードでは現行どおり MCP ツール経由ではなく `Process.Start` を使う。
 

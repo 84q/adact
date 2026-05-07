@@ -27,7 +27,7 @@ public class AutoStartTests
             IReadOnlyDictionary<string, object?>? arguments,
             CancellationToken cancellationToken)
         {
-            if (name == "windows_list_apps")
+            if (name == "adact_list_windows")
             {
                 var json = JsonSerializer.SerializeToElement(new
                 {
@@ -51,7 +51,7 @@ public class AutoStartTests
                 });
             }
 
-            if (name == "windows_launch")
+            if (name == "adact_launch")
             {
                 var json = JsonSerializer.SerializeToElement(new { pid = 456, processName = "notepad" });
                 return ValueTask.FromResult(new CallToolResult

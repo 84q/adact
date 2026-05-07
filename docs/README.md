@@ -17,7 +17,7 @@ ADACT (AI-driven Desktop Application CLI Tools) は、AI エージェントと�
 | アーキテクチャ | [architecture/command-flows.md](architecture/command-flows.md) | CLI subcommand から MCP tool、Store、Engine、CLI 出力までの処理フロー |
 | アーキテクチャ | [architecture/snapshot-pipeline.md](architecture/snapshot-pipeline.md) | raw JSON 生成、ref 登録、CLI `.txt` snapshot 変換の詳細設計 |
 | 仕様 | [spec/cli.md](spec/cli.md) | CLI サブコマンド、共通フラグ、出力形式 |
-| 仕様 | [spec/mcp-tools.md](spec/mcp-tools.md) | MCP tools (`windows_*`, `daemon_stop`) の仕様 |
+| 仕様 | [spec/mcp-tools.md](spec/mcp-tools.md) | MCP tools (`windows_*`, `adact_daemon_stop`) の仕様 |
 | 仕様 | [spec/ref-ids.md](spec/ref-ids.md) | `windowRef` / `sessionId` / `elementRef` の形式とライフサイクル |
 | 仕様 | [spec/snapshot.md](spec/snapshot.md) | Engine/MCP raw JSON と CLI `.txt` snapshot の責務分担 |
 | 仕様 | [spec/errors-and-output.md](spec/errors-and-output.md) | exit code、stderr、stdout、MCP error の規約 |
