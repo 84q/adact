@@ -12,7 +12,6 @@
 | 4 | `.adact/config.json` 拡充 | `defaultSnapshotDir` / `outputFormat` 等、接続先以外の永続設定を追加する。 | 未実装 | `server` フィールドは完了。個人設定とリポジトリ共有設定の分離も含む。discussion/009 §3.3 参照。 |
 | 27 | 全サブコマンド自動統合テスト化 | discussion/032 で手動検証した内容（27コマンド）を自動テスト化。SampleApp を起動 → 操作 → 検証 → クリーンアップの一連を xUnit 化する。 | 未着手 | `Adact.Engine.Tests` または新規プロジェクトで実装。InteractiveTestGuard + CalculatorMutex パターンを参考に。 |
 | 26 | Skill 更新：別ウィンドウ扱いの要素説明 | ツールチップ・メニューサブメニュー・ダイアログボックス等が UIA 上で「別ウィンドウ」として snapshot に現れることを Skill に記載する。 | 未着手 | discussion/030、032 参照。Popup (`isPopup`)、Modal (`isModalDialog`) の概念を Skill の `snapshot` リファレンス等に追記。 |
-| 35 | Adact.Cli と Adact.Cli.Client の Program.cs 重複解消 | 両プロジェクトでほぼ同じサブコマンド登録コードがある。共通化またはコード生成を検討する。 | 未着手 | `BuildRoot()` の内容がほぼ同一。`LocalCommand` / `ServeCommand` / `DaemonStopCommand` の有無だけの差。 |
 | 37 | エラーコード一覧整備 | `ErrorCodes` クラスと実際のエラーメッセージの対応表を `docs/` に作成。AI やユーザーがエラーの意味を素早く理解できるようにする。 | 未着手 | `CONNECTION_FAILED`、`OPERATION_BLOCKED`、`REF_NOT_FOUND` 等の対処法を含む。 |
 | 38 | 操作履歴・ログの永続化 | 現状は操作ログが stdout/stderr のみ。`.adact/history/` にタイムスタンプ付きでログを残し、デバッグ・再現性向上に役立てる。 | 未着手 | セキュリティ考慮（パスワード等の機密情報フィルタリング）が必要。 |
 | 40 | relay コマンド| AI実行環境とテスト実行環境が遠い(直接つながっていない)場合に、途中のマシンを中継サーバとして利用するためのコマンド | 未着手 | |
@@ -47,6 +46,7 @@
 | 9 | 配布・インストール導線 | `adact` コマンド名だけで起動できるようにする。 | 完了 | .NET tool / 自己完結バイナリ / installer / wrapper 等の方式を比較して決定する。 |
 | 39 | HTTP プロキシ対応 | `http_proxy` / `https_proxy` 環境変数または `.adact/config.json` 経由で HTTP プロキシを設定できるようにする。現状は `HttpClientTransport` がデフォルト `HttpClient` を使用しており、環境変数を無視する。 | 却下 | `AdactMcpClient.cs` で `HttpClientHandler` をカスタマイズし `Proxy` プロパティを設定する必要がある。MCP SDK 1.2.0 使用。 |
 | 34 | XML ドキュメントコメント warning 解消 | `dotnet build` で毎回出る CS1574/CS1734 warning（10件以上）を解消する。同時に、今後同様の warning が発生しないように Skill またはガイドラインに記載する。 | 完了 | `SnapshotFileWriter.cs`（CS1734）、`SnapshotTreeFilter.cs`（CS1574）、`HttpHost.cs`（CS1570）等。CI 導入時に blocker になりうる。 |
+| 35 | Adact.Cli と Adact.Cli.Client の Program.cs 重複解消 | 両プロジェクトで重複していた共通サブコマンド登録を `Adact.Cli.Core` の `RootCommandRegistration` に集約した。 | 完了 | `serve` / `daemon-stop` と runtime 初期化の差分は各 Program.cs に残し、`install` / `launch` の順序差分も維持。 |
 | 36 | System.CommandLine beta5 → GA 移行 | 現在 `2.0.0-beta5.25306.1` を使用。`Recursive` 等の API が GA で確定しているか確認し、移行コストを見積もる。 | 完了 | 2.0.7 にアップデート。ビルド・Unit テストともに問題なし。 |
 | 10 | FlaUI テストコード生成 | AI が探索した操作を FlaUI を用いた自動シナリオテストとして生成する。 | 完了 | Codegen / recipes / Skill 拡張と合わせて設計。出力形式（xUnit+FlaUI 直接 or 中間シナリオ定義）と AI 探索・テスト生成の責務境界も未決定。 |
 | 21 | SampleApp 更新：close 拒否パターン | SampleApp のメイン MenuBar の File 配下に close 拒否を切り替えるチェック項目を追加し、`Closing` イベントで `close` 要求を拒否できるようにした。 | 完了 | discussion/032 参照。`MainWindow_MenuItem_File_BlockClose` を ON にするとウィンドウ close を拒否する。 |
