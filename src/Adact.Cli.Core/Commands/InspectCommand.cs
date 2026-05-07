@@ -195,9 +195,9 @@ internal static class InspectCommand
             parts.Add($"Row: {row.GetRawText()}");
         if (value.TryGetProperty("Column", out var col))
             parts.Add($"Column: {col.GetRawText()}");
-        if (value.TryGetProperty("RowSpan", out var rs) && rs.GetInt32() != 1)
+        if (value.TryGetProperty("RowSpan", out var rs) && rs.ValueKind == JsonValueKind.Number && rs.GetInt32() != 1)
             parts.Add($"RowSpan: {rs.GetRawText()}");
-        if (value.TryGetProperty("ColumnSpan", out var cs) && cs.GetInt32() != 1)
+        if (value.TryGetProperty("ColumnSpan", out var cs) && cs.ValueKind == JsonValueKind.Number && cs.GetInt32() != 1)
             parts.Add($"ColumnSpan: {cs.GetRawText()}");
 
         return parts.Count > 0 ? $"{{{string.Join(", ", parts)}}}" : null;
@@ -207,7 +207,7 @@ internal static class InspectCommand
     {
         var parts = new List<string>();
 
-        if (value.TryGetProperty("RowOrColumnMajor", out var major))
+        if (value.TryGetProperty("RowOrColumnMajor", out var major) && major.ValueKind == JsonValueKind.String)
             parts.Add($"Major: \"{major.GetString()}\"");
 
         if (value.TryGetProperty("ColumnHeaders", out var colHeaders) && colHeaders.ValueKind == JsonValueKind.Array)
