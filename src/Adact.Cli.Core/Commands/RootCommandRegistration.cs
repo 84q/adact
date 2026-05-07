@@ -47,7 +47,6 @@ internal static class RootCommandRegistration
         command.Subcommands.Add(UncheckCommand.Build());
         command.Subcommands.Add(SelectCommand.Build());
         command.Subcommands.Add(FocusCommand.Build());
-        command.Subcommands.Add(ClearCommand.Build());
         command.Subcommands.Add(ScrollIntoViewCommand.Build());
         command.Subcommands.Add(ResizeWindowCommand.Build());
         command.Subcommands.Add(MinimizeWindowCommand.Build());
@@ -60,7 +59,6 @@ internal static class RootCommandRegistration
         command.Subcommands.Add(DetachCommand.Build());
         command.Subcommands.Add(CloseWindowCommand.Build());
         command.Subcommands.Add(KillCommand.Build());
-        command.Subcommands.Add(CloseAllCommand.Build());
     }
 
     /// <summary>
