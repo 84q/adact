@@ -206,4 +206,53 @@ public class SnapshotBuilderTests
         if (node.TryGetProperty("children", out var c))
             foreach (var ch in c.EnumerateArray()) Collect(ch, refs);
     }
+
+    /// <summary>
+    /// UIA ツリー上メインウィンドウの子かつ ModalSiblings にも含まれる要素に
+    /// isModalDialog: true が設定され、_meta.modalDialog にもエントリが存在し、
+    /// 要素が重複出力されないことを確認する。FileDialog 相当のモーダル検出の回帰防止。
+    /// </summary>
+    [Fact]
+    public void Build_ModalSiblingAlsoInUiaTree_SetsIsModalDialogTrue()
+    {
+        // FileDialog を模倣: UIA ツリー上は root の子 Window だが、
+        // Win32 モーダルなので ModalSiblings にも含まれる
+        var dialog = new FakeElement
+        {
+            ControlType = "Window",
+            Name = "Open",
+            RuntimeId = new[] { 300 },
+        };
+        var button = FakeElement.Button("OK");
+        dialog.ChildList.Add(button);
+
+        var root = FakeElement.Window("Main", dialog);
+
+        var (doc, _) = Build(root, modals: new Adact.Engine.Elements.IElement[] { dialog });
+
+        var tree = doc.RootElement.GetProperty("tree");
+        var children = tree.GetProperty("children");
+
+        // dialog が 1 回だけ出力されていること（重複なし）
+        var dialogNodes = new List<JsonElement>();
+        foreach (var child in children.EnumerateArray())
+        {
+            if (child.GetProperty("role").GetString() == "Window"
+                && child.TryGetProperty("name", out var n) && n.GetString() == "Open")
+            {
+                dialogNodes.Add(child);
+            }
+        }
+        Assert.Single(dialogNodes);
+
+        // isModalDialog: true が設定されていること
+        Assert.True(dialogNodes[0].GetProperty("isModalDialog").GetBoolean());
+
+        // _meta.modalDialog にエントリが存在すること
+        var meta = doc.RootElement.GetProperty("_meta");
+        Assert.True(meta.TryGetProperty("modalDialog", out var modalDialog));
+        Assert.Equal(JsonValueKind.Array, modalDialog.ValueKind);
+        Assert.Equal(1, modalDialog.GetArrayLength());
+        Assert.Equal("Open", modalDialog[0].GetProperty("title").GetString());
+    }
 }

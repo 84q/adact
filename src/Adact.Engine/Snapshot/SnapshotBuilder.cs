@@ -22,6 +22,8 @@ public sealed class SnapshotBuilder
     private readonly RefRegistry _registry;
     /// <summary>現 snapshot で既に出力済みの ref ID 集合。UWP の FindAllDescendants フラットリストによる重複を防ぐ。</summary>
     private readonly HashSet<string> _emittedRefs = new();
+    /// <summary>モーダル兄弟の RuntimeId 文字列集合。DFS 中にモーダル要素を検出して isModalDialog を付与するために使う。</summary>
+    private HashSet<string>? _modalRuntimeIds;
 
     /// <summary>新しいビルダーを <see cref="RefRegistry"/> 紐付けで初期化する。</summary>
     /// <param name="registry">snapshot 中の Ref ID 採番に使用するセッション固有レジストリ。</param>
@@ -37,6 +39,21 @@ public sealed class SnapshotBuilder
     {
         _registry.BeginSnapshot();
         _emittedRefs.Clear();
+
+        // モーダル兄弟の RuntimeId を事前収集。DFS 中に UIA ツリー上のモーダル要素を検出するために使う。
+        _modalRuntimeIds = null;
+        if (input.ModalSiblings.Count > 0)
+        {
+            var rids = new HashSet<string>();
+            foreach (var modal in input.ModalSiblings)
+            {
+                var rid = modal.RuntimeId;
+                if (rid is { Count: > 0 })
+                    rids.Add(string.Join("-", rid));
+            }
+            if (rids.Count > 0)
+                _modalRuntimeIds = rids;
+        }
 
         var maxDepth = input.Options.MaxDepth > 0 ? input.Options.MaxDepth : DefaultMaxDepth;
 
@@ -59,6 +76,18 @@ public sealed class SnapshotBuilder
                     modalSummaries.Add(new JsonObject
                     {
                         ["ref"] = modalNode["ref"]?.GetValue<string>(),
+                        ["title"] = modal.Name,
+                    });
+                }
+                else
+                {
+                    // DFS で既に isModalDialog: true として出力済み。
+                    // modalSummaries にのみ追加する。
+                    var refId = _registry.Register(modal, positionalIndex);
+                    positionalIndex++;
+                    modalSummaries.Add(new JsonObject
+                    {
+                        ["ref"] = refId,
                         ["title"] = modal.Name,
                     });
                 }
@@ -140,6 +169,16 @@ public sealed class SnapshotBuilder
         node["isKeyboardFocusable"] = el.IsKeyboardFocusable;
         node["hasKeyboardFocus"] = el.HasKeyboardFocus;
         if (el.IsSelected) node["isSelected"] = true;
+
+        // DFS 中にモーダル兄弟を発見した場合もフラグを設定
+        if (!isModalDialog && _modalRuntimeIds is not null)
+        {
+            var rid = el.RuntimeId;
+            if (rid is { Count: > 0 } && _modalRuntimeIds.Contains(string.Join("-", rid)))
+            {
+                isModalDialog = true;
+            }
+        }
         if (isModalDialog) node["isModalDialog"] = true;
         if (isPopup) node["isPopup"] = true;
 
