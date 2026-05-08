@@ -78,10 +78,10 @@ public sealed partial class WindowSession : IWindowSession
     {
         _automation = automation;
         _window = window;
-        _rootElement = rootElement ?? new FlaUiElement(window);
+        _logger = logger ?? NullLogger<WindowSession>.Instance;
+        _rootElement = rootElement ?? new FlaUiElement(window, _logger);
         _registry = new RefRegistry(sessionId);
         _gate = gate;
-        _logger = logger ?? NullLogger<WindowSession>.Instance;
         _interaction = interaction ?? new FlaUiWindowInteractionDriver(window, info.ProcessId, _logger);
         _ownsAutomation = ownsAutomation;
         _ownsGate = ownsGate;
@@ -219,7 +219,7 @@ public sealed partial class WindowSession : IWindowSession
             var el = _registry.Resolve(refId);
             try
             {
-                try { _window.Focus(); } catch { /* best effort */ }
+                try { _window.Focus(); } catch (Exception ex) { _logger.LogTrace(ex, "Focus attempt failed"); }
                 el.Click();
             }
             catch (AdactException) { throw; }
@@ -503,11 +503,11 @@ public sealed partial class WindowSession : IWindowSession
         if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0) return;
         if (_ownsAutomation)
         {
-            try { _automation.Dispose(); } catch { }
+            try { _automation.Dispose(); } catch (Exception ex) { _logger.LogTrace(ex, "Dispose failed for automation"); }
         }
         if (_ownsGate)
         {
-            try { _gate.Dispose(); } catch { }
+            try { _gate.Dispose(); } catch (Exception ex) { _logger.LogTrace(ex, "Dispose failed for gate"); }
         }
     }
 
@@ -526,7 +526,7 @@ public sealed partial class WindowSession : IWindowSession
     {
         IntPtr ownerHwnd;
         try { ownerHwnd = _window.Properties.NativeWindowHandle.ValueOrDefault; }
-        catch { return Array.Empty<IElement>(); }
+        catch (Exception ex) { _logger.LogTrace(ex, "Failed to get NativeWindowHandle for modal detection"); return Array.Empty<IElement>(); }
 
         if (ownerHwnd == IntPtr.Zero) return Array.Empty<IElement>();
 
@@ -562,7 +562,7 @@ public sealed partial class WindowSession : IWindowSession
             try
             {
                 var el = _automation.FromHandle(hwnd);
-                if (el is not null) result.Add(new FlaUiElement(el));
+                if (el is not null) result.Add(new FlaUiElement(el, _logger));
             }
             catch (Exception ex)
             {
@@ -585,7 +585,7 @@ public sealed partial class WindowSession : IWindowSession
         if (ownerHwnd == nint.Zero)
         {
             try { ownerHwnd = _window.Properties.NativeWindowHandle.ValueOrDefault; }
-            catch { return Array.Empty<IElement>(); }
+            catch (Exception ex) { _logger.LogTrace(ex, "Failed to get NativeWindowHandle for popup detection"); return Array.Empty<IElement>(); }
         }
 
         if (ownerHwnd == nint.Zero) return Array.Empty<IElement>();
@@ -634,7 +634,7 @@ public sealed partial class WindowSession : IWindowSession
             try
             {
                 var el = _automation.FromHandle(hwnd);
-                if (el is not null) result.Add(new FlaUiElement(el));
+                if (el is not null) result.Add(new FlaUiElement(el, _logger));
             }
             catch (Exception ex)
             {

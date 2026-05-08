@@ -8,6 +8,8 @@ using Adact.Engine.Exceptions;
 using FlaUI.Core.Input;
 using FlaUI.Core.WindowsAPI;
 
+using Microsoft.Extensions.Logging;
+
 namespace Adact.Engine;
 
 public sealed partial class WindowSession
@@ -296,7 +298,7 @@ public sealed partial class WindowSession
     {
         if (modifiers.Count == 0) return NoopDisposable.Instance;
         foreach (var k in modifiers) _interaction.PressKey(k);
-        return new ModifierReleaser(_interaction, modifiers);
+        return new ModifierReleaser(_interaction, modifiers, _logger);
     }
 
     /// <summary>解放時に押下中の修飾キーをすべて Release する <see cref="IDisposable"/>。</summary>
@@ -306,13 +308,17 @@ public sealed partial class WindowSession
         private readonly IWindowInteractionDriver _interaction;
         /// <summary>押下中の修飾キー列。</summary>
         private readonly IReadOnlyList<VirtualKeyShort> _keys;
+        /// <summary>診断用ロガー。</summary>
+        private readonly ILogger _logger;
         /// <summary>解放対象の修飾キー列を保持して構築する。</summary>
         /// <param name="interaction">キー操作境界。</param>
         /// <param name="keys">解放する修飾キー列。</param>
-        public ModifierReleaser(IWindowInteractionDriver interaction, IReadOnlyList<VirtualKeyShort> keys)
+        /// <param name="logger">診断用ロガー。</param>
+        public ModifierReleaser(IWindowInteractionDriver interaction, IReadOnlyList<VirtualKeyShort> keys, ILogger logger)
         {
             _interaction = interaction;
             _keys = keys;
+            _logger = logger;
         }
         /// <inheritdoc />
         public void Dispose()
@@ -320,7 +326,7 @@ public sealed partial class WindowSession
             // 押下と逆順で解放する (Win32 ベストプラクティス)。
             for (int i = _keys.Count - 1; i >= 0; i--)
             {
-                try { _interaction.ReleaseKey(_keys[i]); } catch { /* best effort */ }
+                try { _interaction.ReleaseKey(_keys[i]); } catch (Exception ex) { _logger.LogTrace(ex, "ReleaseKey failed for {Key}", _keys[i]); }
             }
         }
     }

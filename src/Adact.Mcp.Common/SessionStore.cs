@@ -49,7 +49,7 @@ public sealed class SessionStore : IDisposable
     /// <param name="ct">キャンセル トークン。</param>
     /// <returns>取得中はこれを dispose するまでロックを保持する <see cref="IDisposable"/>。</returns>
     public Task<IDisposable> AcquireAsync(CancellationToken ct)
-        => SemaphoreGuard.AcquireAsync(_lock, ct);
+        => SemaphoreGuard.AcquireAsync(_lock, _logger, ct);
 
     /// <summary>
     /// attach 成功時に session をストアへ登録し、同時にアクティブ session とする。
@@ -152,28 +152,32 @@ public sealed class SessionStore : IDisposable
     {
         /// <summary>guard が保持している semaphore。</summary>
         private readonly SemaphoreSlim _sem;
+        /// <summary>診断用ロガー。</summary>
+        private readonly ILogger _logger;
         /// <summary>二重 Release を防止するためのフラグ。</summary>
         private bool _released;
         /// <summary><see cref="AcquireAsync"/> からしか生成されないよう private。</summary>
         /// <param name="sem">取得済みの semaphore。</param>
-        private SemaphoreGuard(SemaphoreSlim sem) { _sem = sem; }
+        /// <param name="logger">診断用ロガー。</param>
+        private SemaphoreGuard(SemaphoreSlim sem, ILogger logger) { _sem = sem; _logger = logger; }
         /// <summary>
         /// semaphore を 1 スロット取得し、解放用の <see cref="IDisposable"/> を返す。
         /// </summary>
         /// <param name="sem">取得対象の semaphore。</param>
+        /// <param name="logger">診断用ロガー。</param>
         /// <param name="ct">キャンセル トークン。</param>
         /// <returns>Dispose 時に semaphore を release する guard。</returns>
-        public static async Task<IDisposable> AcquireAsync(SemaphoreSlim sem, CancellationToken ct)
+        public static async Task<IDisposable> AcquireAsync(SemaphoreSlim sem, ILogger logger, CancellationToken ct)
         {
             await sem.WaitAsync(ct).ConfigureAwait(false);
-            return new SemaphoreGuard(sem);
+            return new SemaphoreGuard(sem, logger);
         }
         /// <summary>semaphore を release する。二重呼び出しは無視される。</summary>
         public void Dispose()
         {
             if (_released) return;
             _released = true;
-            try { _sem.Release(); } catch { }
+            try { _sem.Release(); } catch (Exception ex) { _logger.LogTrace(ex, "Semaphore release failed"); }
         }
     }
 }

@@ -10,6 +10,8 @@ using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using FlaUI.Core.Patterns;
 
+using Microsoft.Extensions.Logging;
+
 namespace Adact.Engine;
 
 public sealed partial class WindowSession
@@ -327,7 +329,7 @@ public sealed partial class WindowSession
 
     /// <summary>ComboBox 等が closed の場合に Expand を試行する (失敗は無視)。</summary>
     /// <param name="el">対象 UIA 要素。</param>
-    private static void TryExpand(AutomationElement el)
+    private void TryExpand(AutomationElement el)
     {
         try
         {
@@ -339,9 +341,9 @@ public sealed partial class WindowSession
                 ec.Expand();
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // best effort
+            _logger.LogTrace(ex, "ExpandCollapse pattern failed for element");
         }
     }
 
@@ -359,10 +361,10 @@ public sealed partial class WindowSession
     /// <summary><see cref="AutomationElement.Properties"/> から Name を例外抑制で取得する。</summary>
     /// <param name="el">UIA 要素。</param>
     /// <returns>Name または空文字。</returns>
-    private static string SafeName(AutomationElement el)
+    private string SafeName(AutomationElement el)
     {
         try { return el.Properties.Name.ValueOrDefault ?? string.Empty; }
-        catch { return string.Empty; }
+        catch (Exception ex) { _logger.LogTrace(ex, "Failed to get element Name"); return string.Empty; }
     }
 
     /// <summary>name / index / itemRef のうちちょうど 1 つだけ指定されていることを検証する。</summary>

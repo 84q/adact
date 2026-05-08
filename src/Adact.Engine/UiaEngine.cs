@@ -112,7 +112,7 @@ public sealed partial class UiaEngine : IDisposable
                         _logger.LogDebug(ex, "Failed to read process start time for pid {Pid}", pid);
                     }
                 }
-                catch { }
+                catch (Exception ex) { _logger.LogTrace(ex, "Failed to get process info for pid {Pid}", pid); }
                 var title = w.Properties.Name.ValueOrDefault ?? "";
                 var ctrl = SafeControlType(w);
                 var className = w.Properties.ClassName.ValueOrDefault;
@@ -222,9 +222,9 @@ public sealed partial class UiaEngine : IDisposable
     /// </summary>
     /// <param name="el">対象要素。</param>
     /// <returns>ControlType の文字列、取得失敗時は "Unknown"。</returns>
-    private static string SafeControlType(AutomationElement el)
+    private string SafeControlType(AutomationElement el)
     {
-        try { return el.ControlType.ToString(); } catch { return "Unknown"; }
+        try { return el.ControlType.ToString(); } catch (Exception ex) { _logger.LogTrace(ex, "Failed to get ControlType"); return "Unknown"; }
     }
 
     /// <summary>空文字列を <c>null</c> に正規化する。</summary>
@@ -241,8 +241,8 @@ public sealed partial class UiaEngine : IDisposable
         {
             return;
         }
-        try { _automation.Dispose(); } catch { }
-        try { _gate.Dispose(); } catch { }
+        try { _automation.Dispose(); } catch (Exception ex) { _logger.LogTrace(ex, "Dispose failed for automation"); }
+        try { _gate.Dispose(); } catch (Exception ex) { _logger.LogTrace(ex, "Dispose failed for gate"); }
     }
 
     /// <summary>本 Engine が <see cref="Dispose"/> 済みなら <see cref="ObjectDisposedException"/> を throw する。</summary>

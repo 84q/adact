@@ -5,6 +5,8 @@ using Adact.Engine.Exceptions;
 
 using FlaUI.Core.AutomationElements;
 
+using Microsoft.Extensions.Logging;
+
 namespace Adact.Engine;
 
 public sealed partial class WindowSession
@@ -87,9 +89,9 @@ public sealed partial class WindowSession
                 current = current.Parent;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // best effort: UIA Parent 呼び出し失敗時は途中までの祖先を返す
+            _logger.LogTrace(ex, "UIA Parent traversal failed; returning partial ancestors");
         }
 
         return ancestors;
@@ -103,7 +105,7 @@ public sealed partial class WindowSession
     /// </summary>
     /// <param name="el">対象 FlaUI 要素。</param>
     /// <returns>Pattern 名 → 状態辞書 のマップ。Pattern を持たない要素では空辞書。</returns>
-    private static Dictionary<string, IReadOnlyDictionary<string, object?>> CollectPatterns(AutomationElement el)
+    private Dictionary<string, IReadOnlyDictionary<string, object?>> CollectPatterns(AutomationElement el)
     {
         var result = new Dictionary<string, IReadOnlyDictionary<string, object?>>(StringComparer.Ordinal);
 
@@ -175,7 +177,7 @@ public sealed partial class WindowSession
                 if (selected is { Length: > 0 })
                     dict["SelectedItems"] = selected.Select(e => e.Name ?? "").ToArray();
             }
-            catch { /* best effort */ }
+            catch (Exception ex) { _logger.LogTrace(ex, "Failed to get Selection.SelectedItems"); }
             return dict;
         });
 
@@ -215,14 +217,14 @@ public sealed partial class WindowSession
                 if (colHeaders is { Length: > 0 })
                     dict["ColumnHeaders"] = colHeaders.Select(e => e.Name ?? "").ToArray();
             }
-            catch { /* best effort */ }
+            catch (Exception ex) { _logger.LogTrace(ex, "Failed to get Table.ColumnHeaders"); }
             try
             {
                 var rowHeaders = p.RowHeaders.ValueOrDefault;
                 if (rowHeaders is { Length: > 0 })
                     dict["RowHeaders"] = rowHeaders.Select(e => e.Name ?? "").ToArray();
             }
-            catch { /* best effort */ }
+            catch (Exception ex) { _logger.LogTrace(ex, "Failed to get Table.RowHeaders"); }
             return dict;
         });
 
@@ -237,14 +239,14 @@ public sealed partial class WindowSession
                 if (colHeaders is { Length: > 0 })
                     dict["ColumnHeaders"] = colHeaders.Select(e => e.Name ?? "").ToArray();
             }
-            catch { /* best effort */ }
+            catch (Exception ex) { _logger.LogTrace(ex, "Failed to get TableItem.ColumnHeaders"); }
             try
             {
                 var rowHeaders = p.RowHeaderItems.ValueOrDefault;
                 if (rowHeaders is { Length: > 0 })
                     dict["RowHeaders"] = rowHeaders.Select(e => e.Name ?? "").ToArray();
             }
-            catch { /* best effort */ }
+            catch (Exception ex) { _logger.LogTrace(ex, "Failed to get TableItem.RowHeaders"); }
             return dict.Count > 0 ? dict : null;
         });
 
@@ -276,7 +278,7 @@ public sealed partial class WindowSession
                     dict["Preview"] = text.Length > 30 ? text[..30] + "..." : text;
                 }
             }
-            catch { /* best effort */ }
+            catch (Exception ex) { _logger.LogTrace(ex, "Failed to get Text.DocumentRange"); }
             return dict.Count > 0 ? dict : null;
         });
 
@@ -300,7 +302,7 @@ public sealed partial class WindowSession
     /// <param name="map">登録先マップ。</param>
     /// <param name="key">Pattern 名 (例: <c>"Toggle"</c>)。</param>
     /// <param name="getter">Pattern 状態を取得するデリゲート。Pattern 不在時は <c>null</c> を返す。</param>
-    private static void TryAdd(
+    private void TryAdd(
         Dictionary<string, IReadOnlyDictionary<string, object?>> map,
         string key,
         Func<IReadOnlyDictionary<string, object?>?> getter)
@@ -310,9 +312,9 @@ public sealed partial class WindowSession
             var v = getter();
             if (v is not null) map[key] = v;
         }
-        catch
+        catch (Exception ex)
         {
-            // best effort: pattern 取得失敗は単に「未対応」として扱う
+            _logger.LogTrace(ex, "Pattern {PatternKey} retrieval failed", key);
         }
     }
 }

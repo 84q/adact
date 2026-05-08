@@ -51,7 +51,7 @@ internal sealed class FlaUiWindowInteractionDriver : IWindowInteractionDriver
 
     public void FocusWindow()
     {
-        try { _window.Focus(); } catch { }
+        try { _window.Focus(); } catch (Exception ex) { _logger.LogTrace(ex, "Focus attempt failed"); }
     }
 
     public void TypeKey(VirtualKeyShort key) => Keyboard.Type(key);

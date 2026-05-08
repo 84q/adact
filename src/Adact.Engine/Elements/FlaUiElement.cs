@@ -1,6 +1,9 @@
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Input;
 
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace Adact.Engine.Elements;
 
 /// <summary>FlaUI の <see cref="AutomationElement"/> を <see cref="IElement"/> でラップする production 実装。</summary>
@@ -8,6 +11,8 @@ internal sealed class FlaUiElement : IElement
 {
     /// <summary>ラップしている FlaUI の UIA 要素。</summary>
     private readonly AutomationElement _el;
+    /// <summary>診断用ロガー。</summary>
+    private readonly ILogger _logger;
     /// <summary>
     /// <see cref="Children"/> の遅延キャッシュ。初回アクセス時に FlaUI で子要素を取得し、
     /// 2 回目以降は同じ list を返す (UIA 呼び出し量を抑えるため)。
@@ -16,9 +21,11 @@ internal sealed class FlaUiElement : IElement
 
     /// <summary>FlaUI の <see cref="AutomationElement"/> をラップする。</summary>
     /// <param name="el">ラップ対象の UIA 要素。</param>
-    public FlaUiElement(AutomationElement el)
+    /// <param name="logger">診断用ロガー。null の場合は <see cref="NullLogger{T}"/> を使う。</param>
+    public FlaUiElement(AutomationElement el, ILogger? logger = null)
     {
         _el = el;
+        _logger = logger ?? NullLogger<FlaUiElement>.Instance;
     }
 
     /// <summary>ラップしている FlaUI の <see cref="AutomationElement"/>。Engine 内部用 (主にテスト/診断目的)。</summary>
@@ -58,7 +65,7 @@ internal sealed class FlaUiElement : IElement
             var pattern = _el.Patterns.Value.PatternOrDefault;
             if (pattern is not null) return NullIfEmpty(pattern.Value.ValueOrDefault);
         }
-        catch { }
+        catch (Exception ex) { _logger.LogTrace(ex, "Failed to get Value pattern"); }
         return null;
     });
 
@@ -120,13 +127,14 @@ internal sealed class FlaUiElement : IElement
                         : $"fallback:{r.GetHashCode()}";
                     if (seenRuntimeIds.Add(key))
                     {
-                        list.Add(new FlaUiElement(r));
+                        list.Add(new FlaUiElement(r, _logger));
                     }
                 }
                 _children = list;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogTrace(ex, "Failed to enumerate children");
                 _children = Array.Empty<IElement>();
             }
             return _children;
@@ -146,7 +154,7 @@ internal sealed class FlaUiElement : IElement
                 return;
             }
         }
-        catch { }
+        catch (Exception ex) { _logger.LogTrace(ex, "Invoke pattern failed, falling back to Click"); }
         _el.Click();
     }
 
@@ -176,9 +184,9 @@ internal sealed class FlaUiElement : IElement
             {
                 _el.Focus();
             }
-            catch
+            catch (Exception ex)
             {
-                // Focus() が失敗しても続行
+                _logger.LogTrace(ex, "Focus attempt failed (retry {Attempt})", i);
             }
 
             Wait.UntilInputIsProcessed();
@@ -190,9 +198,9 @@ internal sealed class FlaUiElement : IElement
                     return;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // プロパティ取得に失敗しても続行
+                _logger.LogTrace(ex, "HasKeyboardFocus check failed (retry {Attempt})", i);
             }
         }
 
@@ -202,7 +210,7 @@ internal sealed class FlaUiElement : IElement
     /// <inheritdoc />
     public void Focus()
     {
-        try { _el.Focus(); } catch { /* best effort */ }
+        try { _el.Focus(); } catch (Exception ex) { _logger.LogTrace(ex, "Focus attempt failed"); }
     }
 
     /// <inheritdoc />
@@ -223,9 +231,9 @@ internal sealed class FlaUiElement : IElement
     /// <typeparam name="T">返値の型。</typeparam>
     /// <param name="f">実行するデリゲート。</param>
     /// <param name="fallback">例外時に返す値。</param>
-    private static T Safe<T>(Func<T> f, T fallback)
+    private T Safe<T>(Func<T> f, T fallback)
     {
-        try { return f(); } catch { return fallback; }
+        try { return f(); } catch (Exception ex) { _logger.LogTrace(ex, "Safe property access failed, using fallback"); return fallback; }
     }
 
     /// <summary>
@@ -235,8 +243,8 @@ internal sealed class FlaUiElement : IElement
     /// <typeparam name="T">参照型の返値型。</typeparam>
     /// <param name="f">実行するデリゲート。</param>
     /// <returns><paramref name="f"/> の戻り値。例外発生時は <c>null</c>。</returns>
-    private static T? Safe<T>(Func<T?> f) where T : class
+    private T? Safe<T>(Func<T?> f) where T : class
     {
-        try { return f(); } catch { return null; }
+        try { return f(); } catch (Exception ex) { _logger.LogTrace(ex, "Safe property access failed, returning null"); return null; }
     }
 }
