@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Adact.Engine.Snapshot;
 
 /// <summary>Ref ID 形式 <c>s&lt;sessionId&gt;e&lt;elementId&gt;</c> を組み立てる/分解するユーティリティ。</summary>
@@ -24,8 +26,9 @@ public static class RefId
         int ePos = value.IndexOf('e', 1);
         if (ePos < 0) return false;
 
-        if (!uint.TryParse(value.AsSpan(1, ePos - 1), out var s)) return false;
-        if (!uint.TryParse(value.AsSpan(ePos + 1), out var e)) return false;
+        if (!uint.TryParse(value.AsSpan(1, ePos - 1), NumberStyles.None, CultureInfo.InvariantCulture, out var s)) return false;
+        if (!uint.TryParse(value.AsSpan(ePos + 1), NumberStyles.None, CultureInfo.InvariantCulture, out var e)) return false;
+        if (s > int.MaxValue || e > int.MaxValue) return false;
         sessionId = (int)s;
         elementId = (int)e;
         return true;

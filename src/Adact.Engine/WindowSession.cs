@@ -34,6 +34,8 @@ public sealed partial class WindowSession : IWindowSession
     private readonly IWindowInteractionDriver _interaction;
     /// <summary>true のときのみ <see cref="Dispose"/> 時に <see cref="_automation"/> も Dispose する。</summary>
     private readonly bool _ownsAutomation;
+    /// <summary>true のときのみ <see cref="Dispose"/> 時に <see cref="_gate"/> も Dispose する。</summary>
+    private readonly bool _ownsGate;
     /// <summary>attach 時点にキャッシュした対象プロセスの PID。</summary>
     private readonly int _processId;
     /// <summary>attach 時点にキャッシュした対象プロセスの開始 UTC 時刻。取得不能時は null。</summary>
@@ -59,6 +61,7 @@ public sealed partial class WindowSession : IWindowSession
     /// <param name="gate">Engine と全 Session で共有される UIA 直列化 gate。</param>
     /// <param name="logger">ロガー。null の場合は <see cref="NullLogger{T}"/> を使う。</param>
     /// <param name="ownsAutomation">true の場合、本 Session の Dispose 時に <paramref name="automation"/> も Dispose する。</param>
+    /// <param name="ownsGate">true の場合、本 Session の Dispose 時に <paramref name="gate"/> も Dispose する。</param>
     /// <param name="rootElement">snapshot root。null の場合は <paramref name="window"/> を <see cref="FlaUiElement"/> でラップする。</param>
     /// <param name="interaction">keyboard / mouse / auto-wait 操作境界。null の場合は FlaUI 実装を使う。</param>
     internal WindowSession(
@@ -69,6 +72,7 @@ public sealed partial class WindowSession : IWindowSession
         SemaphoreSlim gate,
         ILogger<WindowSession>? logger = null,
         bool ownsAutomation = false,
+        bool ownsGate = false,
         IElement? rootElement = null,
         IWindowInteractionDriver? interaction = null)
     {
@@ -80,6 +84,7 @@ public sealed partial class WindowSession : IWindowSession
         _logger = logger ?? NullLogger<WindowSession>.Instance;
         _interaction = interaction ?? new FlaUiWindowInteractionDriver(window, info.ProcessId, _logger);
         _ownsAutomation = ownsAutomation;
+        _ownsGate = ownsGate;
         _processId = info.ProcessId;
         _processStartTimeUtc = info.ProcessStartTimeUtc;
         _processName = info.ProcessName;
@@ -118,7 +123,8 @@ public sealed partial class WindowSession : IWindowSession
             info: info,
             gate: new SemaphoreSlim(1, 1),
             logger: null,
-            ownsAutomation: false);
+            ownsAutomation: false,
+            ownsGate: true);
 
     /// <summary>
     /// テスト専用: FlaUI に依存しない root element を持つ最小限の <see cref="WindowSession"/> を生成する。
@@ -142,6 +148,7 @@ public sealed partial class WindowSession : IWindowSession
             gate: new SemaphoreSlim(1, 1),
             logger: null,
             ownsAutomation: false,
+            ownsGate: true,
             rootElement: rootElement,
             interaction: interaction ?? new NoopWindowInteractionDriver());
 
@@ -497,6 +504,10 @@ public sealed partial class WindowSession : IWindowSession
         if (_ownsAutomation)
         {
             try { _automation.Dispose(); } catch { }
+        }
+        if (_ownsGate)
+        {
+            try { _gate.Dispose(); } catch { }
         }
     }
 

@@ -328,4 +328,48 @@ public class WindowRefStoreTests
         Assert.True(store.TryFindByKey(liveKey, out _));
         Assert.False(store.TryResolve(expired.WindowRef, out _));
     }
+
+    /// <summary>
+    /// 複数タスクから同時に SyncOrAssign してもすべて一意の windowRef が割り当てられることを確認する。
+    /// </summary>
+    [Fact]
+    public async Task SyncOrAssign_ConcurrentAccess_AllRefsUnique()
+    {
+        var store = new WindowRefStore();
+        const int count = 100;
+
+        var results = new WindowRefEntry[count];
+        var tasks = Enumerable.Range(0, count).Select(i => Task.Run(() =>
+        {
+            var k = Key(1000 + i, (nint)(0x1000 + i));
+            var info = Info(1000 + i, (nint)(0x1000 + i));
+            results[i] = store.SyncOrAssign(k, info);
+        })).ToArray();
+        await Task.WhenAll(tasks);
+
+        var refs = results.Select(r => r.WindowRef).ToHashSet();
+        Assert.Equal(count, refs.Count);
+    }
+
+    /// <summary>
+    /// 複数タスクから同一キーで同時に SyncOrAssign すると同じ windowRef が返ることを確認する。
+    /// </summary>
+    [Fact]
+    public async Task SyncOrAssign_ConcurrentDuplicateKey_ReturnsSameRef()
+    {
+        var store = new WindowRefStore();
+        var k = Key(100, 0x1000);
+        var info = Info(100, 0x1000);
+        const int count = 100;
+
+        var results = new WindowRefEntry[count];
+        var tasks = Enumerable.Range(0, count).Select(i => Task.Run(() =>
+        {
+            results[i] = store.SyncOrAssign(k, info);
+        })).ToArray();
+        await Task.WhenAll(tasks);
+
+        var distinctRefs = results.Select(r => r.WindowRef).Distinct().ToList();
+        Assert.Single(distinctRefs);
+    }
 }

@@ -28,6 +28,7 @@ public class ToolErrorsTests
         yield return [new KillFailedException("kill failed"), ToolErrors.KillFailed];
         yield return [new LaunchFailedException("launch failed"), ToolErrors.LaunchFailed];
         yield return [new WaitTimeoutException("wait timed out"), ToolErrors.WaitTimeout];
+        yield return [new OperationBlockedException("desktop locked", new InvalidOperationException("inner")), ToolErrors.OperationBlocked];
     }
 
     /// <summary>

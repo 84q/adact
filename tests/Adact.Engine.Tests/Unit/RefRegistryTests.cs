@@ -153,4 +153,51 @@ public class RefRegistryTests
         Assert.True(RefId.TryParse(s, out var sid, out var eid));
         Assert.Equal((3, 42), (sid, eid));
     }
+
+    /// <summary>
+    /// TryParse が不正・境界入力に対して正しく false を返すか、パース結果が仕様通りかを確認する。
+    /// </summary>
+    [Theory]
+    [InlineData("s-1e2", false, 0, 0)]
+    [InlineData("s1 e2", false, 0, 0)]
+    [InlineData("s1e2x", false, 0, 0)]
+    [InlineData("se1", false, 0, 0)]
+    [InlineData("s1e", false, 0, 0)]
+    [InlineData(null, false, 0, 0)]
+    [InlineData("", false, 0, 0)]
+    [InlineData("S1E2", false, 0, 0)]
+    public void TryParse_InvalidInputs_ReturnsFalse(string? value, bool expectedResult, int expectedSid, int expectedEid)
+    {
+        var result = RefId.TryParse(value!, out var sid, out var eid);
+        Assert.Equal(expectedResult, result);
+        Assert.Equal(expectedSid, sid);
+        Assert.Equal(expectedEid, eid);
+    }
+
+    /// <summary>
+    /// uint 範囲内だが int.MaxValue を超える値は TryParse で拒否されることを確認する。
+    /// </summary>
+    [Theory]
+    [InlineData("s2147483648e1")]  // int.MaxValue + 1 for sessionId
+    [InlineData("s1e2147483648")]  // int.MaxValue + 1 for elementId
+    [InlineData("s4294967295e1")]  // uint.MaxValue for sessionId
+    public void TryParse_OverflowBoundary_ReturnsFalse(string value)
+    {
+        var result = RefId.TryParse(value, out var sid, out var eid);
+        Assert.False(result);
+        Assert.Equal(0, sid);
+        Assert.Equal(0, eid);
+    }
+
+    /// <summary>
+    /// 先頭ゼロを含む数値は uint.TryParse が許容するため TryParse 成功する。
+    /// </summary>
+    [Fact]
+    public void TryParse_LeadingZeros_Succeeds()
+    {
+        var result = RefId.TryParse("s01e02", out var sid, out var eid);
+        Assert.True(result);
+        Assert.Equal(1, sid);
+        Assert.Equal(2, eid);
+    }
 }

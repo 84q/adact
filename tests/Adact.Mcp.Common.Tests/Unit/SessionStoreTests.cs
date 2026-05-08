@@ -1,7 +1,5 @@
 using Adact.Engine;
 
-using System.Reflection;
-
 using Xunit;
 
 namespace Adact.Mcp.Common.Tests.Unit;
@@ -182,23 +180,63 @@ public class SessionStoreTests
     /// SessionStore.Dispose は利用中の UiaEngine を破棄せず、所有権を呼び出し側へ残すことを確認する。
     /// </summary>
     [Fact]
-    public void Dispose_DoesNotDisposeEngine()
+    public async Task Dispose_DoesNotDisposeEngine()
     {
         var engine = new UiaEngine();
         var store = new SessionStore(engine);
 
         store.Dispose();
 
-        Assert.Equal(0, ReadDisposedFlag(engine));
+        // Engine が Dispose されていなければ ThrowIfDisposed() を通過する。
+        // ListWindowsAsync は ThrowIfDisposed() を最初に呼ぶため、
+        // ObjectDisposedException が出なければ Engine は生存している。
+        var ex = await Record.ExceptionAsync(() => engine.ListWindowsAsync());
+        Assert.False(ex is ObjectDisposedException,
+            "SessionStore.Dispose should not dispose the injected UiaEngine.");
 
         engine.Dispose();
-        Assert.Equal(1, ReadDisposedFlag(engine));
+
+        // 明示 Dispose 後は ObjectDisposedException になること。
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => engine.ListWindowsAsync());
     }
 
-    private static int ReadDisposedFlag(UiaEngine engine)
+    /// <summary>
+    /// 複数タスクから同時に Register してもすべてのセッションが登録されることを確認する。
+    /// </summary>
+    [Fact]
+    public async Task Register_ConcurrentAccess_AllSessionsRegistered()
     {
-        var field = typeof(UiaEngine).GetField("_disposed", BindingFlags.Instance | BindingFlags.NonPublic);
-        Assert.NotNull(field);
-        return (int)field!.GetValue(engine)!;
+        using var store = new SessionStore(new UiaEngine());
+        const int count = 100;
+
+        var tasks = Enumerable.Range(1, count).Select(i => Task.Run(() =>
+        {
+            store.Register(Session(i));
+        })).ToArray();
+        await Task.WhenAll(tasks);
+
+        var all = store.ListAll();
+        Assert.Equal(count, all.Count);
+    }
+
+    /// <summary>
+    /// 複数タスクから同時に TryRemove してもデータ不整合が起きないことを確認する。
+    /// </summary>
+    [Fact]
+    public async Task TryRemove_ConcurrentAccess_NoDataCorruption()
+    {
+        using var store = new SessionStore(new UiaEngine());
+        const int count = 100;
+
+        for (int i = 1; i <= count; i++)
+            store.Register(Session(i));
+
+        var tasks = Enumerable.Range(1, count).Select(i => Task.Run(() =>
+        {
+            store.TryRemove($"s{i}", out _);
+        })).ToArray();
+        await Task.WhenAll(tasks);
+
+        Assert.Empty(store.ListAll());
     }
 }
