@@ -50,6 +50,7 @@ raw JSON は次の top-level 構造です。
 | `boundingRect` | `[x, y, width, height]` |
 | `isKeyboardFocusable` | keyboard focus 可能か |
 | `hasKeyboardFocus` | focus 中か |
+| `isPopup` | popup として注入された node か |
 | `isModalDialog` | modal dialog として注入された node か |
 | `children` | child nodes |
 

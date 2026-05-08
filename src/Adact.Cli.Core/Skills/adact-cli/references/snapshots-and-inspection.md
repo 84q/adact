@@ -10,9 +10,8 @@ Use this for: `snapshot`, `inspect`, `screenshot`.
 
 ## Popup and dialog behavior in snapshots
 
-- Tooltips, menus, context menus, and dialog boxes can appear as separate top-level windows.
-- In snapshots, these popup windows are often listed near the top and layered above the main app window.
-- This is expected UIA behavior; treat popup window nodes as active interaction targets when visible.
+Popup/modal windows appear as separate top-level entries in snapshots.
+See [`popup-and-modal.md`](popup-and-modal.md) for flags, interaction patterns, and modal constraints.
 
 ## `adact inspect <ref>`
 

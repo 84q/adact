@@ -37,6 +37,9 @@ family doc that covers the command you are about to run.
 | `adact launch`         | Start a Windows process (Win32 / .NET / UWP).         | [`references/session-bootstrap.md`](references/session-bootstrap.md) |
 | `adact wait-for-window`| Wait until a top-level window appears (no attach).    | [`references/session-bootstrap.md`](references/session-bootstrap.md) |
 | `adact snapshot`       | Capture a fresh UIA snapshot of the active session.   | [`references/snapshots-and-inspection.md`](references/snapshots-and-inspection.md) |
+
+Popup menus, tooltips, and modal dialogs appear as separate windows in the snapshot with `[popup]` or `[modal]` flags.
+See [`references/popup-and-modal.md`](references/popup-and-modal.md) for identification and interaction patterns.
 | `adact inspect`        | Print detailed UIA properties of an element as JSON.  | [`references/snapshots-and-inspection.md`](references/snapshots-and-inspection.md) |
 | `adact screenshot`     | Save a PNG screenshot of the window or an element.    | [`references/snapshots-and-inspection.md`](references/snapshots-and-inspection.md) |
 | `adact click`          | Click an element identified by an element ref.        | [`references/element-actions.md`](references/element-actions.md) |
