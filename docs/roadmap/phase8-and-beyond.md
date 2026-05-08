@@ -6,7 +6,7 @@
 
 | Phase | 状態 | 内容 |
 | --- | --- | --- |
-| Phase 5 | 完了 | CLI 基本実装。`list-windows` / `attach` / `snapshot` / `click` / `fill` と lifecycle 系 (`detach` / `close-window` / `kill` / `close-all` / `daemon-stop`) を実装済み |
+| Phase 5 | 完了 | CLI 基本実装。`list-windows` / `attach` / `snapshot` / `click` / `fill` と lifecycle 系 (`detach` / `close-window` / `kill` / `daemon-stop`) を実装済み |
 | Phase 5 post-task | 完了 | Element Ref 安定化。generation なし `s<sid>e<eid>` 形式へ移行済み |
 | Phase 6 | 完了 | `adact install --skills` による Skill 機構を実装済み |
 | Phase 7 | 実装完了 / 受入一部残 | CLI snapshot `.txt` 化、MCP raw JSON 化、CLI 側 filter/formatter への責務移譲が完了 |

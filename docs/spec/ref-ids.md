@@ -30,7 +30,7 @@ ADACT は Windows UIA 要素や window を短い ref ID で参照します。ref
 | 発行 | attach 成功時に `UiaEngine` が単調増加で採番する |
 | 保持 | daemon process 内の `SessionStore` |
 | active session | 最後に attach した session が active になる |
-| 失効 | `detach` / `close-window` / `kill` / `close-all` / `daemon-stop`、または daemon process 終了 |
+| 失効 | `detach` / `close-window` / `kill` / `daemon-stop`、または daemon process 終了 |
 | 再利用 | 同じ daemon process 内では再利用しない |
 
 `adact_snapshot`, `adact_detach`, `adact_close_window`, `adact_kill` は `sessionId` を省略すると active session を使います。active session がない場合は `NO_ACTIVE_SESSION` です。

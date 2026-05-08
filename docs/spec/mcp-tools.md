@@ -24,9 +24,9 @@ CLI はこれらの MCP レスポンスをそのまま表示せず、`discussion
 | Toggle | `adact_check` / `adact_uncheck` | チェック/トグル要素を On/Off にする | `ref` | 成功時 content 空 |
 | Toggle | `adact_select` | リスト/コンボボックスの項目を選択する | `ref`, `name?` / `index?` / `itemRef?` のいずれか | 成功時 content 空 |
 | Toggle | `adact_focus` | キーボードフォーカスを移す | `ref` | 成功時 content 空 |
-| Toggle | `adact_clear` | 入力要素の値を空にする | `ref` | 成功時 content 空 |
-| Toggle | `adact_scroll` | 要素が見える位置までスクロールさせる | `ref` | 成功時 content 空 |
-| Window | `adact_resize_window` | アタッチ済みウィンドウのサイズを変更 | `width`, `height`, `sessionId?` | 成功時 content 空 |
+| Toggle | `adact_scroll_into_view` | ScrollItemPattern で要素が見える位置までスクロール | `ref` | 成功時 content 空 |
+| Toggle | `adact_scroll` | ScrollPattern でコンテナをスクロール | `ref`, `percentH?`, `percentV?`, `smallH?`, `smallV?`, `largeH?`, `largeV?` | 成功時 content 空 |
+| Window | `adact_resize_window` | アタッチ済みウィンドウのサイズを変更 | `width?`, `height?`, `sessionId?` | 成功時 content 空 |
 | Window | `adact_minimize_window` / `adact_maximize_window` / `adact_restore_window` | アタッチ済みウィンドウの状態変更 | `sessionId?` | 成功時 content 空 |
 | Inspect | `adact_inspect` | UIA プロパティ詳細を返す | `ref` | inspect JSON (詳細は後述) |
 | Inspect | `adact_screenshot` | PNG を保存する | `ref?`, `out?`, `sessionId?` | `{ sessionId, path, width, height }` |
@@ -35,9 +35,8 @@ CLI はこれらの MCP レスポンスをそのまま表示せず、`discussion
 | Lifecycle | `adact_launch` | Win32 / .NET / UWP プロセスを起動する (attach なし) | `executable`, `args?`, `cwd?`, `env?` | `{ pid, processName, executablePath }` |
 | Lifecycle | `adact_detach` | session record を解放する | `sessionId?` | `sessionId`, `detached: true` |
 | Lifecycle | `adact_close_window` | attached window を閉じ、session を解放する | `sessionId?` | `sessionId`, `closed: true`, `detached: true` |
-| Lifecycle | `adact_kill` | attached window の process を強制終了し、session を解放する | `sessionId?` | `sessionId`, `killed: true`, `detached: true` |
-| Lifecycle | `adact_close_all` | 全 attached window を close する | なし | `results[]`。session ごとに `ok` / `fail` |
-| Daemon | `adact_daemon_stop` | HTTP daemon を停止する | なし | `stopped: true` |
+| Lifecycle | `adact_kill` | attached window の process を強制終了し、session を解放する | `force?`, `timeoutMs?`, `sessionId?` | `sessionId`, `killed: true`, `detached: true`, `method` |
+| Lifecycle | `adact_daemon_stop` | HTTP daemon を停止する | なし | `stopped: true` |
 
 ## Tool 詳細
 
@@ -93,8 +92,10 @@ CLI の `adact snapshot` はこの raw JSON を受け取り、CLI 側で `operab
 | `adact_keydown` / `adact_keyup` | `key` | 単キーを press / release。修飾キーの保持にも使う |
 | `adact_check` / `adact_uncheck` | `ref` | TogglePattern または SelectionItemPattern で On/Off |
 | `adact_select` | `ref`, `name?` / `index?` / `itemRef?` | リスト要素を `name` exact match、0-based index、または直接 `itemRef` で選択。必要に応じて ExpandCollapse を Expand |
-| `adact_focus` / `adact_clear` / `adact_scroll` | `ref` | フォーカス、ValuePattern による空文字代入、ScrollItemPattern によるスクロール |
-| `adact_resize_window` | `width`, `height`, `sessionId?` | TransformPattern または Win32 でウィンドウサイズを変更 |
+| `adact_focus` | `ref` | フォーカス |
+| `adact_scroll_into_view` | `ref` | ScrollItemPattern で要素が見える位置までスクロール |
+| `adact_scroll` | `ref`, `percentH?`, `percentV?`, `smallH?`, `smallV?`, `largeH?`, `largeV?` | ScrollPattern でコンテナをスクロール |
+| `adact_resize_window` | `width?`, `height?` (片方のみ指定時はもう片方を現在値で維持), `sessionId?` | TransformPattern または Win32 でウィンドウサイズを変更 |
 | `adact_minimize_window` / `adact_maximize_window` / `adact_restore_window` | `sessionId?` | WindowPattern.SetWindowVisualState を呼ぶ |
 
 代表エラー: `INVALID_ARGUMENT`, `INVALID_REF_FORMAT`, `REF_NOT_FOUND`, `ELEMENT_INTERACTION_FAILED`, `NOT_FOUND`。
@@ -154,10 +155,7 @@ attach は行いません。起動した window に対して操作するには `
 | --- | --- | --- | --- |
 | `adact_detach` | active session | 何もしない | session record を削除 |
 | `adact_close_window` | active session | UIA `WindowPattern.Close()`、または `WM_CLOSE` fallback | 成功時 session record を削除 |
-| `adact_kill` | active session | `Process.Kill(entireProcessTree: true)` | 成功時 session record を削除 |
-| `adact_close_all` | すべて | session ごとに close | 成功した session は削除。失敗は result に残す |
-
-`adact_close_all` は一部失敗を tool error として throw せず、`results[]` に `fail` と error code を入れます。
+| `adact_kill` | active session | WM_CLOSE → 待機 → Process.Kill fallback。`force=true` で即 Kill | 成功時 session record を削除 |
 
 ### `adact_daemon_stop`
 

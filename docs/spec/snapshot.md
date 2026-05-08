@@ -134,9 +134,9 @@ ADACT は Windows アプリの UI text を扱うため、snapshot text では Un
 | 既定 directory | `.adact/` |
 | 変更 | `--snapshot-dir <dir>` |
 | 拡張子 | `.txt` |
-| 出力する CLI | `attach`, `snapshot`, および auto-snapshot 対象の操作系: `click`, `fill`, `doubleclick`, `hover`, `type`, `check`, `uncheck`, `select`, `clear`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window` |
+| 出力する CLI | `attach`, `snapshot`, および auto-snapshot 対象の操作系: `click`, `fill`, `doubleclick`, `hover`, `type`, `check`, `uncheck`, `select`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window` |
 | 出力しない CLI | 低レベル補助 (`keypress`, `mousemove`, `mousedown`, `mouseup`, `mousewheel`, `keydown`, `keyup`, `focus`, `scroll`) と取得・同期系 (`inspect`, `screenshot`, `wait-for-element`, `wait-for-window`, `launch`)。これらは成功時に snapshot を生成しない |
-| 抑止 | `--no-snapshot` を持つコマンド (`attach`, `click`, `fill`, `doubleclick`, `hover`, `type`, `check`, `uncheck`, `select`, `clear`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window`) で自動 snapshot を抑止できる |
+| 抑止 | `--no-snapshot` を持つコマンド (`attach`, `click`, `fill`, `doubleclick`, `hover`, `type`, `check`, `uncheck`, `select`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window`) で自動 snapshot を抑止できる |
 
 旧 Phase 5 では `.json` snapshot が使われていました。現行仕様では CLI snapshot file は `.txt` です。
 

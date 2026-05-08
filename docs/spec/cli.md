@@ -23,7 +23,7 @@ result: true|false
 
 | 形式 | 対象コマンド | 備考 |
 | --- | --- | --- |
-| TSV | `list-windows`, `close-all` | 先頭メタの後ろに TSV 本文 |
+| TSV | `list-windows` | 先頭メタの後ろに TSV 本文 |
 | snapshot | `snapshot` | メタに `snapshotPath`、本文に `sessionId` + 空行 + tree |
 | yaml | 上記以外の 1-shot コマンド | 先頭メタの後ろに yaml風本文 |
 | 対象外 | `serve http`, `serve pipe` | サーバとして継続実行するため統一結果フォーマットの対象外 |
@@ -43,8 +43,9 @@ result: true|false
 | Keyboard | `fill`, `type` | yaml | UI 操作。auto-snapshot 対象 |
 | Keyboard | `keypress` | yaml | 低レベルキー操作 |
 | Keyboard | `keydown`, `keyup` | yaml | 低レベルキー操作 |
-| Toggle | `check`, `uncheck`, `select`, `clear` | yaml | UI 操作。auto-snapshot 対象 |
-| Toggle | `focus`, `scroll` | yaml | 補助操作 |
+| Toggle | `check`, `uncheck`, `select` | yaml | UI 操作。auto-snapshot 対象 |
+| Toggle | `focus`, `scroll-into-view` | yaml | 補助操作 |
+| Toggle | `scroll` | yaml | ScrollPattern でコンテナをスクロール |
 | Window | `resize-window`, `minimize-window`, `maximize-window`, `restore-window` | yaml | window 状態変更。auto-snapshot 対象 |
 | Inspect | `inspect` | yaml | UIA プロパティ詳細 |
 | Inspect | `screenshot` | yaml | PNG 保存 |
@@ -52,7 +53,6 @@ result: true|false
 | Wait | `wait-for-window` | yaml | top-level window 出現待機 |
 | Lifecycle | `launch` | yaml | Win32 / .NET / UWP 起動 |
 | Lifecycle | `detach`, `close-window`, `kill` | yaml | session / window の lifecycle 操作 |
-| Lifecycle | `close-all` | TSV | 全 session の close 結果 |
 | Lifecycle | `daemon-stop` | yaml | Named Pipe daemon 停止 |
 | Install | `install --skills` | yaml | Skill ファイル展開 |
 
@@ -100,16 +100,6 @@ windowRef	sessionId	processName	processId	className	windowTitle
 w1	s1	notepad	12345	Notepad	Untitled - Notepad
 ```
 
-### `close-all` の部分失敗
-
-```text
-result: false
----
-sessionId	result	error
-s1	true	
-s2	false	CLOSE_FAILED
-```
-
 ### 共通失敗
 
 ```text
@@ -123,7 +113,7 @@ message: No active session. Call adact_attach first or specify sessionId explici
 
 `--no-snapshot` を持ち、成功時に CLI が snapshot を自動取得するコマンド:
 
-`attach`, `click`, `fill`, `doubleclick`, `hover`, `type`, `check`, `uncheck`, `select`, `clear`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window`
+`attach`, `click`, `fill`, `doubleclick`, `hover`, `type`, `check`, `uncheck`, `select`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window`
 
 - `--no-snapshot` 時は `snapshotPath` を出さない
 - `snapshot` 本文を stdout に出すのは `snapshot` コマンドだけ

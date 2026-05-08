@@ -9,7 +9,7 @@ It brings a Playwright-like snapshot/ref workflow to Windows UI Automation, so A
 - Discover top-level Windows application windows with `list-windows`
 - Attach to a window and keep a session for follow-up commands
 - Capture text snapshots of the UI tree for agent-friendly inspection
-- Act on stable element refs with commands such as `click`, `fill`, `press`, `select`, and `screenshot`
+- Act on stable element refs with commands such as `click`, `fill`, `keypress`, `select`, and `screenshot`
 - Run as a local daemon over Named Pipe or HTTP, depending on your workflow
 - Install AI coding client skill files with `adact install --skills ...`
 
@@ -79,7 +79,7 @@ Then use the CLI from another terminal:
 # 4. Perform an action on an element ref from the snapshot
 .\adact.exe click s1e12
 .\adact.exe fill s1e20 "hello from adact"
-.\adact.exe press "Ctrl+S"
+.\adact.exe keypress "Ctrl+S"
 ```
 
 If you use HTTP mode, add `--server http://127.0.0.1:41300/mcp` to client commands.

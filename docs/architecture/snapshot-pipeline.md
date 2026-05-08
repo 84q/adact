@@ -124,7 +124,7 @@ MCP tool としての `adact_snapshot` は raw JSON を返すだけです。CLI 
 
 ## CLI `WriteSnapshotResultAsync`
 
-`CommandHelpers.WriteSnapshotResultAsync()` は、`snapshot` command、`attach` 成功後の自動 snapshot、および Phase 8 で追加された auto-snapshot 対象コマンド (`click`, `fill`, `doubleclick`, `hover`, `type`, `keypress`, `check`, `uncheck`, `select`, `clear`, `mousewheel`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window`) 成功後の自動 snapshot から共通利用されます。
+`CommandHelpers.WriteSnapshotResultAsync()` は、`snapshot` command、`attach` 成功後の自動 snapshot、および Phase 8 で追加された auto-snapshot 対象コマンド (`click`, `fill`, `doubleclick`, `hover`, `type`, `keypress`, `check`, `uncheck`, `select`, `mousewheel`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window`) 成功後の自動 snapshot から共通利用されます。
 
 1. filter 未指定なら `operable` にし、`SnapshotTreeFilter.IsKnownFilter()` で `operable` / `raw` のみ許可します。
 2. `sessionId` があれば MCP `adact_snapshot` の arguments に入れ、なければ arguments なしで active session を使います。
@@ -156,7 +156,7 @@ MCP tool としての `adact_snapshot` は raw JSON を返すだけです。CLI 
 
 | 分類 | コマンド | auto-snapshot |
 | --- | --- | --- |
-| 状態変化系 | `click`, `fill`, `doubleclick`, `hover`, `type`, `keypress`, `check`, `uncheck`, `select`, `clear`, `mousewheel`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window` | あり (`--no-snapshot` で抑止可) |
+| 状態変化系 | `click`, `fill`, `doubleclick`, `hover`, `type`, `keypress`, `check`, `uncheck`, `select`, `mousewheel`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window` | あり (`--no-snapshot` で抑止可) |
 | 低レベル補助 | `mousemove`, `mousedown`, `mouseup`, `keydown`, `keyup`, `focus`, `scroll` | なし |
 | 取得・同期系 | `inspect`, `screenshot`, `wait-for-element`, `wait-for-window`, `launch` | なし |
 
@@ -176,7 +176,7 @@ MCP tool としての `adact_snapshot` は raw JSON を返すだけです。CLI 
 | ref | 所有者 | 有効範囲 | 代表的な失敗 |
 | --- | --- | --- | --- |
 | `windowRef` | `WindowRefStore` | daemon process 内。list から消えると retired | retired / unknown `w<n>` は `INVALID_WINDOW_REF` |
-| `sessionId` | `SessionStore` | attach から detach/close/kill/close-all/daemon-stop まで | unknown `s<n>` は snapshot では `INVALID_ARGUMENT`、lifecycle では `NOT_FOUND` |
+| `sessionId` | `SessionStore` | attach から detach/close/kill/daemon-stop まで | unknown `s<n>` は snapshot では `INVALID_ARGUMENT`、lifecycle では `NOT_FOUND` |
 | `elementRef` | `WindowSession.RefRegistry` | session 内。操作解決は current snapshot に存在する eid のみ | malformed / 別 session / current snapshot 不在は `REF_NOT_FOUND` |
 
 `elementRef` は sessionId を含むため、MCP `adact_click` / `adact_fill` は active session に依存しません。一方で `snapshot` と lifecycle は `sessionId` 省略時に active session を使います。

@@ -292,14 +292,6 @@ flowchart TD
 7. session 削除時は `WindowRefStore.TryFindBySessionId()` と `ClearSession()` で `windowRef` から `sessionId` の関連を外し、`WindowSession.Dispose()` します。
 8. CLI は MCP response の `sessionId` を出力し、`detached` / `closed` / `killed` などの literal 行を続けます。
 
-### `close-all`
-
-1. CLI は MCP `adact_close_all` を呼びます。
-2. `WindowsTools.CloseAllAsync()` は `SessionStore.ListAll()` の snapshot を取り、各 session に `WindowSession.CloseAsync()` を試みます。
-3. 成功した session は store から削除され、`windowRef` 関連も外されます。
-4. `CloseFailedException` は全体 error にせず、該当 session の `result=fail` として results 配列に入ります。
-5. CLI は results を header なしの TSV 風出力に変換します。1 件でも fail があれば exit 1 です。
-
 ### `daemon-stop`
 
 1. CLI は `ConnectionResolver` で接続先を解決します。

@@ -46,7 +46,7 @@ hint: <optional recovery hint>
 | 形式 | コマンド | 内容 |
 | --- | --- | --- |
 | yaml | `attach`, 操作系, lifecycle, `inspect`, `screenshot`, `wait-for-element`, `wait-for-window`, `launch`, `install`, `daemon-stop` | 先頭メタ + `---` + yaml風本文 |
-| TSV | `list-windows`, `close-all` | 先頭メタ + `---` + TSV 本文 |
+| TSV | `list-windows` | 先頭メタ + `---` + TSV 本文 |
 | snapshot | `snapshot` | `snapshotPath` をメタ、本文に `sessionId` + 空行 + tree |
 
 ### yaml 例
@@ -78,20 +78,6 @@ sessionId: s1
 
 - Window "Untitled - Notepad" [ref=s1e1]
 ```
-
-## `close-all` の例外ルール
-
-`close-all` は部分失敗時だけ例外で、`result: false` としつつ本文を TSV のまま維持します。
-
-```text
-result: false
----
-sessionId	result	error
-s1	true	
-s2	false	CLOSE_FAILED
-```
-
-ただし `adact_close_all` のレスポンス自体が malformed (`results` が無い/配列でない等) の場合は、TSV ではなく `INTERNAL_ERROR` の yaml失敗出力にします。
 
 ## MCP tool error
 
@@ -125,6 +111,7 @@ CLI client は `isError: true` を受けると stdout の yaml風エラー形式
 | `LAUNCH_FAILED` | Engine→MCP→CLI | `launch` が失敗 | 1 |
 | `WAIT_TIMEOUT` | Engine→MCP→CLI | `wait-for-element` / `wait-for-window` が timeout | 1 |
 | `CONNECTION_FAILED` | CLI | daemon に接続できない | 3 |
+| `ALREADY_RUNNING` | CLI | daemon がすでに起動中 | 2 |
 | `LOCAL_ONLY` | CLI / MCP | remote target で `daemon-stop` | 2 または 1 |
 | `OPERATION_BLOCKED` | Engine→MCP→CLI | デスクトップがロック / UAC 等で操作不能 | 1 |
 | `NO_INTERACTIVE_SESSION` | daemon 起動 | `serve` が非対話 desktop で起動された | 4 |

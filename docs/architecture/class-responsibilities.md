@@ -87,7 +87,7 @@ flowchart TB
 | `DoubleclickCommand` / `HoverCommand` | element ref、`--button` (doubleclick のみ)、`--modifier`、`--position`、auto-snapshot 系 | MCP `adact_doubleclick` / `adact_hover` | 操作後 snapshot path |
 | `MousemoveCommand` / `MousedownCommand` / `MouseupCommand` / `MousewheelCommand` | target (`s<sid>e<eid>` または `x,y`)、`--button` / `--delta-x` / `--delta-y` | MCP `adact_mousemove` / `adact_mousedown` / `adact_mouseup` / `adact_mousewheel` | mousewheel のみ snapshot、それ以外は出力なし |
 | `TypeCommand` / `KeypressCommand` / `KeydownCommand` / `KeyupCommand` | text + `--ref` / `--delay-ms` / key combo | MCP `adact_type` / `adact_keypress` / `adact_keydown` / `adact_keyup` | keypress は snapshot、keydown/keyup は出力なし |
-| `ToggleCommands` (`check` / `uncheck`) / `SelectCommand` / `ClearCommand` | `--ref`、`select` は `--name` / `--index` / `--item-ref` 排他 | MCP `adact_check` / `adact_uncheck` / `adact_select` / `adact_clear` | snapshot path |
+| `ToggleCommands` (`check` / `uncheck`) / `SelectCommand` | `--ref`、`select` は `--name` / `--index` / `--item-ref` 排他 | MCP `adact_check` / `adact_uncheck` / `adact_select` | snapshot path |
 | `RefOnlyCommandBuilder` で生成する `focus` / `scroll` | `--ref` のみ | MCP `adact_focus` / `adact_scroll` | 出力なし |
 | `ResizeWindowCommand` / `WindowStateCommandBuilder` で生成する `minimize-window` / `maximize-window` / `restore-window` | `resize-window` は `--width` / `--height`、その他は引数なし | MCP `adact_resize_window` / `adact_minimize_window` / `adact_maximize_window` / `adact_restore_window` | snapshot path |
 | `InspectCommand` | `--ref` | MCP `adact_inspect` | UIA プロパティ詳細の JSON 1 行 |
@@ -96,7 +96,6 @@ flowchart TB
 | `WaitForWindowCommand` | `--title` / `--class-name` / `--process-name` / `--exe`、`--timeout` | MCP `adact_wait_for_window` | window info JSON 1 行。attach は行わない |
 | `LaunchCommand` | `<executable>`、`--cwd`、`--env`、`-- <args>` | MCP `adact_launch` | `{ pid, processName, executablePath }` JSON 1 行。attach は行わない |
 | `DetachCommand` / `CloseWindowCommand` / `KillCommand` | `--sid`、`--server` | `LifecycleCommandImpl.ExecuteAsync()` と対応 MCP tool | `sessionId` と `detached` / `closed` / `killed` の literal 行 |
-| `CloseAllCommand` | `--server` | MCP `adact_close_all`、`FormatResults()` | session ごとの TSV 風結果。失敗があれば exit 1 |
 | `DaemonStopCommand` | `--server` | `ConnectionResolver`、localhost guard、MCP `adact_daemon_stop` | `stopped`。応答前切断も停止済みとして成功扱い |
 | `ServeCommand` | `--port` | `HttpHost.RunAsync()` | HTTP daemon の process exit code |
 | `InstallCommand` | `--skills`、`--global`、client 別 skills root path matrix、配布対象 Skill 一覧 | output 配下の `Skills/{adact-cli,adact-flaui-testgen}` 探索、各 Skill directory copy | skills root path、配布 Skill 名一覧、exit code |

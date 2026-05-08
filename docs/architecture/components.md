@@ -1,15 +1,19 @@
 # Components
 
-ADACT は 4 つの production project と 4 つの test project で構成されています。production 側は CLI、HTTP host、MCP 共通層、UIA Engine に分かれます。
+ADACT は 6 つの production project と 4 つの test project で構成されています。production 側は CLI、HTTP host、MCP 共通層、UIA Engine に分かれます。
 
 ```mermaid
 flowchart LR
 	cli[Adact.Cli]
+	cli.client[Adact.Cli.Client]
+	cli.core[Adact.Cli.Core]
 	server[Adact.Cli.Server]
 	common[Adact.Mcp.Common]
 	engine[Adact.Engine]
 	app[Windows App]
 
+	cli --> cli.core
+	cli.client --> cli.core
 	cli --> server
 	server --> common
 	common --> engine
@@ -22,7 +26,9 @@ flowchart LR
 
 | Project | 責務 | 主な型 |
 | --- | --- | --- |
-| `src/Adact.Cli/` | `adact.exe` の entry point。CLI client、`serve` 起動、Skill install、CLI 出力変換 | `Program`, `*Command`, `AdactMcpClient`, `SnapshotTextFormatter` |
+| `src/Adact.Cli/` | `adact.exe` の entry point。CLI client、`serve` 起動、Skill install、CLI 出力変換 | `Program`, `*Command` |
+| `src/Adact.Cli.Client/` | クロスプラットフォーム対応の CLI entry point | `Program` |
+| `src/Adact.Cli.Core/` | CLI コマンド、接続、出力変換の共通ライブラリ | `*Command`, `AdactMcpClient`, `ConnectionResolver`, `SnapshotTextFormatter`, `KeyValueWriter`, `TsvWriter` |
 | `src/Adact.Cli.Server/` | HTTP MCP daemon の host | `HttpHost`, `HttpDaemonControl` |
 | `src/Adact.Engine/` | FlaUI.UIA3 による Windows UIA 操作の実体 | `UiaEngine` (partial: `UiaEngine.cs`, `UiaEngine.Launch.cs`, `UiaEngine.WaitForWindow.cs`)、`WindowSession` (partial: `WindowSession.cs`, `WindowSession.{Mouse,Keyboard,Toggle,Window,Inspect,Wait,Screenshot}.cs`)、`SnapshotBuilder`, `RefRegistry`, `InteractiveSessionGuard`、Phase 8 で追加された `MouseTarget`, `WaitForState`, `WaitForElementQuery`, `WaitForResult`, `WindowSearchQuery`, `LaunchRequest`, `LaunchResult`, `InspectResult`, `ScreenshotResult` 等の値型と `Exceptions/{LaunchFailedException,WaitTimeoutException}` |
 | `src/Adact.Mcp.Common/` | MCP tool 実装と session/ref 管理 | `WindowsTools` (partial: `WindowsTools.cs`, `WindowsTools.{Mouse,Keyboard,Toggle,Window,Inspect,Wait,Launch,Screenshot}.cs`)、`SessionStore`, `WindowRefStore`, `ToolErrors` |
@@ -69,7 +75,7 @@ UIA 操作は foreground / focus / window state の影響を受けやすいた�
 | 状態 | 所有者 | ライフサイクル |
 | --- | --- | --- |
 | `windowRef` (`w<n>`) | `WindowRefStore` | daemon process 内。window が list から消えると retired になる |
-| `sessionId` (`s<n>`) | `SessionStore` | attach で作成、detach/close/kill/close-all/daemon-stop で削除 |
+| `sessionId` (`s<n>`) | `SessionStore` | attach で作成、detach/close/kill/daemon-stop で削除 |
 | `elementRef` (`s<sid>e<eid>`) | `WindowSession` の `RefRegistry` | session 内。snapshot で現 snapshot の要素に対応し、同一 RuntimeId は ref を再利用する |
 | snapshot file | CLI (`SnapshotFileWriter`) | CLI 実行時に `.adact/` または `--snapshot-dir` へ `.txt` として保存 |
 
