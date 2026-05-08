@@ -39,23 +39,25 @@ public sealed partial class WindowSession
         => SetToggleAsync(refId, ToggleState.Off, "uncheck", ct);
 
     /// <summary>
-    /// 指定要素 (List / ComboBox 等) の選択肢を、name / index / item-ref のいずれかで選択する。
+    /// 指定要素 (List / ComboBox 等) の選択肢を、SelectionTarget 配列で選択する。
     /// ComboBox が closed の場合は事前に ExpandCollapsePattern.Expand を試行する。
     /// </summary>
     /// <param name="refId">List / ComboBox 等のコンテナ要素 Ref。</param>
-    /// <param name="name">選択する子 ListItem の Name。</param>
-    /// <param name="index">0-based での選択 index。</param>
-    /// <param name="itemRef">snapshot で得た子 ListItem の Element Ref。</param>
+    /// <param name="targets">選択対象のアイテム配列。</param>
+    /// <param name="mode">選択モード (Replace / Add / Remove)。</param>
     /// <param name="ct">キャンセルトークン。</param>
     /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
-    /// <exception cref="ArgumentException">3 つの選択指定がいずれも未指定 / 複数指定の場合。</exception>
+    /// <exception cref="ArgumentException">targets が空の場合。</exception>
     /// <exception cref="RefNotFoundException">ref が解決できない場合。</exception>
+    /// <exception cref="InvalidOperationException">Add/Remove モードで CanSelectMultiple=false の場合。</exception>
     /// <exception cref="ElementInteractionException">SelectionItemPattern が無い / 子が見つからない場合。</exception>
-    public Task SelectAsync(string refId, string? name, int? index, string? itemRef, CancellationToken ct = default)
+    public Task SelectAsync(string refId, SelectionTarget[] targets, SelectionMode mode = SelectionMode.Replace, CancellationToken ct = default)
     {
         ThrowIfDisposed();
         ct.ThrowIfCancellationRequested();
-        ValidateExactlyOne(name, index, itemRef);
+        ArgumentNullException.ThrowIfNull(targets);
+        if (targets.Length == 0)
+            throw new ArgumentException("At least one selection target must be specified.", nameof(targets));
         return RunSerializedAsync(async c =>
         {
             c.ThrowIfCancellationRequested();
@@ -64,56 +66,97 @@ public sealed partial class WindowSession
             {
                 if (container is ISelectableElement selectable)
                 {
-                    var item = itemRef is not null ? _registry.Resolve(itemRef) : null;
-                    selectable.SelectItem(name, index, item);
+                    selectable.SelectItems(targets, mode);
                     return;
                 }
 
                 var inner = Inner(container);
                 TryExpand(inner);
 
-                AutomationElement? target;
-                if (itemRef is not null)
+                // Add/Remove モードでは CanSelectMultiple を事前チェック
+                if (mode is SelectionMode.Add or SelectionMode.Remove)
                 {
-                    target = Inner(_registry.Resolve(itemRef));
-                }
-                else if (index is { } idx)
-                {
-                    var children = inner.FindAllChildren();
-                    if (idx < 0 || idx >= children.Length)
+                    var selectionPattern = inner.Patterns.Selection.PatternOrDefault;
+                    if (selectionPattern is not null && !selectionPattern.CanSelectMultiple.ValueOrDefault)
                     {
-                        throw new ElementInteractionException(refId, "select",
-                            $"index {idx} is out of range (child count = {children.Length}).");
-                    }
-                    target = children[idx];
-                }
-                else
-                {
-                    var children = inner.FindAllChildren();
-                    target = children.FirstOrDefault(e => string.Equals(
-                        SafeName(e), name, StringComparison.Ordinal));
-                    if (target is null)
-                    {
-                        throw new ElementInteractionException(refId, "select",
-                            $"no child item matches name '{name}'.");
+                        throw new InvalidOperationException(
+                            "The control does not support multiple selection (CanSelectMultiple=false).");
                     }
                 }
 
-                var sel = target.Patterns.SelectionItem.PatternOrDefault;
-                if (sel is null)
+                for (int i = 0; i < targets.Length; i++)
                 {
-                    throw new ElementInteractionException(refId, "select",
-                        "target item does not support SelectionItemPattern.");
+                    var target = targets[i];
+                    AutomationElement? targetElement = ResolveTargetElement(refId, inner, target);
+
+                    var sel = targetElement.Patterns.SelectionItem.PatternOrDefault;
+                    if (sel is null)
+                    {
+                        throw new ElementInteractionException(refId, "select",
+                            "target item does not support SelectionItemPattern.");
+                    }
+
+                    switch (mode)
+                    {
+                        case SelectionMode.Replace:
+                            if (i == 0)
+                                sel.Select();
+                            else
+                                sel.AddToSelection();
+                            break;
+                        case SelectionMode.Add:
+                            sel.AddToSelection();
+                            break;
+                        case SelectionMode.Remove:
+                            sel.RemoveFromSelection();
+                            break;
+                    }
                 }
-                sel.Select();
             }
             catch (AdactException) { throw; }
+            catch (InvalidOperationException) { throw; }
             catch (Exception ex)
             {
                 throw new ElementInteractionException(refId, "select", ex.Message, ex);
             }
             await AutoWaitAfterInteractionAsync(c).ConfigureAwait(false);
         }, ct);
+    }
+
+    /// <summary>SelectionTarget から UIA AutomationElement を解決する。</summary>
+    private AutomationElement ResolveTargetElement(string refId, AutomationElement inner, SelectionTarget target)
+    {
+        return target switch
+        {
+            SelectionTarget.ByItemRef byRef => Inner(_registry.Resolve(byRef.ItemRef)),
+            SelectionTarget.ByIndex byIdx => ResolveByIndex(refId, inner, byIdx.Index),
+            SelectionTarget.ByName byName => ResolveByName(refId, inner, byName.Name),
+            _ => throw new ArgumentException($"Unknown SelectionTarget type: {target.GetType().Name}", nameof(target)),
+        };
+    }
+
+    private static AutomationElement ResolveByIndex(string refId, AutomationElement inner, int idx)
+    {
+        var children = inner.FindAllChildren();
+        if (idx < 0 || idx >= children.Length)
+        {
+            throw new ElementInteractionException(refId, "select",
+                $"index {idx} is out of range (child count = {children.Length}).");
+        }
+        return children[idx];
+    }
+
+    private AutomationElement ResolveByName(string refId, AutomationElement inner, string name)
+    {
+        var children = inner.FindAllChildren();
+        var found = children.FirstOrDefault(e => string.Equals(
+            SafeName(e), name, StringComparison.Ordinal));
+        if (found is null)
+        {
+            throw new ElementInteractionException(refId, "select",
+                $"no child item matches name '{name}'.");
+        }
+        return found;
     }
 
     /// <summary>
@@ -367,19 +410,4 @@ public sealed partial class WindowSession
         catch (Exception ex) { _logger.LogTrace(ex, "Failed to get element Name"); return string.Empty; }
     }
 
-    /// <summary>name / index / itemRef のうちちょうど 1 つだけ指定されていることを検証する。</summary>
-    /// <param name="name">指定された Name。</param>
-    /// <param name="index">指定された 0-based index。</param>
-    /// <param name="itemRef">指定された子 Element Ref。</param>
-    /// <exception cref="ArgumentException">指定数が 1 でない場合。</exception>
-    private static void ValidateExactlyOne(string? name, int? index, string? itemRef)
-    {
-        int count = (name is not null ? 1 : 0) + (index.HasValue ? 1 : 0) + (itemRef is not null ? 1 : 0);
-        if (count != 1)
-        {
-            throw new ArgumentException(
-                "select requires exactly one of 'name', 'index' or 'itemRef'.",
-                nameof(name));
-        }
-    }
 }

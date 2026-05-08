@@ -166,6 +166,9 @@ public sealed partial class WindowsTools
         CancellationToken ct = default)
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
+        if (deltaX == 0 && deltaY == 0)
+            return ToolErrors.Error(ToolErrors.InvalidArgument,
+                "At least one of deltaX or deltaY must be non-zero.");
         try
         {
             if (deltaY != 0)

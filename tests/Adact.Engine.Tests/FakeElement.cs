@@ -1,3 +1,4 @@
+using Adact.Engine;
 using Adact.Engine.Elements;
 
 namespace Adact.Engine.Tests;
@@ -34,6 +35,8 @@ internal sealed class FakeElement : IElement, ICheckableElement, ISelectableElem
     public string? LastSelectedName { get; private set; }
     public int? LastSelectedIndex { get; private set; }
     public IElement? LastSelectedItem { get; private set; }
+    public SelectionTarget[]? LastSelectedTargets { get; private set; }
+    public SelectionMode LastSelectionMode { get; private set; }
     public int ScrollIntoViewCount { get; private set; }
 
     public void Click() => ClickCount++;
@@ -45,11 +48,27 @@ internal sealed class FakeElement : IElement, ICheckableElement, ISelectableElem
         LastSetChecked = isChecked;
     }
 
-    public void SelectItem(string? name, int? index, IElement? item)
+    public void SelectItems(SelectionTarget[] targets, SelectionMode mode)
     {
-        LastSelectedName = name;
-        LastSelectedIndex = index;
-        LastSelectedItem = item;
+        LastSelectedTargets = targets;
+        LastSelectionMode = mode;
+        // 後方互換: 最初の target の情報を旧フィールドにも設定
+        if (targets.Length > 0)
+        {
+            switch (targets[0])
+            {
+                case SelectionTarget.ByName byName:
+                    LastSelectedName = byName.Name;
+                    LastSelectedIndex = null;
+                    LastSelectedItem = null;
+                    break;
+                case SelectionTarget.ByIndex byIndex:
+                    LastSelectedName = null;
+                    LastSelectedIndex = byIndex.Index;
+                    LastSelectedItem = null;
+                    break;
+            }
+        }
     }
 
     public void ScrollIntoView() => ScrollIntoViewCount++;

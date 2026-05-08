@@ -74,7 +74,7 @@ public class CommandValidationTests
     }
 
     [Fact]
-    public async Task Select_MultipleSelectorSpecified_ReturnsUserError()
+    public async Task Select_MultipleSelectorKinds_ReturnsUserError()
     {
         var (_, _, exit) = await RunAsync(SelectCommand.Build(), ["select", "s1e2", "--name", "A", "--index", "0"]);
         Assert.Equal(ExitCodes.UserError, exit);
@@ -87,6 +87,13 @@ public class CommandValidationTests
         Assert.Equal(ExitCodes.UserError, exit);
     }
 
+    [Fact]
+    public async Task Select_AddAndRemove_ReturnsUserError()
+    {
+        var (_, _, exit) = await RunAsync(SelectCommand.Build(), ["select", "s1e2", "--name", "A", "--add", "--remove"]);
+        Assert.Equal(ExitCodes.UserError, exit);
+    }
+
     // --- TypeCommand ---
 
     [Theory]
@@ -95,6 +102,22 @@ public class CommandValidationTests
     public async Task Type_InvalidRefFormat_ReturnsUserError(string badRef)
     {
         var (_, _, exit) = await RunAsync(TypeCommand.Build(), ["type", badRef, "hello"]);
+        Assert.Equal(ExitCodes.UserError, exit);
+    }
+
+    // --- MousewheelCommand ---
+
+    [Fact]
+    public async Task Mousewheel_BothDeltaZero_ReturnsUserError()
+    {
+        var (_, _, exit) = await RunAsync(MousewheelCommand.Build(), ["mousewheel", "--delta-x", "0", "--delta-y", "0"]);
+        Assert.Equal(ExitCodes.UserError, exit);
+    }
+
+    [Fact]
+    public async Task Mousewheel_NoDeltaSpecified_ReturnsUserError()
+    {
+        var (_, _, exit) = await RunAsync(MousewheelCommand.Build(), ["mousewheel"]);
         Assert.Equal(ExitCodes.UserError, exit);
     }
 

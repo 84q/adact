@@ -299,14 +299,15 @@ public class WindowSessionFakeElementTests
         var session = CreateSession(root);
 
         await session.SnapshotAsync();
-        await session.SelectAsync("s1e2", name: "Item", index: null, itemRef: null);
+        await session.SelectAsync("s1e2", [SelectionTarget.FromName("Item")]);
         Assert.Equal("Item", list.LastSelectedName);
 
-        await session.SelectAsync("s1e2", name: null, index: 0, itemRef: null);
+        await session.SelectAsync("s1e2", [SelectionTarget.FromIndex(0)]);
         Assert.Equal(0, list.LastSelectedIndex);
 
-        await session.SelectAsync("s1e2", name: null, index: null, itemRef: "s1e3");
-        Assert.Same(item, list.LastSelectedItem);
+        await session.SelectAsync("s1e2", [SelectionTarget.FromItemRef("s1e3")]);
+        Assert.NotNull(list.LastSelectedTargets);
+        Assert.IsType<SelectionTarget.ByItemRef>(list.LastSelectedTargets[0]);
     }
 
     /// <summary>

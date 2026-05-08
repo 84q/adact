@@ -43,7 +43,7 @@ public class WindowsToolsLifecycleTests
         public Task MouseWheelAsync(MouseTarget target, int deltaX, int deltaY, CancellationToken ct = default) => throw new NotSupportedException();
         public Task CheckAsync(string refId, CancellationToken ct = default) => throw new NotSupportedException();
         public Task UncheckAsync(string refId, CancellationToken ct = default) => throw new NotSupportedException();
-        public Task SelectAsync(string refId, string? name, int? index, string? itemRef, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task SelectAsync(string refId, SelectionTarget[] targets, SelectionMode mode = SelectionMode.Replace, CancellationToken ct = default) => throw new NotSupportedException();
         public Task FocusAsync(string refId, CancellationToken ct = default) => throw new NotSupportedException();
         public Task ScrollIntoViewAsync(string refId, CancellationToken ct = default) => throw new NotSupportedException();
         public Task ScrollAsync(string refId, ScrollMode mode, CancellationToken ct = default) => throw new NotSupportedException();

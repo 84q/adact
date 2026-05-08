@@ -72,7 +72,7 @@ public interface IWindowSession : IDisposable
     Task UncheckAsync(string refId, CancellationToken ct = default);
 
     /// <summary>list / combobox の item を選択する。</summary>
-    Task SelectAsync(string refId, string? name, int? index, string? itemRef, CancellationToken ct = default);
+    Task SelectAsync(string refId, SelectionTarget[] targets, SelectionMode mode = SelectionMode.Replace, CancellationToken ct = default);
 
     /// <summary>要素へ keyboard focus を移す。</summary>
     Task FocusAsync(string refId, CancellationToken ct = default);

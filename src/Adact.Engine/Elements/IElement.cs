@@ -76,10 +76,9 @@ public interface ICheckableElement
 public interface ISelectableElement
 {
     /// <summary>選択する。</summary>
-    /// <param name="name">選択名。</param>
-    /// <param name="index">選択 index。</param>
-    /// <param name="item">選択 item。</param>
-    void SelectItem(string? name, int? index, IElement? item);
+    /// <param name="targets">選択対象。</param>
+    /// <param name="mode">選択モード。</param>
+    void SelectItems(SelectionTarget[] targets, SelectionMode mode);
 }
 
 /// <summary>ScrollIntoView 操作を fake 可能にする任意 capability。</summary>

@@ -6,6 +6,7 @@ namespace Adact.Cli.Commands;
 
 /// <summary>
 /// <c>select</c> コマンド。List/ComboBox の選択肢を <c>--name</c> / <c>--index</c> / <c>--item-ref</c> のいずれかで選ぶ (auto-snapshot あり)。
+/// 複数指定可能。<c>--add</c> / <c>--remove</c> フラグで選択モードを変更。
 /// </summary>
 internal static class SelectCommand
 {
@@ -17,26 +18,32 @@ internal static class SelectCommand
         {
             Description = "Element Ref ID of the container (List, ComboBox).",
         };
-        var name = new Option<string?>("--name") { Description = "Name of the child item to select." };
-        var index = new Option<int?>("--index") { Description = "0-based index of the child item to select." };
-        var itemRef = new Option<string?>("--item-ref") { Description = "Element ref of the child ListItem to select." };
+        var name = new Option<string[]>("--name") { Description = "Name(s) of the child item(s) to select.", AllowMultipleArgumentsPerToken = true };
+        var index = new Option<int[]>("--index") { Description = "0-based index(es) of the child item(s) to select.", AllowMultipleArgumentsPerToken = true };
+        var itemRef = new Option<string[]>("--item-ref") { Description = "Element ref(s) of the child ListItem(s) to select.", AllowMultipleArgumentsPerToken = true };
+        var addFlag = new Option<bool>("--add") { Description = "Add to existing selection instead of replacing it." };
+        var removeFlag = new Option<bool>("--remove") { Description = "Remove from existing selection." };
         var noSnapshot = OperationOptions.NoSnapshot();
         var snapshotDir = OperationOptions.SnapshotDir();
 
-        var cmd = new Command("select", "Select an item in a list/combobox by name, index, or item-ref.");
+        var cmd = new Command("select", "Select item(s) in a list/combobox by name, index, or item-ref.");
         cmd.Arguments.Add(refArg);
         cmd.Options.Add(name);
         cmd.Options.Add(index);
         cmd.Options.Add(itemRef);
+        cmd.Options.Add(addFlag);
+        cmd.Options.Add(removeFlag);
         cmd.Options.Add(noSnapshot);
         cmd.Options.Add(snapshotDir);
 
         cmd.SetAction((pr, ct) =>
         {
             var refValue = pr.GetValue(refArg);
-            var nameVal = pr.GetValue(name);
-            var indexVal = pr.GetValue(index);
-            var itemRefVal = pr.GetValue(itemRef);
+            var nameVal = pr.GetValue(name) ?? [];
+            var indexVal = pr.GetValue(index) ?? [];
+            var itemRefVal = pr.GetValue(itemRef) ?? [];
+            var addVal = pr.GetValue(addFlag);
+            var removeVal = pr.GetValue(removeFlag);
             var noSnap = pr.GetValue(noSnapshot);
             var dirArg = pr.GetValue(snapshotDir);
             var serverArg = pr.GetValue(CommandHelpers.ServerOption);
@@ -48,24 +55,39 @@ internal static class SelectCommand
                 return Task.FromResult(ExitCodes.UserError);
             }
 
-            int specified = (nameVal is not null ? 1 : 0)
-                + (indexVal.HasValue ? 1 : 0)
-                + (itemRefVal is not null ? 1 : 0);
-            if (specified != 1)
+            // add + remove 同時指定禁止
+            if (addVal && removeVal)
                 return Task.FromResult(OperationOptions.ReportUserError(
-                    "Provide exactly one of --name, --index, or --item-ref."));
+                    "Cannot specify both --add and --remove."));
 
-            if (itemRefVal is not null && !RefValidator.IsElementRef(itemRefVal))
+            // 排他制約: 同一種類のパラメータのみ指定可能
+            int kindCount = (nameVal.Length > 0 ? 1 : 0)
+                + (indexVal.Length > 0 ? 1 : 0)
+                + (itemRefVal.Length > 0 ? 1 : 0);
+            if (kindCount == 0)
+                return Task.FromResult(OperationOptions.ReportUserError(
+                    "Provide at least one of --name, --index, or --item-ref."));
+            if (kindCount > 1)
+                return Task.FromResult(OperationOptions.ReportUserError(
+                    "Only one kind of selector (--name, --index, or --item-ref) may be specified."));
+
+            // itemRef のフォーマット検証
+            foreach (var ir in itemRefVal)
             {
-                CliError.Write(ErrorCodes.InvalidRefFormat,
-                    $"--item-ref must be in 's<sid>e<eid>' form, got '{itemRefVal}'.");
-                return Task.FromResult(ExitCodes.UserError);
+                if (!RefValidator.IsElementRef(ir))
+                {
+                    CliError.Write(ErrorCodes.InvalidRefFormat,
+                        $"--item-ref must be in 's<sid>e<eid>' form, got '{ir}'.");
+                    return Task.FromResult(ExitCodes.UserError);
+                }
             }
 
             var args = new Dictionary<string, object?> { ["ref"] = refValue };
-            if (nameVal is not null) args["name"] = nameVal;
-            if (indexVal.HasValue) args["index"] = indexVal.Value;
-            if (itemRefVal is not null) args["itemRef"] = itemRefVal;
+            if (nameVal.Length > 0) args["name"] = nameVal;
+            if (indexVal.Length > 0) args["index"] = indexVal;
+            if (itemRefVal.Length > 0) args["itemRef"] = itemRefVal;
+            if (addVal) args["add"] = true;
+            if (removeVal) args["remove"] = true;
 
             return CommandHelpers.RunWithClientAsync(
                 serverArg,

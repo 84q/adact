@@ -122,9 +122,16 @@ public class WindowsToolsActionSuccessTests
             return Task.CompletedTask;
         }
 
-        public Task SelectAsync(string refId, string? name, int? index, string? itemRef, CancellationToken ct = default)
+        public Task SelectAsync(string refId, SelectionTarget[] targets, SelectionMode mode = SelectionMode.Replace, CancellationToken ct = default)
         {
-            Calls.Add($"select:{refId}:{name}:{index}:{itemRef}");
+            var targetDesc = string.Join(",", targets.Select(t => t switch
+            {
+                SelectionTarget.ByName n => n.Name,
+                SelectionTarget.ByIndex i => i.Index.ToString(),
+                SelectionTarget.ByItemRef r => r.ItemRef,
+                _ => "?"
+            }));
+            Calls.Add($"select:{refId}:{targetDesc}:{mode}");
             return Task.CompletedTask;
         }
 
@@ -346,13 +353,13 @@ public class WindowsToolsActionSuccessTests
         {
             Assert.True((await tools.CheckAsync("s1e2")).IsError != true);
             Assert.True((await tools.UncheckAsync("s1e2")).IsError != true);
-            Assert.True((await tools.SelectAsync("s1e2", name: "Item")).IsError != true);
+            Assert.True((await tools.SelectAsync("s1e2", name: ["Item"])).IsError != true);
             Assert.True((await tools.FocusAsync("s1e2")).IsError != true);
             Assert.True((await tools.ScrollIntoViewAsync("s1e2")).IsError != true);
 
             Assert.Contains("check:s1e2", session.Calls);
             Assert.Contains("uncheck:s1e2", session.Calls);
-            Assert.Contains("select:s1e2:Item::", session.Calls);
+            Assert.Contains("select:s1e2:Item:Replace", session.Calls);
             Assert.Contains("focus:s1e2", session.Calls);
             Assert.Contains("scroll:s1e2", session.Calls);
         }
@@ -400,6 +407,106 @@ public class WindowsToolsActionSuccessTests
             Assert.Contains(action, session.Calls);
             Assert.True(session.Disposed);
             Assert.Empty(store.ListAll());
+        }
+        finally { store.Dispose(); }
+    }
+
+    /// <summary>
+    /// MouseWheel with both deltaX=0 and deltaY=0 returns INVALID_ARGUMENT.
+    /// </summary>
+    [Fact]
+    public async Task MouseWheel_BothDeltaZero_ReturnsInvalidArgument()
+    {
+        var (tools, store, _, _, _) = CreateTools();
+        try
+        {
+            var result = await tools.MouseWheelAsync(deltaY: 0, deltaX: 0);
+            Assert.True(result.IsError == true);
+            var doc = result.StructuredContent!.Value;
+            Assert.Equal(ToolErrors.InvalidArgument, doc.GetProperty("code").GetString());
+        }
+        finally { store.Dispose(); }
+    }
+
+    /// <summary>
+    /// Select with name and index simultaneously returns INVALID_ARGUMENT.
+    /// </summary>
+    [Fact]
+    public async Task Select_NameAndIndex_ReturnsInvalidArgument()
+    {
+        var (tools, store, _, _, _) = CreateTools();
+        try
+        {
+            var result = await tools.SelectAsync("s1e2", name: ["A"], index: [0]);
+            Assert.True(result.IsError == true);
+            var doc = result.StructuredContent!.Value;
+            Assert.Equal(ToolErrors.InvalidArgument, doc.GetProperty("code").GetString());
+        }
+        finally { store.Dispose(); }
+    }
+
+    /// <summary>
+    /// Select with add and remove simultaneously returns INVALID_ARGUMENT.
+    /// </summary>
+    [Fact]
+    public async Task Select_AddAndRemove_ReturnsInvalidArgument()
+    {
+        var (tools, store, _, _, _) = CreateTools();
+        try
+        {
+            var result = await tools.SelectAsync("s1e2", name: ["A"], add: true, remove: true);
+            Assert.True(result.IsError == true);
+            var doc = result.StructuredContent!.Value;
+            Assert.Equal(ToolErrors.InvalidArgument, doc.GetProperty("code").GetString());
+        }
+        finally { store.Dispose(); }
+    }
+
+    /// <summary>
+    /// Select with multiple names delegates successfully to IWindowSession.
+    /// </summary>
+    [Fact]
+    public async Task Select_MultipleNames_DelegatesToSession()
+    {
+        var (tools, store, session, _, _) = CreateTools();
+        try
+        {
+            var result = await tools.SelectAsync("s1e2", name: ["A", "B"]);
+            Assert.True(result.IsError != true);
+            Assert.Contains("select:s1e2:A,B:Replace", session.Calls);
+        }
+        finally { store.Dispose(); }
+    }
+
+    /// <summary>
+    /// Select with add flag delegates with Add mode to IWindowSession.
+    /// </summary>
+    [Fact]
+    public async Task Select_AddMode_DelegatesToSession()
+    {
+        var (tools, store, session, _, _) = CreateTools();
+        try
+        {
+            var result = await tools.SelectAsync("s1e2", name: ["C"], add: true);
+            Assert.True(result.IsError != true);
+            Assert.Contains("select:s1e2:C:Add", session.Calls);
+        }
+        finally { store.Dispose(); }
+    }
+
+    /// <summary>
+    /// Select with no selectors returns INVALID_ARGUMENT.
+    /// </summary>
+    [Fact]
+    public async Task Select_NoSelectors_ReturnsInvalidArgument()
+    {
+        var (tools, store, _, _, _) = CreateTools();
+        try
+        {
+            var result = await tools.SelectAsync("s1e2");
+            Assert.True(result.IsError == true);
+            var doc = result.StructuredContent!.Value;
+            Assert.Equal(ToolErrors.InvalidArgument, doc.GetProperty("code").GetString());
         }
         finally { store.Dispose(); }
     }

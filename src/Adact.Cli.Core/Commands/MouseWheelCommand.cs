@@ -30,6 +30,10 @@ internal static class MousewheelCommand
             var dx = pr.GetValue(deltaX);
             var serverArg = pr.GetValue(CommandHelpers.ServerOption);
 
+            if (dx == 0 && dy == 0)
+                return Task.FromResult(OperationOptions.ReportUserError(
+                    "At least one of deltaX or deltaY must be non-zero."));
+
             var args = new Dictionary<string, object?>
             {
                 ["deltaY"] = dy,

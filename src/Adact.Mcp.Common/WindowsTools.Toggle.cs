@@ -1,5 +1,6 @@
 using System.ComponentModel;
 
+using Adact.Engine;
 using Adact.Engine.Snapshot;
 
 using ModelContextProtocol.Protocol;
@@ -51,40 +52,74 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_uncheck"); }
     }
 
-    /// <summary>List / ComboBox 等の選択肢を name / index / itemRef のいずれかで選ぶ。</summary>
+    /// <summary>List / ComboBox 等の選択肢を name / index / itemRef のいずれかで選ぶ。複数指定可能。</summary>
     /// <param name="ref">コンテナ要素 ref。</param>
-    /// <param name="name">選択する子の Name。</param>
-    /// <param name="index">0-based 子インデックス。</param>
-    /// <param name="itemRef">子 ListItem の element ref。</param>
+    /// <param name="name">選択する子の Name（複数指定可能）。</param>
+    /// <param name="index">0-based 子インデックス（複数指定可能）。</param>
+    /// <param name="itemRef">子 ListItem の element ref（複数指定可能）。</param>
+    /// <param name="add">true の場合、既存選択を維持したまま追加。</param>
+    /// <param name="remove">true の場合、既存選択から除外。</param>
     /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。3 つの選択指定が 0 個または 2 個以上のときは <c>INVALID_ARGUMENT</c>。</returns>
+    /// <returns>成功時は空 content。選択指定が 0 個または混在のときは <c>INVALID_ARGUMENT</c>。</returns>
     [McpServerTool(Name = "adact_select")]
-    [Description("Select an item in a list/combobox by its Name ('name'), 0-based 'index', or child 'itemRef'. Provide exactly one.")]
+    [Description("Select items in a list/combobox by Name ('name'), 0-based 'index', or child 'itemRef'. Provide one or more of a single kind. Use 'add' to keep existing selection, 'remove' to deselect.")]
     public async Task<CallToolResult> SelectAsync(
         [Description("Ref ID of the container (List, ComboBox, etc.).")]
         string @ref,
-        [Description("Name of the child item to select.")]
-        string? name = null,
-        [Description("0-based index of the child item to select.")]
-        int? index = null,
-        [Description("Element ref of the child ListItem to select (from a recent snapshot).")]
-        string? itemRef = null,
+        [Description("Name(s) of the child item(s) to select.")]
+        string[]? name = null,
+        [Description("0-based index(es) of the child item(s) to select.")]
+        int[]? index = null,
+        [Description("Element ref(s) of the child ListItem(s) to select (from a recent snapshot).")]
+        string[]? itemRef = null,
+        [Description("When true, add to existing selection instead of replacing it.")]
+        bool add = false,
+        [Description("When true, remove from existing selection.")]
+        bool remove = false,
         CancellationToken ct = default)
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
         if (!ValidateRef(@ref, out var session, out var error)) return error!;
 
-        int specified = (name is not null ? 1 : 0) + (index.HasValue ? 1 : 0) + (itemRef is not null ? 1 : 0);
-        if (specified != 1)
+        // add + remove 同時指定禁止
+        if (add && remove)
             return ToolErrors.Error(ToolErrors.InvalidArgument,
-                "select requires exactly one of 'name', 'index', or 'itemRef'.");
+                "'add' and 'remove' cannot both be true.");
 
-        if (itemRef is not null && !RefId.TryParse(itemRef, out _, out _))
-            return ToolErrors.Error(ToolErrors.InvalidRefFormat, $"Ref ID '{itemRef}' is malformed.");
+        // 排他制約: 同一種類のパラメータのみ指定可能
+        int kindCount = (name is { Length: > 0 } ? 1 : 0) + (index is { Length: > 0 } ? 1 : 0) + (itemRef is { Length: > 0 } ? 1 : 0);
+        if (kindCount == 0)
+            return ToolErrors.Error(ToolErrors.InvalidArgument,
+                "select requires at least one of 'name', 'index', or 'itemRef'.");
+        if (kindCount > 1)
+            return ToolErrors.Error(ToolErrors.InvalidArgument,
+                "Only one kind of selector ('name', 'index', or 'itemRef') may be specified.");
+
+        // itemRef のフォーマット検証
+        if (itemRef is { Length: > 0 })
+        {
+            foreach (var ir in itemRef)
+            {
+                if (!RefId.TryParse(ir, out _, out _))
+                    return ToolErrors.Error(ToolErrors.InvalidRefFormat, $"Ref ID '{ir}' is malformed.");
+            }
+        }
+
+        // SelectionTarget[] を構築
+        SelectionTarget[] targets;
+        if (name is { Length: > 0 })
+            targets = name.Select(SelectionTarget.FromName).ToArray();
+        else if (index is { Length: > 0 })
+            targets = index.Select(SelectionTarget.FromIndex).ToArray();
+        else
+            targets = itemRef!.Select(SelectionTarget.FromItemRef).ToArray();
+
+        // SelectionMode を決定
+        var mode = add ? SelectionMode.Add : remove ? SelectionMode.Remove : SelectionMode.Replace;
 
         try
         {
-            await session!.SelectAsync(@ref, name, index, itemRef, ct).ConfigureAwait(false);
+            await session!.SelectAsync(@ref, targets, mode, ct).ConfigureAwait(false);
             return new CallToolResult { Content = [] };
         }
         catch (Exception ex) { return MapOrLog(ex, "adact_select"); }

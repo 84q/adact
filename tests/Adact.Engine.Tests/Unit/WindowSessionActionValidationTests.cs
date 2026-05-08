@@ -76,19 +76,17 @@ public class WindowSessionActionValidationTests
     }
 
     /// <summary>
-    /// Select requires exactly one selector among name, index, and itemRef.
+    /// Select requires at least one target.
     /// </summary>
     [Fact]
-    public async Task Select_InvalidSelectorCount_ThrowsArgumentException()
+    public async Task Select_EmptyTargets_ThrowsArgumentException()
     {
         var session = CreateSession();
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            session.SelectAsync("s1e1", name: null, index: null, itemRef: null));
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            session.SelectAsync("s1e1", name: "Item", index: 0, itemRef: null));
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            session.SelectAsync("s1e1", name: "Item", index: null, itemRef: "s1e2"));
+            session.SelectAsync("s1e1", []));
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            session.SelectAsync("s1e1", null!));
     }
 
     /// <summary>
@@ -103,6 +101,6 @@ public class WindowSessionActionValidationTests
         await Assert.ThrowsAsync<ObjectDisposedException>(() => session.PressAsync("Enter"));
         await Assert.ThrowsAsync<ObjectDisposedException>(() => session.TypeAsync(null, "text"));
         await Assert.ThrowsAsync<ObjectDisposedException>(() => session.MouseMoveAsync(new MouseTarget.ByPoint(1, 2)));
-        await Assert.ThrowsAsync<ObjectDisposedException>(() => session.SelectAsync("s1e1", "Item", null, null));
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => session.SelectAsync("s1e1", [SelectionTarget.FromName("Item")]));
     }
 }
