@@ -37,6 +37,9 @@ public class InstallCommandTests
     "mouse-and-keyboard",
     "selection-and-state",
     "window-and-lifecycle",
+    "error-codes",
+    "popup-and-modal",
+    "file-dialog",
       };
 
     /// <summary>
