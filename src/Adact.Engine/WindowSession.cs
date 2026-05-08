@@ -46,8 +46,8 @@ public sealed partial class WindowSession : IWindowSession
     private readonly nint _nativeWindowHandle;
     /// <summary>本プロセスの Windows セッション ID。操作ブロック検知用にキャッシュする。</summary>
     private readonly int _sessionId;
-    /// <summary>本 Session が <see cref="Dispose"/> 済みなら true。</summary>
-    private bool _disposed;
+    /// <summary>本 Session が <see cref="Dispose"/> 済みなら 1。</summary>
+    private int _disposed;
 
     /// <summary>
     /// 新しい <see cref="WindowSession"/> を初期化する。<see cref="UiaEngine"/> が attach 時に呼び出す。
@@ -493,8 +493,7 @@ public sealed partial class WindowSession : IWindowSession
     /// </summary>
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
+        if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0) return;
         if (_ownsAutomation)
         {
             try { _automation.Dispose(); } catch { }
@@ -505,7 +504,7 @@ public sealed partial class WindowSession : IWindowSession
     /// <exception cref="ObjectDisposedException">本 Session が Dispose 済みの場合。</exception>
     private void ThrowIfDisposed()
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
     }
 
     /// <summary>

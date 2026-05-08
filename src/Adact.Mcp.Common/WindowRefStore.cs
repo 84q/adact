@@ -17,7 +17,7 @@ public sealed class WindowRefStore
     private readonly object _lock = new();
     /// <summary>WindowKey → エントリ。引退済みエントリも保持し、同一 HWND の復活時に番号を保つ。</summary>
     private readonly Dictionary<WindowKey, WindowRefEntry> _entries = new();
-    /// <summary>最も最近採番した <c>w&lt;n&gt;</c> の <c>n</c>。<see cref="Interlocked.Increment(ref int)"/> で採番される。</summary>
+    /// <summary>最も最近採番した <c>w&lt;n&gt;</c> の <c>n</c>。<see cref="_lock"/> 内で採番される。</summary>
     private int _nextRef;
     private readonly TimeSpan _retiredEntryTtl;
     private readonly Func<DateTimeOffset> _utcNow;
@@ -65,7 +65,7 @@ public sealed class WindowRefStore
                 return updated;
             }
 
-            var n = Interlocked.Increment(ref _nextRef);
+            var n = ++_nextRef;
             var windowRef = "w" + n.ToString(CultureInfo.InvariantCulture);
             var entry = new WindowRefEntry(windowRef, key, info, SessionId: null, Retired: false);
             _entries[key] = entry;

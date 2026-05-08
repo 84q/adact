@@ -27,7 +27,7 @@ public sealed class SessionStore : IDisposable
     /// <summary>最後に attach / register された session の ID。存在しなければ <c>null</c>。</summary>
     private string? _activeSessionId;
     /// <summary><see cref="Dispose"/> が二重呼び出されるのを防ぐフラグ。</summary>
-    private bool _disposed;
+    private int _disposed;
 
     /// <summary>
     /// 新しい <see cref="SessionStore"/> を構築する。
@@ -43,7 +43,7 @@ public sealed class SessionStore : IDisposable
     /// <summary>ストアが使用している <see cref="UiaEngine"/>。MCP ツールが list / attach を呼ぶ際に利用する。</summary>
     public UiaEngine Engine => _engine;
     /// <summary>現在のアクティブ session ID。一度も attach していないか、すべて detach 済みの場合は <c>null</c>。</summary>
-    public string? ActiveSessionId => _activeSessionId;
+    public string? ActiveSessionId => Volatile.Read(ref _activeSessionId);
 
     /// <summary>すべての MCP ツール呼び出しはこの guard を取得する (UIA 直列化)。</summary>
     /// <param name="ct">キャンセル トークン。</param>
@@ -60,7 +60,7 @@ public sealed class SessionStore : IDisposable
     {
         var id = $"s{session.SessionId}";
         _sessions[id] = session;
-        _activeSessionId = id;
+        Volatile.Write(ref _activeSessionId, id);
     }
 
     /// <summary>
@@ -84,8 +84,9 @@ public sealed class SessionStore : IDisposable
     /// <returns>アクティブ session、または <c>null</c>。</returns>
     public IWindowSession? GetActiveOrNull()
     {
-        if (_activeSessionId is null) return null;
-        return _sessions.TryGetValue(_activeSessionId, out var s) ? s : null;
+        var activeId = Volatile.Read(ref _activeSessionId);
+        if (activeId is null) return null;
+        return _sessions.TryGetValue(activeId, out var s) ? s : null;
     }
 
     /// <summary>Ref ID から sid を抽出し、対応する Session を返す。失敗時は null。</summary>
@@ -109,9 +110,9 @@ public sealed class SessionStore : IDisposable
     {
         if (_sessions.TryRemove(sessionId, out var removed))
         {
-            if (string.Equals(_activeSessionId, sessionId, StringComparison.Ordinal))
+            if (string.Equals(Volatile.Read(ref _activeSessionId), sessionId, StringComparison.Ordinal))
             {
-                _activeSessionId = null;
+                Volatile.Write(ref _activeSessionId, null);
             }
             session = removed;
             return true;
@@ -135,8 +136,7 @@ public sealed class SessionStore : IDisposable
     /// </remarks>
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
+        if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0) return;
         foreach (var s in _sessions.Values)
         {
             try { s.Dispose(); } catch (Exception ex) { _logger.LogDebug(ex, "Disposing session failed"); }
