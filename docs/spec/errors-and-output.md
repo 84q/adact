@@ -95,27 +95,27 @@ CLI client は `isError: true` を受けると stdout の yaml風エラー形式
 
 ## 代表エラーコード
 
-| Code | 層 | 典型原因 | 典型 exit |
-| --- | --- | --- | ---: |
-| `INVALID_ARGUMENT` | CLI / MCP | 引数不足、未知 filter、sessionId 不明 | 2 または 1 |
-| `INVALID_REF_FORMAT` | CLI | Element Ref が `s<sid>e<eid>` 形式ではない | 2 |
-| `INVALID_WINDOW_REF` | MCP | `w<n>` が unknown / retired | 1 |
-| `WINDOW_NOT_FOUND` | MCP | `windowRef` 解決後の HWND attach が失敗 | 1 |
-| `REF_NOT_FOUND` | MCP | Element Ref が malformed、session 不一致、現 snapshot にない | 1 |
-| `ELEMENT_INTERACTION_FAILED` | MCP | click/fill 等の UIA 操作が失敗 | 1 |
-| `SNAPSHOT_FAILED` | MCP | snapshot 構築失敗 | 1 |
-| `NO_ACTIVE_SESSION` | MCP | active session がない | 1 |
-| `NOT_FOUND` | MCP | lifecycle / wait-for 等の対象 session がない | 1 |
-| `CLOSE_FAILED` | MCP | window close 失敗 | 1 |
-| `KILL_FAILED` | MCP | process kill 失敗 | 1 |
-| `LAUNCH_FAILED` | Engine→MCP→CLI | `launch` が失敗 | 1 |
-| `WAIT_TIMEOUT` | Engine→MCP→CLI | `wait-for-element` / `wait-for-window` が timeout | 1 |
-| `CONNECTION_FAILED` | CLI | daemon に接続できない | 3 |
-| `ALREADY_RUNNING` | CLI | daemon がすでに起動中 | 2 |
-| `LOCAL_ONLY` | CLI / MCP | remote target で `daemon-stop` | 2 または 1 |
-| `OPERATION_BLOCKED` | Engine→MCP→CLI | デスクトップがロック / UAC 等で操作不能 | 1 |
-| `NO_INTERACTIVE_SESSION` | daemon 起動 | `serve` が非対話 desktop で起動された | 4 |
-| `INTERNAL_ERROR` | CLI / MCP | 予期しない内部失敗 | 1 |
+| Code | 層 | 典型原因 | 典型 exit | 対処法 |
+| --- | --- | --- | ---: | --- |
+| `INVALID_ARGUMENT` | CLI / MCP | 引数不足、未知 filter、sessionId 不明 | 2 または 1 | リファレンスを確認し、正しい引数の組合せで再実行 |
+| `INVALID_REF_FORMAT` | CLI | Element Ref が `s<sid>e<eid>` 形式ではない | 2 | 最新 snapshot から ref をそのままコピーして使用 |
+| `INVALID_WINDOW_REF` | MCP | `w<n>` が unknown / retired | 1 | `adact list-windows` を再実行し新しい `windowRef` を取得 |
+| `WINDOW_NOT_FOUND` | MCP | `windowRef` 解決後の HWND attach が失敗 | 1 | `adact list-windows` で対象ウィンドウの存在を確認 |
+| `REF_NOT_FOUND` | MCP | Element Ref が malformed、session 不一致、現 snapshot にない | 1 | `adact snapshot` で再取得し、新しい ref を使用 |
+| `ELEMENT_INTERACTION_FAILED` | MCP | click/fill 等の UIA 操作が失敗 | 1 | ウィンドウが前面にあり、コントロールが有効・表示中か確認し再試行 |
+| `SNAPSHOT_FAILED` | MCP | snapshot 構築失敗 | 1 | ウィンドウが破棄・無応答の可能性あり。re-attach して再試行 |
+| `NO_ACTIVE_SESSION` | MCP | active session がない | 1 | `adact attach` で先にセッションを確立 |
+| `NOT_FOUND` | MCP | lifecycle / wait-for 等の対象 session がない | 1 | `adact attach` でセッションを作成、または有効な `--sid` を指定 |
+| `CLOSE_FAILED` | MCP | window close 失敗 | 1 | モーダルダイアログがブロックしている可能性あり。先にダイアログを閉じて再試行 |
+| `KILL_FAILED` | MCP | process kill 失敗 | 1 | プロセスが既に終了している可能性あり。`adact list-windows` で確認 |
+| `LAUNCH_FAILED` | Engine→MCP→CLI | `launch` が失敗 | 1 | パス・PATH 名を確認。UWP は `shell:AppsFolder\<AUMID>` 形式を確認 |
+| `WAIT_TIMEOUT` | Engine→MCP→CLI | `wait-for-element` / `wait-for-window` が timeout | 1 | `--timeout` を延長、またはアプリが期待状態に到達するか確認 |
+| `CONNECTION_FAILED` | CLI | daemon に接続できない | 3 | `adact serve` で daemon を起動、または `--server <url>` を指定 |
+| `ALREADY_RUNNING` | CLI | daemon がすでに起動中 | 2 | 既存 daemon を使用するか、`adact daemon-stop` で停止してから再起動 |
+| `LOCAL_ONLY` | CLI / MCP | remote target で `daemon-stop` | 2 または 1 | daemon と同じホストでコマンドを実行 |
+| `OPERATION_BLOCKED` | Engine→MCP→CLI | デスクトップがロック / UAC 等で操作不能 | 1 | デスクトップのロック解除、UAC/システムダイアログの解消、ウィンドウの前面化 |
+| `NO_INTERACTIVE_SESSION` | daemon 起動 | `serve` が非対話 desktop で起動された | 4 | 対話デスクトップセッションで daemon を起動（サービス・SSH 不可） |
+| `INTERNAL_ERROR` | CLI / MCP | 予期しない内部失敗 | 1 | 操作を再試行。繰り返す場合は daemon を再起動 |
 
 ## 参照
 

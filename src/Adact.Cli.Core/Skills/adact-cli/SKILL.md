@@ -56,7 +56,7 @@ family doc that covers the command you are about to run.
 | `adact keyup`          | Release a single key.                                 | [`references/mouse-and-keyboard.md`](references/mouse-and-keyboard.md) |
 | `adact check`          | Ensure a checkbox / toggle / radio is On.             | [`references/selection-and-state.md`](references/selection-and-state.md) |
 | `adact uncheck`        | Ensure a checkbox / toggle is Off.                    | [`references/selection-and-state.md`](references/selection-and-state.md) |
-| `adact select`         | Select a list / combo-box item by name / index / ref. | [`references/selection-and-state.md`](references/selection-and-state.md) |
+| `adact select`         | Select item(s) in a list/combo-box by name / index / ref. Supports `--add` / `--remove` for multi-select. | [`references/selection-and-state.md`](references/selection-and-state.md) |
 | `adact wait-for-element` | Wait until an element reaches a target state.       | [`references/selection-and-state.md`](references/selection-and-state.md) |
 | `adact resize-window`  | Resize the attached window.                           | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
 | `adact minimize-window`| Minimize the attached window.                         | [`references/window-and-lifecycle.md`](references/window-and-lifecycle.md) |
@@ -111,6 +111,14 @@ valid as the first positional argument of `attach`.
 | `LOCAL_ONLY`          | Operation only valid against a localhost daemon.      | Run the command on the same host as the daemon.                                                   |
 | `WAIT_TIMEOUT`        | `wait-for-element` / `wait-for-window` timed out.             | Increase `--timeout`, verify the app reaches the expected state, or relax the search conditions.  |
 | `LAUNCH_FAILED`       | `launch` could not start the target executable.       | Verify the path / PATH name. For UWP, double-check the `shell:AppsFolder\<AUMID>` form. Confirm permissions and that the file exists. |
+| `NOT_FOUND`           | Target session does not exist.                        | Re-run `adact attach` to create a session, or pass a valid `--sid`.                              |
+| `CLOSE_FAILED`        | `close-window` could not close the window.            | The window may be blocked by a modal dialog. Dismiss the dialog first, then retry.               |
+| `KILL_FAILED`         | `kill` could not terminate the process.               | The process may have already exited. Re-check with `adact list-windows`.                         |
+| `SNAPSHOT_FAILED`     | UIA tree traversal failed during snapshot capture.    | The window may have been destroyed or become unresponsive. Re-attach and retry.                   |
+| `OPERATION_BLOCKED`   | Desktop locked, UAC prompt, or window not foreground. | Unlock the desktop, dismiss any UAC/system dialog, and ensure the window is in the foreground.    |
+| `INTERNAL_ERROR`      | Unexpected internal failure.                          | Retry the operation. If persistent, restart the daemon with `adact serve`.                        |
+| `ALREADY_RUNNING`     | Daemon is already running on the target port/pipe.    | Use the existing daemon, or stop it first with `adact daemon-stop`.                               |
+| `NO_INTERACTIVE_SESSION` | `serve` was started in a non-interactive desktop session. | Run the daemon in an interactive user session (not a Windows service or SSH without desktop).  |
 
 `REF_NOT_FOUND` is the most frequent error during automation. It means the
 element the ref pointed to has gone (replaced, virtualized, dialog closed,

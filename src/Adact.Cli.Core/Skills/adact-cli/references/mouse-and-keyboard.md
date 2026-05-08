@@ -8,6 +8,7 @@ Use this for: `mousemove`, `mousedown`, `mouseup`, `mousewheel`, `keypress`, `ke
 - `adact mousedown <ref|x,y> [--button ...]`: press and hold mouse button.
 - `adact mouseup <ref|x,y> [--button ...]`: release mouse button.
 - `adact mousewheel <ref|x,y> --delta <n>`: wheel scroll at target.
+  - At least one of `--delta-x` or `--delta-y` must be non-zero. Both zero returns `INVALID_ARGUMENT`.
 
 ## Keyboard
 
