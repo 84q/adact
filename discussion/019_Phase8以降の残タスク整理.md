@@ -10,7 +10,6 @@
 | ID | 項目 | 内容 | 状態 | 備考 |
 | :--- | :--- | :--- | :--- | :--- |
 | 4 | `.adact/config.json` 拡充 | `defaultSnapshotDir` / `outputFormat` 等、接続先以外の永続設定を追加する。 | 未実装 | `server` フィールドは完了。個人設定とリポジトリ共有設定の分離も含む。discussion/009 §3.3 参照。 |
-| 27 | 全サブコマンド自動統合テスト化 | discussion/032 で手動検証した内容（27コマンド）を自動テスト化。SampleApp を起動 → 操作 → 検証 → クリーンアップの一連を xUnit 化する。 | 未着手 | `Adact.Engine.Tests` または新規プロジェクトで実装。InteractiveTestGuard + CalculatorMutex パターンを参考に。 |
 | 38 | 操作履歴・ログの永続化 | 現状は操作ログが stdout/stderr のみ。`.adact/history/` にタイムスタンプ付きでログを残し、デバッグ・再現性向上に役立てる。 | 未着手 | セキュリティ考慮（パスワード等の機密情報フィルタリング）が必要。 |
 | 40 | relay コマンド| AI実行環境とテスト実行環境が遠い(直接つながっていない)場合に、途中のマシンを中継サーバとして利用するためのコマンド | 未着手 | |
 | 7 | recipes 提供 | 電卓・メモ帳等の典型操作テンプレートを配布する。 | 未着手 | `adact-cli` Skill 内に含めるか、別 Skill/ディレクトリとして提供するか未決定。 |
@@ -51,3 +50,4 @@
 | 22 | SampleApp 更新：MenuItem にサブメニュー | SampleApp のメイン MenuBar の View 配下に多階層サブメニューを追加し、メインメニュー上で入れ子メニューの検証を可能にした。 | 完了 | discussion/032 参照。`View > Layout > Navigation Pane > Favorites` などの階層を追加。 |
 | 26 | Skill 更新：別ウィンドウ扱いの要素説明 | ツールチップ・メニューサブメニュー・ダイアログボックス等が UIA 上で「別ウィンドウ」として snapshot に現れることを Skill に記載する。 | 完了 | `references/popup-and-modal.md` に詳細を記載。SKILL.md・snapshots-and-inspection.md からリンク。`docs/spec/snapshot.md` に `isPopup` フィールド追加。 |
 | 23 | FileDialog 操作の解決策検討 | `OpenFileDialog` / `SaveFileDialog` を ADACT で操作する方法（ファイル選択・キャンセル）を検討・実装する。 | 完了 | discussion/052 参照。Skill `references/file-dialog.md` にナビゲーションバー直接入力パターンを記載。 |
+| 27 | 全サブコマンド自動統合テスト化 | discussion/032 で手動検証した内容（27コマンド）を自動テスト化。SampleApp を起動 → 操作 → 検証 → クリーンアップの一連を xUnit 化する。 | 完了 | discussion/053 の設計に沿って S01〜S10 を `Adact.Cli.Tests` E2E に実装。`Layer=E2E` で CLI 15件 / HTTP 1件が通過し、副作用（プロセス・一時ディレクトリ）クリーンアップも各シナリオで確認済み。 |
