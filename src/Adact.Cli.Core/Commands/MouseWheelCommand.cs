@@ -5,11 +5,8 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
-/// <summary><c>mousewheel</c> コマンド。現在カーソル位置でマウスホイールをスクロールする (低レベル: auto-snapshot なし)。</summary>
 internal static class MousewheelCommand
 {
-    /// <summary>mousewheel サブコマンドを構築する。</summary>
-    /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build()
     {
         var deltaY = new Option<int>("--delta-y")

@@ -5,11 +5,8 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
-/// <summary><c>mousemove</c> コマンド。"x,y" 座標へカーソルを移動する (低レベル: auto-snapshot なし)。</summary>
 internal static class MousemoveCommand
 {
-    /// <summary>mousemove サブコマンドを構築する。</summary>
-    /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build()
     {
         var targetArg = new Argument<string>("target")

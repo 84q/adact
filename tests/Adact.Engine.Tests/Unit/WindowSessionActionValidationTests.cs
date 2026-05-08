@@ -4,9 +4,7 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Unit;
 
-/// <summary>
-/// Verifies WindowSession action argument validation that runs before UIA access.
-/// </summary>
+/// <summary>Contains tests for the Window Session Action Validation behavior.</summary>
 [Trait("Layer", "Unit")]
 public class WindowSessionActionValidationTests
 {
@@ -22,9 +20,7 @@ public class WindowSessionActionValidationTests
         return WindowSession.CreateForTest(1, info);
     }
 
-    /// <summary>
-    /// Keyboard action methods reject null key or text before touching UIA.
-    /// </summary>
+    /// <summary>Performs the Keyboard Actions Null Input Throw Argument Null Exception operation.</summary>
     [Fact]
     public async Task KeyboardActions_NullInput_ThrowArgumentNullException()
     {
@@ -36,9 +32,7 @@ public class WindowSessionActionValidationTests
         await Assert.ThrowsAsync<ArgumentNullException>(() => session.TypeAsync(refId: null, text: null!));
     }
 
-    /// <summary>
-    /// Key down/up only accept a single key, not key combinations.
-    /// </summary>
+    /// <summary>Performs the Key Down And Key Up Invalid Single Key Throw Argument Exception operation.</summary>
     [Theory]
     [InlineData("Ctrl+A")]
     [InlineData("")]
@@ -50,9 +44,7 @@ public class WindowSessionActionValidationTests
         await Assert.ThrowsAsync<ArgumentException>(() => session.KeyUpAsync(key));
     }
 
-    /// <summary>
-    /// Mouse action methods reject null targets before touching UIA.
-    /// </summary>
+    /// <summary>Performs the Mouse Actions Null Target Throw Argument Null Exception operation.</summary>
     [Fact]
     public async Task MouseActions_NullTarget_ThrowArgumentNullException()
     {
@@ -64,9 +56,7 @@ public class WindowSessionActionValidationTests
         await Assert.ThrowsAsync<ArgumentNullException>(() => session.MouseWheelAsync(null!, deltaX: 0, deltaY: 1));
     }
 
-    /// <summary>
-    /// Detailed click rejects a null options object.
-    /// </summary>
+    /// <summary>Performs the Click With Options Null Options Throws Argument Null Exception operation.</summary>
     [Fact]
     public async Task ClickWithOptions_NullOptions_ThrowsArgumentNullException()
     {
@@ -75,9 +65,7 @@ public class WindowSessionActionValidationTests
         await Assert.ThrowsAsync<ArgumentNullException>(() => session.ClickWithOptionsAsync("s1e1", null!));
     }
 
-    /// <summary>
-    /// Select requires at least one target.
-    /// </summary>
+    /// <summary>Performs the Select Empty Targets Throws Argument Exception operation.</summary>
     [Fact]
     public async Task Select_EmptyTargets_ThrowsArgumentException()
     {
@@ -89,9 +77,7 @@ public class WindowSessionActionValidationTests
             session.SelectAsync("s1e1", null!));
     }
 
-    /// <summary>
-    /// Disposed sessions reject actions before attempting UIA interaction.
-    /// </summary>
+    /// <summary>Performs the Actions After Dispose Throw Object Disposed Exception operation.</summary>
     [Fact]
     public async Task Actions_AfterDispose_ThrowObjectDisposedException()
     {

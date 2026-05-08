@@ -1,116 +1,94 @@
-# Phase 8 以降ロードマップ
+# Phase 8 and Beyond Roadmap
 
-この文書は [../../discussion/019_Phase8以降の残タスク整理.md](../../discussion/019_Phase8以降の残タスク整理.md) のストック版です。Phase 7 完了時点の現行実装を前提に、残タスクと候補を保守しやすい粒度で整理します。
+This document is the stable snapshot of [discussion note 019](../../discussion/019_Phase8%E4%BB%A5%E9%99%8D%E3%81%AE%E6%AE%8B%E3%82%BF%E3%82%B9%E3%82%AF%E6%95%B4%E7%90%86.md). It organizes the remaining tasks and candidate ideas at a maintainable level based on the current Phase 7 implementation.
 
-## 現状サマリ
+## Current summary
 
-| Phase | 状態 | 内容 |
+| Phase | Status | Content |
 | --- | --- | --- |
-| Phase 5 | 完了 | CLI 基本実装。`list-windows` / `attach` / `snapshot` / `click` / `fill` と lifecycle 系 (`detach` / `close-window` / `kill` / `daemon-stop`) を実装済み |
-| Phase 5 post-task | 完了 | Element Ref 安定化。generation なし `s<sid>e<eid>` 形式へ移行済み |
-| Phase 6 | 完了 | `adact install --skills` による Skill 機構を実装済み |
-| Phase 7 | 実装完了 / 受入一部残 | CLI snapshot `.txt` 化、MCP raw JSON 化、CLI 側 filter/formatter への責務移譲が完了 |
+| Phase 5 | Done | Core CLI: `list-windows`, `attach`, `snapshot`, `click`, `fill`, and lifecycle commands (`detach`, `close-window`, `kill`, `daemon-stop`) |
+| Phase 5 post-task | Done | Element ref stabilization; migrated to generation-free `s<sid>e<eid>` refs |
+| Phase 6 | Done | Skill installation via `adact install --skills` |
+| Phase 7 | Implemented; some acceptance work remains | CLI `.txt` snapshots, MCP raw JSON, and the CLI-side filter/formatter split |
 
-現行の単一 `adact.exe` / `src/Adact.Cli` は Windows target です。`serve` / `local` は UIA を使うため対象 GUI と同じ対話 Windows セッション側で動く必要があり、この制約は cross-platform CLI client 検討後も維持します。
+The current single `adact.exe` / `src/Adact.Cli` build is Windows-targeted. `serve http` / `serve pipe` need the same interactive Windows session as the target GUI, and that boundary will remain even if a cross-platform CLI client is introduced later.
 
-## 旧 Phase 7 安定化の残タスク
+## Phase 7 follow-up items
 
-| タスク | 内容 | 備考 |
+| Task | Description | Notes |
 | --- | --- | --- |
-| モーダルダイアログ追随 | modal dialog を検出し、操作対象として自然に追随する | 現行は snapshot への modal node 注入と一部テストがある |
-| 画面ロック検知 | lock 状態など操作不能な desktop 状態を明示する | 起動時非対話判定とは別の動的検知 |
-| 失敗時詳細ログ | click/fill/snapshot 失敗時に ref、要素情報、例外を追えるようにする | AI / 人間の復旧判断を助ける |
-| 構造化ログ / `--verbose` | CLI / daemon の診断ログを運用しやすくする | `local --verbose` は存在するが全体整備は未完 |
-| 失敗時スクリーンショット | 操作失敗時に状態確認用 screenshot を保存する | `screenshot` 実装後の統合が自然 |
-| snapshot 追加チューニング | 重複属性省略、追加 field、長大値 truncate など | 実利用で必要になった場合に検討 |
+| Modal dialog follow-up | Detect modal dialogs and follow them naturally | The current design already injects modal nodes into snapshots |
+| Screen-lock detection | Make locked or otherwise non-operable desktop states explicit | Separate from the startup interactive-session check |
+| Better failure logs | Surface ref, element details, and exception data when click/fill/snapshot fails | Helps both humans and AI recover |
+| Structured logging / `--verbose` | Make CLI and daemon logs easier to operate | `adact serve pipe --verbose` exists, but the whole story is not finished |
+| Failure-time screenshots | Save screenshots on failure for diagnosis | Pairs naturally with the `screenshot` command |
+| Snapshot tuning | Skip duplicate properties, add fields, truncate long values, etc. | Consider when real usage demands it |
 
-## Phase 5 / 6 からの申し送り
+## Follow-ups from Phases 5 and 6
 
-| タスク | 内容 | 出所 |
+| Task | Description | Source |
 | --- | --- | --- |
-| 認証 / TLS / CORS | remote daemon 運用時の保護方針を決める | Phase 5 |
-| `REF_NOT_FOUND` 時の再 snapshot 方針 | AI 側判断、CLI hint、自動再 snapshot の分担を決める | Phase 5 / 6 |
-| `.adact/config.json` 拡充 | 接続先以外の設定、個人設定と repo 共有設定の分離、探索 rule の拡張 | Phase 5 |
-| `KillAsync` の PID 再利用対策 | `Process.StartTime` 等で意図しない別 process kill を防ぐ | Phase 5 |
-| recipes | Calculator / Notepad など典型操作テンプレートを提供する | Phase 6 |
-| Skill 対象拡張 | CLI/MCP サブコマンド追加時に `adact-cli` Skill と同期テストを更新する | Phase 6 |
+| Authentication / TLS / CORS | Decide the protection model for remote daemon use | Phase 5 |
+| Re-snapshot policy for `REF_NOT_FOUND` | Decide how much should be automatic vs. human-driven | Phase 5 / 6 |
+| `.adact/config.json` expansion | Add more settings and separate per-user and repo-shared configuration | Phase 5 |
+| PID reuse protection in `KillAsync` | Avoid killing the wrong process if PIDs are reused | Phase 5 |
+| Recipes | Provide common operation templates such as Calculator and Notepad | Phase 6 |
+| Skill coverage for new commands | Sync the `adact-cli` Skill and tests when commands change | Phase 6 |
 
-### Phase 8-A: 操作基盤
+### Phase 8-A: operation foundation
 
-| 機能 | 目的 |
+| Feature | Goal |
 | --- | --- |
-| `launch` | アプリ起動を CLI から扱い、attach 前の手作業を減らす |
-| `wait-for-element` | window / element / state の明示待機で GUI 操作を安定化する |
-| `keypress` | 特定要素または active element へのキー押下を扱う |
-| `type` | fill では再現できない逐次入力や IME / keystroke 系検証を扱う |
+| `launch` | Start apps from the CLI and reduce manual pre-attach work |
+| `wait-for-element` | Stabilize GUI flows with explicit waits for window/element/state |
+| `keypress` | Handle key presses against a specific or active element |
+| `type` | Handle incremental input and IME/keystroke-style validation |
 
-### Phase 8-B: 診断・低レベル操作
+### Phase 8-B: diagnostics and low-level operations
 
-| 機能 | 目的 |
+| Feature | Goal |
 | --- | --- |
-| `screenshot` | 診断、失敗時添付、将来の Vision/OCR 連携の基礎にする |
-| `hover` | tooltip や hover menu を扱う |
-| `keyboard` | key down/up、複合 shortcut、押下維持を扱う |
-| `mouse` | move/down/up など UIA 操作で届かない場面の escape hatch にする |
+| `screenshot` | Add diagnostic attachments and a foundation for future Vision/OCR work |
+| `hover` | Support tooltips and hover menus |
+| `keyboard` | Support key down/up, shortcuts, and held keys |
+| `mouse` | Provide an escape hatch for cases UIA cannot reach |
 
-### Phase 8-C: 必要性を見て追加
+### Phase 8-C: add when needed
 
-| 機能 | 目的 | 採否判断 |
+| Feature | Goal | Decision rule |
 | --- | --- | --- |
-| `select-option` | ComboBox / ListBox 等の選択操作 | 主要アプリで需要が見えてから |
-| `get-value` | 要素値の明示取得 | snapshot で足りない読み取り需要が出た場合 |
-| `evaluate` | UIA / アプリ固有操作の escape hatch | 安全性と API 境界を慎重に設計してから |
+| `select-option` | ComboBox/ListBox selection | Add when main apps need it |
+| `get-value` | Explicitly read an element value | Add when snapshot is not enough |
+| `evaluate` | App-specific escape hatch | Add only after carefully designing safety and API boundaries |
 
-## Phase 9+ 候補
+## Phase 9+ ideas
 
-| 候補 | 内容 |
+| Idea | Description |
 | --- | --- |
-| Dashboard | daemon / session / window / snapshot の状態を可視化する管理 UI |
-| OCR / Vision | UIA が弱いアプリに画像認識や OCR を併用する |
-| 安定セレクタ生成 | 一時 ref ではなく再実行可能な selector を生成する |
-| Codegen | AI / 人間の操作をテストコードとして残す |
-| state 永続化 | daemon 再起動後も session / window / 設定を復元する |
-| recipes | Calculator / Notepad など典型操作テンプレートを配布する |
-| cross-platform CLI client | `adact serve` は Windows GUI セッション側のまま、GUI を直接操作しない CLI client 部分を分離・multi-target 化し、macOS / Linux の remote terminal でも起動可能にする |
-| 検証用サンプルアプリ | snapshot / wait / keyboard / mouse / modal などを再現性高く検証できる専用アプリを用意する |
-| `adact` 単体起動の配布導線 | `/path/to/adact.exe` ではなく `adact` だけで起動できる installer / .NET tool / PATH 導線を整える |
-| FlaUI テストコード生成 | AI が探索した操作を FlaUI + xUnit などの自動シナリオテストへ生成する |
+| Dashboard | Visualize daemon/session/window/snapshot state |
+| OCR / Vision | Combine image recognition or OCR with UIA for weak apps |
+| Stable selector generation | Generate selectors that can be rerun, not just temporary refs |
+| Codegen | Turn AI/human actions into test code |
+| State persistence | Restore sessions/windows/settings after daemon restart |
+| Recipes | Distribute common operation templates |
+| Cross-platform CLI client | Keep the daemon on the Windows GUI session side and split out the GUI-independent CLI client so it can run on macOS/Linux terminals |
+| Sample validation app | Provide a dedicated app for repeatable snapshot/wait/keyboard/mouse/modal validation |
+| Standalone `adact` distribution path | Make `adact` available via installer, .NET tool, or PATH-based launch |
+| FlaUI test code generation | Generate automated scenario tests from explored operations |
 
-## 追加 4 件の位置づけ
+## Open questions
 
-| 候補 | 推奨位置 | 理由 |
-| --- | --- | --- |
-| cross-platform CLI client | Phase 9+ | Windows UIA 実体と GUI 非依存 client の project / target framework 分離、packaging、OS guard の設計が必要 |
-| 検証用サンプルアプリ | Phase 8 または Phase 9+ | Phase 8 の受入で既存アプリだけでは不足する場合は並行着手が有効 |
-| `adact` 単体起動の配布導線 | Phase 9+ | 機能 API より配布戦略の判断が主になる |
-| FlaUI テストコード生成 | Phase 9+ | Codegen、recipes、安定 selector、Skill 拡張との関係整理が必要 |
-
-## 次の着手順序案
-
-| 順序 | 内容 | 理由 |
-| ---: | --- | --- |
-| 1 | Phase 7 AI クライアント手動スモーク | `.txt` snapshot 形式の実利用受入を閉じる |
-| 2 | Phase 8-A 要件定義・設計 | `launch` / `wait-for-element` / `keypress` / `type` の責務境界を固める |
-| 3 | `--hwnd` / 画面ロック検知 / `--verbose` | 操作基盤追加前に attach 能力と診断性を上げる |
-| 4 | Phase 8-B 要件定義・設計 | `screenshot` と失敗時添付を合わせて設計する |
-| 5 | Phase 8-C / Phase 9+ 再判断 | 実利用で不足が見えたものだけを追加する |
-| 6 | 検証用サンプルアプリの要否判断 | 既存アプリ依存の smoke で不足する検証を補う |
-| 7 | cross-platform CLI client / 配布導線設計 | Windows GUI セッション側 daemon と remote terminal 側 CLI client の分離を検討する |
-| 8 | FlaUI テストコード生成構想 | Codegen / recipes / Skill 拡張の責務境界を整理する |
-
-## 未決事項
-
-| 項目 | 決めること |
+| Item | What to decide |
 | --- | --- |
-| Phase 8 正式スコープ | 8-A / 8-B / 8-C の分割を採用するか |
-| `launch` | 起動対象、working directory、env、起動後 attach の扱い |
-| `wait-for-element` | window / element / text / value / disappearance の範囲 |
-| `keypress` / `type` / `keyboard` | UIA pattern と Win32 input injection の使い分け |
-| `mouse` | 座標指定、対象 window 外操作、DPI 補正、安全性 |
-| `evaluate` | 汎用 escape hatch として採用するか |
-| 認証 / TLS / CORS | remote daemon をどの時点で本格サポート扱いにするか |
-| recipes | `adact-cli` Skill に含めるか、別 Skill にするか |
-| cross-platform CLI client | GUI を直接操作しない client の範囲、project 分割、multi-target 方針 |
-| 配布方式 | .NET tool、自己完結 binary、installer、PATH 追加など |
-| サンプルアプリ | 技術選定と検証項目 |
-| FlaUI テストコード生成 | 出力形式と AI 探索との責務境界 |
+| Phase 8 scope | Whether to keep the 8-A / 8-B / 8-C split |
+| `launch` | Target types, working directory, env, and post-launch attach behavior |
+| `wait-for-element` | Whether to cover window, element, text, value, and disappearance |
+| `keypress` / `type` / `keyboard` | How to split UIA pattern use from Win32 input injection |
+| `mouse` | Coordinates, out-of-window behavior, DPI handling, and safety |
+| `evaluate` | Whether to accept it as a general escape hatch |
+| Authentication / TLS / CORS | When remote daemon support becomes a first-class concern |
+| Recipes | Whether they belong in `adact-cli` or a separate Skill |
+| Cross-platform CLI client | Scope, project split, and multi-targeting plan |
+| Distribution | .NET tool, self-contained binary, installer, PATH setup, etc. |
+| Sample app | Technology choice and validation scope |
+| FlaUI test generation | Output format and boundary with AI exploration |

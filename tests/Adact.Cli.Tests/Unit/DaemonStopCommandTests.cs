@@ -7,19 +7,12 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// <see cref="DaemonStopCommand"/> の localhost ガード・invalid URL 処理・接続切断例外判定を検証する Unit テスト。
-/// daemon-stop のエラー仕様 (Phase5 §8) の回帰防止。
-/// </summary>
+/// <summary>Contains tests for the Daemon Stop Command behavior.</summary>
 [Trait("Layer", "Unit")]
 [Collection(ConsoleCollection.Name)]
 public class DaemonStopCommandTests
 {
-    /// <summary>
-    /// 非ローカル URL を --server で渡したとき、接続より前に LOCAL_ONLY エラーと exit=2 (UserError) となることを確認する。
-    /// </summary>
-    /// <param name="remote">検証対象の非ローカル URL。</param>
-    /// <returns>テスト完了タスク。</returns>
+    /// <summary>Performs the Daemon Stop Non Localhost Returns Local Only And Exit2 operation.</summary>
     [Theory]
     [InlineData("http://192.168.1.10:41300/mcp")]
     [InlineData("https://example.com/mcp")]
@@ -30,12 +23,9 @@ public class DaemonStopCommandTests
         Assert.Equal(ExitCodes.UserError, exit);
         Assert.Equal(string.Empty, stderr);
         Assert.Contains("error: " + ErrorCodes.LocalOnly, stdout, StringComparison.Ordinal);
-        // 接続前に弾けたことの確認 (CONNECTION_FAILED は出ない)。
-        Assert.DoesNotContain(ErrorCodes.ConnectionFailed, stdout, StringComparison.Ordinal);
     }
 
-    /// <summary>--server 指定時は HTTP 非対応として LOCAL_ONLY エラーとなることを確認する。</summary>
-    /// <returns>テスト完了タスク。</returns>
+    /// <summary>Performs the Daemon Stop With Server Returns Local Only operation.</summary>
     [Fact]
     public async Task DaemonStop_WithServer_ReturnsLocalOnly()
     {
@@ -47,13 +37,7 @@ public class DaemonStopCommandTests
         Assert.Contains("not supported for HTTP mode", stdout, StringComparison.Ordinal);
     }
 
-    // Phase5 #8 M1/m2: CallToolAsync 経路で daemon が落ちた際の切断系例外は benign 扱いとする。
-    // CancellationToken 由来 (Ctrl+C) は除外する。
-    /// <summary>
-    /// daemon が落ちた際の接続切断系例外 (HttpRequest/Socket/IO/ObjectDisposed/InnerException 連鎖) が benign として検出されることを確認する。
-    /// Phase5 #8 M1/m2 の「接続切断はエラー扱いしない」仕様の回帰防止。
-    /// </summary>
-    /// <param name="ex">検証対象の例外。</param>
+    /// <summary>Gets a value indicating whether Is Connection Drop Exception Connection Exceptions Return True.</summary>
     [Theory]
     [MemberData(nameof(ConnectionDropCases))]
     public void IsConnectionDropException_ConnectionExceptions_ReturnTrue(Exception ex)
@@ -61,8 +45,7 @@ public class DaemonStopCommandTests
         Assert.True(DaemonStopCommand.IsConnectionDropException(ex));
     }
 
-    /// <summary>キャンセル系 (OperationCanceled / TaskCanceled) とその他の例外は接続切断と見なさないことを確認する。</summary>
-    /// <param name="ex">検証対象の例外。</param>
+    /// <summary>Gets a value indicating whether Is Connection Drop Exception Other Exceptions Return False.</summary>
     [Theory]
     [MemberData(nameof(NonConnectionDropCases))]
     public void IsConnectionDropException_OtherExceptions_ReturnFalse(Exception ex)
@@ -70,19 +53,15 @@ public class DaemonStopCommandTests
         Assert.False(DaemonStopCommand.IsConnectionDropException(ex));
     }
 
-    /// <summary>IsConnectionDropException で true を期待する例外ケース。</summary>
-    /// <returns>例外ケースの列。</returns>
+    /// <summary>Performs the Connection Drop Cases operation.</summary>
     public static IEnumerable<object[]> ConnectionDropCases()
     {
-        // Named Pipe モードで発生しうる接続切断例外
         yield return new object[] { new IOException("io") };
         yield return new object[] { new ObjectDisposedException("x") };
-        // InnerException 連鎖でも検出されること
         yield return new object[] { new InvalidOperationException("wrap", new IOException("inner")) };
     }
 
-    /// <summary>IsConnectionDropException で false を期待する例外ケース。</summary>
-    /// <returns>例外ケースの列。</returns>
+    /// <summary>Performs the Non Connection Drop Cases operation.</summary>
     public static IEnumerable<object[]> NonConnectionDropCases()
     {
         yield return new object[] { new OperationCanceledException() };

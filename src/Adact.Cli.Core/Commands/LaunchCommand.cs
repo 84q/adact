@@ -7,13 +7,9 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>launch</c> コマンド。実行ファイル / UWP AUMID を起動し、PID とプロセス情報を JSON 1 行で出力する。
-/// 設計 024 §5。
 /// </summary>
 internal static class LaunchCommand
 {
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>launch サブコマンド。</returns>
     public static Command Build()
     {
         var executable = new Argument<string?>("executable")
@@ -22,8 +18,6 @@ internal static class LaunchCommand
             Description = "Executable path / PATH name / 'shell:AppsFolder\\<AUMID>'.",
         };
 
-        // `--` 以降のトークンを raw arguments として受け取る。System.CommandLine v2 では
-        // 第二の Argument を ZeroOrMore で宣言すると `--` 以降が流れ込む。
         var rest = new Argument<string[]>("args")
         {
             Arity = ArgumentArity.ZeroOrMore,
@@ -73,7 +67,6 @@ internal static class LaunchCommand
             if (!string.IsNullOrEmpty(cwdArg)) arguments["cwd"] = cwdArg;
             if (envDict.Count > 0) arguments["env"] = envDict;
 
-            // launch は自動起動対象
             return CommandHelpers.RunWithClientAndAutoStartAsync(
                 serverArg,
                 (client, token) => ExecuteAsync(client, arguments, token),
@@ -83,11 +76,6 @@ internal static class LaunchCommand
         return cmd;
     }
 
-    /// <summary><c>--env KEY=VALUE</c> のリストを <see cref="Dictionary{TKey,TValue}"/> にパースする。</summary>
-    /// <param name="envEntries">入力配列。</param>
-    /// <param name="result">パース結果 (失敗時も空辞書)。</param>
-    /// <param name="error">エラーメッセージ。</param>
-    /// <returns>成功なら true。</returns>
     internal static bool TryParseEnv(
         IReadOnlyList<string> envEntries,
         out Dictionary<string, string> result,
@@ -117,9 +105,6 @@ internal static class LaunchCommand
         return true;
     }
 
-    /// <summary><c>adact_launch</c> を呼び、結果 JSON を 1 行で stdout に出力する。</summary>
-    /// <param name="client">接続済み MCP クライアント。</param>
-    /// <param name="arguments"><c>adact_launch</c> 引数。</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
     private static async Task<int> ExecuteAsync(

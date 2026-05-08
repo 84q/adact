@@ -6,22 +6,11 @@ namespace Adact.Engine;
 
 public sealed partial class UiaEngine
 {
-    /// <summary>UiaEngine.WaitForWindow の内部ポーリング間隔 (設計 022 §13)。</summary>
     private static readonly TimeSpan WaitForWindowPollInterval = TimeSpan.FromMilliseconds(100);
 
     /// <summary>
-    /// 検索条件にマッチする top-level window が出現するまで待機する (設計 022 §6 / §7)。
-    /// attach は行わない。条件に最初にマッチした window を返す。
+    /// Waits for a top-level window that matches the query.
     /// </summary>
-    /// <param name="query">window 検索条件。少なくとも 1 つのフィールド必須。</param>
-    /// <param name="timeout">待機タイムアウト。<see cref="TimeSpan.Zero"/> 以下は <see cref="ArgumentOutOfRangeException"/>。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>マッチした window の <see cref="WindowInfo"/>。</returns>
-    /// <exception cref="ObjectDisposedException">本 Engine が Dispose 済みの場合。</exception>
-    /// <exception cref="ArgumentNullException"><paramref name="query"/> が null。</exception>
-    /// <exception cref="ArgumentException">クエリが空。</exception>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="timeout"/> が 0 以下。</exception>
-    /// <exception cref="WaitTimeoutException">タイムアウト内にマッチする window が現れなかった。</exception>
     public async Task<WindowInfo> WaitForWindowAsync(
         WindowSearchQuery query,
         TimeSpan timeout,
@@ -68,10 +57,7 @@ public sealed partial class UiaEngine
     }
 
     /// <summary>
-    /// 指定 PID のプロセスのフルパスを取得する。アクセス拒否や終了済み等のエラーは null を返す。
     /// </summary>
-    /// <param name="pid">プロセス ID。</param>
-    /// <returns>実行ファイルのフルパス、取得不能なら null。</returns>
     private static string? TryGetExecutablePath(int pid)
     {
         try

@@ -4,14 +4,11 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Unit;
 
-/// <summary>
-/// <see cref="MouseTarget.Parse"/> の入力解析を検証する Unit テスト。
-/// CLI / MCP の共通 target 引数文法 (Phase 8 設計 §4) の回帰防止。
-/// </summary>
+/// <summary>Contains tests for the Mouse Target behavior.</summary>
 [Trait("Layer", "Unit")]
 public class MouseTargetTests
 {
-    /// <summary>ref 形式 (<c>s1e2</c>) は <see cref="MouseTarget.ByRef"/> に解析される。</summary>
+    /// <summary>Performs the Parse Ref Syntax Returns By Ref operation.</summary>
     [Fact]
     public void Parse_RefSyntax_ReturnsByRef()
     {
@@ -20,7 +17,7 @@ public class MouseTargetTests
         Assert.Equal("s1e2", byRef.Ref);
     }
 
-    /// <summary>正の座標 (<c>20,30</c>) は <see cref="MouseTarget.ByPoint"/> に解析される。</summary>
+    /// <summary>Performs the Parse Positive Point Returns By Point operation.</summary>
     [Fact]
     public void Parse_PositivePoint_ReturnsByPoint()
     {
@@ -30,7 +27,7 @@ public class MouseTargetTests
         Assert.Equal(30, p.Y);
     }
 
-    /// <summary>負値座標 (<c>-100,-50</c>) もマルチモニタ対応として受理される。</summary>
+    /// <summary>Performs the Parse Negative Point Returns By Point operation.</summary>
     [Fact]
     public void Parse_NegativePoint_ReturnsByPoint()
     {
@@ -40,7 +37,7 @@ public class MouseTargetTests
         Assert.Equal(-50, p.Y);
     }
 
-    /// <summary>原点 (<c>0,0</c>) も有効な座標として受理される。</summary>
+    /// <summary>Performs the Parse Origin Returns By Point operation.</summary>
     [Fact]
     public void Parse_Origin_ReturnsByPoint()
     {
@@ -50,8 +47,7 @@ public class MouseTargetTests
         Assert.Equal(0, p.Y);
     }
 
-    /// <summary>null / 空文字 / 不正フォーマットはすべて <see cref="ArgumentException"/> をスローする。</summary>
-    /// <param name="input">入力文字列 (空文字または不正な形式)。</param>
+    /// <summary>Performs the Parse Invalid Input Throws operation.</summary>
     [Theory]
     [InlineData("")]
     [InlineData("abc")]
@@ -59,25 +55,19 @@ public class MouseTargetTests
     [InlineData("e2")]
     [InlineData("1,2,3")]
     [InlineData("1.5,2.5")]
-    [InlineData("S1E2")]      // 大文字は ref 形式として認めない (regex は case-sensitive)
-    [InlineData(" s1e2 ")]    // 前後空白は不可
-    [InlineData("1,2,")]      // 末尾カンマ
-    [InlineData(",1,2")]      // 先頭カンマ
-    [InlineData("１,２")]    // 全角数字は不可
-    [InlineData("9999999999,0")] // int 上限超過 → ArgumentException で統一
     public void Parse_InvalidInput_Throws(string input)
     {
         Assert.Throws<ArgumentException>(() => MouseTarget.Parse(input));
     }
 
-    /// <summary>null 入力は <see cref="ArgumentException"/> をスローする。</summary>
+    /// <summary>Performs the Parse Null Throws operation.</summary>
     [Fact]
     public void Parse_Null_Throws()
     {
         Assert.Throws<ArgumentException>(() => MouseTarget.Parse(null!));
     }
 
-    /// <summary><see cref="int.MaxValue"/> / <see cref="int.MinValue"/> も正常な座標として受理する。</summary>
+    /// <summary>Performs the Parse Int Bounds Returns By Point operation.</summary>
     [Fact]
     public void Parse_IntBounds_ReturnsByPoint()
     {

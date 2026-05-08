@@ -3,32 +3,25 @@ using Adact.Engine.Elements;
 namespace Adact.Engine;
 
 /// <summary>
-/// inspect 対象要素の祖先チェーン 1 ノード分の情報。
+/// Describes an ancestor used when suggesting selectors.
 /// </summary>
-/// <param name="AutomationId">UIA AutomationId (null/空 = なし)。</param>
-/// <param name="Name">UIA Name (null/空 = なし)。</param>
-/// <param name="ControlType">UIA ControlType の文字列表現。</param>
 public sealed record AncestorInfo(string? AutomationId, string? Name, string ControlType);
 
 /// <summary>
-/// 安定セレクタ候補の算出結果。
+/// Suggests a selector path for an element.
 /// </summary>
-/// <param name="Stability">"High" | "Medium" | "Low"。</param>
-/// <param name="Code">FlaUI コード例 (1 行チェーン)。</param>
+/// <param name="Stability">Selector confidence level.</param>
+/// <param name="Code">The generated selector code.</param>
 public sealed record SelectorSuggestion(string Stability, string Code);
 
 /// <summary>
-/// inspect 対象要素に対して安定セレクタ候補を算出する pure logic。
+/// Suggests stable selectors for UIA elements.
 /// </summary>
 internal static class SelectorSuggester
 {
     /// <summary>
-    /// 対象要素とウィンドウ内全要素・祖先チェーンから、最も安定性の高いセレクタ候補を 1 つ返す。
+    /// Suggests a selector for the given target.
     /// </summary>
-    /// <param name="target">対象要素。</param>
-    /// <param name="allElements">ウィンドウ内全要素 (RefRegistry.EnumerateCurrent 由来)。</param>
-    /// <param name="ancestors">対象要素の直接の親からルート方向に並ぶ祖先チェーン。</param>
-    /// <returns>セレクタ候補。算出不能時は null。</returns>
     public static SelectorSuggestion? Suggest(
         IElement target,
         IEnumerable<IElement> allElements,
@@ -36,7 +29,6 @@ internal static class SelectorSuggester
     {
         var all = allElements as IReadOnlyList<IElement> ?? allElements.ToList();
 
-        // 1. AutomationId がウィンドウ全体でユニーク
         if (!string.IsNullOrEmpty(target.AutomationId))
         {
             int count = CountByAutomationId(all, target.AutomationId);
@@ -44,7 +36,6 @@ internal static class SelectorSuggester
                 return new SelectorSuggestion("High", $"cf.ByAutomationId(\"{target.AutomationId}\")");
         }
 
-        // 2. ControlType + Name がウィンドウ全体でユニーク
         if (!string.IsNullOrEmpty(target.Name))
         {
             int count = CountByNameAndControlType(all, target.Name, target.ControlType);
@@ -52,7 +43,6 @@ internal static class SelectorSuggester
                 return new SelectorSuggestion("High", $"cf.ByName(\"{target.Name}\").And(cf.ByControlType(ControlType.{target.ControlType}))");
         }
 
-        // 3. 祖先がウィンドウ全体からユニークに特定できる → 祖先スコープ内で絞り込み
         for (int i = 0; i < ancestors.Count; i++)
         {
             var ancestor = ancestors[i];
@@ -60,14 +50,12 @@ internal static class SelectorSuggester
             string? ancestorPrefix = null;
             IReadOnlyList<IElement>? scopeElements = null;
 
-            // 祖先を AutomationId で特定可能か
             if (!string.IsNullOrEmpty(ancestor.AutomationId)
                 && CountByAutomationId(all, ancestor.AutomationId) == 1)
             {
                 ancestorPrefix = $"window.FindFirstDescendant(cf.ByAutomationId(\"{ancestor.AutomationId}\"))";
                 scopeElements = GetScopeElementsByAutomationId(all, ancestor.AutomationId);
             }
-            // 祖先を Name + ControlType で特定可能か
             else if (!string.IsNullOrEmpty(ancestor.Name)
                 && CountByNameAndControlType(all, ancestor.Name, ancestor.ControlType) == 1)
             {
@@ -78,7 +66,6 @@ internal static class SelectorSuggester
             if (ancestorPrefix is null || scopeElements is null)
                 continue;
 
-            // 3a. 祖先スコープ内で自身の AutomationId がユニーク
             if (!string.IsNullOrEmpty(target.AutomationId))
             {
                 int count = CountByAutomationId(scopeElements, target.AutomationId);
@@ -86,7 +73,6 @@ internal static class SelectorSuggester
                     return new SelectorSuggestion("High", $"{ancestorPrefix}.FindFirstDescendant(cf.ByAutomationId(\"{target.AutomationId}\"))");
             }
 
-            // 3b. 祖先スコープ内で Name + ControlType がユニーク
             if (!string.IsNullOrEmpty(target.Name))
             {
                 int count = CountByNameAndControlType(scopeElements, target.Name, target.ControlType);
@@ -94,13 +80,11 @@ internal static class SelectorSuggester
                     return new SelectorSuggestion("Medium", $"{ancestorPrefix}.FindFirstDescendant(cf.ByName(\"{target.Name}\").And(cf.ByControlType(ControlType.{target.ControlType})))");
             }
 
-            // 3c. 祖先スコープ内で ControlType + Index
             int index = IndexByControlType(scopeElements, target);
             if (index >= 0)
                 return new SelectorSuggestion("Low", $"{ancestorPrefix}.FindAllDescendants(cf.ByControlType(ControlType.{target.ControlType}))[{index}]");
         }
 
-        // 4. 祖先に AutomationId なし → ウィンドウ全体で ControlType + Index
         int globalIndex = IndexByControlType(all, target);
         if (globalIndex >= 0)
             return new SelectorSuggestion("Low", $"window.FindAllDescendants(cf.ByControlType(ControlType.{target.ControlType}))[{globalIndex}]");
@@ -133,11 +117,9 @@ internal static class SelectorSuggester
     }
 
     /// <summary>
-    /// 祖先スコープ内の要素を取得する。allElements 中で祖先の AutomationId を持つ要素の子孫ツリーを再帰展開。
     /// </summary>
     private static List<IElement> GetScopeElementsByAutomationId(IReadOnlyList<IElement> allElements, string ancestorAutomationId)
     {
-        // 祖先要素を見つける
         IElement? ancestorElement = null;
         for (int i = 0; i < allElements.Count; i++)
         {
@@ -151,7 +133,6 @@ internal static class SelectorSuggester
         if (ancestorElement is null)
             return [];
 
-        // 子孫ツリーを再帰展開してフラットリストにする
         var result = new List<IElement>();
         CollectDescendants(ancestorElement, result);
         return result;
@@ -189,8 +170,6 @@ internal static class SelectorSuggester
     }
 
     /// <summary>
-    /// elements 中で target と同じ ControlType を持つ要素の中での target の index を返す。
-    /// target が見つからない場合は -1。
     /// </summary>
     private static int IndexByControlType(IReadOnlyList<IElement> elements, IElement target)
     {

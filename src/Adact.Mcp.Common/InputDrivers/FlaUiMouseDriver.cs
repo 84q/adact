@@ -6,7 +6,7 @@ using FlaUiMouseButton = FlaUI.Core.Input.MouseButton;
 namespace Adact.Mcp.Common.InputDrivers;
 
 /// <summary>
-/// 本番用 <see cref="IMouseDriver"/> 実装。FlaUI の <see cref="FlaUIMouse"/> を直接呼ぶ。
+/// Mouse driver that forwards input to FlaUI.
 /// </summary>
 internal sealed class FlaUiMouseDriver : IMouseDriver
 {

@@ -5,15 +5,15 @@ using Adact.Cli.Commands;
 namespace Adact.Cli;
 
 /// <summary>
-/// adact CLI のエントリポイント。サブコマンドをルートに集約して System.CommandLine に委譲する。
+/// Entry point for the adact CLI. Wires up the System.CommandLine root command.
 /// </summary>
 internal static class Program
 {
     /// <summary>
-    /// CLI の Main エントリ。引数を parse し <see cref="BuildRoot"/> で生成したルートコマンドを実行する。
+    /// Parses the command line and invokes the root command returned by <see cref="BuildRoot"/>.
     /// </summary>
-    /// <param name="args">コマンドライン引数。</param>
-    /// <returns>サブコマンドが返した exit code (設計 docs/spec/errors-and-output.md)。</returns>
+    /// <param name="args">Command-line arguments.</param>
+    /// <returns>Process exit code (see docs/spec/errors-and-output.md).</returns>
     public static async Task<int> Main(string[] args)
     {
         using var _ = CommandHelpers.PushRuntime(
@@ -25,14 +25,12 @@ internal static class Program
     }
 
     /// <summary>
-    /// ルートコマンドを生成する。Unit テスト (例: Skill references とサブコマンド名の整合検証)
-    /// から呼び出すため internal で公開する。
+    /// Builds the root command. Used by unit tests and internal call sites.
     /// </summary>
     internal static RootCommand BuildRoot()
     {
         var root = RootCommandRegistration.CreateRoot("ADACT - AI-driven Desktop Application CLI Tools");
 
-        // serve サブコマンド（http / pipe）
         var serveCmd = new Command("serve", "Run as an MCP server (http or pipe transport).");
         serveCmd.Subcommands.Add(ServeHttpCommand.Build());
         serveCmd.Subcommands.Add(ServePipeCommand.Build());

@@ -11,30 +11,29 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// コマンドの引数バリデーションロジックを検証する Unit テスト。
-/// 不正な引数が UserError exit code を返すことを確認する。
-/// </summary>
+/// <summary>Contains tests for the Command Validation behavior.</summary>
 [Trait("Layer", "Unit")]
 [Collection(ConsoleCollection.Name)]
 public class CommandValidationTests
 {
     private sealed class FakeClient : IAdactMcpClient
     {
+        /// <summary>Releases resources.</summary>
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
+        /// <summary>Performs the Call Tool Async operation.</summary>
         public ValueTask<CallToolResult> CallToolAsync(
             string name,
             IReadOnlyDictionary<string, object?>? arguments,
             CancellationToken cancellationToken)
         {
-            // バリデーションで弾かれるため呼ばれないはず
             throw new InvalidOperationException("CallToolAsync should not be called in validation error tests.");
         }
     }
 
     // --- ClickCommand ---
 
+    /// <summary>Performs the Click Invalid Ref Format Returns User Error operation.</summary>
     [Theory]
     [InlineData("badref")]
     [InlineData("s1")]
@@ -48,6 +47,7 @@ public class CommandValidationTests
 
     // --- FillCommand ---
 
+    /// <summary>Performs the Fill Invalid Ref Format Returns User Error operation.</summary>
     [Theory]
     [InlineData("badref")]
     [InlineData("w1")]
@@ -59,6 +59,7 @@ public class CommandValidationTests
 
     // --- SelectCommand ---
 
+    /// <summary>Performs the Select Invalid Ref Format Returns User Error operation.</summary>
     [Fact]
     public async Task Select_InvalidRefFormat_ReturnsUserError()
     {
@@ -66,6 +67,7 @@ public class CommandValidationTests
         Assert.Equal(ExitCodes.UserError, exit);
     }
 
+    /// <summary>Performs the Select No Selector Specified Returns User Error operation.</summary>
     [Fact]
     public async Task Select_NoSelectorSpecified_ReturnsUserError()
     {
@@ -73,6 +75,7 @@ public class CommandValidationTests
         Assert.Equal(ExitCodes.UserError, exit);
     }
 
+    /// <summary>Performs the Select Multiple Selector Kinds Returns User Error operation.</summary>
     [Fact]
     public async Task Select_MultipleSelectorKinds_ReturnsUserError()
     {
@@ -80,6 +83,7 @@ public class CommandValidationTests
         Assert.Equal(ExitCodes.UserError, exit);
     }
 
+    /// <summary>Performs the Select Invalid Item Ref Returns User Error operation.</summary>
     [Fact]
     public async Task Select_InvalidItemRef_ReturnsUserError()
     {
@@ -87,6 +91,7 @@ public class CommandValidationTests
         Assert.Equal(ExitCodes.UserError, exit);
     }
 
+    /// <summary>Performs the Select Add And Remove Returns User Error operation.</summary>
     [Fact]
     public async Task Select_AddAndRemove_ReturnsUserError()
     {
@@ -96,6 +101,7 @@ public class CommandValidationTests
 
     // --- TypeCommand ---
 
+    /// <summary>Performs the Type Invalid Ref Format Returns User Error operation.</summary>
     [Theory]
     [InlineData("badref")]
     [InlineData("s1")]
@@ -107,6 +113,7 @@ public class CommandValidationTests
 
     // --- MousewheelCommand ---
 
+    /// <summary>Performs the Mousewheel Both Delta Zero Returns User Error operation.</summary>
     [Fact]
     public async Task Mousewheel_BothDeltaZero_ReturnsUserError()
     {
@@ -114,6 +121,7 @@ public class CommandValidationTests
         Assert.Equal(ExitCodes.UserError, exit);
     }
 
+    /// <summary>Performs the Mousewheel No Delta Specified Returns User Error operation.</summary>
     [Fact]
     public async Task Mousewheel_NoDeltaSpecified_ReturnsUserError()
     {
@@ -121,6 +129,7 @@ public class CommandValidationTests
         Assert.Equal(ExitCodes.UserError, exit);
     }
 
+    /// <summary>Performs the Type Negative Delay Returns User Error operation.</summary>
     [Fact]
     public async Task Type_NegativeDelay_ReturnsUserError()
     {
@@ -130,6 +139,7 @@ public class CommandValidationTests
 
     // --- ClickCommand extended options ---
 
+    /// <summary>Performs the Click Invalid Button Returns User Error operation.</summary>
     [Fact]
     public async Task Click_InvalidButton_ReturnsUserError()
     {
@@ -137,6 +147,7 @@ public class CommandValidationTests
         Assert.Equal(ExitCodes.UserError, exit);
     }
 
+    /// <summary>Performs the Click Invalid Position Returns User Error operation.</summary>
     [Fact]
     public async Task Click_InvalidPosition_ReturnsUserError()
     {
@@ -144,6 +155,7 @@ public class CommandValidationTests
         Assert.Equal(ExitCodes.UserError, exit);
     }
 
+    /// <summary>Performs the Click Count Less Than One Returns User Error operation.</summary>
     [Fact]
     public async Task Click_CountLessThanOne_ReturnsUserError()
     {

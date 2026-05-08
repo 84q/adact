@@ -4,8 +4,14 @@ using System.Windows.Documents;
 
 namespace SampleApp.Tabs;
 
+/// <summary>
+/// Demonstrates rich-text document selection and focus handling.
+/// </summary>
 public partial class RichTextTab : UserControl
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RichTextTab"/> class.
+    /// </summary>
     public RichTextTab()
     {
         InitializeComponent();

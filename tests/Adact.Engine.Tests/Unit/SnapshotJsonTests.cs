@@ -6,10 +6,7 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Unit;
 
-/// <summary>
-/// SnapshotBuilder が生成する JSON の _meta / tree フィールドスキーマを検証する Unit テスト。
-/// snapshot.md の JSON 仕様 (必須フィールド / 省略規則 / boundingRect 表現) の回帰防止。
-/// </summary>
+/// <summary>Contains tests for the Snapshot Json behavior.</summary>
 [Trait("Layer", "Unit")]
 public class SnapshotJsonTests
 {
@@ -26,9 +23,7 @@ public class SnapshotJsonTests
         return JsonDocument.Parse(result.Json);
     }
 
-    /// <summary>
-    /// _meta に sessionId / windowTitle / processName / processId が含まれ、modalDialog は null として出され、filter / generation は出ないことを確認する。
-    /// </summary>
+    /// <summary>Performs the Build Produces Meta With Required Fields operation.</summary>
     [Fact]
     public void Build_Produces_MetaWithRequiredFields()
     {
@@ -44,9 +39,7 @@ public class SnapshotJsonTests
         Assert.Equal(JsonValueKind.Null, meta.GetProperty("modalDialog").ValueKind);
     }
 
-    /// <summary>
-    /// 子要素を持たない leaf には children キーが出力されないことを確認する (空配列を出さない仕様)。
-    /// </summary>
+    /// <summary>Performs the Build Given Leaf Element Omits Children Key operation.</summary>
     [Fact]
     public void Build_GivenLeafElement_OmitsChildrenKey()
     {
@@ -56,9 +49,7 @@ public class SnapshotJsonTests
         Assert.False(tree.TryGetProperty("children", out _));
     }
 
-    /// <summary>
-    /// Name が空文字列の要素では name プロパティを出力しないことを確認する。
-    /// </summary>
+    /// <summary>Performs the Build Given Empty Name Omits Name Property operation.</summary>
     [Fact]
     public void Build_GivenEmptyName_OmitsNameProperty()
     {
@@ -68,9 +59,7 @@ public class SnapshotJsonTests
         Assert.False(tree.TryGetProperty("name", out _));
     }
 
-    /// <summary>
-    /// boundingRect がゼロ以外のとき [x,y,w,h] の整数配列として出力されることを確認する。
-    /// </summary>
+    /// <summary>Performs the Build Given Non Zero Bounds Emits Bounding Rect As Array operation.</summary>
     [Fact]
     public void Build_GivenNonZeroBounds_EmitsBoundingRectAsArray()
     {
@@ -82,9 +71,7 @@ public class SnapshotJsonTests
         Assert.Equal(new[] { 10, 20, 300, 400 }, rect.EnumerateArray().Select(e => e.GetInt32()).ToArray());
     }
 
-    /// <summary>
-    /// 兄弟要素に順番に ref (s1e2, s1e3, s1e4) が振られることを確認する。
-    /// </summary>
+    /// <summary>Performs the Build Given Multiple Children Assigns Sequential Ref Ids operation.</summary>
     [Fact]
     public void Build_GivenMultipleChildren_AssignsSequentialRefIds()
     {
@@ -98,13 +85,10 @@ public class SnapshotJsonTests
         Assert.Equal(new[] { "s1e2", "s1e3", "s1e4" }, refs);
     }
 
-    /// <summary>
-    /// raw 出力で Name 無し Pane も flatten されずそのまま出てくることを確認する (Phase 7 仕様変更の回帰防止)。
-    /// </summary>
+    /// <summary>Performs the Build Raw All Elements Includes Unnamed Pane operation.</summary>
     [Fact]
     public void Build_RawAllElements_IncludesUnnamedPane()
     {
-        // Phase 7: raw 全要素 JSON 出力。Pane (Name 無し) も flatten せずそのまま出る。
         var root = FakeElement.Window("T",
             FakeElement.Pane(null, FakeElement.Button("inner")));
         using var doc = BuildAndParse(root);

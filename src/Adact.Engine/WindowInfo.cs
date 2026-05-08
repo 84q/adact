@@ -1,13 +1,13 @@
 namespace Adact.Engine;
 
-/// <summary>ListWindowsAsync の戻り値。トップレベルウィンドウのサマリ。</summary>
-/// <param name="ProcessId">所有プロセス ID。</param>
-/// <param name="ProcessName">所有プロセス名 (拡張子なし、取得失敗時は <c>"?"</c>)。</param>
-/// <param name="Title">ウィンドウタイトル。空文字列の場合あり。</param>
-/// <param name="ControlType">UIA ControlType 名 (例: <c>"Window"</c>、取得失敗時は <c>"Unknown"</c>)。</param>
-/// <param name="ClassName">Win32 ウィンドウクラス名。空文字列は <c>null</c> 化されている。</param>
-/// <param name="NativeWindowHandle">Win32 HWND。FromHandle / 各種 Win32 API への入力に用いる。</param>
-/// <param name="ProcessStartTimeUtc">所有プロセスの開始 UTC 時刻。取得不能時は <c>null</c>。</param>
+/// <summary>Window information returned by <c>ListWindowsAsync</c>.</summary>
+/// <param name="ProcessId">Process ID.</param>
+/// <param name="ProcessName">Process name (may be <c>"?"</c> when unknown).</param>
+/// <param name="Title">Window title.</param>
+/// <param name="ControlType">UIA control type (for example, <c>"Window"</c> or <c>"Unknown"</c>).</param>
+/// <param name="ClassName">Win32 class name. Can be <c>null</c>.</param>
+/// <param name="NativeWindowHandle">Win32 HWND, used with <c>FromHandle</c> and other Win32 APIs.</param>
+/// <param name="ProcessStartTimeUtc">Process start time in UTC. Can be <c>null</c>.</param>
 public sealed record WindowInfo(
     int ProcessId,
     string ProcessName,

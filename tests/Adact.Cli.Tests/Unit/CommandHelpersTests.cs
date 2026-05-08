@@ -10,9 +10,7 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// Unit tests for snapshot output and auto-snapshot flows in <see cref="CommandHelpers"/>.
-/// </summary>
+/// <summary>Contains tests for the Command Helpers behavior.</summary>
 [Trait("Layer", "Unit")]
 [Collection(ConsoleCollection.Name)]
 public class CommandHelpersTests
@@ -21,12 +19,16 @@ public class CommandHelpersTests
     {
         private readonly Queue<CallToolResult> _results = new();
 
+        /// <summary>Gets the Calls value.</summary>
         public List<(string Name, IReadOnlyDictionary<string, object?>? Arguments)> Calls { get; } = [];
 
+        /// <summary>Performs the Enqueue operation.</summary>
         public void Enqueue(CallToolResult result) => _results.Enqueue(result);
 
+        /// <summary>Releases resources.</summary>
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
+        /// <summary>Performs the Call Tool Async operation.</summary>
         public ValueTask<CallToolResult> CallToolAsync(
             string name,
             IReadOnlyDictionary<string, object?>? arguments,
@@ -37,7 +39,7 @@ public class CommandHelpersTests
         }
     }
 
-    /// <summary>Verifies that a successful snapshot writes unified metadata and snapshot path.</summary>
+    /// <summary>Performs the Write Snapshot Result Async Success Writes Session And Snapshot Path operation.</summary>
     [Fact]
     public async Task WriteSnapshotResultAsync_Success_WritesSessionAndSnapshotPath()
     {
@@ -70,7 +72,7 @@ public class CommandHelpersTests
         }
     }
 
-    /// <summary>Verifies that an unknown filter returns a user error before calling MCP.</summary>
+    /// <summary>Performs the Write Snapshot Result Async Unknown Filter Returns User Error Without Calling Snapshot operation.</summary>
     [Fact]
     public async Task WriteSnapshotResultAsync_UnknownFilter_ReturnsUserErrorWithoutCallingSnapshot()
     {
@@ -90,7 +92,7 @@ public class CommandHelpersTests
         Assert.Empty(client.Calls);
     }
 
-    /// <summary>Verifies that a adact_snapshot MCP error is reported as a CLI error.</summary>
+    /// <summary>Performs the Write Snapshot Result Async Snapshot Error Propagates Mcp Error operation.</summary>
     [Fact]
     public async Task WriteSnapshotResultAsync_SnapshotError_PropagatesMcpError()
     {
@@ -107,7 +109,7 @@ public class CommandHelpersTests
         Assert.Equal("adact_snapshot", Assert.Single(client.Calls).Name);
     }
 
-    /// <summary>Verifies that a snapshot response without a session id returns an internal error.</summary>
+    /// <summary>Performs the Write Snapshot Result Async Missing Session Id Returns Internal Error operation.</summary>
     [Fact]
     public async Task WriteSnapshotResultAsync_MissingSessionId_ReturnsInternalError()
     {
@@ -123,7 +125,7 @@ public class CommandHelpersTests
         Assert.Contains("adact_snapshot response missing sessionId", stdout);
     }
 
-    /// <summary>Verifies that invalid snapshot JSON text returns an internal parse error.</summary>
+    /// <summary>Performs the Write Snapshot Result Async Invalid Snapshot Text Returns Internal Error operation.</summary>
     [Fact]
     public async Task WriteSnapshotResultAsync_InvalidSnapshotText_ReturnsInternalError()
     {
@@ -148,7 +150,7 @@ public class CommandHelpersTests
         Assert.Contains("Failed to parse snapshot response", stdout);
     }
 
-    /// <summary>Verifies that an explicit raw filter is passed through to the snapshot text output.</summary>
+    /// <summary>Performs the Write Snapshot Result Async Raw Filter Writes Raw Filter Frontmatter operation.</summary>
     [Fact]
     public async Task WriteSnapshotResultAsync_RawFilter_WritesRawFilterFrontmatter()
     {
@@ -179,7 +181,7 @@ public class CommandHelpersTests
         }
     }
 
-    /// <summary>Verifies that no-snapshot ref operations write minimal yaml output.</summary>
+    /// <summary>Performs the Run Ref Operation And Auto Snapshot Async No Snapshot Writes Minimal Output operation.</summary>
     [Fact]
     public async Task RunRefOperationAndAutoSnapshotAsync_NoSnapshot_WritesMinimalOutput()
     {
@@ -208,7 +210,7 @@ public class CommandHelpersTests
         Assert.Equal("s7e9", call.Arguments!["ref"]);
     }
 
-    /// <summary>Verifies that a failed ref operation skips the follow-up snapshot.</summary>
+    /// <summary>Performs the Run Ref Operation And Auto Snapshot Async Operation Error Skips Snapshot operation.</summary>
     [Fact]
     public async Task RunRefOperationAndAutoSnapshotAsync_OperationError_SkipsSnapshot()
     {
@@ -232,7 +234,7 @@ public class CommandHelpersTests
         Assert.Equal("adact_click", Assert.Single(client.Calls).Name);
     }
 
-    /// <summary>Verifies that a successful session operation snapshots the same session.</summary>
+    /// <summary>Performs the Run Session Operation And Auto Snapshot Async Success Takes Snapshot For Session operation.</summary>
     [Fact]
     public async Task RunSessionOperationAndAutoSnapshotAsync_Success_TakesSnapshotForSession()
     {
@@ -268,7 +270,7 @@ public class CommandHelpersTests
         }
     }
 
-    /// <summary>Verifies that a failed session operation skips the follow-up snapshot.</summary>
+    /// <summary>Performs the Run Session Operation And Auto Snapshot Async Operation Error Skips Snapshot operation.</summary>
     [Fact]
     public async Task RunSessionOperationAndAutoSnapshotAsync_OperationError_SkipsSnapshot()
     {
@@ -292,7 +294,7 @@ public class CommandHelpersTests
         Assert.Equal("adact_resize_window", Assert.Single(client.Calls).Name);
     }
 
-    /// <summary>Verifies that no-snapshot session operations write minimal yaml output.</summary>
+    /// <summary>Performs the Run Session Operation And Auto Snapshot Async No Snapshot Writes Minimal Output operation.</summary>
     [Fact]
     public async Task RunSessionOperationAndAutoSnapshotAsync_NoSnapshot_WritesMinimalOutput()
     {
@@ -319,7 +321,7 @@ public class CommandHelpersTests
         Assert.Equal("adact_maximize_window", Assert.Single(client.Calls).Name);
     }
 
-    /// <summary>Verifies that ServerOption has the expected name, description, and Recursive flag.</summary>
+    /// <summary>Performs the Server Option Has Expected Properties operation.</summary>
     [Fact]
     public void ServerOption_HasExpectedProperties()
     {
@@ -328,7 +330,7 @@ public class CommandHelpersTests
         Assert.True(CommandHelpers.ServerOption.Recursive);
     }
 
-    /// <summary>Verifies that invalid server arguments fail with InvalidUrlException before connecting.</summary>
+    /// <summary>Performs the Run With Client Async Invalid Server Throws Invalid Url Exception Without Connecting operation.</summary>
     [Fact]
     public async Task RunWithClientAsync_InvalidServer_ThrowsInvalidUrlExceptionWithoutConnecting()
     {
@@ -352,7 +354,7 @@ public class CommandHelpersTests
         Assert.False(connected);
     }
 
-    /// <summary>Verifies that connection failures are reported as CONNECTION_FAILED.</summary>
+    /// <summary>Performs the Run With Client Async Connection Failure Returns Connection Failed operation.</summary>
     [Fact]
     public async Task RunWithClientAsync_ConnectionFailure_ReturnsConnectionFailed()
     {
@@ -374,7 +376,7 @@ public class CommandHelpersTests
         Assert.Contains("daemon unavailable", stdout);
     }
 
-    /// <summary>Verifies that unexpected connector exceptions are reported as INTERNAL_ERROR.</summary>
+    /// <summary>Performs the Run With Client Async Unexpected Connector Exception Returns Command Failed operation.</summary>
     [Fact]
     public async Task RunWithClientAsync_UnexpectedConnectorException_ReturnsCommandFailed()
     {

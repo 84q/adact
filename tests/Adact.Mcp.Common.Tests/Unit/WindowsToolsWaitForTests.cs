@@ -6,17 +6,15 @@ using Xunit;
 
 namespace Adact.Mcp.Common.Tests.Unit;
 
-/// <summary>
-/// <see cref="WindowsTools.WaitForAsync"/> および <see cref="WindowsTools.WaitForWindowAsync"/>
-/// (Phase 8 Step 7) の引数検証 / セッション解決エラーを検証する Unit テスト。
-/// 実 UIA を呼ばない範囲のみを対象とし、ポーリング成功パスは Integration / Smoke で別途検証する。
-/// </summary>
+/// <summary>Contains tests for the Windows Tools Wait For behavior.</summary>
 [Trait("Layer", "Unit")]
 public class WindowsToolsWaitForTests
 {
     private sealed class FakeDaemonControl : IDaemonControl
     {
+        /// <summary>Gets a value indicating whether Is Supported.</summary>
         public bool IsSupported { get; init; } = true;
+        /// <summary>Performs the Stop Async operation.</summary>
         public Task StopAsync(CancellationToken ct) => Task.CompletedTask;
     }
 
@@ -40,7 +38,7 @@ public class WindowsToolsWaitForTests
             doc.GetProperty("message").GetString()!);
     }
 
-    /// <summary>adact_wait_for_element: ref と search 条件の同時指定は INVALID_ARGUMENT。</summary>
+    /// <summary>Waits for the Wait For Ref And Query Both Returns Invalid Argument condition.</summary>
     [Fact]
     public async Task WaitFor_RefAndQueryBoth_ReturnsInvalidArgument()
     {
@@ -54,7 +52,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_wait_for_element: ref も検索条件も無い場合 INVALID_ARGUMENT。</summary>
+    /// <summary>Waits for the Wait For No Conditions Returns Invalid Argument condition.</summary>
     [Fact]
     public async Task WaitFor_NoConditions_ReturnsInvalidArgument()
     {
@@ -68,7 +66,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_wait_for_element: 未知の state 値は INVALID_ARGUMENT。</summary>
+    /// <summary>Waits for the Wait For Unknown State Returns Invalid Argument condition.</summary>
     [Fact]
     public async Task WaitFor_UnknownState_ReturnsInvalidArgument()
     {
@@ -82,7 +80,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_wait_for_element: timeoutMs ≤ 0 は INVALID_ARGUMENT。</summary>
+    /// <summary>Waits for the Wait For Non Positive Timeout Returns Invalid Argument condition.</summary>
     [Fact]
     public async Task WaitFor_NonPositiveTimeout_ReturnsInvalidArgument()
     {
@@ -96,7 +94,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_wait_for_element: timeoutMs 負値も INVALID_ARGUMENT。</summary>
+    /// <summary>Waits for the Wait For Negative Timeout Returns Invalid Argument condition.</summary>
     [Fact]
     public async Task WaitFor_NegativeTimeout_ReturnsInvalidArgument()
     {
@@ -110,7 +108,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_wait_for_element: ref と sessionId を同時指定すると INVALID_ARGUMENT。</summary>
+    /// <summary>Waits for the Wait For Ref With Session Id Returns Invalid Argument condition.</summary>
     [Fact]
     public async Task WaitFor_RefWithSessionId_ReturnsInvalidArgument()
     {
@@ -125,7 +123,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_wait_for_element: 形式不正な ref は REF_NOT_FOUND。</summary>
+    /// <summary>Waits for the Wait For Malformed Ref Returns Ref Not Found condition.</summary>
     [Fact]
     public async Task WaitFor_MalformedRef_ReturnsRefNotFound()
     {
@@ -139,7 +137,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_wait_for_element: 未登録 session の ref は REF_NOT_FOUND。</summary>
+    /// <summary>Waits for the Wait For Unknown Session Ref Returns Ref Not Found condition.</summary>
     [Fact]
     public async Task WaitFor_UnknownSessionRef_ReturnsRefNotFound()
     {
@@ -153,7 +151,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_wait_for_element: 検索条件モードで active session 無しなら NO_ACTIVE_SESSION。</summary>
+    /// <summary>Waits for the Wait For Query Mode No Active Session Returns No Active Session condition.</summary>
     [Fact]
     public async Task WaitFor_QueryMode_NoActiveSession_ReturnsNoActiveSession()
     {
@@ -167,7 +165,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_wait_for_element: 検索条件モードで未登録 sessionId は NOT_FOUND。</summary>
+    /// <summary>Waits for the Wait For Query Mode Unknown Session Id Returns Not Found condition.</summary>
     [Fact]
     public async Task WaitFor_QueryMode_UnknownSessionId_ReturnsNotFound()
     {
@@ -181,7 +179,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_wait_for_window: 条件未指定は INVALID_ARGUMENT。</summary>
+    /// <summary>Waits for the Wait For Window No Conditions Returns Invalid Argument condition.</summary>
     [Fact]
     public async Task WaitForWindow_NoConditions_ReturnsInvalidArgument()
     {
@@ -195,7 +193,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_wait_for_window: timeoutMs ≤ 0 は INVALID_ARGUMENT。</summary>
+    /// <summary>Waits for the Wait For Window Non Positive Timeout Returns Invalid Argument condition.</summary>
     [Fact]
     public async Task WaitForWindow_NonPositiveTimeout_ReturnsInvalidArgument()
     {
@@ -209,7 +207,7 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_wait_for_window: timeoutMs 負値も INVALID_ARGUMENT。</summary>
+    /// <summary>Waits for the Wait For Window Negative Timeout Returns Invalid Argument condition.</summary>
     [Fact]
     public async Task WaitForWindow_NegativeTimeout_ReturnsInvalidArgument()
     {
@@ -223,14 +221,14 @@ public class WindowsToolsWaitForTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>ToolErrors.WaitTimeout 定数の値検証 (回帰防止)。</summary>
+    /// <summary>Performs the Tool Errors Wait Timeout Has Expected Wire Value operation.</summary>
     [Fact]
     public void ToolErrors_WaitTimeout_HasExpectedWireValue()
     {
         Assert.Equal("WAIT_TIMEOUT", ToolErrors.WaitTimeout);
     }
 
-    /// <summary>WaitTimeoutException は ToolErrors.WaitTimeout にマップされる。</summary>
+    /// <summary>Performs the Tool Errors Try Map Maps Wait Timeout Exception operation.</summary>
     [Fact]
     public void ToolErrors_TryMap_MapsWaitTimeoutException()
     {

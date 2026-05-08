@@ -4,14 +4,11 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Unit;
 
-/// <summary>
-/// <see cref="ModifierKeys.Resolve"/> の修飾キー名解決を検証する Unit テスト。
-/// Phase 8 設計 §6 (マウス / キーボード操作の修飾キー指定) の互換性回帰防止。
-/// </summary>
+/// <summary>Contains tests for the Modifier Keys behavior.</summary>
 [Trait("Layer", "Unit")]
 public class ModifierKeysTests
 {
-    /// <summary>null / 空配列は空リストを返す。</summary>
+    /// <summary>Resolves the Resolve Null Returns Empty value.</summary>
     [Fact]
     public void Resolve_Null_ReturnsEmpty()
     {
@@ -19,7 +16,7 @@ public class ModifierKeysTests
         Assert.Empty(ModifierKeys.Resolve(System.Array.Empty<string>()));
     }
 
-    /// <summary>"Shift" / "Control" / "Alt" / "Meta" / "Win" / "Windows" がそれぞれ対応する VK に解決される。</summary>
+    /// <summary>Resolves the Resolve Known Names Map To Vk value.</summary>
     [Theory]
     [InlineData("Shift", VirtualKeyShort.SHIFT)]
     [InlineData("Control", VirtualKeyShort.CONTROL)]
@@ -34,7 +31,7 @@ public class ModifierKeysTests
         Assert.Single(result, expected);
     }
 
-    /// <summary>未知名は <see cref="System.ArgumentException"/>。</summary>
+    /// <summary>Resolves the Resolve Unknown Throws value.</summary>
     [Fact]
     public void Resolve_Unknown_Throws()
     {

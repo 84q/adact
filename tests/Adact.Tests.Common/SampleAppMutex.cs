@@ -1,10 +1,6 @@
 namespace Adact.Tests.Common;
 
-/// <summary>
-/// SampleApp を使うテストを system-wide に直列化するための named semaphore ヘルパー。
-/// 異なる VSTest プロセス (アセンブリ間並列) でも有効。
-/// async/await でスレッドが切り替わっても解放できるよう Mutex ではなく Semaphore を使用する。
-/// </summary>
+/// <summary>Provides a mutex wrapper for tests.</summary>
 public sealed class SampleAppMutex : IDisposable
 {
     private const string SemaphoreName = @"Global\AdactSampleAppE2E";
@@ -13,10 +9,7 @@ public sealed class SampleAppMutex : IDisposable
     private readonly Semaphore _semaphore;
     private bool _owned;
 
-    /// <summary>
-    /// named semaphore を取得する。
-    /// </summary>
-    /// <exception cref="TimeoutException">タイムアウトした場合。</exception>
+    /// <summary>Initializes a new instance of the Sample App Mutex class.</summary>
     public SampleAppMutex()
     {
         _semaphore = new Semaphore(initialCount: 1, maximumCount: 1, name: SemaphoreName);
@@ -29,9 +22,7 @@ public sealed class SampleAppMutex : IDisposable
         }
     }
 
-    /// <summary>
-    /// semaphore を解放する。
-    /// </summary>
+    /// <summary>Releases resources.</summary>
     public void Dispose()
     {
         if (_owned)

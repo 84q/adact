@@ -4,11 +4,8 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
-/// <summary><c>doubleclick</c> コマンド。要素を OS のダブルクリック判定で 2 回クリック (auto-snapshot あり)。</summary>
 internal static class DoubleclickCommand
 {
-    /// <summary>doubleclick サブコマンドを構築する。</summary>
-    /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build()
     {
         var refArg = new Argument<string>("ref") { Description = "Element Ref ID like 's1e7'." };

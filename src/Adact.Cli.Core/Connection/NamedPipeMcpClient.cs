@@ -9,9 +9,6 @@ using ModelContextProtocol.Protocol;
 namespace Adact.Cli.Connection;
 
 /// <summary>
-/// Named Pipe 経由で MCP サーバーに接続するクライアント。
-/// StreamClientTransport を使用して実装。
-/// 設計: discussion/033_NamedPipe_HTTP_統合設計.md §2.2
 /// </summary>
 internal sealed class NamedPipeMcpClient : IAdactMcpClient, IAsyncDisposable
 {
@@ -22,11 +19,9 @@ internal sealed class NamedPipeMcpClient : IAdactMcpClient, IAsyncDisposable
     private readonly StreamClientTransport _transport;
     private readonly McpClient _client;
 
-    /// <summary>接続先の Named Pipe エンドポイント。</summary>
     public NamedPipeEndPoint Endpoint { get; }
 
     /// <summary>
-    /// コンストラクタ。<see cref="ConnectAsync" /> のみから生成される。
     /// </summary>
     private NamedPipeMcpClient(
         NamedPipeClientStream pipeStream,
@@ -41,14 +36,7 @@ internal sealed class NamedPipeMcpClient : IAdactMcpClient, IAsyncDisposable
     }
 
     /// <summary>
-    /// Named Pipe 経由で MCP サーバーに接続する。
     /// </summary>
-    /// <param name="endpoint">接続先の Named Pipe エンドポイント。</param>
-    /// <param name="loggerFactory">クライアント内部ログ用。指定しない場合は null 可。</param>
-    /// <param name="cancellationToken">接続を中断するための cancellation token。</param>
-    /// <returns>接続済みの <see cref="NamedPipeMcpClient" />。</returns>
-    /// <exception cref="TimeoutException">接続タイムアウト時。</exception>
-    /// <exception cref="IOException">接続失敗時。</exception>
     public static async Task<NamedPipeMcpClient> ConnectAsync(
         NamedPipeEndPoint endpoint,
         ILoggerFactory? loggerFactory,
@@ -56,8 +44,6 @@ internal sealed class NamedPipeMcpClient : IAdactMcpClient, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(endpoint);
 
-        // Named Pipe クライアントストリームを作成
-        // PipeName から "\\.\pipe\" プレフィックスを除去してサーバー名を抽出
         var pipeName = endpoint.PipeName;
         if (pipeName.StartsWith(NamedPipeEndPoint.PipePrefix, StringComparison.Ordinal))
         {
@@ -65,14 +51,13 @@ internal sealed class NamedPipeMcpClient : IAdactMcpClient, IAsyncDisposable
         }
 
         var pipeStream = new NamedPipeClientStream(
-            ".", // サーバー名（ローカルマシン）
+            ".", // server name (local machine)
             pipeName,
             PipeDirection.InOut,
             PipeOptions.Asynchronous);
 
         try
         {
-            // 接続を試行（タイムアウト: 5秒）
             await pipeStream.ConnectAsync(ConnectTimeoutMilliseconds, cancellationToken).ConfigureAwait(false);
         }
         catch (TimeoutException)
@@ -89,7 +74,6 @@ internal sealed class NamedPipeMcpClient : IAdactMcpClient, IAsyncDisposable
                 $"Failed to connect to named pipe '{endpoint.PipeName}': {ex.Message}", ex);
         }
 
-        // StreamClientTransport を使用して MCP クライアントを作成
         var transport = new StreamClientTransport(pipeStream, pipeStream);
         var client = await McpClient.CreateAsync(
             transport,
@@ -108,12 +92,7 @@ internal sealed class NamedPipeMcpClient : IAdactMcpClient, IAsyncDisposable
     }
 
     /// <summary>
-    /// 指定されたパイプ名に接続できるか確認する（サーバーが起動しているか確認）。
     /// </summary>
-    /// <param name="endpoint">確認する Named Pipe エンドポイント。</param>
-    /// <param name="timeoutMs">タイムアウト（ミリ秒）。</param>
-    /// <param name="cancellationToken">キャンセルトークン。</param>
-    /// <returns>接続可能な場合は true、それ以外は false。</returns>
     public static async Task<bool> IsServerRunningAsync(
         NamedPipeEndPoint endpoint,
         int timeoutMs = ServerProbeTimeoutMilliseconds,
@@ -140,10 +119,7 @@ internal sealed class NamedPipeMcpClient : IAdactMcpClient, IAsyncDisposable
     }
 
     /// <summary>
-    /// 指定 tool を呼び出す。<paramref name="arguments" /> が null なら引数なしで呼ぶ。
     /// </summary>
-    /// <param name="name">tool 名 (例: <c>adact_attach</c>)。</param>
-    /// <param name="arguments">tool に渡すキーバリューペア。</param>
     /// <param name="cancellationToken">cancellation token。</param>
     /// <returns>MCP <see cref="CallToolResult" />。</returns>
     public ValueTask<CallToolResult> CallToolAsync(
@@ -154,13 +130,7 @@ internal sealed class NamedPipeMcpClient : IAdactMcpClient, IAsyncDisposable
         return _client.CallToolAsync(name, arguments, null, null, cancellationToken);
     }
 
-    /// <summary>内部リソースを非同期に解放する。</summary>
     /// <remarks>
-    /// NOTE: StreamClientTransport は IDisposable/IAsyncDisposable を実装していないため、
-    /// 明示的な破棄は行えない。ただし、NamedPipeClientStream (_pipeStream) を破棄することで、
-    ///  underlying の pipe が閉じられ、StreamClientTransport も実質的に無力化される。
-    /// Server プロセス終了時には OS が pipe をクリーンアップし、client 側も自動的に切断される。
-    /// StreamClientTransport インスタンス自体はマネージドオブジェクトであり、GC で回収される。
     /// </remarks>
     public async ValueTask DisposeAsync()
     {
@@ -168,7 +138,6 @@ internal sealed class NamedPipeMcpClient : IAdactMcpClient, IAsyncDisposable
         await _pipeStream.DisposeAsync().ConfigureAwait(false);
     }
 
-    /// <summary>現在のアセンブリのバージョンを文字列化して返す。</summary>
     private static string GetAssemblyVersion()
     {
         var v = typeof(NamedPipeMcpClient).Assembly.GetName().Version;

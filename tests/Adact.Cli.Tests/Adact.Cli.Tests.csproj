@@ -32,10 +32,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Skill ファイルを test bin にも展開する。
-         Adact.Cli の出力ディレクトリと test 出力ディレクトリは別物のため、
-         test bin 内 adact.exe が AppContext.BaseDirectory 起点で Skill を解決できるように
-         同じ相対構造でリンクする。設計 013 §4.3。 -->
+    <!-- Copy skill files into the test bin as well.
+         The Adact.Cli output directory and the test output directory are separate, so
+         link them with the same relative structure to let adact.exe in test bin resolve skills
+         from AppContext.BaseDirectory. Design 013 §4.3. -->
     <None Include="..\..\src\Adact.Cli\Skills\**\*.md">
       <Link>Skills\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

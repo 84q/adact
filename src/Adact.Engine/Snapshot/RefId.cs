@@ -2,21 +2,20 @@ using System.Globalization;
 
 namespace Adact.Engine.Snapshot;
 
-/// <summary>Ref ID 形式 <c>s&lt;sessionId&gt;e&lt;elementId&gt;</c> を組み立てる/分解するユーティリティ。</summary>
+/// <summary>
+/// Formats and parses stable element ref IDs.
+/// </summary>
 public static class RefId
 {
-    /// <summary>セッション ID と要素 ID から Ref ID 文字列を組み立てる。</summary>
-    /// <param name="sessionId">セッション ID。</param>
-    /// <param name="elementId">セッション内で一意な要素 ID。</param>
-    /// <returns><c>s{sessionId}e{elementId}</c> 形式の文字列。</returns>
+    /// <summary>
+    /// Formats a ref ID as <c>s&lt;sid&gt;e&lt;eid&gt;</c>.
+    /// </summary>
     public static string Format(int sessionId, int elementId)
         => $"s{sessionId}e{elementId}";
 
-    /// <summary>Ref ID 文字列を解析し、セッション ID と要素 ID へ分解する。</summary>
-    /// <param name="value">解析対象の Ref ID 文字列 (例: <c>"s1e3"</c>)。</param>
-    /// <param name="sessionId">解析成功時はセッション ID、失敗時は 0。</param>
-    /// <param name="elementId">解析成功時は要素 ID、失敗時は 0。</param>
-    /// <returns>解析に成功した場合 true。形式不正なら false。</returns>
+    /// <summary>
+    /// Tries to parse a ref ID in <c>s&lt;sid&gt;e&lt;eid&gt;</c> form.
+    /// </summary>
     public static bool TryParse(string value, out int sessionId, out int elementId)
     {
         sessionId = elementId = 0;

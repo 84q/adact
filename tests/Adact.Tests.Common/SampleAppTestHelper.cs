@@ -4,22 +4,14 @@ using Adact.Engine;
 
 namespace Adact.Tests.Common;
 
-/// <summary>
-/// SampleApp を使う実アプリ依存テスト向けの起動・停止・条件待機ヘルパー。
-/// SampleApp の起動・停止・識別・条件待機を提供するヘルパー。
-/// </summary>
+/// <summary>Provides helper methods for tests.</summary>
 public static class SampleAppTestHelper
 {
     private const string ProcessName = "SampleApp";
 
     private const string WindowTitle = "ADACT SampleApp";
 
-    /// <summary>
-    /// 既存の SampleApp プロセスを掃除したうえで SampleApp を起動し、UIA から観測可能な状態になるまで待機する。
-    /// </summary>
-    /// <param name="timeout">タイムアウト。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>起動したプロセス。</returns>
+    /// <summary>Performs the Start Fresh Sample App Async operation.</summary>
     public static async Task<Process> StartFreshSampleAppAsync(TimeSpan timeout, CancellationToken ct = default)
     {
         KillSampleAppProcesses();
@@ -49,9 +41,7 @@ public static class SampleAppTestHelper
         return process;
     }
 
-    /// <summary>
-    /// 既知の SampleApp プロセスを best-effort で終了する。
-    /// </summary>
+    /// <summary>Performs the Kill Sample App Processes operation.</summary>
     public static void KillSampleAppProcesses()
     {
         foreach (var process in Process.GetProcessesByName(ProcessName))
@@ -68,16 +58,12 @@ public static class SampleAppTestHelper
         }
     }
 
-    /// <summary>
-    /// <see cref="UiaEngine.ListWindowsAsync(CancellationToken)"/> 結果が SampleApp ウィンドウを指すかどうかを判定する。
-    /// </summary>
+    /// <summary>Gets a value indicating whether Is Sample App Window.</summary>
     public static bool IsSampleAppWindow(WindowInfo info)
         => info.Title.Contains(WindowTitle, StringComparison.Ordinal)
             || info.ProcessName.Contains(ProcessName, StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>
-    /// 条件が満たされるまでポーリングし、タイムアウト時は明示例外を投げる。
-    /// </summary>
+    /// <summary>Waits for the Wait Until Async condition.</summary>
     public static async Task WaitUntilAsync(
         Func<Task<bool>> condition,
         TimeSpan timeout,
@@ -101,11 +87,10 @@ public static class SampleAppTestHelper
         throw new TimeoutException(failureMessage);
     }
 
-    /// <summary>SampleApp.exe のパスを探す。</summary>
     private static string FindSampleAppPath()
     {
-        // テストアセンブリの場所からソルーションルートを割り出し、SampleApp のビルド出力を探す
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
+
         while (dir is not null && dir.GetFiles("adact.sln*").Length == 0)
             dir = dir.Parent;
 

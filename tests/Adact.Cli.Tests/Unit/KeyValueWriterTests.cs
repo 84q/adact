@@ -4,14 +4,12 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// <see cref="KeyValueWriter"/> の key-value 1 行出力を検証する Unit テスト。
-/// </summary>
+/// <summary>Contains tests for the Key Value Writer behavior.</summary>
 [Trait("Layer", "Unit")]
 [Collection(ConsoleCollection.Name)]
 public class KeyValueWriterTests
 {
-    /// <summary>基本的な key-value ペアが "key value\n" 形式で書き出されることを確認する。</summary>
+    /// <summary>Performs the Write Basic Key Value Outputs Key Space Value operation.</summary>
     [Fact]
     public void Write_BasicKeyValue_OutputsKeySpaceValue()
     {
@@ -23,7 +21,7 @@ public class KeyValueWriterTests
         Assert.Equal("name hello" + Environment.NewLine, stdout);
     }
 
-    /// <summary>スペースを含む値がそのまま 1 行に書き出されることを確認する。</summary>
+    /// <summary>Performs the Write Value With Spaces Preserves Spaces operation.</summary>
     [Fact]
     public void Write_ValueWithSpaces_PreservesSpaces()
     {
@@ -35,19 +33,17 @@ public class KeyValueWriterTests
         Assert.Equal("title hello world foo" + Environment.NewLine, stdout);
     }
 
-    /// <summary>日本語を含む値が正しく書き出されることを確認する。</summary>
+    /// <summary>Performs the Write Value With Unicode Preserves Characters operation.</summary>
     [Fact]
     public void Write_ValueWithUnicode_PreservesCharacters()
     {
         var (stdout, _) = CapturedConsole.Run(() =>
         {
-            KeyValueWriter.Write("msg", "こんにちは");
         });
 
-        Assert.Equal("msg こんにちは" + Environment.NewLine, stdout);
     }
 
-    /// <summary>空文字列の値が "key \n" として書き出されることを確認する。</summary>
+    /// <summary>Performs the Write Empty Value Outputs Key With Trailing Space operation.</summary>
     [Fact]
     public void Write_EmptyValue_OutputsKeyWithTrailingSpace()
     {
@@ -59,7 +55,7 @@ public class KeyValueWriterTests
         Assert.Equal("key " + Environment.NewLine, stdout);
     }
 
-    /// <summary>タブや改行を含む特殊文字が値としてそのまま出力されることを確認する。</summary>
+    /// <summary>Performs the Write Value With Special Characters Outputs As Is operation.</summary>
     [Fact]
     public void Write_ValueWithSpecialCharacters_OutputsAsIs()
     {

@@ -3,8 +3,14 @@ using System.Windows.Controls;
 
 namespace SampleApp.Tabs;
 
+/// <summary>
+/// Demonstrates basic controls such as sliders, progress bars, and text inputs.
+/// </summary>
 public partial class BasicControlsTab : UserControl
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BasicControlsTab"/> class.
+    /// </summary>
     public BasicControlsTab()
     {
         InitializeComponent();

@@ -4,14 +4,11 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Unit;
 
-/// <summary>
-/// <see cref="ClickOptions"/> のデフォルト値を検証する Unit テスト。
-/// 既存呼び出し (<c>ClickAsync(refId, options:null)</c>) の互換性回帰防止。
-/// </summary>
+/// <summary>Contains tests for the Click Options behavior.</summary>
 [Trait("Layer", "Unit")]
 public class ClickOptionsTests
 {
-    /// <summary>パラメータ無指定時のデフォルトが設計 022 §6 と一致する。</summary>
+    /// <summary>Performs the Defaults Are Left Single Click With No Modifiers And Center operation.</summary>
     [Fact]
     public void Defaults_AreLeftSingleClickWithNoModifiersAndCenter()
     {
@@ -24,7 +21,7 @@ public class ClickOptionsTests
         Assert.Null(opts.PositionY);
     }
 
-    /// <summary>すべてのフィールドを上書きできる。</summary>
+    /// <summary>Performs the Record Overrides All Fields operation.</summary>
     [Fact]
     public void Record_OverridesAllFields()
     {

@@ -9,10 +9,7 @@ using Xunit;
 
 namespace Adact.Mcp.Http.Tests;
 
-/// <summary>
-/// HttpHost.BuildApplication(port:0) で実 Kestrel を起動し、ephemeral port を採番させる
-/// xUnit フィクスチャ。テスト間でサーバーを再利用する (Stateless モードのため共有可能)。
-/// </summary>
+/// <summary>Provides a shared fixture for tests.</summary>
 public sealed class AdactHttpServerFixture : IAsyncLifetime
 {
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(30);
@@ -20,18 +17,13 @@ public sealed class AdactHttpServerFixture : IAsyncLifetime
     private WebApplication? _app;
     private bool _usesExternalServer;
 
-    /// <summary>
-    /// テスト中に MCP クライアントから接続する HTTP エンドポイント (/mcp 付き)。
-    /// </summary>
+    /// <summary>Gets or sets the Base Address value.</summary>
     public Uri BaseAddress { get; private set; } = null!;
 
-    /// <summary>True when tests are connected to an externally started daemon from <c>ADACT_SERVER_URL</c>.</summary>
+    /// <summary>Gets a value indicating whether Uses External Server.</summary>
     public bool UsesExternalServer => _usesExternalServer;
 
-    /// <summary>
-    /// HTTP サーバーを起動して <see cref="BaseAddress"/> を解決する。
-    /// </summary>
-    /// <returns>初期化完了タスク。</returns>
+    /// <summary>Initializes the fixture.</summary>
     public async Task InitializeAsync()
     {
         var externalBaseAddress = GetExternalServerUri();
@@ -45,18 +37,12 @@ public sealed class AdactHttpServerFixture : IAsyncLifetime
 
         _app = HttpHost.BuildApplication(IPAddress.Loopback, 0);
         await _app.StartAsync();
-        // Listen(IPAddress.Loopback, 0) で起動したあと、実際にバインドされた URL は
-        // IServerAddressesFeature 経由 (app.Urls) で取得できる。
         var url = _app.Urls.FirstOrDefault()
             ?? throw new InvalidOperationException("Failed to determine bound URL for the test HTTP server.");
-        // Phase 5: MCP は /mcp にマップされている (009 §2.2)。クライアントの Endpoint も /mcp 付きにする。
         BaseAddress = new Uri(new Uri(url), HttpHost.McpPath);
     }
 
-    /// <summary>
-    /// 起動中の HTTP サーバーを停止し、リソースを解放する。
-    /// </summary>
-    /// <returns>解放完了タスク。</returns>
+    /// <summary>Releases resources.</summary>
     public async Task DisposeAsync()
     {
         if (_usesExternalServer) return;
@@ -102,10 +88,7 @@ public sealed class AdactHttpServerFixture : IAsyncLifetime
     }
 }
 
-/// <summary>
-/// Adact HTTP サーバーを共有しつつ、UIA 操作を伴うテストとの並列実行を抑止するための collection。
-/// L4 Smoke / L5 E2E をまとめて直列に実行する。
-/// </summary>
+/// <summary>Defines a shared test collection.</summary>
 [CollectionDefinition("AdactHttp", DisableParallelization = true)]
 public sealed class AdactHttpCollection : ICollectionFixture<AdactHttpServerFixture>
 {

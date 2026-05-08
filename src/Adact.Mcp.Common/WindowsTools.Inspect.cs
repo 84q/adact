@@ -13,11 +13,7 @@ namespace Adact.Mcp.Common;
 public sealed partial class WindowsTools
 {
     /// <summary>
-    /// 指定 Element Ref が指す UIA 要素の詳細プロパティを返す (設計 022 §8)。auto-snapshot は発火しない。
     /// </summary>
-    /// <param name="ref">snapshot 由来の element ref (例: <c>s1e7</c>)。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>UIA プロパティと対応 Pattern の状態を JSON で返す <see cref="CallToolResult"/>。</returns>
     [McpServerTool(Name = "adact_inspect")]
     [Description("Get detailed UIA properties (Name, ControlType, AutomationId, ClassName, HelpText, Value, BoundingRect, state flags, supported patterns) of the element identified by ref. No snapshot is taken.")]
     public async Task<CallToolResult> InspectAsync(
@@ -44,10 +40,7 @@ public sealed partial class WindowsTools
     }
 
     /// <summary>
-    /// <see cref="InspectResult"/> を MCP 返却用 JSON オブジェクトに変換する。設計 022 §8 のスキーマに従う。
     /// </summary>
-    /// <param name="r">Engine から得た inspect 結果。</param>
-    /// <returns>JSON オブジェクト。</returns>
     private static JsonObject SerializeInspectResult(InspectResult r)
     {
         var patterns = new JsonObject();

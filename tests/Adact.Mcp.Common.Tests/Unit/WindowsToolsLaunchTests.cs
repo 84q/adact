@@ -8,16 +8,15 @@ using Xunit;
 
 namespace Adact.Mcp.Common.Tests.Unit;
 
-/// <summary>
-/// <see cref="WindowsTools.LaunchAsync"/> の Unit テスト。設計 024 §7。
-/// 実プロセス起動を含むが (PID を即 kill)、UIA / FlaUI には依存しない。
-/// </summary>
+/// <summary>Contains tests for the Windows Tools Launch behavior.</summary>
 [Trait("Layer", "Unit")]
 public class WindowsToolsLaunchTests
 {
     private sealed class FakeDaemonControl : IDaemonControl
     {
+        /// <summary>Gets a value indicating whether Is Supported.</summary>
         public bool IsSupported { get; init; } = true;
+        /// <summary>Performs the Stop Async operation.</summary>
         public Task StopAsync(CancellationToken ct) => Task.CompletedTask;
     }
 
@@ -55,7 +54,7 @@ public class WindowsToolsLaunchTests
         catch { }
     }
 
-    /// <summary>UWP モードで cwd を指定すると INVALID_ARGUMENT を返す。</summary>
+    /// <summary>Performs the Launch Uwp With Cwd Returns Invalid Argument operation.</summary>
     [Fact]
     public async Task Launch_UwpWithCwd_ReturnsInvalidArgument()
     {
@@ -72,7 +71,7 @@ public class WindowsToolsLaunchTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>UWP モードで env を指定すると INVALID_ARGUMENT を返す。</summary>
+    /// <summary>Performs the Launch Uwp With Env Returns Invalid Argument operation.</summary>
     [Fact]
     public async Task Launch_UwpWithEnv_ReturnsInvalidArgument()
     {
@@ -89,7 +88,7 @@ public class WindowsToolsLaunchTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>空 executable は INVALID_ARGUMENT。</summary>
+    /// <summary>Performs the Launch Empty Executable Returns Invalid Argument operation.</summary>
     [Fact]
     public async Task Launch_EmptyExecutable_ReturnsInvalidArgument()
     {
@@ -103,7 +102,7 @@ public class WindowsToolsLaunchTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>存在しない実行ファイル → LaunchFailedException が LAUNCH_FAILED にマップされる。</summary>
+    /// <summary>Performs the Launch Nonexistent Executable Returns Launch Failed operation.</summary>
     [Fact]
     public async Task Launch_NonexistentExecutable_ReturnsLaunchFailed()
     {
@@ -118,7 +117,7 @@ public class WindowsToolsLaunchTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>cmd.exe を起動し、レスポンス JSON に pid / processName が含まれる。</summary>
+    /// <summary>Performs the Launch Cmd Exe Returns Pid Json operation.</summary>
     [Fact]
     public async Task Launch_CmdExe_ReturnsPidJson()
     {

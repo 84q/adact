@@ -1,32 +1,32 @@
 # Errors and Output
 
-ADACT は CLI と MCP の両方で、成功データとエラーを明確に分けます。
+ADACT clearly separates success data from errors in both the CLI and MCP layers.
 
-- CLI は通常の成功/失敗情報を **stdout に統一**します
-- MCP の業務エラーは `isError: true` の tool result として返します
+- The CLI writes normal success/failure information to stdout
+- MCP business errors are returned as tool results with `isError: true`
 
 ## Exit codes
 
-| Code | 名前 | 用途 |
+| Code | Name | Use |
 | ---: | --- | --- |
-| 0 | Success | 正常終了 |
-| 1 | CommandFailed | daemon が応答した tool error、操作失敗、内部失敗 |
-| 2 | UserError | CLI 段階の入力エラー、URL/config 不正、remote `daemon-stop` など |
-| 3 | ConnectionFailed | daemon への接続失敗 |
-| 4 | EnvironmentNotSupported | daemon 起動環境が不適切。現行では `NO_INTERACTIVE_SESSION` |
+| 0 | Success | Normal completion |
+| 1 | CommandFailed | Tool error, operation failure, or internal failure reported by the daemon |
+| 2 | UserError | CLI input errors, bad URL/config, remote `daemon-stop`, and similar cases |
+| 3 | ConnectionFailed | Failed to connect to the daemon |
+| 4 | EnvironmentNotSupported | The daemon started in an unsupported environment, currently `NO_INTERACTIVE_SESSION` |
 
-## CLI 標準出力
+## CLI stdout
 
-### 共通形
+### Common shape
 
 ```text
 result: true|false
-<必要なら追加メタ>
+<optional metadata>
 ---
-<本文>
+<body>
 ```
 
-### 共通失敗形
+### Common failure shape
 
 ```text
 result: false
@@ -36,90 +36,60 @@ message: <human-readable message>
 hint: <optional recovery hint>
 ```
 
-- 成功時は `result: true`
-- 失敗時は `result: false` と `error: <CODE>`
-- `hint` は必要なときだけ出す
-- `serve http` / `serve pipe` は継続実行コマンドのため通常の統一結果フォーマットの主対象外
+- Success uses `result: true`
+- Failure uses `result: false` and `error: <CODE>`
+- `hint` appears only when needed
+- `serve http` and `serve pipe` are long-running commands and are not part of the normal unified result format
 
-## CLI 成功形式
+## CLI success formats
 
-| 形式 | コマンド | 内容 |
+| Format | Commands | Content |
 | --- | --- | --- |
-| yaml | `attach`, 操作系, lifecycle, `inspect`, `screenshot`, `wait-for-element`, `wait-for-window`, `launch`, `install`, `daemon-stop` | 先頭メタ + `---` + yaml風本文 |
-| TSV | `list-windows` | 先頭メタ + `---` + TSV 本文 |
-| snapshot | `snapshot` | `snapshotPath` をメタ、本文に `sessionId` + 空行 + tree |
+| yaml-style | `attach`, action commands, lifecycle, `inspect`, `screenshot`, `wait-for-element`, `wait-for-window`, `launch`, `install`, `daemon-stop` | Metadata, then `---`, then a YAML-like body |
+| TSV | `list-windows` | Metadata, then `---`, then TSV rows |
+| snapshot | `snapshot` | `snapshotPath` in metadata, then `sessionId`, a blank line, and the tree |
 
-### yaml 例
+## MCP tool errors
 
-```text
-result: true
-snapshotPath: .adact/snapshots/s1/0008.txt (unchanged)
----
-action: click
-target: s1e42
-```
+MCP business errors are returned as tool results rather than JSON-RPC errors.
 
-### TSV 例 (`list-windows`)
-
-```text
-result: true
----
-windowRef	sessionId	processName	processId	className	windowTitle
-w1	s1	notepad	12345	Notepad	Untitled - Notepad
-```
-
-### snapshot 例 (`snapshot`)
-
-```text
-result: true
-snapshotPath: .adact/snapshots/s1/0012.txt (changed)
----
-sessionId: s1
-
-- Window "Untitled - Notepad" [ref=s1e1]
-```
-
-## MCP tool error
-
-MCP tool の業務エラーは JSON-RPC error ではなく tool result として返します。
-
-| フィールド | 内容 |
+| Field | Description |
 | --- | --- |
 | `isError` | `true` |
 | `content[0].text` | `<CODE>: <message>` |
-| `structuredContent.code` | error code |
-| `structuredContent.message` | message |
-| `structuredContent.details` | optional details |
+| `structuredContent.code` | Error code |
+| `structuredContent.message` | Message |
+| `structuredContent.details` | Optional details |
 
-CLI client は `isError: true` を受けると stdout の yaml風エラー形式に変換し、通常は exit code `1` を返します。CLI 入力段階で検出できる不正は daemon に投げず exit code `2` になります。
+CLI clients convert `isError: true` into YAML-style CLI errors and usually return exit code `1`. Errors caught at the CLI input stage use exit code `2`.
 
-## 代表エラーコード
+## Representative error codes
 
-| Code | 層 | 典型原因 | 典型 exit | 対処法 |
+| Code | Layer | Typical cause | Typical exit | Fix |
 | --- | --- | --- | ---: | --- |
-| `INVALID_ARGUMENT` | CLI / MCP | 引数不足、未知 filter、sessionId 不明 | 2 または 1 | リファレンスを確認し、正しい引数の組合せで再実行 |
-| `INVALID_REF_FORMAT` | CLI | Element Ref が `s<sid>e<eid>` 形式ではない | 2 | 最新 snapshot から ref をそのままコピーして使用 |
-| `INVALID_WINDOW_REF` | MCP | `w<n>` が unknown / retired | 1 | `adact list-windows` を再実行し新しい `windowRef` を取得 |
-| `WINDOW_NOT_FOUND` | MCP | `windowRef` 解決後の HWND attach が失敗 | 1 | `adact list-windows` で対象ウィンドウの存在を確認 |
-| `REF_NOT_FOUND` | MCP | Element Ref が malformed、session 不一致、現 snapshot にない | 1 | `adact snapshot` で再取得し、新しい ref を使用 |
-| `ELEMENT_INTERACTION_FAILED` | MCP | click/fill 等の UIA 操作が失敗 | 1 | ウィンドウが前面にあり、コントロールが有効・表示中か確認し再試行 |
-| `SNAPSHOT_FAILED` | MCP | snapshot 構築失敗 | 1 | ウィンドウが破棄・無応答の可能性あり。re-attach して再試行 |
-| `NO_ACTIVE_SESSION` | MCP | active session がない | 1 | `adact attach` で先にセッションを確立 |
-| `NOT_FOUND` | MCP | lifecycle / wait-for 等の対象 session がない | 1 | `adact attach` でセッションを作成、または有効な `--sid` を指定 |
-| `CLOSE_FAILED` | MCP | window close 失敗 | 1 | モーダルダイアログがブロックしている可能性あり。先にダイアログを閉じて再試行 |
-| `KILL_FAILED` | MCP | process kill 失敗 | 1 | プロセスが既に終了している可能性あり。`adact list-windows` で確認 |
-| `LAUNCH_FAILED` | Engine→MCP→CLI | `launch` が失敗 | 1 | パス・PATH 名を確認。UWP は `shell:AppsFolder\<AUMID>` 形式を確認 |
-| `WAIT_TIMEOUT` | Engine→MCP→CLI | `wait-for-element` / `wait-for-window` が timeout | 1 | `--timeout` を延長、またはアプリが期待状態に到達するか確認 |
-| `CONNECTION_FAILED` | CLI | daemon に接続できない | 3 | `adact serve` で daemon を起動、または `--server <url>` を指定 |
-| `ALREADY_RUNNING` | CLI | daemon がすでに起動中 | 2 | 既存 daemon を使用するか、`adact daemon-stop` で停止してから再起動 |
-| `LOCAL_ONLY` | CLI / MCP | remote target で `daemon-stop` | 2 または 1 | daemon と同じホストでコマンドを実行 |
-| `OPERATION_BLOCKED` | Engine→MCP→CLI | デスクトップがロック / UAC 等で操作不能 | 1 | デスクトップのロック解除、UAC/システムダイアログの解消、ウィンドウの前面化 |
-| `NO_INTERACTIVE_SESSION` | daemon 起動 | `serve` が非対話 desktop で起動された | 4 | 対話デスクトップセッションで daemon を起動（サービス・SSH 不可） |
-| `INTERNAL_ERROR` | CLI / MCP | 予期しない内部失敗 | 1 | 操作を再試行。繰り返す場合は daemon を再起動 |
+| `INVALID_ARGUMENT` | CLI / MCP | Missing argument, unknown filter, or unknown session id | 2 or 1 | Re-run with the correct arguments |
+| `INVALID_REF_FORMAT` | CLI | Element ref is not `s<sid>e<eid>` | 2 | Copy the ref from the latest snapshot |
+| `INVALID_WINDOW_REF` | MCP | `w<n>` is unknown or retired | 1 | Re-run `list-windows` |
+| `WINDOW_NOT_FOUND` | MCP | HWND attach failed after resolving `windowRef` | 1 | Confirm the window still exists |
+| `REF_NOT_FOUND` | MCP | Element ref is malformed, belongs to another session, or is not in the current snapshot | 1 | Re-snapshot and use a new ref |
+| `ELEMENT_INTERACTION_FAILED` | MCP | Click/fill or similar UIA operation failed | 1 | Ensure the window is visible and retry |
+| `SNAPSHOT_FAILED` | MCP | Snapshot construction failed | 1 | Re-attach and retry |
+| `NO_ACTIVE_SESSION` | MCP | No active session exists | 1 | Run `attach` first |
+| `NOT_FOUND` | MCP | The requested session does not exist | 1 | Create or select a valid session |
+| `CLOSE_FAILED` | MCP | Window close failed | 1 | Close modal dialogs first |
+| `KILL_FAILED` | MCP | Process kill failed | 1 | Confirm the process is still alive |
+| `LAUNCH_FAILED` | Engine→MCP→CLI | Launch failed | 1 | Check the executable path or UWP identifier |
+| `WAIT_TIMEOUT` | Engine→MCP→CLI | Wait command timed out | 1 | Increase the timeout or verify the app state |
+| `CONNECTION_FAILED` | CLI | Could not connect to the daemon | 3 | Start `adact serve pipe` or specify `--server` |
+| `ALREADY_RUNNING` | CLI | The daemon is already running | 2 | Reuse the existing daemon or stop it first |
+| `LOCAL_ONLY` | CLI / MCP | Tried to stop a remote daemon | 2 or 1 | Run the command on the same host as the daemon |
+| `OPERATION_BLOCKED` | Engine→MCP→CLI | Desktop is locked or blocked by UAC, etc. | 1 | Unlock the desktop and clear the blocking dialog |
+| `NO_INTERACTIVE_SESSION` | Daemon startup | `adact serve http` / `adact serve pipe` started outside an interactive desktop session | 4 | Start the daemon from the interactive logon session |
+| `INTERNAL_ERROR` | CLI / MCP | Unexpected internal failure | 1 | Retry; restart the daemon if it keeps happening |
 
-## 参照
+## References
 
-| 文書 | 内容 |
+| Document | Description |
 | --- | --- |
-| [cli.md](cli.md) | CLI コマンドごとの出力 |
-| [mcp-tools.md](mcp-tools.md) | MCP tool の戻り値と error 構造 |
+| [cli.md](cli.md) | CLI command output |
+| [mcp-tools.md](mcp-tools.md) | MCP tool return values and error structure |

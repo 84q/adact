@@ -7,13 +7,9 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>inspect</c> コマンド (設計 022 §6 / §8)。指定 Element Ref の UIA プロパティ詳細を JSON 1 行で stdout に出力する。
-/// auto-snapshot は発火しない。
 /// </summary>
 internal static class InspectCommand
 {
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>inspect サブコマンド。</returns>
     public static Command Build()
     {
         var refArg = new Argument<string>("ref")
@@ -45,9 +41,6 @@ internal static class InspectCommand
         return cmd;
     }
 
-    /// <summary><c>adact_inspect</c> を呼び、結果 JSON を 1 行で stdout に出力する。</summary>
-    /// <param name="client">接続済み MCP クライアント。</param>
-    /// <param name="refValue">対象 Element Ref。</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
     private static async Task<int> ExecuteAsync(IAdactMcpClient client, string refValue, CancellationToken ct)

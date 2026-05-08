@@ -5,13 +5,10 @@ using System.Text;
 namespace Adact.Engine;
 
 /// <summary>
-/// UIA 操作失敗時に、デスクトップ状態が操作をブロックしているかをベストエフォートで診断する。
-/// 設計: discussion/027_操作ブロック検知.md。
 /// </summary>
 internal static class OperationBlockerDetector
 {
     /// <summary>
-    /// Win32 API 呼び出しを抽象化する内部境界。Unit テストで差し替える。
     /// </summary>
     internal interface IApi
     {
@@ -22,7 +19,6 @@ internal static class OperationBlockerDetector
         bool IsForegroundWindowLockedScreen();
     }
 
-    /// <summary>実際の Win32 API を呼ぶ既定実装。</summary>
     private sealed class Win32Api : IApi
     {
         public bool IsSessionLocked(int sessionId)
@@ -57,8 +53,6 @@ internal static class OperationBlockerDetector
 
             try
             {
-                // GetUserObjectInformationW で UOI_NAME を取得
-                // 2回呼び出し: 1回目はサイズ取得、2回目はデータ取得
                 if (!NativeMethods.GetUserObjectInformation(hDesk, NativeMethods.UOI_NAME, IntPtr.Zero, 0, out var needed))
                 {
                     var err = Marshal.GetLastWin32Error();
@@ -113,15 +107,10 @@ internal static class OperationBlockerDetector
         }
     }
 
-    /// <summary>テスト用に差し替え可能な API 実装。null の場合は Win32 API を使う。</summary>
     internal static IApi? TestApi;
 
     /// <summary>
-    /// 指定されたセッション・ウィンドウ状態を診断し、操作がブロックされているかを返す。
     /// </summary>
-    /// <param name="sessionId">現在の Windows セッション ID。</param>
-    /// <param name="windowHwnd">操作対象ウィンドウの HWND。</param>
-    /// <returns>ブロック判定結果。</returns>
     internal static OperationBlockerResult Detect(int sessionId, nint windowHwnd)
     {
         var api = TestApi ?? new Win32Api();
@@ -133,7 +122,6 @@ internal static class OperationBlockerDetector
         }
         catch
         {
-            // フォールバック: 診断不能として次の判定へ
         }
 
         try
@@ -143,7 +131,6 @@ internal static class OperationBlockerDetector
         }
         catch
         {
-            // フォールバック
         }
 
         try
@@ -153,7 +140,6 @@ internal static class OperationBlockerDetector
         }
         catch
         {
-            // フォールバック
         }
 
         try
@@ -169,12 +155,10 @@ internal static class OperationBlockerDetector
             }
             else
             {
-                // HWND が無効な場合はウィンドウ状態を診断不能とする (フォールバック)
             }
         }
         catch
         {
-            // フォールバック
         }
 
         return new OperationBlockerResult(false, null);

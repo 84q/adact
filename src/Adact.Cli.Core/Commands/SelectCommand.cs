@@ -5,13 +5,9 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>select</c> コマンド。List/ComboBox の選択肢を <c>--name</c> / <c>--index</c> / <c>--item-ref</c> のいずれかで選ぶ (auto-snapshot あり)。
-/// 複数指定可能。<c>--add</c> / <c>--remove</c> フラグで選択モードを変更。
 /// </summary>
 internal static class SelectCommand
 {
-    /// <summary>select サブコマンドを構築する。</summary>
-    /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build()
     {
         var refArg = new Argument<string>("ref")
@@ -55,12 +51,10 @@ internal static class SelectCommand
                 return Task.FromResult(ExitCodes.UserError);
             }
 
-            // add + remove 同時指定禁止
             if (addVal && removeVal)
                 return Task.FromResult(OperationOptions.ReportUserError(
                     "Cannot specify both --add and --remove."));
 
-            // 排他制約: 同一種類のパラメータのみ指定可能
             int kindCount = (nameVal.Length > 0 ? 1 : 0)
                 + (indexVal.Length > 0 ? 1 : 0)
                 + (itemRefVal.Length > 0 ? 1 : 0);
@@ -71,7 +65,6 @@ internal static class SelectCommand
                 return Task.FromResult(OperationOptions.ReportUserError(
                     "Only one kind of selector (--name, --index, or --item-ref) may be specified."));
 
-            // itemRef のフォーマット検証
             foreach (var ir in itemRefVal)
             {
                 if (!RefValidator.IsElementRef(ir))

@@ -3,8 +3,14 @@ using System.Windows.Controls;
 
 namespace SampleApp.Tabs;
 
+/// <summary>
+/// Demonstrates data grid scenarios with large, wide, and virtualized data sets.
+/// </summary>
 public partial class DataGridTab : UserControl
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DataGridTab"/> class.
+    /// </summary>
     public DataGridTab()
     {
         InitializeComponent();
@@ -38,16 +44,58 @@ public partial class DataGridTab : UserControl
     }
 }
 
+/// <summary>
+/// Represents a row in the data grid sample.
+/// </summary>
 public class DataItem
 {
+    /// <summary>
+    /// Gets or sets the item identifier.
+    /// </summary>
     public int Id { get; set; }
+
+    /// <summary>
+    /// Gets or sets the item name.
+    /// </summary>
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the item description.
+    /// </summary>
     public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the category name.
+    /// </summary>
     public string Category { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the item price.
+    /// </summary>
     public decimal Price { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the item is active.
+    /// </summary>
     public bool IsActive { get; set; }
+
+    /// <summary>
+    /// Gets or sets the item owner.
+    /// </summary>
     public string Owner { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the item region.
+    /// </summary>
     public string Region { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the item status.
+    /// </summary>
     public string Status { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the notes column text.
+    /// </summary>
     public string Notes { get; set; } = string.Empty;
 }

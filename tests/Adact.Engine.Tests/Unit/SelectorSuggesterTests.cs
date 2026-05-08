@@ -5,9 +5,11 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Unit;
 
+/// <summary>Contains tests for the Selector Suggester behavior.</summary>
 [Trait("Layer", "Unit")]
 public sealed class SelectorSuggesterTests
 {
+    /// <summary>Performs the Suggest Automation Id Unique Globally Returns High By Automation Id operation.</summary>
     [Fact]
     public void Suggest_AutomationIdUniqueGlobally_ReturnsHighByAutomationId()
     {
@@ -22,6 +24,7 @@ public sealed class SelectorSuggesterTests
         Assert.Equal("cf.ByAutomationId(\"btnOK\")", result.Code);
     }
 
+    /// <summary>Performs the Suggest Automation Id Duplicate Falls To Name Control Type operation.</summary>
     [Fact]
     public void Suggest_AutomationIdDuplicate_FallsToNameControlType()
     {
@@ -37,6 +40,7 @@ public sealed class SelectorSuggesterTests
         Assert.Equal("cf.ByName(\"OK\").And(cf.ByControlType(ControlType.Button))", result.Code);
     }
 
+    /// <summary>Performs the Suggest Control Type And Name Unique Globally Returns High By Name And Control Type operation.</summary>
     [Fact]
     public void Suggest_ControlTypeAndNameUniqueGlobally_ReturnsHighByNameAndControlType()
     {
@@ -51,6 +55,7 @@ public sealed class SelectorSuggesterTests
         Assert.Equal("cf.ByName(\"Submit\").And(cf.ByControlType(ControlType.Button))", result.Code);
     }
 
+    /// <summary>Performs the Suggest Control Type And Name Duplicate Falls To Ancestor Scope operation.</summary>
     [Fact]
     public void Suggest_ControlTypeAndNameDuplicate_FallsToAncestorScope()
     {
@@ -74,6 +79,7 @@ public sealed class SelectorSuggesterTests
         Assert.Equal("window.FindFirstDescendant(cf.ByAutomationId(\"panel1\")).FindFirstDescendant(cf.ByAutomationId(\"innerOK\"))", result.Code);
     }
 
+    /// <summary>Performs the Suggest Ancestor Scope Automation Id Unique Returns High Chain operation.</summary>
     [Fact]
     public void Suggest_AncestorScopeAutomationIdUnique_ReturnsHighChain()
     {
@@ -94,6 +100,7 @@ public sealed class SelectorSuggesterTests
         Assert.Equal("window.FindFirstDescendant(cf.ByAutomationId(\"panel1\")).FindFirstDescendant(cf.ByAutomationId(\"btn1\"))", result.Code);
     }
 
+    /// <summary>Performs the Suggest Ancestor Scope Name Control Type Unique Returns Medium Chain operation.</summary>
     [Fact]
     public void Suggest_AncestorScopeNameControlTypeUnique_ReturnsMediumChain()
     {
@@ -114,6 +121,7 @@ public sealed class SelectorSuggesterTests
         Assert.Equal("window.FindFirstDescendant(cf.ByAutomationId(\"panel1\")).FindFirstDescendant(cf.ByName(\"OK\").And(cf.ByControlType(ControlType.Button)))", result.Code);
     }
 
+    /// <summary>Performs the Suggest No Ancestor With Automation Id Returns Low Index operation.</summary>
     [Fact]
     public void Suggest_NoAncestorWithAutomationId_ReturnsLowIndex()
     {
@@ -131,10 +139,10 @@ public sealed class SelectorSuggesterTests
         Assert.Equal("window.FindAllDescendants(cf.ByControlType(ControlType.Button))[1]", result.Code);
     }
 
+    /// <summary>Performs the Suggest Automation Id Null Or Empty Skips Automation Id Candidate operation.</summary>
     [Fact]
     public void Suggest_AutomationIdNullOrEmpty_SkipsAutomationIdCandidate()
     {
-        // AutomationId is null → should skip step 1 and go to ControlType+Name
         var target = new FakeElement { ControlType = "Button", Name = "Delete", AutomationId = null };
         var other = new FakeElement { ControlType = "Edit", Name = "Input" };
         var allElements = new IElement[] { target, other };
@@ -146,6 +154,7 @@ public sealed class SelectorSuggesterTests
         Assert.Equal("cf.ByName(\"Delete\").And(cf.ByControlType(ControlType.Button))", result.Code);
     }
 
+    /// <summary>Performs the Suggest Single Element Returns High operation.</summary>
     [Fact]
     public void Suggest_SingleElement_ReturnsHigh()
     {
@@ -159,14 +168,13 @@ public sealed class SelectorSuggesterTests
         Assert.Equal("cf.ByAutomationId(\"solo\")", result.Code);
     }
 
+    /// <summary>Performs the Suggest Ancestor Unique By Name Control Type Uses Scope With Name Control Type operation.</summary>
     [Fact]
     public void Suggest_AncestorUniqueByNameControlType_UsesScopeWithNameControlType()
     {
-        // target: AutomationIdなし、Name+ControlTypeが重複
         var target = new FakeElement { ControlType = "ListItem", Name = "Item1" };
         var duplicate = new FakeElement { ControlType = "ListItem", Name = "Item1" };
 
-        // ancestor: AutomationIdなし、Name+ControlTypeがユニーク
         var ancestor = new FakeElement { ControlType = "Tab", Name = "MainTab" };
         ancestor.ChildList.Add(target);
 
@@ -180,6 +188,7 @@ public sealed class SelectorSuggesterTests
         Assert.Contains("cf.ByName(\"Item1\").And(cf.ByControlType(ControlType.ListItem))", result.Code);
     }
 
+    /// <summary>Performs the Suggest Ancestor Automation Id Not Unique Skips To Name Control Type operation.</summary>
     [Fact]
     public void Suggest_AncestorAutomationIdNotUnique_SkipsToNameControlType()
     {

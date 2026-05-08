@@ -7,11 +7,7 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Unit;
 
-/// <summary>
-/// <see cref="WindowSession.ResizeAsync(int, int, CancellationToken)"/> の引数検証 (Phase 8 Step 5) を
-/// 検証する Unit テスト。実 UIA / FlaUI には依存せず、<see cref="WindowSession.CreateForTest(int, WindowInfo)"/> で
-/// 生成した最小セッションに対して引数検証段階の例外のみを確認する。
-/// </summary>
+/// <summary>Contains tests for the Window Session Window behavior.</summary>
 [Trait("Layer", "Unit")]
 public class WindowSessionWindowTests
 {
@@ -27,10 +23,7 @@ public class WindowSessionWindowTests
         return WindowSession.CreateForTest(1, info);
     }
 
-    /// <summary>
-    /// width が 0 以下の場合、ResizeAsync は <see cref="ArgumentOutOfRangeException"/> を投げる
-    /// (UIA への到達前に弾く) ことを確認する。
-    /// </summary>
+    /// <summary>Performs the Resize Async Non Positive Width Throws Argument Out Of Range operation.</summary>
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
@@ -43,9 +36,7 @@ public class WindowSessionWindowTests
         Assert.Equal("width", ex.ParamName);
     }
 
-    /// <summary>
-    /// height が 0 以下の場合、ResizeAsync は <see cref="ArgumentOutOfRangeException"/> を投げることを確認する。
-    /// </summary>
+    /// <summary>Performs the Resize Async Non Positive Height Throws Argument Out Of Range operation.</summary>
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
@@ -58,9 +49,7 @@ public class WindowSessionWindowTests
         Assert.Equal("height", ex.ParamName);
     }
 
-    /// <summary>
-    /// width / height が共に 0 の場合、最初の引数 (width) で ArgumentOutOfRangeException が投げられることを確認する。
-    /// </summary>
+    /// <summary>Performs the Resize Async Both Zero Throws Argument Out Of Range For Width operation.</summary>
     [Fact]
     public async Task ResizeAsync_BothZero_ThrowsArgumentOutOfRangeForWidth()
     {
@@ -70,9 +59,7 @@ public class WindowSessionWindowTests
         Assert.Equal("width", ex.ParamName);
     }
 
-    /// <summary>
-    /// attach 時点の ProcessStartTime が欠落している場合、KillAsync は安全側で拒否する。
-    /// </summary>
+    /// <summary>Performs the Kill Async Without Original Process Start Time Throws Kill Failed operation.</summary>
     [Fact]
     public async Task KillAsync_WithoutOriginalProcessStartTime_ThrowsKillFailed()
     {
@@ -93,9 +80,7 @@ public class WindowSessionWindowTests
         TryKill(process);
     }
 
-    /// <summary>
-    /// attach 時点の ProcessStartTime と現在 PID の start time が一致しない場合、KillAsync は別プロセス誤爆を防ぐため拒否する。
-    /// </summary>
+    /// <summary>Performs the Kill Async With Mismatched Process Start Time Throws Kill Failed operation.</summary>
     [Fact]
     public async Task KillAsync_WithMismatchedProcessStartTime_ThrowsKillFailed()
     {
@@ -116,9 +101,7 @@ public class WindowSessionWindowTests
         TryKill(process);
     }
 
-    /// <summary>
-    /// attach 時点の ProcessStartTime と現在 PID が一致する場合のみ、KillAsync は対象プロセスを終了できる。
-    /// </summary>
+    /// <summary>Performs the Kill Async With Matching Process Start Time Kills Process operation.</summary>
     [Fact]
     public async Task KillAsync_WithMatchingProcessStartTime_KillsProcess()
     {

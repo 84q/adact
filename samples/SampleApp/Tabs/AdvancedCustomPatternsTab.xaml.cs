@@ -8,8 +8,14 @@ using System.Windows.Media;
 
 namespace SampleApp.Tabs;
 
+/// <summary>
+/// Demonstrates controls that expose custom automation patterns.
+/// </summary>
 public partial class AdvancedCustomPatternsTab : UserControl
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AdvancedCustomPatternsTab"/> class.
+    /// </summary>
     public AdvancedCustomPatternsTab()
     {
         InitializeComponent();
@@ -25,8 +31,14 @@ public partial class AdvancedCustomPatternsTab : UserControl
     private sealed record SpreadsheetRow(string Cell, string Value, string Formula, string Annotation);
 }
 
+/// <summary>
+/// Base class for the custom pattern sample controls.
+/// </summary>
 public abstract class AdvancedPatternSampleControl : Control
 {
+    /// <summary>
+    /// Gets the text rendered by the control.
+    /// </summary>
     public abstract string DisplayText { get; }
 
     protected override void OnRender(DrawingContext drawingContext)
@@ -37,26 +49,42 @@ public abstract class AdvancedPatternSampleControl : Control
     }
 }
 
+/// <summary>
+/// A sample control that advertises the MultipleView pattern.
+/// </summary>
 public sealed class MultipleViewSampleControl : AdvancedPatternSampleControl
 {
+    /// <inheritdoc />
     public override string DisplayText => "MultipleViewPattern\nList / Tiles / Details";
     protected override AutomationPeer OnCreateAutomationPeer() => new MultipleViewSampleAutomationPeer(this);
 }
 
+/// <summary>
+/// A sample control that acts as a placeholder for styles-related diagnostics.
+/// </summary>
 public sealed class StylesSampleControl : AdvancedPatternSampleControl
 {
+    /// <inheritdoc />
     public override string DisplayText => "Styles placeholder\nNot implemented";
     protected override AutomationPeer OnCreateAutomationPeer() => new StylesSampleAutomationPeer(this);
 }
 
+/// <summary>
+/// A sample control that advertises the Dock pattern.
+/// </summary>
 public sealed class DockSampleControl : AdvancedPatternSampleControl
 {
+    /// <inheritdoc />
     public override string DisplayText => "DockPattern\nDockPosition.Left";
     protected override AutomationPeer OnCreateAutomationPeer() => new DockSampleAutomationPeer(this);
 }
 
+/// <summary>
+/// A sample control that acts as a placeholder for transform diagnostics.
+/// </summary>
 public sealed class Transform2SampleControl : AdvancedPatternSampleControl
 {
+    /// <inheritdoc />
     public override string DisplayText => "Transform baseline\nTransform2 not implemented";
     protected override AutomationPeer OnCreateAutomationPeer() => new Transform2SampleAutomationPeer(this);
 }

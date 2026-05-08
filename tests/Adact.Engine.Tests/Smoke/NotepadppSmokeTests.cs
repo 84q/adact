@@ -7,10 +7,7 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Smoke;
 
-/// <summary>
-/// Notepad++ を起動し、snapshot に MenuBar / 「ファイル」メニューが見えることを確認する L4 Smoke テスト。
-/// Win32 アプリ (電卓の UWP と違うケース) でも UIA 探索が成り立つことの回帰防止。
-/// </summary>
+/// <summary>Contains tests for the Notepadpp Smoke behavior.</summary>
 [Trait("Layer", "Smoke")]
 [Collection("UiaSerial")]
 public class NotepadppSmokeTests : IAsyncLifetime
@@ -25,10 +22,7 @@ public class NotepadppSmokeTests : IAsyncLifetime
     private Process? _process;
     private string? _exePath;
 
-    /// <summary>
-    /// Notepad++ を見つけて起動し、メインウィンドウが見えるまで待機する。未インストール機はテスト本体で skip される。
-    /// </summary>
-    /// <returns>起動完了タスク。</returns>
+    /// <summary>Initializes the fixture.</summary>
     public async Task InitializeAsync()
     {
         InteractiveTestGuard.SkipIfNotInteractive();
@@ -45,7 +39,6 @@ public class NotepadppSmokeTests : IAsyncLifetime
             UseShellExecute = true,
         });
 
-        // ウィンドウ表示を待つ
         var sw = Stopwatch.StartNew();
         while (sw.Elapsed < TimeSpan.FromSeconds(10))
         {
@@ -55,10 +48,7 @@ public class NotepadppSmokeTests : IAsyncLifetime
         await Task.Delay(800);
     }
 
-    /// <summary>
-    /// Notepad++ をクリーンアップする。
-    /// </summary>
-    /// <returns>解放完了タスク。</returns>
+    /// <summary>Releases resources.</summary>
     public Task DisposeAsync()
     {
         foreach (var p in Process.GetProcessesByName(ProcessName))
@@ -69,15 +59,10 @@ public class NotepadppSmokeTests : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Notepad++ に attach して snapshot したとき、MenuBar ロールまたは File / ファイル メニューが見つかることを確認する。
-    /// Win32 アプリの探索動作の回帰を Smoke で検出するため。
-    /// </summary>
-    /// <returns>テスト完了タスク。</returns>
+    /// <summary>Performs the Snapshot On Notepadpp Contains Menu Bar Or File Menu operation.</summary>
     [InteractiveFact]
     public async Task Snapshot_OnNotepadpp_ContainsMenuBarOrFileMenu()
     {
-        if (_exePath is null) return; // Notepad++ 未インストールのマシンは事実上 skip
 
         using var engine = new UiaEngine();
         var windows = await engine.ListWindowsAsync();
@@ -88,9 +73,7 @@ public class NotepadppSmokeTests : IAsyncLifetime
         var snap = await session.SnapshotAsync();
 
         using var doc = JsonDocument.Parse(snap.Json);
-        // メニューバーまたは「ファイル」メニューが見つかること
-        var hasFileMenu = ContainsValue(doc.RootElement.GetProperty("tree"), "name", "ファイル")
-                       || ContainsValue(doc.RootElement.GetProperty("tree"), "name", "File")
+        var hasFileMenu = ContainsValue(doc.RootElement.GetProperty("tree"), "name", "File")
                        || ContainsRole(doc.RootElement.GetProperty("tree"), "MenuBar");
         Assert.True(hasFileMenu, "Expected to find a MenuBar or a File menu in Notepad++ snapshot.");
     }

@@ -7,13 +7,9 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>wait-for-element</c> コマンド (設計 022 §6 / §7)。指定 element ref または検索条件にマッチする要素が指定 state を満たすまで待機する。
-/// auto-snapshot は発火しない。
 /// </summary>
 internal static class WaitForElementCommand
 {
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>wait-for-element サブコマンド。</returns>
     public static Command Build()
     {
         var refOpt = new Option<string?>("--ref")
@@ -80,7 +76,6 @@ internal static class WaitForElementCommand
         return cmd;
     }
 
-    /// <summary>引数バリデーション。Unit テストから直接呼ぶための internal API。</summary>
     /// <param name="refValue">--ref。</param>
     /// <param name="name">--name。</param>
     /// <param name="controlType">--control-type。</param>
@@ -88,7 +83,6 @@ internal static class WaitForElementCommand
     /// <param name="className">--class-name。</param>
     /// <param name="state">--state。</param>
     /// <param name="timeoutMs">--timeout。</param>
-    /// <returns>(エラーコード, メッセージ) のタプル。OK なら (null, null)。</returns>
     internal static (string? errorCode, string? errorMessage) ValidateArgs(
         string? refValue,
         string? name,

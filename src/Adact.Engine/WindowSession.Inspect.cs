@@ -12,14 +12,8 @@ namespace Adact.Engine;
 public sealed partial class WindowSession
 {
     /// <summary>
-    /// 指定 Element Ref が指す UIA 要素の詳細プロパティを取得する (設計 022 §8)。auto-snapshot は発火しない。
-    /// 子要素サマリは含めない (snapshot に任せる)。
+    /// Inspects an element and returns its properties.
     /// </summary>
-    /// <param name="refId">対象 Element Ref ID。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>UIA プロパティと対応 Pattern の状態を含む <see cref="InspectResult"/>。</returns>
-    /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
-    /// <exception cref="RefNotFoundException"><paramref name="refId"/> が現セッションで解決できない場合。</exception>
     public Task<InspectResult> InspectAsync(string refId, CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -33,7 +27,6 @@ public sealed partial class WindowSession
 
             var patterns = inner is not null ? CollectPatterns(inner) : new Dictionary<string, IReadOnlyDictionary<string, object?>>();
 
-            // 安定セレクタ候補の算出
             SelectorSuggestion? selector = null;
             var allElements = _registry.EnumerateCurrent().Select(x => x.Element).ToList();
             if (allElements.Count > 0)
@@ -62,7 +55,6 @@ public sealed partial class WindowSession
     }
 
     /// <summary>
-    /// FlaUI の Parent を辿り、対象ウィンドウルートまでの祖先チェーンを構築する。
     /// </summary>
     private List<AncestorInfo> BuildAncestorChain(AutomationElement? inner)
     {
@@ -77,7 +69,6 @@ public sealed partial class WindowSession
             var current = inner.Parent;
             while (current is not null)
             {
-                // ウィンドウルートに到達したら停止
                 if (current.Properties.NativeWindowHandle.ValueOrDefault == windowHandle)
                     break;
 
@@ -100,11 +91,7 @@ public sealed partial class WindowSession
     private static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
 
     /// <summary>
-    /// 対応する UIA Pattern を判定し、各 Pattern の状態を辞書で返す。
-    /// 設計 022 §8 で列挙された Toggle / SelectionItem / ExpandCollapse / RangeValue / Window の 5 種を対象とする。
     /// </summary>
-    /// <param name="el">対象 FlaUI 要素。</param>
-    /// <returns>Pattern 名 → 状態辞書 のマップ。Pattern を持たない要素では空辞書。</returns>
     private Dictionary<string, IReadOnlyDictionary<string, object?>> CollectPatterns(AutomationElement el)
     {
         var result = new Dictionary<string, IReadOnlyDictionary<string, object?>>(StringComparer.Ordinal);
@@ -297,11 +284,7 @@ public sealed partial class WindowSession
     }
 
     /// <summary>
-    /// Pattern 取得 (例外を握り潰し) して、戻り値が non-null なら <paramref name="map"/> に登録する。
     /// </summary>
-    /// <param name="map">登録先マップ。</param>
-    /// <param name="key">Pattern 名 (例: <c>"Toggle"</c>)。</param>
-    /// <param name="getter">Pattern 状態を取得するデリゲート。Pattern 不在時は <c>null</c> を返す。</param>
     private void TryAdd(
         Dictionary<string, IReadOnlyDictionary<string, object?>> map,
         string key,

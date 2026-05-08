@@ -1,16 +1,22 @@
 namespace Adact.Engine;
 
 /// <summary>
-/// kill 操作で実際に使われた終了手段を示す列挙。
+/// Indicates how a process was terminated.
 /// </summary>
 public enum KillMethod
 {
-    /// <summary>WM_CLOSE でプロセスが正常終了した。</summary>
+    /// <summary>
+    /// The process exited after a graceful close request.
+    /// </summary>
     Graceful,
 
-    /// <summary>--force 指定により Process.Kill で即時強制終了した。</summary>
+    /// <summary>
+    /// The process was forcibly terminated.
+    /// </summary>
     Forced,
 
-    /// <summary>WM_CLOSE 後タイムアウトし Process.Kill でフォールバック終了した。</summary>
+    /// <summary>
+    /// The process was forcibly terminated after the graceful timeout.
+    /// </summary>
     ForcedAfterTimeout,
 }

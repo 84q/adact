@@ -7,13 +7,9 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>screenshot</c> コマンド (設計 022 §6 / §10)。アタッチ済みウィンドウまたは指定要素を PNG 保存する。
-/// auto-snapshot は発火しない。
 /// </summary>
 internal static class ScreenshotCommand
 {
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>screenshot サブコマンド。</returns>
     public static Command Build()
     {
         var targetArg = new Argument<string?>("target")
@@ -57,11 +53,6 @@ internal static class ScreenshotCommand
         return cmd;
     }
 
-    /// <summary><c>adact_screenshot</c> を呼び、結果 JSON を stdout に出力する。</summary>
-    /// <param name="client">接続済み MCP クライアント。</param>
-    /// <param name="refValue">ref 値。null/空ならウィンドウ全体。</param>
-    /// <param name="outValue"><c>--out</c> の値。null/空ならデフォルトパス。</param>
-    /// <param name="sidValue">session id 値。<paramref name="refValue"/> 未指定時のみ使われる。</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
     private static async Task<int> ExecuteAsync(

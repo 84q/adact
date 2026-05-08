@@ -6,16 +6,25 @@ using System.Windows.Controls;
 
 namespace SampleApp.Tabs;
 
+/// <summary>
+/// Demonstrates asynchronous work, cancellation, and progress updates.
+/// </summary>
 public partial class AsyncDelayTab : UserControl, IDisposable
 {
     private CancellationTokenSource? _cancellationTokenSource;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AsyncDelayTab"/> class.
+    /// </summary>
     public AsyncDelayTab()
     {
         InitializeComponent();
         Unloaded += OnUnloaded;
     }
 
+    /// <summary>
+    /// Releases the resources used by the tab.
+    /// </summary>
     public void Dispose()
     {
         Unloaded -= OnUnloaded;
@@ -78,5 +87,8 @@ public partial class AsyncDelayTab : UserControl, IDisposable
         Dispose();
     }
 
+    /// <summary>
+    /// Represents a single row in the asynchronous results grid.
+    /// </summary>
     private sealed record AsyncResult(string Name, string Status);
 }

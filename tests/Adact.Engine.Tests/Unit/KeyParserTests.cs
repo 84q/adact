@@ -4,14 +4,11 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Unit;
 
-/// <summary>
-/// <see cref="KeyParser"/> のキーコンボ解析を検証する Unit テスト。
-/// Phase 8 設計 §6 (キーボード操作) の入力検証回帰防止。
-/// </summary>
+/// <summary>Contains tests for the Key Parser behavior.</summary>
 [Trait("Layer", "Unit")]
 public class KeyParserTests
 {
-    /// <summary>単一の英字キーは VK_KEY_X に解析される。</summary>
+    /// <summary>Performs the Parse Letter Only Returns Key Enum operation.</summary>
     [Fact]
     public void Parse_LetterOnly_ReturnsKeyEnum()
     {
@@ -20,7 +17,7 @@ public class KeyParserTests
         Assert.Equal(VirtualKeyShort.KEY_A, main);
     }
 
-    /// <summary>"Ctrl+S" は Control 修飾と KEY_S に解析される。</summary>
+    /// <summary>Performs the Parse Ctrl Plus Letter Returns Modifier And Main operation.</summary>
     [Fact]
     public void Parse_CtrlPlusLetter_ReturnsModifierAndMain()
     {
@@ -29,7 +26,7 @@ public class KeyParserTests
         Assert.Equal(VirtualKeyShort.KEY_S, main);
     }
 
-    /// <summary>"F5" などの機能キーが解析できる。</summary>
+    /// <summary>Performs the Parse Function Key Resolves operation.</summary>
     [Fact]
     public void Parse_FunctionKey_Resolves()
     {
@@ -37,21 +34,21 @@ public class KeyParserTests
         Assert.Equal(VirtualKeyShort.F5, main);
     }
 
-    /// <summary>未知のキー名は <see cref="System.ArgumentException"/> を投げる。</summary>
+    /// <summary>Performs the Parse Unknown Key Throws operation.</summary>
     [Fact]
     public void Parse_UnknownKey_Throws()
     {
         Assert.Throws<System.ArgumentException>(() => KeyParser.Parse("Foo"));
     }
 
-    /// <summary><see cref="KeyParser.ParseSingle"/> は修飾子付きを拒否する。</summary>
+    /// <summary>Performs the Parse Single Rejects Combo operation.</summary>
     [Fact]
     public void ParseSingle_RejectsCombo()
     {
         Assert.Throws<System.ArgumentException>(() => KeyParser.ParseSingle("Ctrl+A"));
     }
 
-    /// <summary>"Meta+E" は LWin 修飾と KEY_E に解析される (Meta 別名)。</summary>
+    /// <summary>Performs the Parse Meta Modifier Resolves To LWin operation.</summary>
     [Fact]
     public void Parse_MetaModifier_ResolvesToLWin()
     {
@@ -60,7 +57,7 @@ public class KeyParserTests
         Assert.Equal(VirtualKeyShort.KEY_E, main);
     }
 
-    /// <summary>"Win+E" は LWin 修飾と KEY_E に解析される (Win 別名)。</summary>
+    /// <summary>Performs the Parse Win Modifier Resolves To LWin operation.</summary>
     [Fact]
     public void Parse_WinModifier_ResolvesToLWin()
     {
@@ -69,7 +66,7 @@ public class KeyParserTests
         Assert.Equal(VirtualKeyShort.KEY_E, main);
     }
 
-    /// <summary>"Windows+E" は LWin 修飾と KEY_E に解析される (Windows 別名)。</summary>
+    /// <summary>Performs the Parse Windows Modifier Resolves To LWin operation.</summary>
     [Fact]
     public void Parse_WindowsModifier_ResolvesToLWin()
     {
@@ -78,14 +75,14 @@ public class KeyParserTests
         Assert.Equal(VirtualKeyShort.KEY_E, main);
     }
 
-    /// <summary>"ControlOrMeta" は削除されたため <see cref="System.ArgumentException"/>。</summary>
+    /// <summary>Performs the Parse Control Or Meta Throws operation.</summary>
     [Fact]
     public void Parse_ControlOrMeta_Throws()
     {
         Assert.Throws<System.ArgumentException>(() => KeyParser.Parse("ControlOrMeta+E"));
     }
 
-    /// <summary>ParseSingle で "Win" を単一キーとして指定できる。</summary>
+    /// <summary>Performs the Parse Single Win Returns LWin operation.</summary>
     [Fact]
     public void ParseSingle_Win_ReturnsLWin()
     {
@@ -93,7 +90,7 @@ public class KeyParserTests
         Assert.Equal(VirtualKeyShort.LWIN, key);
     }
 
-    /// <summary>ParseSingle で "Meta" を単一キーとして指定できる。</summary>
+    /// <summary>Performs the Parse Single Meta Returns LWin operation.</summary>
     [Fact]
     public void ParseSingle_Meta_ReturnsLWin()
     {

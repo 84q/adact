@@ -4,8 +4,14 @@ using System.Windows.Controls;
 
 namespace SampleApp.Tabs;
 
+/// <summary>
+/// Demonstrates modal and modeless windows as well as launching external apps.
+/// </summary>
 public partial class MultiWindowTab : UserControl
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MultiWindowTab"/> class.
+    /// </summary>
     public MultiWindowTab()
     {
         InitializeComponent();

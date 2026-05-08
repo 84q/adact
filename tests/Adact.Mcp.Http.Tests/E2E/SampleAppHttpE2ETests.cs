@@ -11,20 +11,14 @@ using Xunit;
 
 namespace Adact.Mcp.Http.Tests.E2E;
 
-/// <summary>
-/// HTTP daemon 経由で実 SampleApp に attach し、snapshot まで一連の MCP ツールを E2E で検証するテスト群。
-/// HTTP トランスポートと UIA 操作パイプライン全体の回帰を E2E レイヤーで防ぐため。
-/// </summary>
+/// <summary>Contains tests for the Sample App Http E2 E behavior.</summary>
 [Trait("Layer", "E2E")]
 [Collection("AdactHttp")]
 public class SampleAppHttpE2ETests
 {
     private readonly AdactHttpServerFixture _fixture;
 
-    /// <summary>
-    /// 共有 HTTP サーバーフィクスチャを受け取る xUnit コンストラクタ。
-    /// </summary>
-    /// <param name="fixture">テスト全体で共有される <see cref="AdactHttpServerFixture"/>。</param>
+    /// <summary>Initializes a new instance of the Sample App Http E2 ETests class.</summary>
     public SampleAppHttpE2ETests(AdactHttpServerFixture fixture)
     {
         _fixture = fixture;
@@ -40,18 +34,12 @@ public class SampleAppHttpE2ETests
         });
     }
 
-    /// <summary>
-    /// SampleApp を起動し HTTP MCP 経由で adact_attach → adact_snapshot を実行し、
-    /// snapshot tree に複数の Button ノードが含まれることを確認する。
-    /// HTTP トランスポート + UIA + ref 採番の E2E 通しシナリオの回帰防止。
-    /// </summary>
-    /// <returns>テスト完了タスク。</returns>
+    /// <summary>Performs the Attach And Snapshot On Sample App Returns Tree With Buttons operation.</summary>
     [InteractiveFact]
     public async Task AttachAndSnapshot_OnSampleApp_ReturnsTreeWithButtons()
     {
         InteractiveTestGuard.SkipIfNotInteractive();
 
-        // SampleApp を使う E2E をアセンブリ間並列でも直列化するための named semaphore
         using var _appLock = new SampleAppMutex();
         var sampleApp = _fixture.UsesExternalServer
             ? null
@@ -93,7 +81,6 @@ public class SampleAppHttpE2ETests
             Assert.False(string.IsNullOrEmpty(windowRef),
                 $"SampleApp windowRef not found in adact_list_windows output: {listText}");
 
-            // attach (windowRef 経由)
             var attach = await client.CallToolAsync(
                 "adact_attach",
                 new Dictionary<string, object?> { ["windowRef"] = windowRef! },

@@ -13,14 +13,7 @@ namespace Adact.Mcp.Common;
 
 public sealed partial class WindowsTools
 {
-    /// <summary>指定要素をダブルクリックする。修飾キー / 位置 / ボタンは任意。</summary>
-    /// <param name="ref">snapshot 由来の element ref。</param>
     /// <param name="button">"left" (default) / "right" / "middle"。</param>
-    /// <param name="modifiers">押下する修飾キー名 (Shift/Control/Alt/Meta/Win/Windows)。</param>
-    /// <param name="positionX">要素左上基準 X オフセット (px)。</param>
-    /// <param name="positionY">要素左上基準 Y オフセット (px)。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。引数不正・解決失敗・操作失敗は対応する error コード。</returns>
     [McpServerTool(Name = "adact_doubleclick")]
     [Description("Double-click an element identified by ref. The session is determined automatically from the ref id prefix.")]
     public async Task<CallToolResult> DblclickAsync(
@@ -56,13 +49,6 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_doubleclick"); }
     }
 
-    /// <summary>指定要素にマウスカーソルを移動 (hover) する。</summary>
-    /// <param name="ref">snapshot 由来の element ref。</param>
-    /// <param name="modifiers">押下する修飾キー名。</param>
-    /// <param name="positionX">要素左上基準 X オフセット (px)。</param>
-    /// <param name="positionY">要素左上基準 Y オフセット (px)。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "adact_hover")]
     [Description("Move the mouse cursor over an element identified by ref. The session is determined automatically from the ref id prefix.")]
     public async Task<CallToolResult> HoverAsync(
@@ -86,10 +72,7 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_hover"); }
     }
 
-    /// <summary>マウスカーソルを絶対座標 (x,y) に移動する。</summary>
     /// <param name="target">"x,y"。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "adact_mousemove")]
     [Description("Move the mouse cursor to absolute screen coordinates 'x,y'. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> MouseMoveAsync(
@@ -107,10 +90,7 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_mousemove"); }
     }
 
-    /// <summary>現在カーソル位置でマウスボタンを押下したまま保持する。</summary>
     /// <param name="button">"left" (default) / "right" / "middle"。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "adact_mousedown")]
     [Description("Press and hold a mouse button at the current cursor position. Pair with adact_mouseup to release. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> MouseDownAsync(
@@ -129,10 +109,7 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_mousedown"); }
     }
 
-    /// <summary>現在カーソル位置でマウスボタンを解放する。</summary>
     /// <param name="button">"left" (default) / "right" / "middle"。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "adact_mouseup")]
     [Description("Release a mouse button at the current cursor position. Pair with adact_mousedown. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> MouseUpAsync(
@@ -151,11 +128,6 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_mouseup"); }
     }
 
-    /// <summary>現在カーソル位置でマウスホイールをスクロールする。<paramref name="deltaY"/> 正値=下、<paramref name="deltaX"/> 正値=右。</summary>
-    /// <param name="deltaY">垂直スクロール量 (notch)。正値で下方向。</param>
-    /// <param name="deltaX">水平スクロール量 (notch)。正値で右方向。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "adact_mousewheel")]
     [Description("Scroll the mouse wheel at the current cursor position. deltaY > 0 scrolls down, deltaX > 0 scrolls right. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> MouseWheelAsync(
@@ -184,11 +156,7 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_mousewheel"); }
     }
 
-    /// <summary>"s..e.." 形式の ref を解析し、対応する session を取得する共通ヘルパ。</summary>
     /// <param name="ref">element ref。</param>
-    /// <param name="session">解決された session (失敗時は null)。</param>
-    /// <param name="error">エラー結果 (成功時は null)。</param>
-    /// <returns>成功時 true。</returns>
     private bool ValidateRef(string @ref, out IWindowSession? session, out CallToolResult? error)
     {
         session = null;
@@ -213,11 +181,6 @@ public sealed partial class WindowsTools
         return true;
     }
 
-    /// <summary>target を <c>x,y</c> 座標として解析する。</summary>
-    /// <param name="target">入力文字列。</param>
-    /// <param name="point">解析結果。</param>
-    /// <param name="error">エラー結果。</param>
-    /// <returns>成功時 true。</returns>
     private static bool TryParsePointTarget(string target, out MouseTarget.ByPoint point, out CallToolResult? error)
     {
         point = null!;
@@ -247,10 +210,6 @@ public sealed partial class WindowsTools
         return true;
     }
 
-    /// <summary>業務例外を <see cref="ToolErrors.TryMap"/> でマップし、未マップ例外はログ出力後再 throw する。</summary>
-    /// <param name="ex">捕捉した例外。</param>
-    /// <param name="toolName">ログ用ツール名。</param>
-    /// <returns>業務例外の <see cref="CallToolResult"/>。未マップは元のスタックで再 throw する。</returns>
     private CallToolResult MapOrLog(Exception ex, string toolName)
     {
         var mapped = ToolErrors.TryMap(ex);

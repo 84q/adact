@@ -11,17 +11,17 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// CLI コマンドの自動起動フローの Unit テスト。
-/// </summary>
+/// <summary>Contains tests for the Auto Start behavior.</summary>
 [Trait("Layer", "Unit")]
 [Collection(ConsoleCollection.Name)]
 public class AutoStartTests
 {
     private sealed class FakeClient : IAdactMcpClient
     {
+        /// <summary>Releases resources.</summary>
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
+        /// <summary>Performs the Call Tool Async operation.</summary>
         public ValueTask<CallToolResult> CallToolAsync(
             string name,
             IReadOnlyDictionary<string, object?>? arguments,
@@ -70,9 +70,7 @@ public class AutoStartTests
         }
     }
 
-    /// <summary>
-    /// list-windows 実行時にサーバーが未起動の場合、TryAutoStartServerAsync が呼ばれることを確認する。
-    /// </summary>
+    /// <summary>Performs the List Apps Server Not Running Auto Starts Server operation.</summary>
     [Fact]
     public async Task ListApps_ServerNotRunning_AutoStartsServer()
     {
@@ -94,9 +92,7 @@ public class AutoStartTests
         Assert.Equal(string.Empty, stderr);
     }
 
-    /// <summary>
-    /// launch 実行時にサーバーが未起動の場合、TryAutoStartServerAsync が呼ばれることを確認する。
-    /// </summary>
+    /// <summary>Performs the Launch Server Not Running Auto Starts Server operation.</summary>
     [Fact]
     public async Task Launch_ServerNotRunning_AutoStartsServer()
     {
@@ -118,10 +114,7 @@ public class AutoStartTests
         Assert.Equal(string.Empty, stderr);
     }
 
-    /// <summary>
-    /// click 実行時にサーバーが未起動の場合、TryAutoStartServerAsync が呼ばれず、
-    /// CONNECTION_FAILED が返ることを確認する。
-    /// </summary>
+    /// <summary>Performs the Click Server Not Running Does Not Auto Start Returns Connection Failed operation.</summary>
     [Fact]
     public async Task Click_ServerNotRunning_DoesNotAutoStart_ReturnsConnectionFailed()
     {
@@ -144,6 +137,7 @@ public class AutoStartTests
         Assert.Contains("error: CONNECTION_FAILED", stdout);
     }
 
+    /// <summary>Performs the List Apps After Auto Start Retries Named Pipe Reconnect operation.</summary>
     [Fact]
     public async Task ListApps_AfterAutoStart_RetriesNamedPipeReconnect()
     {

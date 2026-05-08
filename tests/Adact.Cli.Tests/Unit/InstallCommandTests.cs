@@ -1,19 +1,13 @@
-﻿using Adact.Cli.Commands;
+using Adact.Cli.Commands;
 
 using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// 設計 013 §5.2 (Skill 同期):
-/// grouped reference docs のファイル集合と、Skill 対象 CLI サブコマンド集合の整合を検証する。
-/// </summary>
+/// <summary>Contains tests for the Install Command behavior.</summary>
 [Trait("Layer", "Unit")]
 public class InstallCommandTests
 {
-    /// <summary>
-    /// Skill が説明対象とする CLI サブコマンド集合。
-    /// </summary>
     private static readonly IReadOnlySet<string> ExpectedDocumentedCommands =
       new HashSet<string>(System.StringComparer.Ordinal)
       {
@@ -42,9 +36,7 @@ public class InstallCommandTests
     "file-dialog",
       };
 
-    /// <summary>
-    /// grouped reference docs のファイル名集合が想定セットと一致することを確認する。
-    /// </summary>
+    /// <summary>Performs the Reference Files Match Expected Grouped Set operation.</summary>
     [Fact]
     public void ReferenceFiles_MatchExpectedGroupedSet()
     {
@@ -56,10 +48,7 @@ public class InstallCommandTests
         Assert.Equal(ExpectedReferenceFiles.OrderBy(x => x), actual!.OrderBy(x => x));
     }
 
-    /// <summary>
-    /// Skill 対象として期待されるコマンド名が、全て実際に CLI に登録されていることを確認する。
-    /// Skill だけ残って CLI から消えたという逆位相ケースの検出。
-    /// </summary>
+    /// <summary>Performs the Expected Documented Commands Are All Registered Subcommands operation.</summary>
     [Fact]
     public void ExpectedDocumentedCommands_AreAllRegisteredSubcommands()
     {
@@ -73,13 +62,7 @@ public class InstallCommandTests
         }
     }
 
-    /// <summary>
-    /// client × global の組み合わせで ResolveTargetDirectory が設計 013 §5.1 のマトリクスと一致することを確認する。
-    /// install 出力先の判定ロジックの回帰防止。
-    /// </summary>
-    /// <param name="client">クライアント名。</param>
-    /// <param name="global">--global フラグ。</param>
-    /// <param name="expectedTail">期待される相対パス。</param>
+    /// <summary>Resolves the Resolve Target Directory Matches Design Matrix value.</summary>
     [Theory]
     [InlineData("copilot", false, ".github/skills")]
     [InlineData("claude", false, ".claude/skills")]
@@ -99,7 +82,7 @@ public class InstallCommandTests
         Assert.Equal(expected, resolved);
     }
 
-    /// <summary>未知クライアント名を渡したとき ArgumentException が伝播されることを確認する。</summary>
+    /// <summary>Resolves the Resolve Target Directory Unknown Client Throws value.</summary>
     [Fact]
     public void ResolveTargetDirectory_UnknownClient_Throws()
     {
@@ -107,7 +90,7 @@ public class InstallCommandTests
           InstallCommand.ResolveTargetDirectory("vim", global: false, cwd: "C:\\", homeDir: "C:\\"));
     }
 
-    /// <summary>install 対象 Skill のソースディレクトリが揃っていることを確認する。</summary>
+    /// <summary>Performs the Skill Names All Have Source Directories operation.</summary>
     [Fact]
     public void SkillNames_AllHaveSourceDirectories()
     {

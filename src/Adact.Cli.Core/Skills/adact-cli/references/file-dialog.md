@@ -18,8 +18,8 @@ OS-provided modal dialog for selecting or saving files. It appears as a child
 | File name input (outer) | `1148` | ComboBox | Contains the Edit and a DropDown button |
 | File name input (inner) | `1148` | Edit | Target for `fill`. ValuePattern supported |
 | File type filter | `1136` | ComboBox | Shows the current filter (e.g. `*.txt`) |
-| Open button | `1` | Button | Label is locale-dependent (e.g. "開く(O)") |
-| Cancel button | `2` | Button | Label is locale-dependent (e.g. "キャンセル") |
+| Open button | `1` | Button | Label is locale-dependent (e.g. "Open(O)") |
+| Cancel button | `2` | Button | Label is locale-dependent (e.g. "Cancel") |
 
 ### SaveFileDialog
 
@@ -28,8 +28,8 @@ OS-provided modal dialog for selecting or saving files. It appears as a child
 | File name input (outer) | `FileNameControlHost` | ComboBox | Contains the Edit and a DropDown button |
 | File name input (inner) | `1001` | Edit | Target for `fill`. ValuePattern supported |
 | File type filter | `FileTypeControlHost` | ComboBox | Shows the current filter |
-| Save button | `1` | Button | Label is locale-dependent (e.g. "保存(S)") |
-| Cancel button | `2` | Button | Label is locale-dependent (e.g. "キャンセル") |
+| Save button | `1` | Button | Label is locale-dependent (e.g. "Save(S)") |
+| Cancel button | `2` | Button | Label is locale-dependent (e.g. "Cancel") |
 
 The Open/Save button (`aid="1"`) and Cancel button (`aid="2"`) are shared across
 both dialog types and are stable across all Windows versions.

@@ -7,20 +7,14 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Smoke;
 
-/// <summary>
-/// SampleApp を起動し、snapshot → click → snapshot の Smoke シナリオを検証する L4 テスト。
-/// AttachAsync・SnapshotAsync・ClickAsync の連携動作の回帰を実アプリで担保するため。
-/// </summary>
+/// <summary>Contains tests for the Sample App Smoke behavior.</summary>
 [Trait("Layer", "Smoke")]
 [Collection("UiaSerial")]
 public class SampleAppSmokeTests : IAsyncLifetime, IDisposable
 {
     private SampleAppMutex? _appLock;
 
-    /// <summary>
-    /// 既存 SampleApp を終了したうえで SampleApp を起動し、メインウィンドウが現れるまで待機する。
-    /// </summary>
-    /// <returns>起動完了タスク。</returns>
+    /// <summary>Initializes the fixture.</summary>
     public async Task InitializeAsync()
     {
         InteractiveTestGuard.SkipIfNotInteractive();
@@ -29,30 +23,21 @@ public class SampleAppSmokeTests : IAsyncLifetime, IDisposable
         _ = await SampleAppTestHelper.StartFreshSampleAppAsync(TimeSpan.FromSeconds(10));
     }
 
-    /// <summary>
-    /// SampleApp プロセスをクリーンアップする。
-    /// </summary>
+    /// <summary>Releases resources.</summary>
     public void Dispose()
     {
         _appLock?.Dispose();
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    /// SampleApp プロセスをクリーンアップする。
-    /// </summary>
-    /// <returns>解放完了タスク。</returns>
+    /// <summary>Releases resources.</summary>
     public Task DisposeAsync()
     {
         SampleAppTestHelper.KillSampleAppProcesses();
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// SampleApp の Submit ボタンを ClickAsync で押し、StatusLabel に "Submitted" が反映されることを確認する。
-    /// click → snapshot のやり取りと ref 介した要素操作の Smoke 検証。
-    /// </summary>
-    /// <returns>テスト完了タスク。</returns>
+    /// <summary>Performs the Click Submit Status Label Shows Submitted operation.</summary>
     [InteractiveFact]
     public async Task Click_Submit_StatusLabelShowsSubmitted()
     {
@@ -70,7 +55,6 @@ public class SampleAppSmokeTests : IAsyncLifetime, IDisposable
             async () =>
             {
                 snap2Json = (await session.SnapshotAsync()).Json;
-                // StatusLabel (BasicControls_Label_Status) のテキストが "Submitted" を含むことを確認
                 return snap2Json.Contains("Submitted", StringComparison.Ordinal);
             },
             TimeSpan.FromSeconds(5),
@@ -79,11 +63,7 @@ public class SampleAppSmokeTests : IAsyncLifetime, IDisposable
         Assert.Contains("Submitted", snap2Json);
     }
 
-    /// <summary>
-    /// File &gt; Block Close を ON/OFF しながら close を実行し、チェック状態に応じて MainWindow の close 可否が変わることを確認する。
-    /// close-window 系の回帰を、実際の WPF Closing キャンセル挙動まで含めて Smoke で検出するため。
-    /// </summary>
-    /// <returns>テスト完了タスク。</returns>
+    /// <summary>Performs the Close On Block Close Toggle Respects Checked State operation.</summary>
     [InteractiveFact]
     public async Task Close_OnBlockCloseToggle_RespectsCheckedState()
     {

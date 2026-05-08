@@ -7,11 +7,7 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Unit;
 
-/// <summary>
-/// <see cref="UiaEngine.LaunchAsync"/> の Unit テスト。実 UIA / FlaUI には依存しない。
-/// 実プロセス起動を伴うケースでは、テスト終了時に必ず PID を kill してリソースリークを防ぐ。
-/// 設計 024 §7。
-/// </summary>
+/// <summary>Contains tests for the Uia Engine Launch behavior.</summary>
 [Trait("Layer", "Unit")]
 public class UiaEngineLaunchTests
 {
@@ -30,11 +26,10 @@ public class UiaEngineLaunchTests
         }
         catch
         {
-            // 既に終了している / アクセス不能 は無視。
         }
     }
 
-    /// <summary>存在しない実行ファイル指定で <see cref="LaunchFailedException"/> を投げる。</summary>
+    /// <summary>Performs the Launch Async Nonexistent Executable Throws Launch Failed operation.</summary>
     [Fact]
     public async Task LaunchAsync_NonexistentExecutable_ThrowsLaunchFailed()
     {
@@ -45,7 +40,7 @@ public class UiaEngineLaunchTests
             () => engine.LaunchAsync(request));
     }
 
-    /// <summary>cmd.exe を引数付きで起動して PID > 0 を得る。直後に kill して回収する。</summary>
+    /// <summary>Performs the Launch Async Cmd Exe Returns Valid Pid operation.</summary>
     [Fact]
     public async Task LaunchAsync_CmdExe_ReturnsValidPid()
     {
@@ -59,7 +54,6 @@ public class UiaEngineLaunchTests
         {
             Assert.True(result.Pid > 0);
             Assert.False(string.IsNullOrEmpty(result.ProcessName));
-            // executablePath は権限により null の場合もあるため strict には検証しない。
         }
         finally
         {
@@ -67,7 +61,7 @@ public class UiaEngineLaunchTests
         }
     }
 
-    /// <summary>cwd 指定で子プロセスの作業ディレクトリが反映される。</summary>
+    /// <summary>Performs the Launch Async With Working Directory Propagates Cwd operation.</summary>
     [Fact]
     public async Task LaunchAsync_WithWorkingDirectory_PropagatesCwd()
     {
@@ -82,7 +76,6 @@ public class UiaEngineLaunchTests
         try
         {
             Assert.True(result.Pid > 0);
-            // StartInfo は子プロセス側からは取得できないので、ここでは PID 取得成功のみ確認する。
         }
         finally
         {
@@ -90,10 +83,7 @@ public class UiaEngineLaunchTests
         }
     }
 
-    /// <summary><see cref="UiaEngine.LaunchAsync"/> 経由で渡した env が子プロセスに伝搬することを確認する。
-    /// 一時 .bat に <c>echo %ADACT_TEST%&gt;marker</c> を書いて cmd.exe で実行し、
-    /// marker ファイル経由で値を観測する (Process.ExitCode 取得は同一ハンドルを保持していないと
-    /// 環境によって不安定なため、観測しやすいファイル経由の検証とする) 。設計 024 §7。</summary>
+    /// <summary>Performs the Launch Async With Environment Propagates Env To Child Process operation.</summary>
     [Fact]
     public async Task LaunchAsync_WithEnvironment_PropagatesEnvToChildProcess()
     {
@@ -118,7 +108,6 @@ public class UiaEngineLaunchTests
         {
             Assert.True(result.Pid > 0);
 
-            // cmd.exe は短命なので、ファイル生成完了を最大 5 秒ポーリングで待つ。
             var deadline = DateTime.UtcNow.AddSeconds(5);
             while (!File.Exists(marker) && DateTime.UtcNow < deadline)
             {
@@ -126,7 +115,6 @@ public class UiaEngineLaunchTests
             }
             Assert.True(File.Exists(marker), $"marker file not created: {marker}");
 
-            // 書き込み完了直後に open される race を避けて軽くリトライする。
             string? contents = null;
             for (var i = 0; i < 10; i++)
             {
@@ -144,7 +132,7 @@ public class UiaEngineLaunchTests
         }
     }
 
-    /// <summary>UWP モード (shell:AppsFolder\) で cwd を指定すると <see cref="ArgumentException"/>。</summary>
+    /// <summary>Performs the Launch Async Uwp With Cwd Throws Argument Exception operation.</summary>
     [Fact]
     public async Task LaunchAsync_UwpWithCwd_ThrowsArgumentException()
     {
@@ -157,7 +145,7 @@ public class UiaEngineLaunchTests
             () => engine.LaunchAsync(request));
     }
 
-    /// <summary>UWP モードで env を指定すると <see cref="ArgumentException"/>。</summary>
+    /// <summary>Performs the Launch Async Uwp With Env Throws Argument Exception operation.</summary>
     [Fact]
     public async Task LaunchAsync_UwpWithEnv_ThrowsArgumentException()
     {
@@ -170,7 +158,7 @@ public class UiaEngineLaunchTests
             () => engine.LaunchAsync(request));
     }
 
-    /// <summary>空文字 executable は <see cref="ArgumentException"/>。</summary>
+    /// <summary>Performs the Launch Async Empty Executable Throws Argument Exception operation.</summary>
     [Fact]
     public async Task LaunchAsync_EmptyExecutable_ThrowsArgumentException()
     {
@@ -180,7 +168,7 @@ public class UiaEngineLaunchTests
             () => engine.LaunchAsync(request));
     }
 
-    /// <summary>Dispose 済み Engine への呼び出しは <see cref="ObjectDisposedException"/>。</summary>
+    /// <summary>Performs the Launch Async After Dispose Throws operation.</summary>
     [Fact]
     public async Task LaunchAsync_AfterDispose_Throws()
     {
@@ -191,9 +179,8 @@ public class UiaEngineLaunchTests
             () => engine.LaunchAsync(request));
     }
 
-    // ---- QuoteIfNeeded (UWP 単一引数文字列向けクォーティング) ----
 
-    /// <summary>空白 / タブ / <c>"</c> を含まない引数はクォートしない。</summary>
+    /// <summary>Performs the Quote If Needed No Whitespace Or Quote Not Quoted operation.</summary>
     [Theory]
     [InlineData("plain", "plain")]
     [InlineData("C:\\Users\\foo\\", "C:\\Users\\foo\\")]
@@ -203,57 +190,49 @@ public class UiaEngineLaunchTests
         Assert.Equal(expected, UiaEngine.QuoteIfNeeded(input));
     }
 
-    /// <summary>空文字列は <c>""</c> に変換される (CommandLineToArgvW で空引数として受け取れるよう)。</summary>
+    /// <summary>Performs the Quote If Needed Empty Returns Empty Quoted operation.</summary>
     [Fact]
     public void QuoteIfNeeded_Empty_ReturnsEmptyQuoted()
     {
         Assert.Equal("\"\"", UiaEngine.QuoteIfNeeded(string.Empty));
     }
 
-    /// <summary>空白を含むだけの単純ケースはダブルクォートで囲む。</summary>
+    /// <summary>Performs the Quote If Needed With Space Quoted operation.</summary>
     [Fact]
     public void QuoteIfNeeded_WithSpace_Quoted()
     {
         Assert.Equal("\"with space\"", UiaEngine.QuoteIfNeeded("with space"));
     }
 
-    /// <summary>タブを含む場合もダブルクォートで囲む。</summary>
+    /// <summary>Performs the Quote If Needed With Tab Quoted operation.</summary>
     [Fact]
     public void QuoteIfNeeded_WithTab_Quoted()
     {
         Assert.Equal("\"a\tb\"", UiaEngine.QuoteIfNeeded("a\tb"));
     }
 
-    /// <summary>埋め込み <c>"</c> は <c>\"</c> にエスケープされ、全体がクォートされる。</summary>
+    /// <summary>Performs the Quote If Needed Embedded Quote Escapes Quote operation.</summary>
     [Fact]
     public void QuoteIfNeeded_EmbeddedQuote_EscapesQuote()
     {
-        // 入力: has"quote → 出力: "has\"quote"
         Assert.Equal("\"has\\\"quote\"", UiaEngine.QuoteIfNeeded("has\"quote"));
     }
 
-    /// <summary>クォート対象の引数が末尾にバックスラッシュを含む場合、閉じクオートに食われないよう
-    /// バックスラッシュ列を 2 倍化する (PasteArguments 規約)。</summary>
+    /// <summary>Performs the Quote If Needed Trailing Backslash With Whitespace Doubles Backslashes Before Closing Quote operation.</summary>
     [Fact]
     public void QuoteIfNeeded_TrailingBackslashWithWhitespace_DoublesBackslashesBeforeClosingQuote()
     {
-        // 入力: foo bar\  (空白あり, 末尾 \ が 1 個)
-        // 期待: "foo bar\\"   (末尾 \ が 2 個に倍化)
         Assert.Equal("\"foo bar\\\\\"", UiaEngine.QuoteIfNeeded("foo bar\\"));
 
-        // 入力: C:\Program Files\foo\\  (空白あり, 末尾 \ が 2 個)
-        // 期待: "C:\Program Files\foo\\\\"   (末尾 \ が 4 個)
         Assert.Equal(
             "\"C:\\Program Files\\foo\\\\\\\\\"",
             UiaEngine.QuoteIfNeeded("C:\\Program Files\\foo\\\\"));
     }
 
-    /// <summary><c>"</c> 直前のバックスラッシュ列も倍化 + 1 個の <c>\</c> でエスケープされる。</summary>
+    /// <summary>Performs the Quote If Needed Backslashes Before Quote Doubled Plus One operation.</summary>
     [Fact]
     public void QuoteIfNeeded_BackslashesBeforeQuote_DoubledPlusOne()
     {
-        // 入力: a \" b   (空白あり、 \ 1 個 + ")
-        // 期待: "a \\\" b"   (\ が 2 個 + \" にエスケープ)
         Assert.Equal("\"a \\\\\\\" b\"", UiaEngine.QuoteIfNeeded("a \\\" b"));
     }
 }

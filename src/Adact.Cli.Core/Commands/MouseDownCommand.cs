@@ -5,11 +5,8 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
-/// <summary><c>mousedown</c> コマンド。現在カーソル位置でマウスボタンを押下保持する (低レベル)。</summary>
 internal static class MousedownCommand
 {
-    /// <summary>mousedown サブコマンドを構築する。</summary>
-    /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build()
     {
         var button = OperationOptions.Button();

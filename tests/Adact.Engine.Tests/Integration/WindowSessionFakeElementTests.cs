@@ -7,28 +7,41 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Integration;
 
-/// <summary>
-/// Verifies WindowSession success paths with in-memory IElement trees and no FlaUI dependency.
-/// </summary>
+/// <summary>Contains tests for the Window Session Fake Element behavior.</summary>
 [Trait("Layer", "Integration")]
 public class WindowSessionFakeElementTests
 {
     private sealed class FakeInteractionDriver : IWindowInteractionDriver
     {
+        /// <summary>Gets the Calls value.</summary>
         public List<string> Calls { get; } = [];
+        /// <summary>Performs the Focus Window operation.</summary>
         public void FocusWindow() => Calls.Add("focus-window");
+        /// <summary>Performs the Type Key operation.</summary>
         public void TypeKey(VirtualKeyShort key) => Calls.Add($"type-key:{key}");
+        /// <summary>Performs the Type Char operation.</summary>
         public void TypeChar(char ch) => Calls.Add($"type-char:{ch}");
+        /// <summary>Performs the Type Text operation.</summary>
         public void TypeText(string text) => Calls.Add($"type-text:{text}");
+        /// <summary>Performs the Press Key operation.</summary>
         public void PressKey(VirtualKeyShort key) => Calls.Add($"press-key:{key}");
+        /// <summary>Performs the Release Key operation.</summary>
         public void ReleaseKey(VirtualKeyShort key) => Calls.Add($"release-key:{key}");
+        /// <summary>Performs the Move To operation.</summary>
         public void MoveTo(int x, int y) => Calls.Add($"move:{x},{y}");
+        /// <summary>Performs the Mouse Down operation.</summary>
         public void MouseDown(MouseButton button) => Calls.Add($"mousedown:{button}");
+        /// <summary>Performs the Mouse Up operation.</summary>
         public void MouseUp(MouseButton button) => Calls.Add($"mouseup:{button}");
+        /// <summary>Performs the Mouse Click operation.</summary>
         public void MouseClick(MouseButton button) => Calls.Add($"mouseclick:{button}");
+        /// <summary>Performs the Mouse Double Click operation.</summary>
         public void MouseDoubleClick(MouseButton button) => Calls.Add($"mousedoubleclick:{button}");
+        /// <summary>Performs the Scroll operation.</summary>
         public void Scroll(int amount) => Calls.Add($"scroll:{amount}");
+        /// <summary>Performs the Horizontal Scroll operation.</summary>
         public void HorizontalScroll(int amount) => Calls.Add($"hscroll:{amount}");
+        /// <summary>Waits for the Wait After Interaction Async condition.</summary>
         public Task WaitAfterInteractionAsync(CancellationToken ct)
         {
             Calls.Add("wait");
@@ -51,9 +64,7 @@ public class WindowSessionFakeElementTests
     private static WindowSession CreateSession(FakeElement root, FakeInteractionDriver driver)
         => WindowSession.CreateForTest(1, Info(), root, driver);
 
-    /// <summary>
-    /// Snapshot registers fake elements and ClickAsync resolves the generated ref.
-    /// </summary>
+    /// <summary>Performs the Click Async After Snapshot Invokes Fake Element Click operation.</summary>
     [Fact]
     public async Task ClickAsync_AfterSnapshot_InvokesFakeElementClick()
     {
@@ -67,9 +78,7 @@ public class WindowSessionFakeElementTests
         Assert.Equal(1, button.ClickCount);
     }
 
-    /// <summary>
-    /// FillAsync resolves a fake edit element and writes the requested value.
-    /// </summary>
+    /// <summary>Performs the Fill Async After Snapshot Sets Fake Element Text operation.</summary>
     [Fact]
     public async Task FillAsync_AfterSnapshot_SetsFakeElementText()
     {
@@ -83,9 +92,7 @@ public class WindowSessionFakeElementTests
         Assert.Equal("hello", edit.LastFilledText);
     }
 
-    /// <summary>
-    /// WaitForRefAsync returns immediately when the fake element already satisfies the requested state.
-    /// </summary>
+    /// <summary>Waits for the Wait For Ref Async State Already Satisfied Returns Result condition.</summary>
     [Theory]
     [InlineData(false, true, WaitForState.Visible)]
     [InlineData(true, true, WaitForState.Hidden)]
@@ -109,9 +116,7 @@ public class WindowSessionFakeElementTests
         Assert.Equal(state, result.State);
     }
 
-    /// <summary>
-    /// WaitForRefAsync reports detached when a previously valid ref no longer appears in a later snapshot.
-    /// </summary>
+    /// <summary>Waits for the Wait For Ref Async Detached After Element Removed Returns Detached condition.</summary>
     [Fact]
     public async Task WaitForRefAsync_DetachedAfterElementRemoved_ReturnsDetached()
     {
@@ -133,9 +138,7 @@ public class WindowSessionFakeElementTests
         Assert.Equal(WaitForState.Detached, result.State);
     }
 
-    /// <summary>
-    /// WaitForQueryAsync finds matching fake elements by query fields.
-    /// </summary>
+    /// <summary>Waits for the Wait For Query Async Matching Element Returns Generated Ref condition.</summary>
     [Fact]
     public async Task WaitForQueryAsync_MatchingElement_ReturnsGeneratedRef()
     {
@@ -153,9 +156,7 @@ public class WindowSessionFakeElementTests
         Assert.Equal(WaitForState.Enabled, result.State);
     }
 
-    /// <summary>
-    /// WaitForQueryAsync throws WaitTimeoutException when no fake element matches.
-    /// </summary>
+    /// <summary>Waits for the Wait For Query Async No Match Throws Wait Timeout Exception condition.</summary>
     [Fact]
     public async Task WaitForQueryAsync_NoMatch_ThrowsWaitTimeoutException()
     {
@@ -169,9 +170,7 @@ public class WindowSessionFakeElementTests
                 TimeSpan.FromMilliseconds(120)));
     }
 
-    /// <summary>
-    /// PressAsync focuses a fake element and sends key input through the injected driver.
-    /// </summary>
+    /// <summary>Performs the Press Async With Ref Uses Fake Element And Input Driver operation.</summary>
     [Fact]
     public async Task PressAsync_WithRef_UsesFakeElementAndInputDriver()
     {
@@ -190,9 +189,7 @@ public class WindowSessionFakeElementTests
         Assert.Contains("wait", driver.Calls);
     }
 
-    /// <summary>
-    /// TypeAsync focuses a fake element and sends text through the injected driver.
-    /// </summary>
+    /// <summary>Performs the Type Async With Ref Uses Fake Element And Input Driver operation.</summary>
     [Fact]
     public async Task TypeAsync_WithRef_UsesFakeElementAndInputDriver()
     {
@@ -209,9 +206,7 @@ public class WindowSessionFakeElementTests
         Assert.Contains("wait", driver.Calls);
     }
 
-    /// <summary>
-    /// MouseMoveAsync resolves point and ref targets and uses the injected driver.
-    /// </summary>
+    /// <summary>Performs the Mouse Move Async Uses Input Driver operation.</summary>
     [Fact]
     public async Task MouseMoveAsync_UsesInputDriver()
     {
@@ -228,9 +223,7 @@ public class WindowSessionFakeElementTests
         Assert.Contains("move:25,40", driver.Calls);
     }
 
-    /// <summary>
-    /// ClickWithOptionsAsync and DoubleClickAsync use the injected driver for physical clicks.
-    /// </summary>
+    /// <summary>Performs the Detailed Click Async Uses Input Driver operation.</summary>
     [Fact]
     public async Task DetailedClickAsync_UsesInputDriver()
     {
@@ -249,9 +242,7 @@ public class WindowSessionFakeElementTests
         Assert.Contains("mousedoubleclick:Middle", driver.Calls);
     }
 
-    /// <summary>
-    /// Mouse button and wheel operations use the injected driver.
-    /// </summary>
+    /// <summary>Performs the Mouse Button And Wheel Async Use Input Driver operation.</summary>
     [Fact]
     public async Task MouseButtonAndWheelAsync_UseInputDriver()
     {
@@ -269,9 +260,7 @@ public class WindowSessionFakeElementTests
         Assert.Contains("hscroll:2", driver.Calls);
     }
 
-    /// <summary>
-    /// CheckAsync and UncheckAsync use fake checkable element capability.
-    /// </summary>
+    /// <summary>Performs the Check And Uncheck Async Use Fake Checkable Capability operation.</summary>
     [Fact]
     public async Task CheckAndUncheckAsync_UseFakeCheckableCapability()
     {
@@ -287,9 +276,7 @@ public class WindowSessionFakeElementTests
         Assert.False(checkbox.LastSetChecked);
     }
 
-    /// <summary>
-    /// SelectAsync uses fake selectable element capability for name, index, and item-ref selectors.
-    /// </summary>
+    /// <summary>Performs the Select Async Uses Fake Selectable Capability operation.</summary>
     [Fact]
     public async Task SelectAsync_UsesFakeSelectableCapability()
     {
@@ -310,9 +297,7 @@ public class WindowSessionFakeElementTests
         Assert.IsType<SelectionTarget.ByItemRef>(list.LastSelectedTargets[0]);
     }
 
-    /// <summary>
-    /// ScrollIntoViewAsync uses fake scrollable element capability.
-    /// </summary>
+    /// <summary>Performs the Scroll Into View Async Uses Fake Scrollable Capability operation.</summary>
     [Fact]
     public async Task ScrollIntoViewAsync_UsesFakeScrollableCapability()
     {
@@ -329,6 +314,7 @@ public class WindowSessionFakeElementTests
 
 file static class FakeElementTestExtensions
 {
+    /// <summary>Performs the With Rect operation.</summary>
     public static FakeElement WithRect(this FakeElement element, int x, int y, int width, int height)
     {
         element.BoundingRectangle = new Rect(x, y, width, height);

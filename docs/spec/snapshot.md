@@ -1,62 +1,62 @@
-# Snapshot 仕様
+# Snapshot Specification
 
-ADACT の snapshot は、Engine/MCP 層では raw JSON、CLI 層では AI が読みやすい `.txt` 形式として扱います。Phase 7 でフィルタと整形の責務は Engine/MCP から CLI に移りました。
+ADACT snapshots are treated as raw JSON in the Engine/MCP layer and as human-readable `.txt` files in the CLI layer. Since Phase 7, filtering and formatting are the CLI's responsibility.
 
-## 責務分担
+## Responsibility split
 
-| 層 | 入力 | 出力 | 責務 |
+| Layer | Input | Output | Responsibility |
 | --- | --- | --- | --- |
-| Engine | UIA tree | raw JSON | UIA から取得できるプロパティと子要素を可能な限り欠落なく出す |
-| MCP Common | Engine raw JSON | MCP response | raw JSON をそのまま返す。filter / text 化はしない |
-| CLI parser | MCP raw JSON | DTO | `_meta` と `tree` を `SnapshotElement` に変換する |
-| CLI filter | DTO | filtered DTO | `operable` / `raw` のツリー filter を適用する |
-| CLI formatter | filtered DTO | Playwright Aria YAML 風 text | AI が ref を読み取りやすい `.txt` を作る |
-| CLI writer | text | `.txt` file | `.adact/` または `--snapshot-dir` に保存する |
+| Engine | UIA tree | Raw JSON | Emit UIA properties and children with minimal loss |
+| MCP Common | Engine raw JSON | MCP response | Return raw JSON as-is |
+| CLI parser | MCP raw JSON | DTO | Convert `_meta` and `tree` into `SnapshotElement` objects |
+| CLI filter | DTO | Filtered DTO | Apply the `operable` / `raw` tree filter |
+| CLI formatter | Filtered DTO | Playwright-Aria-style text | Create a `.txt` file that is easy to read and operate on |
+| CLI writer | Text | `.txt` file | Save under `.adact/` or `--snapshot-dir` |
 
 ## Engine / MCP raw JSON
 
-raw JSON は次の top-level 構造です。
+Raw JSON has this top-level structure:
 
-| フィールド | 内容 |
+| Field | Description |
 | --- | --- |
-| `_meta` | snapshot metadata |
-| `tree` | root UIA element |
+| `_meta` | Snapshot metadata |
+| `tree` | Root UIA element |
 
-`_meta` の主なフィールド:
+Main `_meta` fields:
 
-| フィールド | 内容 |
+| Field | Description |
 | --- | --- |
-| `options.maxDepth` | Engine 側の走査深度上限 |
+| `options.maxDepth` | Maximum traversal depth |
 | `generatedAt` | UTC timestamp |
 | `sessionId` | `s<n>` |
-| `windowTitle` | attached window title |
-| `processName` | process name |
-| `processId` | process id |
-| `modalDialog` | 検出された modal dialog の summary。なければ `null`、あれば `[{ ref, title }, ...]` の配列 |
+| `windowTitle` | Attached window title |
+| `processName` | Process name |
+| `processId` | Process id |
+| `modalDialog` | Summary of detected modal dialogs, or `null` |
 
-`tree` node の主なフィールド:
+Main `tree` node fields:
 
-| フィールド | 内容 |
+| Field | Description |
 | --- | --- |
 | `ref` | `s<sid>e<eid>` |
 | `role` | UIA ControlType |
 | `name` | UIA Name |
 | `automationId` | UIA AutomationId |
-| `className` | class name |
-| `isEnabled` | enabled 状態 |
-| `isOffscreen` | offscreen 状態 |
-| `value` | ValuePattern 等から得た値 |
-| `helpText` | HelpText。無名 button 対策にも使う |
+| `className` | Class name |
+| `isEnabled` | Enabled state |
+| `isOffscreen` | Offscreen state |
+| `value` | ValuePattern or similar value |
+| `helpText` | Help text |
 | `boundingRect` | `[x, y, width, height]` |
-| `isKeyboardFocusable` | keyboard focus 可能か |
-| `hasKeyboardFocus` | focus 中か |
-| `isPopup` | popup として注入された node か |
-| `isModalDialog` | modal dialog として注入された node か |
-| `children` | child nodes |
+| `isKeyboardFocusable` | Keyboard-focusable flag |
+| `hasKeyboardFocus` | Focus flag |
+| `isPopup` | Injected popup flag |
+| `isModalDialog` | Injected modal-dialog flag |
+| `children` | Child nodes |
 
 ## CLI `.txt` snapshot
 
-CLI は raw JSON を受け取り、frontmatter + Playwright Aria YAML 風 tree に整形します。
+The CLI receives raw JSON and formats it into frontmatter plus a Playwright-Aria-style tree.
 
 ```text
 ---
@@ -66,92 +66,77 @@ processName: ApplicationFrameHost
 processId: 10392
 generatedAt: "2026-04-28T01:00:54.4221919Z"
 ---
-- Window "電卓" [ref=s1e1]
-  - Window "電卓" [aid="TitleBar"] [value="電卓"] [ref=s1e2]
-    - Button "電卓 を閉じる" [aid="Close"] [ref=s1e7]
+- Window "Calculator" [ref=s1e1]
+  - Window "Calculator" [aid="TitleBar"] [value="Calculator"] [ref=s1e2]
+    - Button "Close Calculator" [aid="Close"] [ref=s1e7]
 ```
 
-### frontmatter
+### Frontmatter
 
-| フィールド | 内容 |
+| Field | Description |
 | --- | --- |
-| `filter` | `operable` または `raw` |
+| `filter` | `operable` or `raw` |
 | `sessionId` | `s<n>` |
-| `processName` | process name。存在する場合のみ |
-| `processId` | process id。存在する場合のみ |
-| `generatedAt` | raw JSON metadata の timestamp |
+| `processName` | Process name when available |
+| `processId` | Process id when available |
+| `generatedAt` | Timestamp from the raw metadata |
 
-frontmatter の scalar は、英数字・空白・`_`・`-` のみなら裸、それ以外は double quote で囲みます。
+Scalar values are quoted only when needed.
 
-### 本体形式
+### Body format
 
-| 要素 | 形式 |
+| Item | Format |
 | --- | --- |
-| 行 | `- Role "Name" [attr=...]` |
-| 階層 | 2 spaces indent |
-| Name | あれば double quote 付きで出力 |
+| Line | `- Role "Name" [attr=...]` |
+| Indent | 2 spaces |
+| Name | Quoted when present |
 | AutomationId | `[aid="..."]` |
 | Value | `[value="..."]` |
-| 状態 | `[disabled]`, `[focused]`, `[modal]` |
+| State | `[disabled]`, `[focused]`, `[modal]` |
 | Ref | `[ref=s1e7]` |
 
-属性順は `aid`、`value`、state flags、`ref` です。`className`、`helpText`、`boundingRect`、`isKeyboardFocusable`、`isOffscreen` は text 出力には出しません。
+Attribute order is `aid`, `value`, state flags, then `ref`.
 
-## `operable` / `raw` filter
+## `operable` / `raw` filters
 
-| filter | 挙動 |
+| Filter | Behavior |
 | --- | --- |
-| `raw` | tree 構造を維持する。text 出力で出すフィールドは formatter の対象に限る |
-| `operable` | 操作可能・意味のある ControlType を残し、無名の構造要素を flatten し、offscreen subtree を除外する |
+| `raw` | Keep the tree structure intact |
+| `operable` | Keep useful controls, flatten anonymous structural nodes, and drop offscreen subtrees |
 
-`operable` で常に残す主な role:
+Main roles preserved by `operable` include `Window`, `Menu`, `MenuBar`, `MenuItem`, `TitleBar`, `ToolBar`, `StatusBar`, `Button`, `Edit`, `CheckBox`, `ComboBox`, `Tree`, `List`, `DataGrid`, `Document`, `Text`, and similar controls.
 
-| 種類 | Role 例 |
+Anonymous `Pane`, `Group`, `Custom`, `Thumb`, `Image`, and `Separator` nodes are flattened unless they carry a name or automation id.
+
+## Unicode / escaping
+
+| Target | Policy |
 | --- | --- |
-| Window / menu | `Window`, `Menu`, `MenuBar`, `MenuItem`, `TitleBar`, `ToolBar`, `StatusBar` |
-| 入力・操作 | `Button`, `Edit`, `CheckBox`, `RadioButton`, `ComboBox`, `Slider`, `Spinner`, `SplitButton` |
-| 選択・構造 | `Tab`, `TabItem`, `Tree`, `TreeItem`, `List`, `ListItem`, `DataGrid`, `DataItem`, `Table` |
-| 表示 | `Document`, `Text`, `Hyperlink`, `Header`, `HeaderItem` |
+| Non-ASCII text | Preserve it |
+| Double quote | `\"` |
+| Backslash | `\\` |
+| Newline | `\n` |
+| Tab | `\t` |
+| Control characters | `\uXXXX` |
 
-`Pane`, `Group`, `Custom`, `Thumb`, `Image`, `Separator` は、Name または AutomationId があれば残し、なければ自身を省いて子を親へ昇格します。未知 role は安全側で flatten します。
+ADACT keeps Unicode text readable because it deals with Windows UI text.
 
-## Unicode / escape
+## Output files
 
-| 対象 | 方針 |
+| Item | Description |
 | --- | --- |
-| 日本語などの非 ASCII | そのまま出力する |
-| double quote | `\"` |
-| backslash | `\\` |
-| newline | `\n` |
-| tab | `\t` |
-| 制御文字 | `\uXXXX` |
+| Default directory | `.adact/` |
+| Override | `--snapshot-dir <dir>` |
+| Extension | `.txt` |
+| Commands that write snapshots | `attach`, `snapshot`, and auto-snapshot commands such as `click`, `fill`, `doubleclick`, `hover`, `type`, `check`, `uncheck`, `select`, `resize-window`, `minimize-window`, `maximize-window`, and `restore-window` |
+| Commands that do not write snapshots | Low-level helpers and read/sync commands such as `keypress`, `mousemove`, `mousedown`, `mouseup`, `mousewheel`, `keydown`, `keyup`, `focus`, `scroll`, `inspect`, `screenshot`, `wait-for-element`, `wait-for-window`, and `launch` |
+| Suppression | `--no-snapshot` disables auto-snapshot for supported commands |
 
-ADACT は Windows アプリの UI text を扱うため、snapshot text では Unicode を読みやすさ優先で保持します。
+The old `.json` snapshot format is no longer used for CLI output.
 
-## 出力ファイル
+## References
 
-| 項目 | 内容 |
+| Document | Description |
 | --- | --- |
-| 既定 directory | `.adact/` |
-| 変更 | `--snapshot-dir <dir>` |
-| 拡張子 | `.txt` |
-| 出力する CLI | `attach`, `snapshot`, および auto-snapshot 対象の操作系: `click`, `fill`, `doubleclick`, `hover`, `type`, `check`, `uncheck`, `select`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window` |
-| 出力しない CLI | 低レベル補助 (`keypress`, `mousemove`, `mousedown`, `mouseup`, `mousewheel`, `keydown`, `keyup`, `focus`, `scroll`) と取得・同期系 (`inspect`, `screenshot`, `wait-for-element`, `wait-for-window`, `launch`)。これらは成功時に snapshot を生成しない |
-| 抑止 | `--no-snapshot` を持つコマンド (`attach`, `click`, `fill`, `doubleclick`, `hover`, `type`, `check`, `uncheck`, `select`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window`) で自動 snapshot を抑止できる |
-
-旧 Phase 5 では `.json` snapshot が使われていました。現行仕様では CLI snapshot file は `.txt` です。
-
-## 参照
-
-| 文書 | 内容 |
-| --- | --- |
-| [../../discussion/017_Phase7_完了.md](../../discussion/017_Phase7_完了.md) | `.txt` snapshot 化の完了記録 |
-| [ref-ids.md](ref-ids.md) | `[ref=...]` の形式 |
-| [cli.md](cli.md) | `snapshot` / `--filter` / `--snapshot-dir` |
-
-## 2026-05 CLI 出力統一補足
-
-- snapshot file 自体は従来どおり frontmatter + tree の `.txt` として保存する。
-- `adact snapshot` の stdout は `result: true`、`snapshotPath`、`---`、`sessionId`、空行、tree を出す。
-- `attach` と auto-snapshot 対象コマンドは snapshot 本文を stdout に出さず、メタの `snapshotPath: ... (changed|unchanged)` だけを返す。
-- `--no-snapshot` 時は `snapshotPath` を出さない。
+| [ref-ids.md](ref-ids.md) | `[ref=...]` format |
+| [cli.md](cli.md) | `snapshot`, `--filter`, and `--snapshot-dir` |

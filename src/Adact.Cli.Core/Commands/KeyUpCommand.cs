@@ -5,11 +5,8 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
-/// <summary><c>keyup</c> コマンド。単一キーを解放する (低レベル)。</summary>
 internal static class KeyupCommand
 {
-    /// <summary>keyup サブコマンドを構築する。</summary>
-    /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build()
     {
         var keyArg = new Argument<string>("key")

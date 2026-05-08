@@ -1,62 +1,59 @@
-# CLI 仕様
+# CLI Specification
 
-ADACT の主インターフェースは `adact <subcommand>` CLI です。CLI は短命プロセスとして起動し、既定では Named Pipe で MCP daemon (`adact serve pipe`) に接続します。
+ADACT's primary interface is the `adact <subcommand>` CLI. It starts as a short-lived process and connects by default to the MCP daemon over Named Pipe (`adact serve pipe`).
 
-## 出力統一ルール
+## Unified output rules
 
-`serve http` / `serve pipe` を除く通常サブコマンドは、次のどれかの形式で stdout に出力します。
+Normal subcommands, except `serve http` and `serve pipe`, write stdout in one of these forms:
 
 ```text
 result: true|false
-<必要なら追加メタ>
+<optional metadata>
 ---
-<本文>
+<body>
 ```
 
-- 成功時は `result: true`
-- 失敗時は `result: false` と `error: <ERROR_CODE>`
-- 通常の成功/失敗情報はすべて stdout に出し、stderr は原則使わない
-- `windowRef` は通常成功出力から廃止し、`list-windows` の TSV 列としてのみ残す
-- `sessionId` はメタには置かず、必要なコマンドの本文に出す
+- Success uses `result: true`
+- Failure uses `result: false` and `error: <ERROR_CODE>`
+- Normal success/failure information goes to stdout; stderr is reserved for exceptional cases
+- `windowRef` is no longer part of the normal success output and appears only in `list-windows` TSV rows
+- `sessionId` is not placed in the metadata block; it appears in the body when needed
 
-## 形式分類
+## Format categories
 
-| 形式 | 対象コマンド | 備考 |
+| Format | Commands | Notes |
 | --- | --- | --- |
-| TSV | `list-windows` | 先頭メタの後ろに TSV 本文 |
-| snapshot | `snapshot` | メタに `snapshotPath`、本文に `sessionId` + 空行 + tree |
-| yaml | 上記以外の 1-shot コマンド | 先頭メタの後ろに yaml風本文 |
-| 対象外 | `serve http`, `serve pipe` | サーバとして継続実行するため統一結果フォーマットの対象外 |
+| TSV | `list-windows` | TSV body after the metadata block |
+| snapshot | `snapshot` | `snapshotPath` in metadata, then `sessionId`, a blank line, and the tree body |
+| yaml-style | All other one-shot commands | YAML-like body after the metadata block |
+| excluded | `serve http`, `serve pipe` | Long-running servers, so they are excluded from the unified result format |
 
-## コマンド一覧
+## Command list
 
-| カテゴリ | コマンド | 形式 | 概要 |
+| Category | Commands | Format | Summary |
 | --- | --- | --- | --- |
-| Runtime | `serve http` | 対象外 | HTTP MCP daemon を起動する |
-| Runtime | `serve pipe` | 対象外 | Named Pipe MCP daemon を起動する |
-| Discovery | `list-windows` | TSV | top-level window 一覧 |
-| Session | `attach` | yaml | window に attach し session を作成 |
-| Snapshot | `snapshot` | snapshot | active / 指定 session の snapshot を保存・表示 |
-| Mouse | `click`, `doubleclick`, `hover` | yaml | UI 操作。auto-snapshot 対象 |
-| Mouse | `mousemove`, `mousedown`, `mouseup` | yaml | 低レベルマウス操作 |
-| Mouse | `mousewheel` | yaml | 低レベルマウス操作 |
-| Keyboard | `fill`, `type` | yaml | UI 操作。auto-snapshot 対象 |
-| Keyboard | `keypress` | yaml | 低レベルキー操作 |
-| Keyboard | `keydown`, `keyup` | yaml | 低レベルキー操作 |
-| Toggle | `check`, `uncheck`, `select` | yaml | UI 操作。auto-snapshot 対象 |
-| Toggle | `focus`, `scroll-into-view` | yaml | 補助操作 |
-| Toggle | `scroll` | yaml | ScrollPattern でコンテナをスクロール |
-| Window | `resize-window`, `minimize-window`, `maximize-window`, `restore-window` | yaml | window 状態変更。auto-snapshot 対象 |
-| Inspect | `inspect` | yaml | UIA プロパティ詳細 |
-| Inspect | `screenshot` | yaml | PNG 保存 |
-| Wait | `wait-for-element` | yaml | 要素状態待機 |
-| Wait | `wait-for-window` | yaml | top-level window 出現待機 |
-| Lifecycle | `launch` | yaml | Win32 / .NET / UWP 起動 |
-| Lifecycle | `detach`, `close-window`, `kill` | yaml | session / window の lifecycle 操作 |
-| Lifecycle | `daemon-stop` | yaml | Named Pipe daemon 停止 |
-| Install | `install --skills` | yaml | Skill ファイル展開 |
+| Runtime | `serve http` | excluded | Start the HTTP MCP daemon |
+| Runtime | `serve pipe` | excluded | Start the Named Pipe MCP daemon |
+| Discovery | `list-windows` | TSV | List top-level windows |
+| Session | `attach` | yaml-style | Attach to a window and create a session |
+| Snapshot | `snapshot` | snapshot | Save and/or print the snapshot for the active or selected session |
+| Mouse | `click`, `doubleclick`, `hover` | yaml-style | UI actions with auto-snapshot support |
+| Mouse | `mousemove`, `mousedown`, `mouseup`, `mousewheel` | yaml-style | Low-level mouse actions |
+| Keyboard | `fill`, `type` | yaml-style | UI actions with auto-snapshot support |
+| Keyboard | `keypress`, `keydown`, `keyup` | yaml-style | Low-level keyboard actions |
+| Toggle | `check`, `uncheck`, `select` | yaml-style | UI actions with auto-snapshot support |
+| Toggle | `focus`, `scroll-into-view`, `scroll` | yaml-style | Helper operations |
+| Window | `resize-window`, `minimize-window`, `maximize-window`, `restore-window` | yaml-style | Window state changes with auto-snapshot support |
+| Inspect | `inspect` | yaml-style | UIA property details |
+| Inspect | `screenshot` | yaml-style | Save PNG |
+| Wait | `wait-for-element` | yaml-style | Wait for element state |
+| Wait | `wait-for-window` | yaml-style | Wait for a top-level window |
+| Lifecycle | `launch` | yaml-style | Start a Win32/.NET/UWP process |
+| Lifecycle | `detach`, `close-window`, `kill` | yaml-style | Session/window lifecycle operations |
+| Lifecycle | `daemon-stop` | yaml-style | Stop the Named Pipe daemon |
+| Install | `install --skills` | yaml-style | Expand Skill files |
 
-## 代表出力
+## Representative output
 
 ### `attach`
 
@@ -100,7 +97,7 @@ windowRef	sessionId	processName	processId	className	windowTitle
 w1	s1	notepad	12345	Notepad	Untitled - Notepad
 ```
 
-### 共通失敗
+### Common failure
 
 ```text
 result: false
@@ -109,45 +106,43 @@ error: NO_ACTIVE_SESSION
 message: No active session. Call adact_attach first or specify sessionId explicitly.
 ```
 
-## auto-snapshot 対象
+## Auto-snapshot commands
 
-`--no-snapshot` を持ち、成功時に CLI が snapshot を自動取得するコマンド:
+`attach`, `click`, `fill`, `doubleclick`, `hover`, `type`, `check`, `uncheck`, `select`, `resize-window`, `minimize-window`, `maximize-window`, and `restore-window` can auto-capture a snapshot on success.
 
-`attach`, `click`, `fill`, `doubleclick`, `hover`, `type`, `check`, `uncheck`, `select`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window`
+- When `--no-snapshot` is set, `snapshotPath` is omitted
+- Only the `snapshot` command prints the snapshot body to stdout
 
-- `--no-snapshot` 時は `snapshotPath` を出さない
-- `snapshot` 本文を stdout に出すのは `snapshot` コマンドだけ
+## Session-id interface
 
-## session 指定インターフェース
+Some commands accept session selection as a positional `sid` argument rather than `--sid`.
 
-一部コマンドは session 指定を `--sid` ではなく **任意位置引数 `sid`** で受け取る。
+- `snapshot`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window`, `close-window`, and `kill`
+- When omitted, they resolve the active session
 
-- 対象: `snapshot`, `resize-window`, `minimize-window`, `maximize-window`, `restore-window`, `close-window`, `kill`
-- 省略時は従来どおり active session を解決する
+`screenshot` accepts a positional `target` argument and auto-detects it:
 
-`screenshot` は任意位置引数 `target` を 1 つ受け取り、自動判別する。
-
-- `s<digits>e<digits>` なら element ref として扱う
-- それ以外は session id として扱う
-- 未指定時は active session を使う
+- `s<digits>e<digits>` means element ref
+- Otherwise it is treated as a session id
+- If omitted, the active session is used
 
 ## Runtime commands
 
-| コマンド | 主な引数 | 備考 |
+| Command | Main arguments | Notes |
 | --- | --- | --- |
-| `adact serve http` | `--port <0-65535>` | 継続実行。通常の統一出力対象外 |
-| `adact serve pipe` | (なし) | 継続実行。通常の統一出力対象外 |
+| `adact serve http` | `--port <0-65535>` | Long-running; excluded from the unified output format |
+| `adact serve pipe` | none | Long-running; excluded from the unified output format |
 
-`serve http` と `serve pipe` は対話 desktop 内で起動する必要があります。非対話 session では `NO_INTERACTIVE_SESSION`、exit code `4` で起動を拒否します。
+`serve http` and `serve pipe` must run inside an interactive desktop session. In non-interactive sessions they fail with `NO_INTERACTIVE_SESSION` and exit code `4`.
 
-## 接続先解決
+## Connection resolution
 
-| 優先度 | 入力 | 例 |
+| Priority | Input | Example |
 | ---: | --- | --- |
 | 1 | `--server` | `adact list-windows --server http://127.0.0.1:41300/mcp` |
-| 2 | Named Pipe (既定) | ワークスペースパスから自動生成 |
+| 2 | Named Pipe (default) | Derived automatically from the workspace path |
 
-`--server` 未指定時は Named Pipe に接続します。HTTP モードを使う場合は明示的に `--server` を指定してください。
+If `--server` is omitted, the CLI uses Named Pipe. Use `--server` explicitly for HTTP mode.
 
 ## `install --skills`
 
@@ -155,18 +150,18 @@ message: No active session. Call adact_attach first or specify sessionId explici
 adact install --skills <copilot|claude|codex> [--global]
 ```
 
-| 項目 | 内容 |
+| Item | Description |
 | --- | --- |
-| 目的 | AI coding client 向け Skill ファイル群を展開する |
-| 入力 | `--skills copilot|claude|codex` は必須。`--global` は user-global install |
-| 出力 | yaml (`installed: true`, `skills`, `path`)。`skills` は配布した Skill 名のカンマ区切り、`path` は client 別 skills root |
-| 対象 Skill | `src/Adact.Cli.Core/Skills/{adact-cli,adact-flaui-testgen}/` の `SKILL.md` と `references/*.md` |
-| インストール先 | client 別 skills root 配下に各 Skill ディレクトリ (`adact-cli/`, `adact-flaui-testgen/`) を展開する |
+| Purpose | Expand Skill files for AI coding clients |
+| Input | `--skills copilot|claude|codex` is required; `--global` installs for the current user |
+| Output | YAML-style `{ installed: true, skills, path }` |
+| Target skills | `src/Adact.Cli.Core/Skills/{adact-cli,adact-flaui-testgen}/` |
+| Install location | The client-specific skills root under each Skill directory |
 
-## 参照
+## References
 
-| 文書 | 内容 |
+| Document | Description |
 | --- | --- |
-| [errors-and-output.md](errors-and-output.md) | exit code と CLI/MCP の出力詳細 |
-| [snapshot.md](snapshot.md) | snapshot file 形式 |
-| [ref-ids.md](ref-ids.md) | `w<n>` / `s<n>` / `s<sid>e<eid>` |
+| [errors-and-output.md](errors-and-output.md) | Exit codes and CLI/MCP output details |
+| [snapshot.md](snapshot.md) | Snapshot file format |
+| [ref-ids.md](ref-ids.md) | `w<n>`, `s<n>`, and `s<sid>e<eid>` |

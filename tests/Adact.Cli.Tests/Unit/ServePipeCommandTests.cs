@@ -7,17 +7,12 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// <see cref="ServePipeCommand"/> の Unit テスト。
-/// パイプ存在確認・サーバー起動の分岐を検証する。
-/// </summary>
+/// <summary>Contains tests for the Serve Pipe Command behavior.</summary>
 [Trait("Layer", "Unit")]
 [Collection(ConsoleCollection.Name)]
 public class ServePipeCommandTests
 {
-    /// <summary>
-    /// パイプが既に存在する場合、ALREADY_RUNNING エラーと exit=1 (CommandFailed) となることを確認する。
-    /// </summary>
+    /// <summary>Performs the Serve Pipe Pipe Already Exists Returns Already Running Error operation.</summary>
     [Fact]
     public async Task ServePipe_PipeAlreadyExists_ReturnsAlreadyRunningError()
     {
@@ -36,9 +31,7 @@ public class ServePipeCommandTests
         }
     }
 
-    /// <summary>
-    /// パイプがない場合、サーバーが起動し、正常終了 (exit 0) となることを確認する。
-    /// </summary>
+    /// <summary>Performs the Serve Pipe No Existing Pipe Starts Server operation.</summary>
     [Fact]
     public async Task ServePipe_NoExistingPipe_StartsServer()
     {

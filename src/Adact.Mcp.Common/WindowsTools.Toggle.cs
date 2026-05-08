@@ -10,10 +10,6 @@ namespace Adact.Mcp.Common;
 
 public sealed partial class WindowsTools
 {
-    /// <summary>Toggle 系要素を On 状態にする (既に On なら何もしない)。</summary>
-    /// <param name="ref">対象 element ref。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "adact_check")]
     [Description("Ensure a checkbox / toggle / radio is in the On (selected) state. Idempotent.")]
     public async Task<CallToolResult> CheckAsync(
@@ -31,10 +27,6 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_check"); }
     }
 
-    /// <summary>Toggle 系要素を Off 状態にする (既に Off なら何もしない)。</summary>
-    /// <param name="ref">対象 element ref。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "adact_uncheck")]
     [Description("Ensure a checkbox / toggle is in the Off (unselected) state. Idempotent.")]
     public async Task<CallToolResult> UncheckAsync(
@@ -52,15 +44,6 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_uncheck"); }
     }
 
-    /// <summary>List / ComboBox 等の選択肢を name / index / itemRef のいずれかで選ぶ。複数指定可能。</summary>
-    /// <param name="ref">コンテナ要素 ref。</param>
-    /// <param name="name">選択する子の Name（複数指定可能）。</param>
-    /// <param name="index">0-based 子インデックス（複数指定可能）。</param>
-    /// <param name="itemRef">子 ListItem の element ref（複数指定可能）。</param>
-    /// <param name="add">true の場合、既存選択を維持したまま追加。</param>
-    /// <param name="remove">true の場合、既存選択から除外。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。選択指定が 0 個または混在のときは <c>INVALID_ARGUMENT</c>。</returns>
     [McpServerTool(Name = "adact_select")]
     [Description("Select items in a list/combobox by Name ('name'), 0-based 'index', or child 'itemRef'. Provide one or more of a single kind. Use 'add' to keep existing selection, 'remove' to deselect.")]
     public async Task<CallToolResult> SelectAsync(
@@ -81,12 +64,10 @@ public sealed partial class WindowsTools
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
         if (!ValidateRef(@ref, out var session, out var error)) return error!;
 
-        // add + remove 同時指定禁止
         if (add && remove)
             return ToolErrors.Error(ToolErrors.InvalidArgument,
                 "'add' and 'remove' cannot both be true.");
 
-        // 排他制約: 同一種類のパラメータのみ指定可能
         int kindCount = (name is { Length: > 0 } ? 1 : 0) + (index is { Length: > 0 } ? 1 : 0) + (itemRef is { Length: > 0 } ? 1 : 0);
         if (kindCount == 0)
             return ToolErrors.Error(ToolErrors.InvalidArgument,
@@ -95,7 +76,6 @@ public sealed partial class WindowsTools
             return ToolErrors.Error(ToolErrors.InvalidArgument,
                 "Only one kind of selector ('name', 'index', or 'itemRef') may be specified.");
 
-        // itemRef のフォーマット検証
         if (itemRef is { Length: > 0 })
         {
             foreach (var ir in itemRef)
@@ -105,7 +85,6 @@ public sealed partial class WindowsTools
             }
         }
 
-        // SelectionTarget[] を構築
         SelectionTarget[] targets;
         if (name is { Length: > 0 })
             targets = name.Select(SelectionTarget.FromName).ToArray();
@@ -114,7 +93,6 @@ public sealed partial class WindowsTools
         else
             targets = itemRef!.Select(SelectionTarget.FromItemRef).ToArray();
 
-        // SelectionMode を決定
         var mode = add ? SelectionMode.Add : remove ? SelectionMode.Remove : SelectionMode.Replace;
 
         try
@@ -125,10 +103,6 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_select"); }
     }
 
-    /// <summary>指定要素にキーボードフォーカスを当てる。auto-snapshot は実行しない。</summary>
-    /// <param name="ref">対象 element ref。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "adact_focus")]
     [Description("Set keyboard focus to the element identified by ref.")]
     public async Task<CallToolResult> FocusAsync(
@@ -146,10 +120,6 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_focus"); }
     }
 
-    /// <summary>ScrollItemPattern で要素を表示領域内へスクロールする。</summary>
-    /// <param name="ref">対象 element ref。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。Pattern 不在は <c>ELEMENT_INTERACTION_FAILED</c>。</returns>
     [McpServerTool(Name = "adact_scroll_into_view")]
     [Description("Scroll the element into view using ScrollItemPattern. Errors if the element does not support the pattern.")]
     public async Task<CallToolResult> ScrollIntoViewAsync(
@@ -167,16 +137,6 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_scroll_into_view"); }
     }
 
-    /// <summary>ScrollPattern でコンテナ要素をスクロールする。percent / small / large は排他。</summary>
-    /// <param name="ref">対象コンテナ要素の ref。</param>
-    /// <param name="percentH">水平スクロール位置 (0〜100)。</param>
-    /// <param name="percentV">垂直スクロール位置 (0〜100)。</param>
-    /// <param name="smallH">水平 SmallIncrement/Decrement 回数。正=右、負=左。</param>
-    /// <param name="smallV">垂直 SmallIncrement/Decrement 回数。正=下、負=上。</param>
-    /// <param name="largeH">水平 LargeIncrement/Decrement 回数。正=右、負=左。</param>
-    /// <param name="largeV">垂直 LargeIncrement/Decrement 回数。正=下、負=上。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。Pattern 不在は <c>ELEMENT_INTERACTION_FAILED</c>。排他違反は <c>INVALID_ARGUMENT</c>。</returns>
     [McpServerTool(Name = "adact_scroll")]
     [Description("Scroll a container element using ScrollPattern. Specify exactly one group: percent (percentH/percentV), small (smallH/smallV), or large (largeH/largeV).")]
     public async Task<CallToolResult> ScrollAsync(

@@ -6,14 +6,13 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// <see cref="JsonHelpers"/> の Unit テスト。MCP レスポンス JSON の読み出しヘルパの動作を検証する。
-/// </summary>
+/// <summary>Contains tests for the Json Helpers behavior.</summary>
 [Trait("Layer", "Unit")]
 public class JsonHelpersTests
 {
     // --- GetStringOrNull ---
 
+    /// <summary>Gets the Get String Or Null String Property Returns Value value.</summary>
     [Fact]
     public void GetStringOrNull_StringProperty_ReturnsValue()
     {
@@ -21,6 +20,7 @@ public class JsonHelpersTests
         Assert.Equal("hello", JsonHelpers.GetStringOrNull(json, "name"));
     }
 
+    /// <summary>Gets the Get String Or Null Missing Property Returns Null value.</summary>
     [Fact]
     public void GetStringOrNull_MissingProperty_ReturnsNull()
     {
@@ -28,6 +28,7 @@ public class JsonHelpersTests
         Assert.Null(JsonHelpers.GetStringOrNull(json, "missing"));
     }
 
+    /// <summary>Gets the Get String Or Null Null Property Returns Null value.</summary>
     [Fact]
     public void GetStringOrNull_NullProperty_ReturnsNull()
     {
@@ -35,6 +36,7 @@ public class JsonHelpersTests
         Assert.Null(JsonHelpers.GetStringOrNull(json, "name"));
     }
 
+    /// <summary>Gets the Get String Or Null Number Property Returns To String value.</summary>
     [Fact]
     public void GetStringOrNull_NumberProperty_ReturnsToString()
     {
@@ -42,6 +44,7 @@ public class JsonHelpersTests
         Assert.Equal("42", JsonHelpers.GetStringOrNull(json, "val"));
     }
 
+    /// <summary>Gets the Get String Or Null Non Object Returns Null value.</summary>
     [Fact]
     public void GetStringOrNull_NonObject_ReturnsNull()
     {
@@ -51,6 +54,7 @@ public class JsonHelpersTests
 
     // --- GetIntAsStringOrNull ---
 
+    /// <summary>Gets the Get Int As String Or Null Number Property Returns String value.</summary>
     [Fact]
     public void GetIntAsStringOrNull_NumberProperty_ReturnsString()
     {
@@ -58,6 +62,7 @@ public class JsonHelpersTests
         Assert.Equal("1234", JsonHelpers.GetIntAsStringOrNull(json, "pid"));
     }
 
+    /// <summary>Gets the Get Int As String Or Null String Property Returns As Is value.</summary>
     [Fact]
     public void GetIntAsStringOrNull_StringProperty_ReturnsAsIs()
     {
@@ -65,6 +70,7 @@ public class JsonHelpersTests
         Assert.Equal("5678", JsonHelpers.GetIntAsStringOrNull(json, "pid"));
     }
 
+    /// <summary>Gets the Get Int As String Or Null Missing Property Returns Null value.</summary>
     [Fact]
     public void GetIntAsStringOrNull_MissingProperty_ReturnsNull()
     {
@@ -72,6 +78,7 @@ public class JsonHelpersTests
         Assert.Null(JsonHelpers.GetIntAsStringOrNull(json, "pid"));
     }
 
+    /// <summary>Gets the Get Int As String Or Null Bool Property Returns Null value.</summary>
     [Fact]
     public void GetIntAsStringOrNull_BoolProperty_ReturnsNull()
     {
@@ -81,6 +88,7 @@ public class JsonHelpersTests
 
     // --- GetIntOrNull ---
 
+    /// <summary>Gets the Get Int Or Null Number Property Returns Int value.</summary>
     [Fact]
     public void GetIntOrNull_NumberProperty_ReturnsInt()
     {
@@ -88,6 +96,7 @@ public class JsonHelpersTests
         Assert.Equal(7, JsonHelpers.GetIntOrNull(json, "count"));
     }
 
+    /// <summary>Gets the Get Int Or Null Missing Property Returns Null value.</summary>
     [Fact]
     public void GetIntOrNull_MissingProperty_ReturnsNull()
     {
@@ -95,6 +104,7 @@ public class JsonHelpersTests
         Assert.Null(JsonHelpers.GetIntOrNull(json, "count"));
     }
 
+    /// <summary>Gets the Get Int Or Null String Property Returns Null value.</summary>
     [Fact]
     public void GetIntOrNull_StringProperty_ReturnsNull()
     {
@@ -102,6 +112,7 @@ public class JsonHelpersTests
         Assert.Null(JsonHelpers.GetIntOrNull(json, "count"));
     }
 
+    /// <summary>Gets the Get Int Or Null Non Object Returns Null value.</summary>
     [Fact]
     public void GetIntOrNull_NonObject_ReturnsNull()
     {

@@ -4,21 +4,12 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// detach / close / kill の共通実装。設計 009 §4.5 / §5.2。
-/// 出力は <c>sessionId &lt;sid&gt;</c> のあとに literal キー (例: detached / closed / killed) を順に出す。
 /// </summary>
 internal static class LifecycleCommandImpl
 {
     /// <summary>
-    /// detach / close / kill の共通実装。tool を呼び出し、成功時に sessionId + literal 行を stdout に出力する。
     /// </summary>
-    /// <param name="client">接続済み MCP クライアント。</param>
-    /// <param name="toolName">呼び出す MCP tool 名 (例: <c>adact_close_window</c>)。</param>
-    /// <param name="sessionId">対象 session ID。null/空なら active session。</param>
-    /// <param name="literalLines">sessionId 出力後に stdout へ追加する literal 行集合 (例: <c>closed</c>, <c>detached</c>)。</param>
     /// <param name="ct">cancellation token。</param>
-    /// <returns>exit code (成功 0)。</returns>
-    /// <exception cref="ArgumentNullException">必須引数が null。</exception>
     public static async Task<int> ExecuteAsync(
         IAdactMcpClient client,
         string toolName,
@@ -58,16 +49,8 @@ internal static class LifecycleCommandImpl
     }
 
     /// <summary>
-    /// 追加引数とレスポンスフィールド読み取りをサポートする拡張版。
     /// </summary>
-    /// <param name="client">接続済み MCP クライアント。</param>
-    /// <param name="toolName">呼び出す MCP tool 名。</param>
-    /// <param name="sessionId">対象 session ID。null/空なら active session。</param>
-    /// <param name="extraArgs">sessionId 以外に tool へ渡す追加引数。</param>
-    /// <param name="literalLines">sessionId 出力後に stdout へ追加する literal 行集合。</param>
-    /// <param name="responseFields">JSON レスポンスから読み取って出力するフィールド名一覧。</param>
     /// <param name="ct">cancellation token。</param>
-    /// <returns>exit code (成功 0)。</returns>
     public static async Task<int> ExecuteAsync(
         IAdactMcpClient client,
         string toolName,

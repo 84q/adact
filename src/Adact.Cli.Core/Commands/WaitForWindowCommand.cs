@@ -7,13 +7,9 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>wait-for-window</c> コマンド (設計 022 §6 / §7)。検索条件にマッチする top-level window の出現を待つ。
-/// attach は行わない。auto-snapshot は発火しない。
 /// </summary>
 internal static class WaitForWindowCommand
 {
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>wait-for-window サブコマンド。</returns>
     public static Command Build()
     {
         var titleOpt = new Option<string?>("--title") { Description = "Window title regex (case-insensitive)." };
@@ -61,13 +57,11 @@ internal static class WaitForWindowCommand
         return cmd;
     }
 
-    /// <summary>引数バリデーション。Unit テストから直接呼ぶための internal API。</summary>
     /// <param name="title">--title。</param>
     /// <param name="className">--class-name。</param>
     /// <param name="processName">--process-name。</param>
     /// <param name="exe">--exe。</param>
     /// <param name="timeoutMs">--timeout。</param>
-    /// <returns>(エラーコード, メッセージ) のタプル。</returns>
     internal static (string? errorCode, string? errorMessage) ValidateArgs(
         string? title,
         string? className,

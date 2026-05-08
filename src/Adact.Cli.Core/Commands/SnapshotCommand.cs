@@ -3,13 +3,9 @@ using System.CommandLine;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>snapshot</c> コマンド。指定 (もしくは active) session に対して UIA snapshot を取得し、
-/// CLI 側でフィルタとテキスト整形を適用して <c>.adact/</c> に保存する。
 /// </summary>
 internal static class SnapshotCommand
 {
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>snapshot サブコマンド。</returns>
     public static Command Build()
     {
         var sid = new Argument<string?>("sid")

@@ -9,20 +9,19 @@ using ModelContextProtocol.Protocol;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>attach</c> コマンド。Window Ref を受け取り、対応する window に attach して
-/// session を作成する。設計 docs/spec/cli.md attach 項。
+/// <c>attach</c> command. Resolves a Window Ref, attaches to the window, and creates a session.
+/// See docs/spec/cli.md for the attach flow.
 /// </summary>
 internal static class AttachCommand
 {
     /// <summary>
-    /// attach コマンドの引数バリデーション対象。Unit テストから直接呼び出すため
-    /// snapshot 関連の補助オプション (--no-snapshot/--snapshot-dir) は含めない。
+    /// Arguments for <c>attach</c>. Used by unit tests and snapshot-related options (<c>--no-snapshot</c>/<c>--snapshot-dir</c>).
     /// </summary>
-    /// <param name="Ref">位置引数として与えられた Window Ref (例: <c>w1</c>)。</param>
+    /// <param name="Ref">Window Ref (for example, <c>w1</c>).</param>
     internal sealed record AttachArgs(string? Ref);
 
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>attach サブコマンド。</returns>
+    /// <summary>Creates the System.CommandLine <see cref="Command"/> for <c>attach</c>.</summary>
+    /// <returns>The <c>attach</c> command.</returns>
     public static Command Build()
     {
         var refArg = new Argument<string?>("ref")
@@ -42,7 +41,7 @@ internal static class AttachCommand
         {
             var args = new AttachArgs(Ref: parseResult.GetValue(refArg));
 
-            // 引数バリデーションは接続前に実施する。
+            // Validate the arguments.
             var (errorCode, errorMessage) = ValidateAttachArgs(args);
             if (errorCode is not null)
             {
@@ -65,12 +64,11 @@ internal static class AttachCommand
     }
 
     /// <summary>
-    /// attach 引数のバリデーションのみ実施する (MCP 呼び出しは行わない)。
-    /// 不正なら <c>(errorCode, errorMessage)</c>、正常なら <c>(null, null)</c> を返す。
+    /// Validates <c>attach</c> arguments (MCP-facing). Returns <c>(errorCode, errorMessage)</c> on failure or <c>(null, null)</c> on success.
     /// </summary>
-    /// <param name="args">attach 引数。</param>
-    /// <returns>(エラーコード, メッセージ) のタプル。有効なら両方 null。</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="args"/> が null。</exception>
+    /// <param name="args">Arguments for <c>attach</c>.</param>
+    /// <returns>A tuple of (error code, error message). Returns null values on success.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="args"/> is null.</exception>
     internal static (string? errorCode, string? errorMessage) ValidateAttachArgs(AttachArgs args)
     {
         ArgumentNullException.ThrowIfNull(args);
@@ -90,13 +88,13 @@ internal static class AttachCommand
         return (null, null);
     }
 
-    /// <summary>接続済みクライアントに対し <c>adact_attach</c> を呼び、成功時は sessionId ・ windowRef ・ snapshot を出力する。</summary>
-    /// <param name="client">接続済み MCP クライアント。</param>
-    /// <param name="arguments"><c>adact_attach</c> に渡す引数。</param>
-    /// <param name="noSnapshot">true なら attach 成功後の snapshot 取得をスキップする。</param>
-    /// <param name="snapshotDir">snapshot 保存先 (null なら既定 <c>.adact/</c>)。</param>
-    /// <param name="ct">cancellation token。</param>
-    /// <returns>exit code。</returns>
+    /// <summary>Calls <c>adact_attach</c>, then writes the session/window result and optionally captures a snapshot.</summary>
+    /// <param name="client">Connected MCP client.</param>
+    /// <param name="arguments">Arguments for <c>adact_attach</c>.</param>
+    /// <param name="noSnapshot">When true, skip snapshot capture after attach.</param>
+    /// <param name="snapshotDir">Snapshot output directory (defaults to <c>.adact/</c> when null).</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Exit code.</returns>
     private static async Task<int> ExecuteAsync(
         IAdactMcpClient client,
         Dictionary<string, object?> arguments,

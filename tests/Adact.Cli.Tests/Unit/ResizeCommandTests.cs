@@ -7,19 +7,12 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// <see cref="ResizeWindowCommand"/> の引数検証 (Phase 8 Step 5) を検証する Unit テスト。
-/// 接続前 (parser / SetAction 段階) で弾かれる --width / --height の不正値が UserError exit と
-/// INVALID_ARGUMENT エラーを返すことを確認する。実 daemon / UIA への接続は行わない。
-/// </summary>
+/// <summary>Contains tests for the Resize Command behavior.</summary>
 [Trait("Layer", "Unit")]
 [Collection(ConsoleCollection.Name)]
 public class ResizeCommandTests
 {
-    /// <summary>
-    /// --width が 0 以下の場合、接続前に UserError exit と INVALID_ARGUMENT エラーが返ることを確認する。
-    /// </summary>
-    /// <param name="width">検証対象の不正な width。</param>
+    /// <summary>Performs the Resize Non Positive Width Returns User Error operation.</summary>
     [Theory]
     [InlineData("0")]
     [InlineData("-1")]
@@ -33,10 +26,7 @@ public class ResizeCommandTests
         Assert.Contains("--width", stdout, StringComparison.Ordinal);
     }
 
-    /// <summary>
-    /// --height が 0 以下の場合、接続前に UserError exit と INVALID_ARGUMENT エラーが返ることを確認する。
-    /// </summary>
-    /// <param name="height">検証対象の不正な height。</param>
+    /// <summary>Performs the Resize Non Positive Height Returns User Error operation.</summary>
     [Theory]
     [InlineData("0")]
     [InlineData("-1")]
@@ -50,9 +40,7 @@ public class ResizeCommandTests
         Assert.Contains("--height", stdout, StringComparison.Ordinal);
     }
 
-    /// <summary>
-    /// --width 必須オプションを省略すると System.CommandLine の parse error として UserError exit になることを確認する。
-    /// </summary>
+    /// <summary>Performs the Resize Missing Width Returns User Error operation.</summary>
     [Fact]
     public async Task Resize_MissingWidth_ReturnsUserError()
     {

@@ -2,23 +2,15 @@ using System.Diagnostics;
 
 namespace Adact.Cli.Tests;
 
-/// <summary>
-/// CliProcess 実行結果 (exit code / stdout / stderr) を保持する record。
-/// </summary>
 internal sealed record CliResult(int ExitCode, string Stdout, string Stderr);
 
-/// <summary>
-/// adact.exe をサブプロセス起動して結果を回収するテスト用ヘルパー。
-/// AssemblyName=adact なので、Adact.Cli の出力ディレクトリに <c>adact.exe</c> (apphost) が存在する。
-/// </summary>
 internal static class CliProcess
 {
-    /// <summary>adact.exe の実行パス。</summary>
+    /// <summary>Resolves the Resolve Exe Path value.</summary>
     public static string ExePath { get; } = ResolveExePath();
 
     private static string ResolveExePath()
     {
-        // typeof(Adact.Cli.Program) は internal だが Adact.Cli の InternalsVisibleTo で参照可能。
         var dllDir = Path.GetDirectoryName(typeof(Adact.Cli.Program).Assembly.Location)
             ?? throw new InvalidOperationException("Failed to determine Adact.Cli output directory.");
         var exe = Path.Combine(dllDir, "adact.exe");
@@ -30,9 +22,7 @@ internal static class CliProcess
         return exe;
     }
 
-    /// <summary>
-    /// adact.exe を起動して stdout/stderr/exit code を返す。
-    /// </summary>
+    /// <summary>Performs the Run operation.</summary>
     public static CliResult Run(
         string arguments,
         string? workingDirectory = null,
@@ -87,9 +77,7 @@ internal static class CliProcess
         return new CliResult(p.ExitCode, stdoutTask.Result, stderrTask.Result);
     }
 
-    /// <summary>
-    /// <c>--server &lt;baseUrl&gt;</c> を末尾に付与して実行する。
-    /// </summary>
+    /// <summary>Performs the Run With Server operation.</summary>
     public static CliResult RunWithServer(
         string arguments,
         string baseUrl,

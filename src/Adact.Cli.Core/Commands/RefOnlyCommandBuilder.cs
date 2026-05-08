@@ -6,17 +6,9 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// "ref のみを引数に取り、ref 以外のオプションを持たない" ref-based コマンドを共通化するビルダ。
-/// auto-snapshot あり / なしを切り替える。
 /// </summary>
 internal static class RefOnlyCommandBuilder
 {
-    /// <summary>共通 ref-only コマンドを構築する。</summary>
-    /// <param name="name">コマンド名 (kebab-case)。</param>
-    /// <param name="description">help 用説明文。</param>
-    /// <param name="toolName">呼び出す MCP ツール名 (例 <c>adact_check</c>)。</param>
-    /// <param name="autoSnapshot">true なら成功時に auto-snapshot を取得する。</param>
-    /// <returns>構築された <see cref="Command"/>。</returns>
     public static Command Build(string name, string description, string toolName, bool autoSnapshot)
     {
         var refArg = new Argument<string>("ref") { Description = "Element Ref ID like 's1e7'." };

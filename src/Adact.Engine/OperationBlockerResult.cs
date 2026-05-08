@@ -1,6 +1,6 @@
 namespace Adact.Engine;
 
 /// <summary>
-/// 操作ブロック検知の結果。
+/// Result of operation-blocker detection.
 /// </summary>
 public readonly record struct OperationBlockerResult(bool IsBlocked, string? Reason);

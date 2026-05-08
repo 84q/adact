@@ -2,20 +2,18 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// Verifies external daemon URL resolution for CLI Smoke / E2E fixtures.
-/// </summary>
+/// <summary>Contains tests for the Adact Daemon Fixture behavior.</summary>
 [Trait("Layer", "Unit")]
 public class AdactDaemonFixtureTests
 {
-    /// <summary>Unset environment variable keeps the default self-hosted daemon behavior.</summary>
+    /// <summary>Gets the Get External Server Url When Unset Returns Null value.</summary>
     [Fact]
     public void GetExternalServerUrl_WhenUnset_ReturnsNull()
     {
         Assert.Null(AdactDaemonFixture.GetExternalServerUrl(_ => null));
     }
 
-    /// <summary>A configured HTTP MCP endpoint is trimmed and returned as the fixture base URL.</summary>
+    /// <summary>Gets the Get External Server Url When Set Returns Trimmed Absolute Url value.</summary>
     [Fact]
     public void GetExternalServerUrl_WhenSet_ReturnsTrimmedAbsoluteUrl()
     {
@@ -24,7 +22,7 @@ public class AdactDaemonFixtureTests
             AdactDaemonFixture.GetExternalServerUrl(_ => "  http://127.0.0.1:41300/mcp  "));
     }
 
-    /// <summary>Invalid endpoint values fail fast with a message that names the environment variable.</summary>
+    /// <summary>Gets the Get External Server Url When Invalid Throws value.</summary>
     [Theory]
     [InlineData("127.0.0.1:41300/mcp")]
     [InlineData("ftp://127.0.0.1:41300/mcp")]

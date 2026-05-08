@@ -1,12 +1,12 @@
-# ADACT 全体像
+# ADACT Overview
 
-ADACT は、AI エージェントまたは人間が CLI から Windows デスクトップアプリを操作するための階層型ツールです。現行仕様では、Coding AI が MCP プロトコルを直接話すことを主経路にせず、`adact <subcommand>` を shell から実行する形を主インターフェースにしています。
+ADACT is a layered tool for letting AI agents or humans control Windows desktop apps from the CLI. In the current design, the main path is running `adact <subcommand>` from a shell instead of speaking MCP directly.
 
 ```mermaid
 flowchart LR
   actor[AI or Human]
   cli[adact CLI client]
-  daemon[HTTP MCP daemon]
+  daemon[MCP daemon]
   common[MCP Common]
   tools[WindowsTools]
   engine[UIA Engine]
@@ -18,59 +18,58 @@ flowchart LR
 
 ```
 
-## 実行経路
+## Execution path
 
-通常の操作経路は次の通りです。
+The normal path is:
 
 ```text
 AI / Human
   -> adact CLI client (`adact <subcommand>`)
-  -> HTTP MCP daemon (`adact serve`, /mcp)
+  -> MCP daemon (`adact serve pipe` by default, `adact serve http` for `--server`)
   -> UIA Engine (FlaUI.UIA3)
   -> Windows app
 ```
 
-| 層 | 実体 | 役割 |
+| Layer | Implementation | Role |
 | --- | --- | --- |
-| AI / Human | GitHub Copilot、Claude Code、人間の shell など | `adact list-windows` や `adact click <ref>` を実行する |
-| CLI client | `src/Adact.Cli/` (Windows) / `src/Adact.Cli.Client/` (cross-platform) | 短命プロセス。HTTP MCP daemon に接続し、stdout/stderr を token-efficient な CLI 出力へ変換する |
-| HTTP daemon | `adact serve` / `src/Adact.Cli.Server/` | `/mcp` で MCP tools を公開し、session/ref 状態をメモリ内に保持する |
-| MCP Common | `src/Adact.Mcp.Common/` | `windows_*` tools、`SessionStore`、`WindowRefStore`、tool error 変換を提供する |
-| Engine | `src/Adact.Engine/` | UIA による window 列挙、attach、snapshot、click、fill、close、kill を実行する |
-| Windows app | UIA 対応アプリ | WPF / WinForms / UWP / Win32 などの操作対象 |
+| AI / Human | GitHub Copilot, Claude Code, or a human shell | Runs commands such as `adact list-windows` and `adact click <ref>` |
+| CLI client | `src/Adact.Cli/` (Windows) / `src/Adact.Cli.Client/` (cross-platform) | Short-lived process that connects to the MCP daemon and turns results into compact CLI output |
+| MCP daemon | `adact serve http` / `adact serve pipe` / `src/Adact.Cli.Server/` | Exposes MCP tools and keeps session/ref state in memory |
+| MCP Common | `src/Adact.Mcp.Common/` | Provides `adact_*` tools, `SessionStore`, `WindowRefStore`, and tool error mapping |
+| Engine | `src/Adact.Engine/` | Performs UIA window enumeration, attach, snapshot, click, fill, close, and kill |
+| Windows app | UIA-capable app | The target app, such as WPF, WinForms, UWP, or Win32 |
 
-## コンポーネント関係
+## Component relationships
 
-| コンポーネント | 関係 |
+| Component | Relationship |
 | --- | --- |
-| CLI client | `AdactMcpClient` で HTTP daemon に接続し、MCP tool の結果を CLI 出力に変換する |
-| HTTP daemon | `HttpHost` が ASP.NET Core + MCP SDK で `/mcp` を公開する |
+| CLI client | Connects to the daemon through `NamedPipeMcpClient` by default or `AdactMcpClient` when `--server` is set, then converts MCP tool results into CLI output |
+| HTTP daemon | `HttpHost` exposes `/mcp` through ASP.NET Core + MCP SDK |
+| Named Pipe daemon | `NamedPipeHost` exposes the same MCP tool set over a workspace-derived pipe |
 
-| Engine | `UiaEngine` と `WindowSession` が UIA 操作の実体を担う |
-| MCP Common | HTTP daemon の tool 実装を提供する |
+| Engine | `UiaEngine` and `WindowSession` provide the actual UIA operations |
+| MCP Common | Provides the daemon's tool implementations |
 
-`adact serve` は Engine と `WindowsTools` を使います。CLI client が接続するのは HTTP daemon です。
+`adact serve http` and `adact serve pipe` use the Engine and `WindowsTools`. The CLI client connects to the daemon.
 
-## 主インターフェース
+## Primary interface
 
-ADACT の現在の主インターフェースは `adact <subcommand>` CLI です。
+The current primary interface is the `adact <subcommand>` CLI.
 
-| 操作 | 主に使う入口 |
+| Operation | Main entry point |
 | --- | --- |
-| window 一覧取得 | `adact list-windows` |
-| window への attach | `adact attach ...` |
-| UI tree の取得 | `adact snapshot` |
-| 要素操作 | `adact click <ref>` / `adact fill <ref> <text>` |
-| lifecycle | `adact detach` / `adact close-window` / `adact kill` / `adact daemon-stop` |
-| MCP 互換 | `adact serve` の `/mcp` |
+| List windows | `adact list-windows` |
+| Attach to a window | `adact attach ...` |
+| Get UI tree | `adact snapshot` |
+| Interact with an element | `adact click <ref>` / `adact fill <ref> <text>` |
+| Lifecycle | `adact detach` / `adact close-window` / `adact kill` / `adact daemon-stop` |
+| MCP compatibility | `/mcp` on `adact serve http` |
 
-古い検討文書では generation 付き ref (`s<sid>g<gen>e<eid>`) や MCP 直接利用が強く書かれている箇所があります。現行実装では generation は廃止済みで、CLI 主導の運用を前提にします。
+Older design notes may still mention generation-based refs (`s<sid>g<gen>e<eid>`) or direct MCP use. The current implementation has removed generation and assumes CLI-led operation.
 
-## 参照
+## References
 
-| 種別 | 文書 |
+| Type | Document |
 | --- | --- |
-| 要件再整理 | [../../discussion/008_要件再整理.md](../../discussion/008_要件再整理.md) |
-| Phase 5 完了 | [../../discussion/010_Phase5_完了.md](../../discussion/010_Phase5_完了.md) |
 | Runtime modes | [runtime-modes.md](runtime-modes.md) |
 | Component details | [components.md](components.md) |

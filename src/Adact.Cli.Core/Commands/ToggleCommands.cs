@@ -4,11 +4,8 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
-/// <summary><c>check</c> コマンド。Toggle/Selection 系要素を On 状態にする (auto-snapshot あり、idempotent)。</summary>
 internal static class CheckCommand
 {
-    /// <summary>check サブコマンドを構築する。</summary>
-    /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build() => RefOnlyCommandBuilder.Build(
         name: "check",
         description: "Ensure a checkbox / toggle / radio is in the On state. Idempotent.",
@@ -16,11 +13,8 @@ internal static class CheckCommand
         autoSnapshot: true);
 }
 
-/// <summary><c>uncheck</c> コマンド。Toggle 系要素を Off 状態にする (auto-snapshot あり、idempotent)。</summary>
 internal static class UncheckCommand
 {
-    /// <summary>uncheck サブコマンドを構築する。</summary>
-    /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build() => RefOnlyCommandBuilder.Build(
         name: "uncheck",
         description: "Ensure a checkbox / toggle is in the Off state. Idempotent.",
@@ -28,11 +22,8 @@ internal static class UncheckCommand
         autoSnapshot: true);
 }
 
-/// <summary><c>focus</c> コマンド。指定要素にキーボードフォーカスを当てる (低レベル)。</summary>
 internal static class FocusCommand
 {
-    /// <summary>focus サブコマンドを構築する。</summary>
-    /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build() => RefOnlyCommandBuilder.Build(
         name: "focus",
         description: "Set keyboard focus to the element identified by ref.",
@@ -40,11 +31,8 @@ internal static class FocusCommand
         autoSnapshot: false);
 }
 
-/// <summary><c>scroll-into-view</c> コマンド。ScrollItemPattern で要素を可視範囲にスクロールする (低レベル)。</summary>
 internal static class ScrollIntoViewCommand
 {
-    /// <summary>scroll-into-view サブコマンドを構築する。</summary>
-    /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build() => RefOnlyCommandBuilder.Build(
         name: "scroll-into-view",
         description: "Scroll the element into view using ScrollItemPattern.",
@@ -52,11 +40,8 @@ internal static class ScrollIntoViewCommand
         autoSnapshot: false);
 }
 
-/// <summary><c>scroll</c> コマンド。ScrollPattern でコンテナ要素をスクロールする。</summary>
 internal static class ScrollCommand
 {
-    /// <summary>scroll サブコマンドを構築する。</summary>
-    /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build()
     {
         var refArg = new Argument<string>("ref") { Description = "Ref ID of the scrollable container element." };

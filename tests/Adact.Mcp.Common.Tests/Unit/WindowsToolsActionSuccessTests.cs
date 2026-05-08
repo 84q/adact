@@ -7,121 +7,145 @@ using Xunit;
 
 namespace Adact.Mcp.Common.Tests.Unit;
 
-/// <summary>
-/// Verifies WindowsTools action tools delegate successful calls to IWindowSession without UIA.
-/// </summary>
+/// <summary>Contains tests for the Windows Tools Action Success behavior.</summary>
 [Trait("Layer", "Unit")]
 public class WindowsToolsActionSuccessTests
 {
     private sealed class FakeDaemonControl : IDaemonControl
     {
+        /// <summary>Gets a value indicating whether Is Supported.</summary>
         public bool IsSupported => true;
+        /// <summary>Performs the Stop Async operation.</summary>
         public Task StopAsync(CancellationToken ct) => Task.CompletedTask;
     }
 
     private sealed class FakeWindowSession : IWindowSession
     {
+        /// <summary>Gets the Calls value.</summary>
         public List<string> Calls { get; } = [];
+        /// <summary>Gets the Session Id value.</summary>
         public int SessionId { get; init; } = 1;
+        /// <summary>Gets the Process Name value.</summary>
         public string ProcessName { get; init; } = "fake";
+        /// <summary>Gets the Process Id value.</summary>
         public int ProcessId { get; init; } = 1234;
+        /// <summary>Gets the Title value.</summary>
         public string Title { get; init; } = "Fake";
+        /// <summary>Gets the Native Window Handle value.</summary>
         public nint NativeWindowHandle { get; init; } = 0x1234;
+        /// <summary>Gets or sets the Disposed value.</summary>
         public bool Disposed { get; private set; }
 
+        /// <summary>Performs the Snapshot Async operation.</summary>
         public Task<SnapshotResult> SnapshotAsync(SnapshotOptions? options = null, CancellationToken ct = default)
             => Task.FromResult(new SnapshotResult("{}", "s1", Title, ProcessName, ProcessId, DateTimeOffset.UtcNow));
 
+        /// <summary>Performs the Click Async operation.</summary>
         public Task ClickAsync(string refId, ClickOptions? options = null, CancellationToken ct = default)
         {
             Calls.Add($"click:{refId}:{(options is null ? "null" : "options")}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Click With Options Async operation.</summary>
         public Task ClickWithOptionsAsync(string refId, ClickOptions options, CancellationToken ct = default)
         {
             Calls.Add($"click-options:{refId}:{options.Button}:{options.Count}:{options.PositionX}:{options.PositionY}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Double Click Async operation.</summary>
         public Task DoubleClickAsync(string refId, ClickOptions? options = null, CancellationToken ct = default)
         {
             Calls.Add($"doubleclick:{refId}:{options?.Button}:{options?.PositionX}:{options?.PositionY}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Fill Async operation.</summary>
         public Task FillAsync(string refId, string text, CancellationToken ct = default)
         {
             Calls.Add($"fill:{refId}:{text}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Press Async operation.</summary>
         public Task PressAsync(string key, string? refId = null, CancellationToken ct = default)
         {
             Calls.Add($"press:{key}:{refId ?? "<window>"}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Key Down Async operation.</summary>
         public Task KeyDownAsync(string key, CancellationToken ct = default)
         {
             Calls.Add($"key-down:{key}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Key Up Async operation.</summary>
         public Task KeyUpAsync(string key, CancellationToken ct = default)
         {
             Calls.Add($"key-up:{key}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Type Async operation.</summary>
         public Task TypeAsync(string? refId, string text, int delayMs = 0, CancellationToken ct = default)
         {
             Calls.Add($"type:{refId}:{text}:{delayMs}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Hover Async operation.</summary>
         public Task HoverAsync(string refId, IReadOnlyList<string>? modifiers = null, int? positionX = null, int? positionY = null, CancellationToken ct = default)
         {
             Calls.Add($"hover:{refId}:{positionX}:{positionY}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Mouse Move Async operation.</summary>
         public Task MouseMoveAsync(MouseTarget target, CancellationToken ct = default)
         {
             Calls.Add($"mousemove:{Describe(target)}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Mouse Down Async operation.</summary>
         public Task MouseDownAsync(MouseTarget target, MouseButton button, CancellationToken ct = default)
         {
             Calls.Add($"mousedown:{Describe(target)}:{button}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Mouse Up Async operation.</summary>
         public Task MouseUpAsync(MouseTarget target, MouseButton button, CancellationToken ct = default)
         {
             Calls.Add($"mouseup:{Describe(target)}:{button}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Mouse Wheel Async operation.</summary>
         public Task MouseWheelAsync(MouseTarget target, int deltaX, int deltaY, CancellationToken ct = default)
         {
             Calls.Add($"mousewheel:{Describe(target)}:{deltaX}:{deltaY}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Check Async operation.</summary>
         public Task CheckAsync(string refId, CancellationToken ct = default)
         {
             Calls.Add($"check:{refId}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Uncheck Async operation.</summary>
         public Task UncheckAsync(string refId, CancellationToken ct = default)
         {
             Calls.Add($"uncheck:{refId}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Select Async operation.</summary>
         public Task SelectAsync(string refId, SelectionTarget[] targets, SelectionMode mode = SelectionMode.Replace, CancellationToken ct = default)
         {
             var targetDesc = string.Join(",", targets.Select(t => t switch
@@ -135,72 +159,86 @@ public class WindowsToolsActionSuccessTests
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Focus Async operation.</summary>
         public Task FocusAsync(string refId, CancellationToken ct = default)
         {
             Calls.Add($"focus:{refId}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Scroll Into View Async operation.</summary>
         public Task ScrollIntoViewAsync(string refId, CancellationToken ct = default)
         {
             Calls.Add($"scroll:{refId}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Scroll Async operation.</summary>
         public Task ScrollAsync(string refId, ScrollMode mode, CancellationToken ct = default)
         {
             Calls.Add($"scrollPattern:{refId}:{mode}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Inspect Async operation.</summary>
         public Task<InspectResult> InspectAsync(string refId, CancellationToken ct = default)
             => throw new NotSupportedException();
 
+        /// <summary>Performs the Screenshot Async operation.</summary>
         public Task<ScreenshotResult> ScreenshotAsync(string? refId, string? outPath, CancellationToken ct = default)
             => throw new NotSupportedException();
 
+        /// <summary>Performs the Resize Async operation.</summary>
         public Task ResizeAsync(int? width, int? height, CancellationToken ct = default)
         {
             Calls.Add($"resize:{width}:{height}");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Minimize Async operation.</summary>
         public Task MinimizeAsync(CancellationToken ct = default)
         {
             Calls.Add("minimize");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Maximize Async operation.</summary>
         public Task MaximizeAsync(CancellationToken ct = default)
         {
             Calls.Add("maximize");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Restore Async operation.</summary>
         public Task RestoreAsync(CancellationToken ct = default)
         {
             Calls.Add("restore");
             return Task.CompletedTask;
         }
 
+        /// <summary>Waits for the Wait For Ref Async condition.</summary>
         public Task<WaitForResult> WaitForRefAsync(string refId, WaitForState state, TimeSpan timeout, CancellationToken ct = default)
             => throw new NotSupportedException();
 
+        /// <summary>Waits for the Wait For Query Async condition.</summary>
         public Task<WaitForResult> WaitForQueryAsync(WaitForElementQuery query, WaitForState state, TimeSpan timeout, CancellationToken ct = default)
             => throw new NotSupportedException();
 
+        /// <summary>Performs the Close Async operation.</summary>
         public Task CloseAsync(CancellationToken ct = default)
         {
             Calls.Add("close");
             return Task.CompletedTask;
         }
 
+        /// <summary>Performs the Kill Async operation.</summary>
         public Task<KillMethod> KillAsync(bool force = false, int timeoutMs = 5000, CancellationToken ct = default)
         {
             Calls.Add("kill");
             return Task.FromResult(force ? KillMethod.Forced : KillMethod.Graceful);
         }
 
+        /// <summary>Releases resources.</summary>
         public void Dispose() => Disposed = true;
 
         private static string Describe(MouseTarget target)
@@ -225,9 +263,7 @@ public class WindowsToolsActionSuccessTests
         return (tools, store, session, mouse, keyboard);
     }
 
-    /// <summary>
-    /// Click without extensions delegates to ClickAsync.
-    /// </summary>
+    /// <summary>Performs the Click Default Delegates To Session Click operation.</summary>
     [Fact]
     public async Task Click_Default_DelegatesToSessionClick()
     {
@@ -242,9 +278,7 @@ public class WindowsToolsActionSuccessTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// Click with extensions delegates to ClickWithOptionsAsync.
-    /// </summary>
+    /// <summary>Performs the Click With Options Delegates To Session Click With Options operation.</summary>
     [Fact]
     public async Task Click_WithOptions_DelegatesToSessionClickWithOptions()
     {
@@ -259,9 +293,7 @@ public class WindowsToolsActionSuccessTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// Fill delegates to IWindowSession.
-    /// </summary>
+    /// <summary>Performs the Fill Delegates To Session operation.</summary>
     [Fact]
     public async Task Fill_DelegatesToSession()
     {
@@ -276,9 +308,7 @@ public class WindowsToolsActionSuccessTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// Keyboard action tools delegate to IWindowSession (press/key-down/key-up are low-level and go through IKeyboardDriver instead).
-    /// </summary>
+    /// <summary>Performs the Keyboard Actions Delegate To Session operation.</summary>
     [Fact]
     public async Task KeyboardActions_DelegateToSession()
     {
@@ -291,13 +321,11 @@ public class WindowsToolsActionSuccessTests
             Assert.True((await tools.KeyUpAsync("Shift")).IsError != true);
             Assert.True((await tools.TypeAsync("s1e2", "abc", delayMs: 5)).IsError != true);
 
-            // press/key-down/key-up はセッションを通さず、IKeyboardDriver へ委譲される
             Assert.DoesNotContain(session.Calls, c => c.StartsWith("press:", StringComparison.Ordinal));
             Assert.DoesNotContain(session.Calls, c => c.StartsWith("key-down:", StringComparison.Ordinal));
             Assert.DoesNotContain(session.Calls, c => c.StartsWith("key-up:", StringComparison.Ordinal));
             Assert.Contains("type:s1e2:abc:5", session.Calls);
 
-            // FakeKeyboardDriver で実際の呼び出しを検証
             Assert.Contains(keyboard.Calls, c => c.Contains("type:ENTER", StringComparison.Ordinal));
             Assert.Contains(keyboard.Calls, c => c.Contains("press:CONTROL", StringComparison.Ordinal));
             Assert.Contains(keyboard.Calls, c => c.Contains("type:KEY_A", StringComparison.Ordinal));
@@ -308,9 +336,7 @@ public class WindowsToolsActionSuccessTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// Mouse action tools delegate to IWindowSession (mouse-move/down/up/wheel are low-level and go through IMouseDriver instead).
-    /// </summary>
+    /// <summary>Performs the Mouse Actions Delegate To Session operation.</summary>
     [Fact]
     public async Task MouseActions_DelegateToSession()
     {
@@ -326,13 +352,11 @@ public class WindowsToolsActionSuccessTests
 
             Assert.Contains("doubleclick:s1e2:Middle:7:8", session.Calls);
             Assert.Contains("hover:s1e2:1:2", session.Calls);
-            // mouse-move/down/up/wheel はセッションを通さず、IMouseDriver へ委譲される
             Assert.DoesNotContain(session.Calls, c => c.StartsWith("mousemove:", StringComparison.Ordinal));
             Assert.DoesNotContain(session.Calls, c => c.StartsWith("mousedown:", StringComparison.Ordinal));
             Assert.DoesNotContain(session.Calls, c => c.StartsWith("mouseup:", StringComparison.Ordinal));
             Assert.DoesNotContain(session.Calls, c => c.StartsWith("mousewheel:", StringComparison.Ordinal));
 
-            // FakeMouseDriver で実際の呼び出しを検証
             Assert.Contains("move:10,20", mouse.Calls);
             Assert.Contains("down:Right", mouse.Calls);
             Assert.Contains("up:Right", mouse.Calls);
@@ -342,9 +366,7 @@ public class WindowsToolsActionSuccessTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// Toggle and focus action tools delegate to IWindowSession.
-    /// </summary>
+    /// <summary>Performs the Toggle And Focus Actions Delegate To Session operation.</summary>
     [Fact]
     public async Task ToggleAndFocusActions_DelegateToSession()
     {
@@ -366,9 +388,7 @@ public class WindowsToolsActionSuccessTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// Window state tools delegate to IWindowSession.
-    /// </summary>
+    /// <summary>Performs the Window Actions Delegate To Session operation.</summary>
     [Fact]
     public async Task WindowActions_DelegateToSession()
     {
@@ -388,9 +408,7 @@ public class WindowsToolsActionSuccessTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// Close and kill delegate to IWindowSession and detach the session on success.
-    /// </summary>
+    /// <summary>Performs the Lifecycle Actions Delegate And Detach On Success operation.</summary>
     [Theory]
     [InlineData("close")]
     [InlineData("kill")]
@@ -411,9 +429,7 @@ public class WindowsToolsActionSuccessTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// MouseWheel with both deltaX=0 and deltaY=0 returns INVALID_ARGUMENT.
-    /// </summary>
+    /// <summary>Performs the Mouse Wheel Both Delta Zero Returns Invalid Argument operation.</summary>
     [Fact]
     public async Task MouseWheel_BothDeltaZero_ReturnsInvalidArgument()
     {
@@ -428,9 +444,7 @@ public class WindowsToolsActionSuccessTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// Select with name and index simultaneously returns INVALID_ARGUMENT.
-    /// </summary>
+    /// <summary>Performs the Select Name And Index Returns Invalid Argument operation.</summary>
     [Fact]
     public async Task Select_NameAndIndex_ReturnsInvalidArgument()
     {
@@ -445,9 +459,7 @@ public class WindowsToolsActionSuccessTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// Select with add and remove simultaneously returns INVALID_ARGUMENT.
-    /// </summary>
+    /// <summary>Performs the Select Add And Remove Returns Invalid Argument operation.</summary>
     [Fact]
     public async Task Select_AddAndRemove_ReturnsInvalidArgument()
     {
@@ -462,9 +474,7 @@ public class WindowsToolsActionSuccessTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// Select with multiple names delegates successfully to IWindowSession.
-    /// </summary>
+    /// <summary>Performs the Select Multiple Names Delegates To Session operation.</summary>
     [Fact]
     public async Task Select_MultipleNames_DelegatesToSession()
     {
@@ -478,9 +488,7 @@ public class WindowsToolsActionSuccessTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// Select with add flag delegates with Add mode to IWindowSession.
-    /// </summary>
+    /// <summary>Performs the Select Add Mode Delegates To Session operation.</summary>
     [Fact]
     public async Task Select_AddMode_DelegatesToSession()
     {
@@ -494,9 +502,7 @@ public class WindowsToolsActionSuccessTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// Select with no selectors returns INVALID_ARGUMENT.
-    /// </summary>
+    /// <summary>Performs the Select No Selectors Returns Invalid Argument operation.</summary>
     [Fact]
     public async Task Select_NoSelectors_ReturnsInvalidArgument()
     {

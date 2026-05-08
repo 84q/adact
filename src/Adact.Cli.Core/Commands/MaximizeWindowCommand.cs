@@ -3,12 +3,9 @@ using System.CommandLine;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>maximize-window</c> コマンド。アタッチ済みウィンドウを最大化し、成功時に snapshot を自動取得する。
 /// </summary>
 internal static class MaximizeWindowCommand
 {
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>maximize-window サブコマンド。</returns>
     public static Command Build()
         => WindowStateCommandBuilder.Build(
             name: "maximize-window",

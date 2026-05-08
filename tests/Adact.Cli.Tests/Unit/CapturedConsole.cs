@@ -1,15 +1,8 @@
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// Console.Out / Console.Error をリダイレクトして出力をキャプチャするヘルパ。
-/// </summary>
 internal static class CapturedConsole
 {
-    /// <summary>
-    /// <paramref name="action"/> 実行中の Console.Out / Console.Error を捕捉し、文字列として返す。
-    /// </summary>
-    /// <param name="action">出力を捕捉したい処理。</param>
-    /// <returns>(stdout, stderr) の組。</returns>
+    /// <summary>Initializes a new instance of the static class.</summary>
     public static (string stdout, string stderr) Run(Action action)
     {
         ArgumentNullException.ThrowIfNull(action);

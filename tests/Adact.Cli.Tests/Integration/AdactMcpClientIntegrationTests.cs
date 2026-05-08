@@ -16,22 +16,20 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Integration;
 
-/// <summary>
-/// Verifies <see cref="AdactMcpClient"/> against an in-process MCP HTTP server.
-/// </summary>
+/// <summary>Contains tests for the Adact Mcp Client Integration behavior.</summary>
 [Trait("Layer", "Integration")]
 [Collection(AdactMcpClientCollection.Name)]
 public sealed class AdactMcpClientIntegrationTests
 {
     private readonly AdactMcpClientServerFixture _fixture;
 
-    /// <summary>Creates the test class with the shared in-process MCP server fixture.</summary>
+    /// <summary>Initializes a new instance of the Adact Mcp Client Integration Tests class.</summary>
     public AdactMcpClientIntegrationTests(AdactMcpClientServerFixture fixture)
     {
         _fixture = fixture;
     }
 
-    /// <summary>ConnectAsync preserves the resolved endpoint while completing the MCP handshake.</summary>
+    /// <summary>Performs the Connect Async On Loopback Mcp Server Returns Client With Endpoint operation.</summary>
     [Fact]
     public async Task ConnectAsync_OnLoopbackMcpServer_ReturnsClientWithEndpoint()
     {
@@ -44,7 +42,7 @@ public sealed class AdactMcpClientIntegrationTests
         Assert.Equal(_fixture.Endpoint, client.Endpoint.Url);
     }
 
-    /// <summary>CallToolAsync sends arguments over HTTP and returns content plus structured content.</summary>
+    /// <summary>Performs the Call Tool Async With Arguments Returns Server Result operation.</summary>
     [Fact]
     public async Task CallToolAsync_WithArguments_ReturnsServerResult()
     {
@@ -70,7 +68,7 @@ public sealed class AdactMcpClientIntegrationTests
         Assert.Equal(2, structured.GetProperty("repeat").GetInt32());
     }
 
-    /// <summary>Tool-level error results are returned as MCP error payloads, not transport exceptions.</summary>
+    /// <summary>Performs the Call Tool Async When Tool Returns Error Preserves Error Result operation.</summary>
     [Fact]
     public async Task CallToolAsync_WhenToolReturnsError_PreservesErrorResult()
     {
@@ -87,7 +85,7 @@ public sealed class AdactMcpClientIntegrationTests
         Assert.Equal("TEST_ERROR", result.StructuredContent.Value.GetProperty("code").GetString());
     }
 
-    /// <summary>DisposeAsync tears down the underlying SDK client so later tool calls cannot proceed.</summary>
+    /// <summary>Performs the Dispose Async After Connect Prevents Further Tool Calls operation.</summary>
     [Fact]
     public async Task DisposeAsync_AfterConnect_PreventsFurtherToolCalls()
     {
@@ -108,6 +106,7 @@ public sealed class AdactMcpClientIntegrationTests
     [McpServerToolType]
     private sealed class TestTools
     {
+        /// <summary>Performs the Echo operation.</summary>
         [McpServerTool(Name = "test_echo")]
         public static CallToolResult Echo(string message, int repeat)
         {
@@ -124,6 +123,7 @@ public sealed class AdactMcpClientIntegrationTests
             };
         }
 
+        /// <summary>Performs the Error operation.</summary>
         [McpServerTool(Name = "test_error")]
         public static CallToolResult Error()
         {
@@ -140,16 +140,16 @@ public sealed class AdactMcpClientIntegrationTests
         }
     }
 
-    /// <summary>Fixture that hosts a deterministic MCP server without GUI, UIA, or adact serve.</summary>
+    /// <summary>Provides a shared fixture for tests.</summary>
     public sealed class AdactMcpClientServerFixture : IAsyncLifetime
     {
         private const string McpPath = "/mcp";
         private WebApplication? _app;
 
-        /// <summary>The MCP endpoint, including the /mcp path.</summary>
+        /// <summary>Gets or sets the Endpoint value.</summary>
         public Uri Endpoint { get; private set; } = null!;
 
-        /// <summary>Starts the in-process Streamable HTTP MCP server on an ephemeral loopback port.</summary>
+        /// <summary>Initializes the fixture.</summary>
         public async Task InitializeAsync()
         {
             var builder = WebApplication.CreateBuilder();
@@ -176,7 +176,7 @@ public sealed class AdactMcpClientIntegrationTests
             Endpoint = new Uri(new Uri(url), McpPath);
         }
 
-        /// <summary>Stops and disposes the in-process MCP server.</summary>
+        /// <summary>Releases resources.</summary>
         public async Task DisposeAsync()
         {
             if (_app is null) return;
@@ -188,10 +188,10 @@ public sealed class AdactMcpClientIntegrationTests
     }
 }
 
-/// <summary>Serializes tests that share the in-process MCP HTTP server.</summary>
+/// <summary>Defines a shared test collection.</summary>
 [CollectionDefinition(Name, DisableParallelization = true)]
 public sealed class AdactMcpClientCollection : ICollectionFixture<AdactMcpClientIntegrationTests.AdactMcpClientServerFixture>
 {
-    /// <summary>The xUnit collection name for AdactMcpClient integration tests.</summary>
+    /// <summary>Gets the Name value.</summary>
     public const string Name = "AdactMcpClient";
 }

@@ -6,21 +6,13 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// Phase 8 Step 8 補強: 設計書 <c>discussion/022_Phase8設計.md</c> §2 (auto-snapshot 発火ポリシー) で
-/// 定義された各コマンドの <c>--no-snapshot</c> Option 有無が、System.CommandLine の
-/// <see cref="Command"/> ビルダの実装と一致しているかを検証する回帰テスト。
-/// </summary>
+/// <summary>Contains tests for the Auto Snapshot Policy behavior.</summary>
 [Trait("Layer", "Unit")]
 public class AutoSnapshotPolicyTests
 {
     private const string NoSnapshotOptionName = "--no-snapshot";
 
-    /// <summary>
-    /// 設計書で「auto-snapshot あり」分類とされているコマンドは、
-    /// Build() で生成された <see cref="Command"/> に <c>--no-snapshot</c> Option を持たねばならない。
-    /// </summary>
-    /// <param name="commandName">CLI サブコマンド名。</param>
+    /// <summary>Performs the Auto Snapshot Commands Have No Snapshot Option operation.</summary>
     [Theory]
     [InlineData("click")]
     [InlineData("doubleclick")]
@@ -40,11 +32,7 @@ public class AutoSnapshotPolicyTests
         Assert.Contains(cmd.Options, o => o.Name == NoSnapshotOptionName);
     }
 
-    /// <summary>
-    /// 設計書で「auto-snapshot なし (補助 / 取得・同期)」分類とされているコマンドは、
-    /// Build() で生成された <see cref="Command"/> に <c>--no-snapshot</c> Option を持ってはならない。
-    /// </summary>
-    /// <param name="commandName">CLI サブコマンド名。</param>
+    /// <summary>Performs the Non Auto Snapshot Commands Do Not Have No Snapshot Option operation.</summary>
     [Theory]
     [InlineData("focus")]
     [InlineData("scroll-into-view")]

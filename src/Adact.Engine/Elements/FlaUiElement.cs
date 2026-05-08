@@ -6,29 +6,20 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Adact.Engine.Elements;
 
-/// <summary>FlaUI の <see cref="AutomationElement"/> を <see cref="IElement"/> でラップする production 実装。</summary>
 internal sealed class FlaUiElement : IElement
 {
-    /// <summary>ラップしている FlaUI の UIA 要素。</summary>
     private readonly AutomationElement _el;
-    /// <summary>診断用ロガー。</summary>
     private readonly ILogger _logger;
     /// <summary>
-    /// <see cref="Children"/> の遅延キャッシュ。初回アクセス時に FlaUI で子要素を取得し、
-    /// 2 回目以降は同じ list を返す (UIA 呼び出し量を抑えるため)。
     /// </summary>
     private IReadOnlyList<IElement>? _children;
 
-    /// <summary>FlaUI の <see cref="AutomationElement"/> をラップする。</summary>
-    /// <param name="el">ラップ対象の UIA 要素。</param>
-    /// <param name="logger">診断用ロガー。null の場合は <see cref="NullLogger{T}"/> を使う。</param>
     public FlaUiElement(AutomationElement el, ILogger? logger = null)
     {
         _el = el;
         _logger = logger ?? NullLogger<FlaUiElement>.Instance;
     }
 
-    /// <summary>ラップしている FlaUI の <see cref="AutomationElement"/>。Engine 内部用 (主にテスト/診断目的)。</summary>
     public AutomationElement Inner => _el;
 
     /// <inheritdoc />
@@ -168,7 +159,6 @@ internal sealed class FlaUiElement : IElement
             return;
         }
 
-        // Fallback: focus + 全選択 + 入力
         EnsureFocus();
         Keyboard.Type(FlaUI.Core.WindowsAPI.VirtualKeyShort.CONTROL, FlaUI.Core.WindowsAPI.VirtualKeyShort.KEY_A);
         Keyboard.Type(FlaUI.Core.WindowsAPI.VirtualKeyShort.DELETE);
@@ -219,30 +209,17 @@ internal sealed class FlaUiElement : IElement
         _children = null;
     }
 
-    /// <summary>空文字列を <c>null</c> に正規化する。</summary>
-    /// <param name="s">入力文字列。</param>
-    /// <returns><paramref name="s"/> が <c>null</c> または空文字列なら <c>null</c>、それ以外はそのまま返す。</returns>
     private static string? NullIfEmpty(string? s) => string.IsNullOrEmpty(s) ? null : s;
 
     /// <summary>
-    /// 例外を握り潰して <paramref name="f"/> を実行するヘルパ。値型・非 null プリミティブや
-    /// fallback 値を明示したいケースで使う。例外時は <paramref name="fallback"/> を返す。
     /// </summary>
-    /// <typeparam name="T">返値の型。</typeparam>
-    /// <param name="f">実行するデリゲート。</param>
-    /// <param name="fallback">例外時に返す値。</param>
     private T Safe<T>(Func<T> f, T fallback)
     {
         try { return f(); } catch (Exception ex) { _logger.LogTrace(ex, "Safe property access failed, using fallback"); return fallback; }
     }
 
     /// <summary>
-    /// 例外を握り潰して <paramref name="f"/> を実行するヘルパの参照型専用オーバーロード。
-    /// fallback として常に <c>null</c> を返すため、Nullable string 等を返す UIA プロパティアクセサで使う。
     /// </summary>
-    /// <typeparam name="T">参照型の返値型。</typeparam>
-    /// <param name="f">実行するデリゲート。</param>
-    /// <returns><paramref name="f"/> の戻り値。例外発生時は <c>null</c>。</returns>
     private T? Safe<T>(Func<T?> f) where T : class
     {
         try { return f(); } catch (Exception ex) { _logger.LogTrace(ex, "Safe property access failed, returning null"); return null; }

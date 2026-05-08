@@ -6,17 +6,14 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// <see cref="SnapshotFileWriter"/> の出力パス・ファイル名・エンコーディング (UTF-8 BOM なし) を検証する Unit テスト。
-/// snapshot.md の出力ファイル仕様 (設計 009) の回帰防止。
-/// </summary>
+/// <summary>Contains tests for the Snapshot File Writer behavior.</summary>
 [Trait("Layer", "Unit")]
 public class SnapshotFileWriterTests : IDisposable
 {
     private readonly string _tempRoot;
     private readonly string _origCwd;
 
-    /// <summary>テスト用一時ディレクトリを作成し、そこを cwd にする。</summary>
+    /// <summary>Initializes a new instance of the Snapshot File Writer Tests class.</summary>
     public SnapshotFileWriterTests()
     {
         _tempRoot = Path.Combine(Path.GetTempPath(), "adact-snap-tests-" + Guid.NewGuid().ToString("N"));
@@ -25,7 +22,7 @@ public class SnapshotFileWriterTests : IDisposable
         Environment.CurrentDirectory = _tempRoot;
     }
 
-    /// <summary>cwd を復元し、一時ディレクトリを再帰削除する。</summary>
+    /// <summary>Releases resources.</summary>
     public void Dispose()
     {
         Environment.CurrentDirectory = _origCwd;
@@ -33,7 +30,7 @@ public class SnapshotFileWriterTests : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>dir 未指定時は .adact/session-{sid}-{timestamp}.txt となり、gen- 接頭辞が入らず / 区切りになることを確認する。</summary>
+    /// <summary>Performs the Write Defaults To Adact Dir Produces File operation.</summary>
     [Fact]
     public void Write_DefaultsToAdactDir_ProducesFile()
     {
@@ -52,7 +49,7 @@ public class SnapshotFileWriterTests : IDisposable
         Assert.Equal(text, content);
     }
 
-    /// <summary>dir オーバーライド指定時はそのディレクトリ下に出力されることを確認する。</summary>
+    /// <summary>Performs the Write Dir Override Uses Given Directory operation.</summary>
     [Fact]
     public void Write_DirOverride_UsesGivenDirectory()
     {
@@ -68,21 +65,21 @@ public class SnapshotFileWriterTests : IDisposable
             Path.GetFileName(path.Replace('/', Path.DirectorySeparatorChar)))));
     }
 
-    /// <summary>BOM なし UTF-8 で出力され (エコシステム互換性)、日本語文字列もそのまま保存されることを確認する。</summary>
+    /// <summary>Performs the Write Writes Utf8 Without Bom operation.</summary>
     [Fact]
     public void Write_WritesUtf8WithoutBom()
     {
-        var text = "- Window \"電卓\"\n";
+        var text = "- Window \"Calculator\"\n";
         var (path, isNew) = SnapshotFileWriter.Write(text, sid: 1);
         Assert.True(isNew);
         var bytes = File.ReadAllBytes(Path.Combine(_tempRoot, path.Replace('/', Path.DirectorySeparatorChar)));
 
         // No UTF-8 BOM
         Assert.False(bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF);
-        Assert.Contains("電卓", System.Text.Encoding.UTF8.GetString(bytes), StringComparison.Ordinal);
+        Assert.Contains("Calculator", System.Text.Encoding.UTF8.GetString(bytes), StringComparison.Ordinal);
     }
 
-    /// <summary>同一内容の snapshot を 2 回書き出すと、2 回目は新規ファイルを作成せず前回のパスを返す。</summary>
+    /// <summary>Performs the Write Same Content Twice Reuses Existing File operation.</summary>
     [Fact]
     public void Write_SameContentTwice_ReusesExistingFile()
     {
@@ -99,7 +96,7 @@ public class SnapshotFileWriterTests : IDisposable
         Assert.Single(files);
     }
 
-    /// <summary>内容が異なる snapshot を書き出すと、新規ファイルが作成される。</summary>
+    /// <summary>Performs the Write Different Content Creates New File operation.</summary>
     [Fact]
     public void Write_DifferentContent_CreatesNewFile()
     {

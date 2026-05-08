@@ -5,12 +5,9 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>fill</c> コマンド。Element Ref で指定された入力コントロールにテキストを上書きし、成功時は snapshot を自動取得する。
 /// </summary>
 internal static class FillCommand
 {
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>fill サブコマンド。</returns>
     public static Command Build()
     {
         var refArg = new Argument<string>("ref")

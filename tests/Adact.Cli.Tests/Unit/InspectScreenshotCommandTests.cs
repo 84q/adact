@@ -7,15 +7,12 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// <see cref="InspectCommand"/> および <see cref="ScreenshotCommand"/> (Phase 8 Step 6) の引数パース検証。
-/// 接続前 (parser / SetAction 段階) で弾かれる --ref 形式不正・必須欠落のみを対象とし、daemon / UIA への接続は行わない。
-/// </summary>
+/// <summary>Contains tests for the Inspect Screenshot Command behavior.</summary>
 [Trait("Layer", "Unit")]
 [Collection(ConsoleCollection.Name)]
 public class InspectScreenshotCommandTests
 {
-    /// <summary>adact inspect に不正形式の ref positional argument を渡すと UserError + INVALID_REF_FORMAT を返す。</summary>
+    /// <summary>Performs the Inspect Malformed Ref Returns User Error operation.</summary>
     [Fact]
     public async Task Inspect_MalformedRef_ReturnsUserError()
     {
@@ -26,16 +23,15 @@ public class InspectScreenshotCommandTests
         Assert.Contains("error: " + ErrorCodes.InvalidRefFormat, stdout, StringComparison.Ordinal);
     }
 
-    /// <summary>adact inspect は ref positional argument が必須なので省略するとパーサエラーとなり 0 以外を返す。</summary>
+    /// <summary>Performs the Inspect Missing Ref Returns User Error operation.</summary>
     [Fact]
     public async Task Inspect_MissingRef_ReturnsUserError()
     {
         var (_, _, exit) = await RunInspectAsync(["inspect"]);
-        // ref は positional required なので System.CommandLine の parse error として UserError になる。
         Assert.NotEqual(ExitCodes.Success, exit);
     }
 
-    /// <summary>adact screenshot positional target は ref でなければ sid 扱いになるため parser では拒否しない。</summary>
+    /// <summary>Performs the Screenshot Non Ref Target Is Accepted As Session Id operation.</summary>
     [Fact]
     public async Task Screenshot_NonRefTarget_IsAcceptedAsSessionId()
     {
@@ -44,7 +40,7 @@ public class InspectScreenshotCommandTests
         Assert.NotEqual(ExitCodes.UserError, exit);
     }
 
-    /// <summary>inspect は ref を positional argument として公開していることを検証する。</summary>
+    /// <summary>Performs the Inspect Has Required Ref Argument operation.</summary>
     [Fact]
     public void Inspect_HasRequiredRefArgument()
     {
@@ -54,7 +50,7 @@ public class InspectScreenshotCommandTests
         Assert.NotNull(refArg);
     }
 
-    /// <summary>screenshot は target 位置引数(任意) と --out を公開していることを検証する。</summary>
+    /// <summary>Performs the Screenshot Has Optional Ref And Out operation.</summary>
     [Fact]
     public void Screenshot_HasOptionalRefAndOut()
     {

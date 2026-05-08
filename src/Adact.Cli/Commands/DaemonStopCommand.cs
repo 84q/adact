@@ -9,16 +9,12 @@ using ModelContextProtocol.Protocol;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>daemon-stop</c> コマンド。Named Pipe 接続の MCP daemon を graceful に停止する。
-/// HTTP モードへの適用は LOCAL_ONLY として拒否される。
 /// </summary>
 internal static class DaemonStopCommand
 {
     private const int PostStopDelayMs = 500;
     private const int PostStopServerCheckTimeoutMs = 1000;
     private const int PipeExistenceCheckTimeoutMs = 100;
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>daemon-stop サブコマンド。</returns>
     public static Command Build()
     {
         var cmd = new Command("daemon-stop", "Stop a local Named Pipe MCP daemon gracefully.");
@@ -32,13 +28,10 @@ internal static class DaemonStopCommand
         return cmd;
     }
 
-    /// <summary>daemon-stop 本体の実行。--server 指定時は HTTP 不可エラー、未指定時は Named Pipe で停止。</summary>
-    /// <param name="serverArg"><c>--server</c> の値。null/空白なら Named Pipe 接続を試行する。</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
     private static async Task<int> RunAsync(string? serverArg, CancellationToken ct)
     {
-        // --server 指定時は HTTP モードへの停止を拒否
         if (!string.IsNullOrWhiteSpace(serverArg))
         {
             CliError.Write(
@@ -48,7 +41,6 @@ internal static class DaemonStopCommand
             return ExitCodes.UserError;
         }
 
-        // Named Pipe エンドポイントを解決
         var endpoint = ConnectionResolver.ResolveNamedPipeEndpoint();
 
         await using var client = await ConnectNamedPipeAsync(endpoint, ct).ConfigureAwait(false);
@@ -65,8 +57,6 @@ internal static class DaemonStopCommand
         }
         catch (Exception ex) when (!ct.IsCancellationRequested && IsConnectionDropException(ex))
         {
-            // adact_daemon_stop の応答前に daemon が落ちてセッションが切断されるケース。
-            // 切断は「既に停止した」と見なし success 扱い。
             CliOutput.WriteYamlSuccess(metaFields: null, [CliOutput.Field("stopped", "true")]);
             return ExitCodes.Success;
         }
@@ -74,7 +64,6 @@ internal static class DaemonStopCommand
         var errorExit = McpResponse.TryReportError(result);
         if (errorExit is { } code) return code;
 
-        // サーバーが実際に停止したか確認
         await Task.Delay(PostStopDelayMs, ct).ConfigureAwait(false);
 
         var isRunning = await NamedPipeMcpClient.IsServerRunningAsync(endpoint, PostStopServerCheckTimeoutMs, ct).ConfigureAwait(false);
@@ -91,35 +80,26 @@ internal static class DaemonStopCommand
         return ExitCodes.Success;
     }
 
-    /// <summary>Named Pipe に接続する。接続失敗時は null を返す。</summary>
     private static async Task<NamedPipeMcpClient?> ConnectNamedPipeAsync(NamedPipeEndPoint endpoint, CancellationToken ct)
     {
-        // 先に短時間でパイプの存在確認（100ms）
         var isRunning = await NamedPipeMcpClient.IsServerRunningAsync(endpoint, PipeExistenceCheckTimeoutMs, ct).ConfigureAwait(false);
         if (!isRunning)
         {
-            return null; // パイプなし = すぐに返す
+            return null; // no pipe means return immediately
         }
 
-        // パイプがある場合は本接続
         try
         {
             return await NamedPipeMcpClient.ConnectAsync(endpoint, loggerFactory: null, ct).ConfigureAwait(false);
         }
         catch
         {
-            // 接続失敗は呼び出し元で「デーモン未起動」として処理する
             return null;
         }
     }
 
     /// <summary>
-    /// daemon とのセッション切断に伴う例外を判定する。
-    /// CancellationToken 系 (OperationCanceledException / TaskCanceledException) はユーザの
-    /// Ctrl+C 由来で発生しうるため除外する。
     /// </summary>
-    /// <param name="ex">判定対象の例外。</param>
-    /// <returns>セッション切断とみなせる例外チェーンなら true。</returns>
     internal static bool IsConnectionDropException(Exception ex)
     {
         for (var cur = ex; cur is not null; cur = cur.InnerException)

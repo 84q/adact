@@ -9,17 +9,7 @@ using Xunit;
 
 namespace Adact.Cli.Tests;
 
-/// <summary>
-/// <c>adact.exe serve</c> をサブプロセスとして一度だけ起動し、test collection 全体で共有する fixture。
-/// ephemeral port (TcpListener.Start(0)) を OS から確保し、HEAD リクエストで起動完了をポーリングする。
-/// Dispose 時は <see cref="Process.Kill()"/> でプロセスを終了する。
-/// </summary>
-/// <remarks>
-/// 本 fixture の前提: <c>xunit.runner.json</c> で <c>parallelizeAssembly: false</c> が設定されていること。
-/// 同一テストアセンブリ内では <c>[CollectionDefinition("AdactCli", DisableParallelization = true)]</c> によって
-/// daemon を共有する全テストが直列化される。並列実行する場合は ephemeral port のリトライ実装が別途必要になる。
-/// If <c>ADACT_SERVER_URL</c> is set, the fixture uses that external daemon and leaves its lifecycle to the caller.
-/// </remarks>
+/// <summary>Provides a shared fixture for tests.</summary>
 public sealed class AdactDaemonFixture : IAsyncLifetime
 {
     internal const string ServerUrlEnvironmentVariable = "ADACT_SERVER_URL";
@@ -35,16 +25,13 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
     private Task? _stdoutPump;
     private Task? _stderrPump;
 
-    /// <summary>fixture が確保した ephemeral port。</summary>
+    /// <summary>Gets or sets the Port value.</summary>
     public int Port { get; private set; }
 
-    /// <summary>起動した daemon の MCP エンドポイント (http://127.0.0.1:&lt;port&gt;/mcp)。</summary>
+    /// <summary>Gets or sets the Base Url value.</summary>
     public string BaseUrl { get; private set; } = null!;
 
-    /// <summary>
-    /// サブプロセスとして <c>adact serve</c> を起動し、HTTP ready 状態になるまでポーリングする。
-    /// </summary>
-    /// <returns>起動完了タスク。</returns>
+    /// <summary>Initializes the fixture.</summary>
     public async Task InitializeAsync()
     {
         var externalBaseUrl = GetExternalServerUrl();
@@ -71,9 +58,6 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
         _serveProcess = Process.Start(psi)
             ?? throw new InvalidOperationException("Failed to start 'adact serve' subprocess.");
 
-        // 出力を読み続けないと PIPE が詰まるため、stdout/stderr を非同期に StringBuilder へ蓄積する。
-        // 蓄積した内容は WaitForReadyAsync タイムアウト時の例外メッセージや
-        // DisposeAsync の診断ログに利用する。
         _stdoutPump = PumpAsync(_serveProcess.StandardOutput, _stdout);
         _stderrPump = PumpAsync(_serveProcess.StandardError, _stderr);
 
@@ -83,7 +67,6 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
         }
         catch (TimeoutException ex)
         {
-            // 起動失敗時は子プロセスを終了させ、蓄積したログをメッセージに含めて再 throw する。
             try { _serveProcess.Kill(entireProcessTree: true); } catch { }
             try { _serveProcess.WaitForExit(2000); } catch { }
             string capturedStdout, capturedStderr;
@@ -97,12 +80,7 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
         }
     }
 
-    /// <summary>
-    /// サブプロセスを終了し、診断ログを stderr へ出力する。
-    /// HTTP モードの daemon は --server 指定で daemon-stop すると LOCAL_ONLY エラーになるため、
-    /// 直接 Kill を使用する。
-    /// </summary>
-    /// <returns>解放完了タスク。</returns>
+    /// <summary>Releases resources.</summary>
     public async Task DisposeAsync()
     {
         if (_usesExternalServer) return;
@@ -139,7 +117,6 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
             _diagnostics.AppendLine($"WaitForExit/Kill threw: {ex.GetType().Name}: {ex.Message}");
         }
 
-        // pump task の収束を待ち、stdout/stderr を確定させる。
         try
         {
             if (_stdoutPump is not null) await Task.WhenAny(_stdoutPump, Task.Delay(2000)).ConfigureAwait(false);
@@ -154,7 +131,6 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
         lock (_stdout) finalStdout = _stdout.ToString();
         lock (_stderr) finalStderr = _stderr.ToString();
 
-        // xUnit はテスト実行終了後にも Console.Error への出力を診断として表示する。
         Console.Error.WriteLine(
             $"[AdactDaemonFixture] {_diagnostics}"
             + $"--- serve stdout ---\n{finalStdout}"
@@ -174,14 +150,11 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
         }
         catch
         {
-            // プロセス終了時の読み取り失敗は許容。
         }
     }
 
     private static int GetFreePort()
     {
-        // using で確実に Stop() し、bind を OS に返す。
-        // parallelizeAssembly:false 前提なので競合は発生しないが、安全側に倒す。
         using var listener = new TcpListenerHandle(IPAddress.Loopback, 0);
         return listener.Port;
     }
@@ -197,8 +170,10 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
     private sealed class TcpListenerHandle : IDisposable
     {
         private readonly TcpListener _listener;
+        /// <summary>Gets the Port value.</summary>
         public int Port { get; }
 
+        /// <summary>Initializes a new instance of the Tcp Listener Handle class.</summary>
         public TcpListenerHandle(IPAddress address, int port)
         {
             _listener = new TcpListener(address, port);
@@ -206,6 +181,7 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
             Port = ((IPEndPoint)_listener.LocalEndpoint).Port;
         }
 
+        /// <summary>Releases resources.</summary>
         public void Dispose() => _listener.Stop();
     }
 
@@ -219,7 +195,6 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
             try
             {
                 using var resp = await http.GetAsync(baseUrl).ConfigureAwait(false);
-                // どんな HTTP ステータスでも (405 等) Kestrel が応答していれば ready。
                 return;
             }
             catch (Exception ex)
@@ -234,10 +209,7 @@ public sealed class AdactDaemonFixture : IAsyncLifetime
     }
 }
 
-/// <summary>
-/// L4 Smoke / L5 E2E の CLI テストをまとめて直列に実行する collection。
-/// daemon サブプロセスを共有しつつ、UIA を伴うテストを並列にしないために DisableParallelization を有効化する。
-/// </summary>
+/// <summary>Defines a shared test collection.</summary>
 [CollectionDefinition("AdactCli", DisableParallelization = true)]
 public sealed class AdactCliCollection : ICollectionFixture<AdactDaemonFixture>
 {

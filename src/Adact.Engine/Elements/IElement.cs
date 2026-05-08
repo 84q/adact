@@ -1,89 +1,135 @@
 namespace Adact.Engine.Elements;
 
 /// <summary>
-/// UIA 要素の Engine 内抽象。FlaUI 直接依存を避けて L2 テストで FakeElement を使えるようにする。
+/// Represents a UI automation element exposed by the engine.
 /// </summary>
 public interface IElement
 {
-    /// <summary>UIA Name プロパティ (空文字列は <c>null</c>)。</summary>
+    /// <summary>
+    /// Gets the UIA Name.
+    /// </summary>
     string? Name { get; }
 
-    /// <summary>UIA AutomationId プロパティ (空文字列は <c>null</c>)。</summary>
+    /// <summary>
+    /// Gets the UIA AutomationId.
+    /// </summary>
     string? AutomationId { get; }
 
-    /// <summary>UIA ControlType の文字列表現 (例: <c>"Button"</c>)。取得失敗時は <c>"Unknown"</c>。</summary>
+    /// <summary>
+    /// Gets the UIA control type.
+    /// </summary>
     string ControlType { get; }
 
-    /// <summary>Win32 ウィンドウクラス名 (空文字列は <c>null</c>)。</summary>
+    /// <summary>
+    /// Gets the Win32 class name.
+    /// </summary>
     string? ClassName { get; }
 
-    /// <summary>UIA IsEnabled プロパティ (取得失敗時は安全側の true)。</summary>
+    /// <summary>
+    /// Gets whether the element is enabled.
+    /// </summary>
     bool IsEnabled { get; }
 
-    /// <summary>UIA SelectionItemPattern.IsSelected (パターンを持たない要素では false)。</summary>
+    /// <summary>
+    /// Gets whether the element is selected.
+    /// </summary>
     bool IsSelected { get; }
 
-    /// <summary>UIA IsOffscreen プロパティ (取得失敗時は false)。</summary>
+    /// <summary>
+    /// Gets whether the element is offscreen.
+    /// </summary>
     bool IsOffscreen { get; }
 
-    /// <summary>ValuePattern の Value (空文字列は <c>null</c>)。Pattern を持たない要素では <c>null</c>。</summary>
+    /// <summary>
+    /// Gets the element value, if any.
+    /// </summary>
     string? Value { get; }
 
-    /// <summary>UIA HelpText プロパティ (空文字列は <c>null</c>)。</summary>
+    /// <summary>
+    /// Gets the UIA help text, if any.
+    /// </summary>
     string? HelpText { get; }
 
-    /// <summary>BoundingRectangle (スクリーン座標、取得失敗時は既定値)。</summary>
+    /// <summary>
+    /// Gets the bounding rectangle.
+    /// </summary>
     Rect BoundingRectangle { get; }
 
-    /// <summary>UIA IsKeyboardFocusable プロパティ (取得失敗時は false)。</summary>
+    /// <summary>
+    /// Gets whether the element can receive keyboard focus.
+    /// </summary>
     bool IsKeyboardFocusable { get; }
 
-    /// <summary>UIA HasKeyboardFocus プロパティ (取得失敗時は false)。</summary>
+    /// <summary>
+    /// Gets whether the element currently has keyboard focus.
+    /// </summary>
     bool HasKeyboardFocus { get; }
 
-    /// <summary>UIA RuntimeId 配列 (取得不能時は <c>null</c>)。RefRegistry の StableKey 計算に用いる。</summary>
+    /// <summary>
+    /// Gets the UIA runtime ID.
+    /// </summary>
     IReadOnlyList<int>? RuntimeId { get; }
 
-    /// <summary>子要素の列挙 (FindAllChildren 相当)。失敗時は空配列。</summary>
+    /// <summary>
+    /// Gets the child elements.
+    /// </summary>
     IReadOnlyList<IElement> Children { get; }
 
-    /// <summary>子要素のキャッシュをクリアする。UIA ツリーが動的に変化する場合に、次回 Children アクセス時に再取得されるようにする。</summary>
+    /// <summary>
+    /// Clears any cached child elements.
+    /// </summary>
     void ClearChildrenCache();
 
-    /// <summary>InvokePattern が利用可能ならそれで、そうでなければ FlaUI の <c>Click()</c> でクリックする。</summary>
+    /// <summary>
+    /// Clicks the element.
+    /// </summary>
     void Click();
 
-    /// <summary>テキストを入力する。ValuePattern が利用可能ならそれで、不可の場合は Ctrl+A→Delete→Type にフォールバック。</summary>
-    /// <param name="text">入力するテキスト。</param>
+    /// <summary>
+    /// Fills text into the element.
+    /// </summary>
     void Fill(string text);
 
-    /// <summary>UIA <c>SetFocus</c> によりキーボードフォーカスを当てる。失敗時は best-effort。</summary>
+    /// <summary>
+    /// Focuses the element.
+    /// </summary>
     void Focus();
 }
 
-/// <summary>Toggle / checkbox 的な操作を fake 可能にする任意 capability。</summary>
+/// <summary>
+/// Represents an element that can be checked or unchecked.
+/// </summary>
 public interface ICheckableElement
 {
-    /// <summary>現在 checked / selected 状態なら true。</summary>
+    /// <summary>
+    /// Gets whether the element is checked.
+    /// </summary>
     bool IsChecked { get; }
 
-    /// <summary>checked / selected 状態を設定する。</summary>
-    /// <param name="isChecked">設定する状態。</param>
+    /// <summary>
+    /// Sets the checked state.
+    /// </summary>
     void SetChecked(bool isChecked);
 }
 
-/// <summary>List / ComboBox 的な選択操作を fake 可能にする任意 capability。</summary>
+/// <summary>
+/// Represents an element that can select child items.
+/// </summary>
 public interface ISelectableElement
 {
-    /// <summary>選択する。</summary>
-    /// <param name="targets">選択対象。</param>
-    /// <param name="mode">選択モード。</param>
+    /// <summary>
+    /// Selects items inside the element.
+    /// </summary>
     void SelectItems(SelectionTarget[] targets, SelectionMode mode);
 }
 
-/// <summary>ScrollIntoView 操作を fake 可能にする任意 capability。</summary>
+/// <summary>
+/// Represents an element that can scroll into view.
+/// </summary>
 public interface IScrollableElement
 {
-    /// <summary>要素を表示領域へ scroll する。</summary>
+    /// <summary>
+    /// Scrolls the element into view.
+    /// </summary>
     void ScrollIntoView();
 }

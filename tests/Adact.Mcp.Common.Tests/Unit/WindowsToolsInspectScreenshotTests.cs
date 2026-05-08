@@ -6,17 +6,15 @@ using Xunit;
 
 namespace Adact.Mcp.Common.Tests.Unit;
 
-/// <summary>
-/// <see cref="WindowsTools.InspectAsync"/> および <see cref="WindowsTools.ScreenshotAsync"/>
-/// (Phase 8 Step 6) の引数検証 / セッション解決エラーを検証する Unit テスト。
-/// 実 UIA を呼ばない範囲のみを対象とし、成功パスは Integration / Smoke で別途検証する。
-/// </summary>
+/// <summary>Contains tests for the Windows Tools Inspect Screenshot behavior.</summary>
 [Trait("Layer", "Unit")]
 public class WindowsToolsInspectScreenshotTests
 {
     private sealed class FakeDaemonControl : IDaemonControl
     {
+        /// <summary>Gets a value indicating whether Is Supported.</summary>
         public bool IsSupported { get; init; } = true;
+        /// <summary>Performs the Stop Async operation.</summary>
         public Task StopAsync(CancellationToken ct) => Task.CompletedTask;
     }
 
@@ -40,7 +38,7 @@ public class WindowsToolsInspectScreenshotTests
             doc.GetProperty("message").GetString()!);
     }
 
-    /// <summary>adact_inspect: 空 ref は INVALID_ARGUMENT を返す。</summary>
+    /// <summary>Performs the Inspect Empty Ref Returns Invalid Argument operation.</summary>
     [Fact]
     public async Task Inspect_EmptyRef_ReturnsInvalidArgument()
     {
@@ -54,7 +52,7 @@ public class WindowsToolsInspectScreenshotTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_inspect: 形式不正な ref は REF_NOT_FOUND を返す。</summary>
+    /// <summary>Performs the Inspect Malformed Ref Returns Ref Not Found operation.</summary>
     [Fact]
     public async Task Inspect_MalformedRef_ReturnsRefNotFound()
     {
@@ -68,7 +66,7 @@ public class WindowsToolsInspectScreenshotTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_inspect: 未登録 session の ref は REF_NOT_FOUND を返す。</summary>
+    /// <summary>Performs the Inspect Unknown Session Returns Ref Not Found operation.</summary>
     [Fact]
     public async Task Inspect_UnknownSession_ReturnsRefNotFound()
     {
@@ -82,7 +80,7 @@ public class WindowsToolsInspectScreenshotTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_screenshot: ref / sessionId 未指定で active session なしなら NO_ACTIVE_SESSION を返す。</summary>
+    /// <summary>Performs the Screenshot No Active Session No Ref Returns No Active Session operation.</summary>
     [Fact]
     public async Task Screenshot_NoActiveSession_NoRef_ReturnsNoActiveSession()
     {
@@ -96,7 +94,7 @@ public class WindowsToolsInspectScreenshotTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_screenshot: 未登録 sessionId は INVALID_ARGUMENT を返す。</summary>
+    /// <summary>Performs the Screenshot Unknown Session Id Returns Invalid Argument operation.</summary>
     [Fact]
     public async Task Screenshot_UnknownSessionId_ReturnsInvalidArgument()
     {
@@ -110,7 +108,7 @@ public class WindowsToolsInspectScreenshotTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_screenshot: 形式不正な ref は INVALID_ARGUMENT を返す。</summary>
+    /// <summary>Performs the Screenshot Malformed Ref Returns Invalid Argument operation.</summary>
     [Fact]
     public async Task Screenshot_MalformedRef_ReturnsInvalidArgument()
     {
@@ -124,7 +122,7 @@ public class WindowsToolsInspectScreenshotTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_screenshot: 未登録 session の ref は INVALID_ARGUMENT を返す。</summary>
+    /// <summary>Performs the Screenshot Unknown Ref Returns Invalid Argument operation.</summary>
     [Fact]
     public async Task Screenshot_UnknownRef_ReturnsInvalidArgument()
     {
@@ -138,7 +136,7 @@ public class WindowsToolsInspectScreenshotTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>adact_screenshot: ref と sessionId の同時指定は INVALID_ARGUMENT を返す。</summary>
+    /// <summary>Performs the Screenshot Ref And Session Id Together Returns Invalid Argument operation.</summary>
     [Fact]
     public async Task Screenshot_RefAndSessionIdTogether_ReturnsInvalidArgument()
     {

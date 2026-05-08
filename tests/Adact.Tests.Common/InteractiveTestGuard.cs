@@ -3,15 +3,10 @@ using Xunit.Sdk;
 
 namespace Adact.Tests.Common;
 
-/// <summary>
-/// インタラクティブ Windows デスクトップセッションが必要なテスト用の <see cref="FactAttribute"/>。
-/// 外部サーバー（<c>ADACT_SERVER_URL</c>）が指定されている場合は常に実行可能とみなす。
-/// </summary>
+/// <summary>Marks tests that use the Interactive Fact Attribute attribute.</summary>
 public sealed class InteractiveFactAttribute : FactAttribute
 {
-    /// <summary>
-    /// インタラクティブセッションが必要なことを表す属性を初期化する。
-    /// </summary>
+    /// <summary>Initializes a new instance of the Interactive Fact Attribute class.</summary>
     public InteractiveFactAttribute()
     {
         if (ExternalServerHelper.GetExternalServerUri() is not null) return;
@@ -24,14 +19,10 @@ public sealed class InteractiveFactAttribute : FactAttribute
     }
 }
 
-/// <summary>
-/// インタラクティブ Windows デスクトップセッションの有無を判定するヘルパー。
-/// </summary>
+/// <summary>Provides guard helpers for tests.</summary>
 public static class InteractiveTestGuard
 {
-    /// <summary>
-    /// インタラクティブ Windows デスクトップセッションでない場合にテストをスキップする。
-    /// </summary>
+    /// <summary>Performs the Skip If Not Interactive operation.</summary>
     public static void SkipIfNotInteractive()
     {
         if (ExternalServerHelper.GetExternalServerUri() is not null) return;

@@ -7,18 +7,13 @@ using Adact.Cli.Server;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>serve http</c> サブコマンド。HTTP transport で MCP daemon を起動する。
 /// </summary>
 internal static class ServeHttpCommand
 {
-    /// <summary>--port 未指定時の既定ポート。</summary>
     private const int DefaultPort = 41300;
 
-    /// <summary>--host 未指定時の既定ホスト。</summary>
     private const string DefaultHost = "127.0.0.1";
 
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>serve http サブコマンド。</returns>
     public static Command Build()
     {
         var port = new Option<int>("--port")
@@ -28,8 +23,6 @@ internal static class ServeHttpCommand
         };
         port.Validators.Add(static result =>
         {
-            // パース失敗 ("abc" 等) は System.CommandLine の標準エラーに委ねる。
-            // GetValueOrDefault<int>() は変換失敗時に例外を投げるため、ここで弾く。
             if (result.Tokens.Count > 0 && !int.TryParse(result.Tokens[0].Value, out _))
             {
                 return;

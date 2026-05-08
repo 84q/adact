@@ -5,11 +5,17 @@ using System.Windows.Controls;
 
 namespace SampleApp.Tabs;
 
+/// <summary>
+/// Demonstrates controls that are added, removed, and reconfigured at runtime.
+/// </summary>
 public partial class DynamicUITab : UserControl
 {
     private int _textBoxCounter;
     private int _mixedCounter;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DynamicUITab"/> class.
+    /// </summary>
     public DynamicUITab()
     {
         InitializeComponent();
@@ -123,9 +129,23 @@ public partial class DynamicUITab : UserControl
     }
 }
 
+/// <summary>
+/// Describes a dynamically generated text box item.
+/// </summary>
 public class DynamicItem
 {
+    /// <summary>
+    /// Gets or sets the displayed text.
+    /// </summary>
     public string Text { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the automation identifier.
+    /// </summary>
     public string AutomationId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the automation name.
+    /// </summary>
     public string AutomationName { get; set; } = string.Empty;
 }

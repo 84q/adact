@@ -7,15 +7,12 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// <see cref="LaunchCommand"/> の引数パース / 検証 (設計 024 §7) を検証する Unit テスト。
-/// 接続前 (parser / SetAction 段階) で弾かれるケースのみを対象とし、実 daemon / プロセス起動は行わない。
-/// </summary>
+/// <summary>Contains tests for the Launch Command behavior.</summary>
 [Trait("Layer", "Unit")]
 [Collection(ConsoleCollection.Name)]
 public class LaunchCommandTests
 {
-    /// <summary>--env KEY=VALUE が複数指定とパースされ、値側に <c>=</c> を含めても全体が値として保持される。</summary>
+    /// <summary>Attempts to perform the Try Parse Env Multiple Entries Parses All operation.</summary>
     [Fact]
     public void TryParseEnv_MultipleEntries_ParsesAll()
     {
@@ -30,7 +27,7 @@ public class LaunchCommandTests
         Assert.Equal("", dict["EMPTY"]);
     }
 
-    /// <summary><c>=</c> を含まない --env は UserError 相当のパースエラーになる。</summary>
+    /// <summary>Attempts to perform the Try Parse Env Invalid Entry Returns Error operation.</summary>
     [Theory]
     [InlineData("FOO")]
     [InlineData("=BAR")]
@@ -44,7 +41,7 @@ public class LaunchCommandTests
         Assert.Empty(dict);
     }
 
-    /// <summary>空エントリは UserError 相当。</summary>
+    /// <summary>Attempts to perform the Try Parse Env Empty Entry Returns Error operation.</summary>
     [Fact]
     public void TryParseEnv_EmptyEntry_ReturnsError()
     {
@@ -55,7 +52,7 @@ public class LaunchCommandTests
         Assert.NotNull(error);
     }
 
-    /// <summary>不正な --env (= なし) を CLI 経由で渡すと UserError exit と INVALID_ARGUMENT が返る。</summary>
+    /// <summary>Performs the Launch Invalid Env Returns User Error operation.</summary>
     [Fact]
     public async Task Launch_InvalidEnv_ReturnsUserError()
     {
@@ -66,7 +63,7 @@ public class LaunchCommandTests
         Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
     }
 
-    /// <summary>executable 引数を省略すると System.CommandLine が UserError を返す。</summary>
+    /// <summary>Performs the Launch Missing Executable Returns User Error operation.</summary>
     [Fact]
     public async Task Launch_MissingExecutable_ReturnsUserError()
     {
@@ -75,11 +72,8 @@ public class LaunchCommandTests
         Assert.NotEqual(ExitCodes.Success, exit);
     }
 
-    // ---- parser-only tests (SetAction を起動しない) ----
-    // 設計 024 §7 G1 / S3: --, --cwd, --env の透過を直接 ParseResult から検証する。
 
-    /// <summary><c>-- arg1 arg2</c> 以降の raw 引数が <c>Argument&lt;string[]&gt;("args")</c>
-    /// にそのまま流れ込むことを確認する。</summary>
+    /// <summary>Performs the Parse Raw Arguments After Double Dash Are Passed Through operation.</summary>
     [Fact]
     public void Parse_RawArgumentsAfterDoubleDash_ArePassedThrough()
     {
@@ -91,8 +85,7 @@ public class LaunchCommandTests
         Assert.Equal(new[] { "arg1", "arg2" }, values);
     }
 
-    /// <summary><c>-- "with space" --flag</c> のように空白入り / オプション風トークンも
-    /// 解釈されず raw のまま透過する。</summary>
+    /// <summary>Performs the Parse Raw Arguments After Double Dash Preserves Spaces And Option Like Tokens operation.</summary>
     [Fact]
     public void Parse_RawArgumentsAfterDoubleDash_PreservesSpacesAndOptionLikeTokens()
     {
@@ -104,7 +97,7 @@ public class LaunchCommandTests
         Assert.Equal(new[] { "with space", "--flag", "-x" }, values);
     }
 
-    /// <summary><c>--cwd &lt;path&gt;</c> がそのまま <see cref="string"/> 値として取り出せる。</summary>
+    /// <summary>Performs the Parse Cwd Option Passes Path Through operation.</summary>
     [Fact]
     public void Parse_CwdOption_PassesPathThrough()
     {
@@ -115,8 +108,7 @@ public class LaunchCommandTests
         Assert.Equal("C:\\some\\path", cwd);
     }
 
-    /// <summary><c>--env "BAZ=qux=quux"</c> のように <c>=</c> を 2 つ含む値が parser を通っても
-    /// 1 トークンとして保持され、<see cref="LaunchCommand.TryParseEnv"/> で正しく分割される。</summary>
+    /// <summary>Performs the Parse Env Option With Multiple Equals Signs Keeps Value Intact operation.</summary>
     [Fact]
     public void Parse_EnvOption_WithMultipleEqualsSigns_KeepsValueIntact()
     {

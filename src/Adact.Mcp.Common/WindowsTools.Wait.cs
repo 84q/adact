@@ -12,23 +12,23 @@ namespace Adact.Mcp.Common;
 
 public sealed partial class WindowsTools
 {
-    /// <summary>wait-for / wait-for-window の既定タイムアウト (ms)。設計 022 §6 / §13。</summary>
+    /// <summary>Default timeout for <c>wait-for</c> / <c>wait-for-window</c> in milliseconds. See design 022 §6 / §13.</summary>
     private const int WaitForDefaultTimeoutMs = 5000;
 
     /// <summary>
-    /// 指定 element ref または検索条件にマッチする要素が指定 state を満たすまで待機する (設計 022 §6 / §7)。
-    /// auto-snapshot は発火しない。<paramref name="ref"/> と検索条件は排他必須。
+    /// Waits for an element to reach a requested state (design 022 §6 / §7).
+    /// Supports either a ref or search conditions. No auto-snapshot is captured.
     /// </summary>
-    /// <param name="ref">対象 element ref (例 <c>s1e7</c>)。検索条件と排他。</param>
-    /// <param name="name">検索条件: UIA Name exact match (case-insensitive)。</param>
-    /// <param name="controlType">検索条件: ControlType exact match (case-insensitive)。</param>
-    /// <param name="automationId">検索条件: AutomationId exact match (case-insensitive)。</param>
-    /// <param name="className">検索条件: ClassName exact match (case-insensitive)。</param>
-    /// <param name="state">"attached" / "detached" / "visible" / "hidden" / "enabled" / "disabled"。null は "visible"。</param>
-    /// <param name="timeoutMs">待機タイムアウト (ms)。null は 5000。</param>
-    /// <param name="sessionId">対象 session。null はアクティブ session。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns><c>{ ref, state }</c> JSON。タイムアウトは <c>WAIT_TIMEOUT</c>。</returns>
+    /// <param name="ref">Element ref to wait on (for example, <c>s1e7</c>). Mutually exclusive with search conditions.</param>
+    /// <param name="name">Search condition: exact match on UIA Name (case-insensitive).</param>
+    /// <param name="controlType">Search condition: exact match on UIA ControlType (case-insensitive).</param>
+    /// <param name="automationId">Search condition: exact match on AutomationId (case-insensitive).</param>
+    /// <param name="className">Search condition: exact match on ClassName (case-insensitive).</param>
+    /// <param name="state">Target state: attached, detached, visible, hidden, enabled, or disabled. Defaults to <c>visible</c>.</param>
+    /// <param name="timeoutMs">Timeout in milliseconds. Defaults to 5000.</param>
+    /// <param name="sessionId">Target session. Null means the active session.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>JSON <c>{ ref, state }</c>. Throws <c>WAIT_TIMEOUT</c> on timeout.</returns>
     [McpServerTool(Name = "adact_wait_for_element")]
     [Description("Wait until an element reaches a state. Pass either a ref (ref mode) OR search conditions (name/controlType/automationId/className) — they are mutually exclusive. State defaults to 'visible'. No snapshot is captured.")]
     public async Task<CallToolResult> WaitForAsync(
@@ -52,7 +52,7 @@ public sealed partial class WindowsTools
     {
         using var _lock = await _store.AcquireAsync(ct).ConfigureAwait(false);
 
-        // state の解析
+        // Normalize the requested state.
         var stateStr = string.IsNullOrEmpty(state) ? "visible" : state;
         if (!WaitForStateParser.TryParse(stateStr, out var parsedState))
         {
@@ -60,7 +60,7 @@ public sealed partial class WindowsTools
                 $"state '{stateStr}' is not one of: {WaitForStateParser.AllowedValues}.");
         }
 
-        // timeout 検証
+        // Normalize the timeout.
         var timeoutMsValue = timeoutMs ?? WaitForDefaultTimeoutMs;
         if (timeoutMsValue <= 0)
         {
@@ -68,7 +68,7 @@ public sealed partial class WindowsTools
         }
         var timeout = TimeSpan.FromMilliseconds(timeoutMsValue);
 
-        // 排他検証: ref モード or 検索条件モード
+        // Either ref mode or search mode.
         var hasRef = !string.IsNullOrEmpty(@ref);
         var query = new WaitForElementQuery(name, controlType, automationId, className);
         var hasQuery = query.HasAnyCondition;
@@ -82,20 +82,20 @@ public sealed partial class WindowsTools
             return ToolErrors.Error(ToolErrors.InvalidArgument,
                 "Specify either ref or at least one of name/controlType/automationId/className.");
         }
-        // 'detached' は ref モード固有 (検索条件モードでは要素がそもそも見つからないことを意味してしまう)。
+        // Detached state is not supported in query mode.
         if (hasQuery && parsedState == WaitForState.Detached)
         {
             return ToolErrors.Error(ToolErrors.InvalidArgument,
                 "'detached' state is not supported in query mode.");
         }
-        // ref と sessionId の同時指定は誤用検出のため明示エラー (ref から自動的にセッションが解決されるため sessionId は不要)。
+        // Ref mode resolves the session from the ref, so sessionId must not be set.
         if (hasRef && !string.IsNullOrEmpty(sessionId))
         {
             return ToolErrors.Error(ToolErrors.InvalidArgument,
                 "sessionId must not be specified together with ref (the session is resolved from ref).");
         }
 
-        // session 解決
+        // Resolve the target session.
         IWindowSession? session;
         if (hasRef)
         {
@@ -153,15 +153,15 @@ public sealed partial class WindowsTools
     }
 
     /// <summary>
-    /// 検索条件にマッチする top-level window が出現するまで待機する (設計 022 §6 / §7)。attach は行わない。
+    /// Waits for a matching top-level window to appear (design 022 §6 / §7). Does not attach.
     /// </summary>
-    /// <param name="title">window title 正規表現。</param>
-    /// <param name="className">Win32 ClassName 正規表現。</param>
-    /// <param name="processName">プロセス名正規表現。</param>
-    /// <param name="executable">実行ファイルパス正規表現。</param>
-    /// <param name="timeoutMs">待機タイムアウト (ms)。null は 5000。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>マッチした window の info JSON。タイムアウトは <c>WAIT_TIMEOUT</c>。</returns>
+    /// <param name="title">Window title regex.</param>
+    /// <param name="className">Win32 ClassName regex.</param>
+    /// <param name="processName">Process name regex.</param>
+    /// <param name="executable">Executable full-path regex.</param>
+    /// <param name="timeoutMs">Timeout in milliseconds. Defaults to 5000.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Window info JSON. Throws <c>WAIT_TIMEOUT</c> on timeout.</returns>
     [McpServerTool(Name = "adact_wait_for_window")]
     [Description("Wait until a top-level window matching the given conditions appears. Does not attach. At least one of title/className/processName/executable must be specified. All fields are case-insensitive regex.")]
     public async Task<CallToolResult> WaitForWindowAsync(

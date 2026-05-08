@@ -3,12 +3,9 @@ using System.CommandLine;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>kill</c> コマンド。session に紐づくプロセスを終了する。デフォルトは graceful shutdown (WM_CLOSE → 待機 → 強制終了)。
 /// </summary>
 internal static class KillCommand
 {
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>kill サブコマンド。</returns>
     public static Command Build()
     {
         var sid = new Argument<string?>("sid") { Arity = ArgumentArity.ZeroOrOne, Description = "Target session ID (default: active session)." };

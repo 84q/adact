@@ -5,13 +5,9 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>resize-window</c> コマンド。アタッチ済みウィンドウのサイズを変更し、成功時に snapshot を自動取得する。
-/// width / height のどちらか片方のみ指定可。省略側は現在値を維持する。
 /// </summary>
 internal static class ResizeWindowCommand
 {
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>resize-window サブコマンド。</returns>
     public static Command Build()
     {
         var width = new Option<int?>("--width") { Description = "New window width in pixels (must be > 0)." };

@@ -11,10 +11,7 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Integration;
 
-/// <summary>
-/// Named Pipe MCP サーバーの起動・停止ライフサイクルを検証する統合テスト。
-/// 対話デスクトップセッションが必要。
-/// </summary>
+/// <summary>Contains tests for the Named Pipe Lifecycle behavior.</summary>
 public sealed class NamedPipeLifecycleTests
 {
     private static NamedPipeEndPoint CreateUniqueEndpoint()
@@ -35,10 +32,7 @@ public sealed class NamedPipeLifecycleTests
         throw new OperationCanceledException("Server did not become ready within the allotted time.");
     }
 
-    /// <summary>
-    /// NamedPipeHost を起動し、NamedPipeMcpClient で接続して adact_daemon_stop を呼び出すと
-    /// サーバーが停止し、2回目の接続で失敗することを確認する。
-    /// </summary>
+    /// <summary>Performs the Named Pipe Server Start And Stop Success operation.</summary>
     [Trait("Layer", "Integration")]
     [InteractiveFact]
     public async Task NamedPipeServer_StartAndStop_Success()
@@ -77,14 +71,11 @@ public sealed class NamedPipeLifecycleTests
             }
             catch (IOException)
             {
-                // adact_daemon_stop の応答前にサーバーがシャットダウンして接続が切断されるケースは正常
             }
 
-            // サーバーが停止するまで待機
             await Task.Delay(500, timeoutCts.Token).ConfigureAwait(false);
             Assert.False(await NamedPipeMcpClient.IsServerRunningAsync(endpoint, 1000, timeoutCts.Token).ConfigureAwait(false));
 
-            // 2回目の接続は失敗する
             var ex = await Record.ExceptionAsync(async () =>
                 await NamedPipeMcpClient.ConnectAsync(endpoint, loggerFactory: null, timeoutCts.Token).ConfigureAwait(false));
 
@@ -100,9 +91,7 @@ public sealed class NamedPipeLifecycleTests
         }
     }
 
-    /// <summary>
-    /// サーバーを起動して adact_daemon_stop した後、再度接続を試みると失敗することを確認する。
-    /// </summary>
+    /// <summary>Performs the Named Pipe Server Double Stop Second Returns No Daemon operation.</summary>
     [Trait("Layer", "Integration")]
     [InteractiveFact]
     public async Task NamedPipeServer_DoubleStop_SecondReturnsNoDaemon()
@@ -129,7 +118,6 @@ public sealed class NamedPipeLifecycleTests
         {
             await WaitForServerAsync(endpoint, timeoutCts.Token).ConfigureAwait(false);
 
-            // 1回目: 接続して adact_daemon_stop を呼び出す
             await using var client = await NamedPipeMcpClient.ConnectAsync(endpoint, loggerFactory: null, timeoutCts.Token).ConfigureAwait(false);
             try
             {
@@ -138,14 +126,11 @@ public sealed class NamedPipeLifecycleTests
             }
             catch (IOException)
             {
-                // adact_daemon_stop の応答前にサーバーがシャットダウンして接続が切断されるケースは正常
             }
 
-            // サーバー停止を待機
             await Task.Delay(500, timeoutCts.Token).ConfigureAwait(false);
             Assert.False(await NamedPipeMcpClient.IsServerRunningAsync(endpoint, 1000, timeoutCts.Token).ConfigureAwait(false));
 
-            // 2回目: サーバーが停止しているので接続できない → "No daemon is running" 相当
             var ex = await Record.ExceptionAsync(async () =>
                 await NamedPipeMcpClient.ConnectAsync(endpoint, loggerFactory: null, timeoutCts.Token).ConfigureAwait(false));
 
@@ -161,6 +146,7 @@ public sealed class NamedPipeLifecycleTests
         }
     }
 
+    /// <summary>Performs the Named Pipe Server List Apps And Attach Across Connections Shares Daemon State operation.</summary>
     [Trait("Layer", "E2E")]
     [InteractiveFact]
     public async Task NamedPipeServer_ListAppsAndAttachAcrossConnections_SharesDaemonState()

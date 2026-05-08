@@ -6,8 +6,14 @@ using System.Windows.Media;
 
 namespace SampleApp.Tabs;
 
+/// <summary>
+/// Demonstrates list-box drag and drop as well as custom drag/drop controls.
+/// </summary>
 public partial class DragDropTab : UserControl
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DragDropTab"/> class.
+    /// </summary>
     public DragDropTab()
     {
         InitializeComponent();
@@ -76,8 +82,14 @@ public partial class DragDropTab : UserControl
     }
 }
 
+/// <summary>
+/// A custom control that renders a drag source placeholder.
+/// </summary>
 public sealed class CustomDragSourceControl : Control
 {
+    /// <summary>
+    /// Initializes static members of the <see cref="CustomDragSourceControl"/> class.
+    /// </summary>
     static CustomDragSourceControl()
     {
         DefaultStyleKeyProperty.OverrideMetadata(typeof(CustomDragSourceControl), new FrameworkPropertyMetadata(typeof(CustomDragSourceControl)));
@@ -93,8 +105,14 @@ public sealed class CustomDragSourceControl : Control
     }
 }
 
+/// <summary>
+/// A custom control that renders a drop target placeholder.
+/// </summary>
 public sealed class CustomDropTargetControl : Control
 {
+    /// <summary>
+    /// Initializes static members of the <see cref="CustomDropTargetControl"/> class.
+    /// </summary>
     static CustomDropTargetControl()
     {
         DefaultStyleKeyProperty.OverrideMetadata(typeof(CustomDropTargetControl), new FrameworkPropertyMetadata(typeof(CustomDropTargetControl)));

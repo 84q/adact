@@ -1,136 +1,134 @@
 # Troubleshooting
 
-ADACT は Windows UIA と daemon process の状態に依存します。問題が起きたら、まず `adact serve` が対象 GUI と同じ対話 session で動いているか、CLI が正しい `/mcp` endpoint に接続しているかを確認します。
+ADACT depends on Windows UIA and daemon-process state. When something goes wrong, first confirm that the daemon is running in the same interactive session as the target GUI and that the CLI is connecting to the expected transport (Named Pipe by default, or `--server` for HTTP).
 
 ## `NO_INTERACTIVE_SESSION`
 
-| 症状 | 内容 |
+| Item | Description |
 | --- | --- |
-| exit code | `4` |
+| Exit code | `4` |
 | stderr | `error NO_INTERACTIVE_SESSION` |
-| 発生箇所 | `adact serve` 起動時 |
-| 原因 | SSH、Windows service、SessionId 0 など、対話 desktop ではない場所で daemon を起動した |
+| Where it happens | At `adact serve http` / `adact serve pipe` startup |
+| Cause | The daemon was started from SSH, a service, or session 0 instead of an interactive desktop |
 
-復旧:
+Recovery:
 
-1. 対象 GUI アプリが表示されている Windows ログオン session に入る。
-2. その session の terminal から `adact serve` を起動する。
-3. SSH 側や別 terminal の CLI は、その daemon の URL を `--server` または `.adact/config.json` で指定する。
-
-UIA は同一 Windows session 内の top-level window しか見えません。`list-windows` が空に見える事故を避けるため、ADACT は daemon 起動時に fail-fast します。
+1. Sign in to the Windows logon session that shows the target GUI app.
+2. Start the matching daemon mode from that session (`adact serve pipe` for the default CLI path, or `adact serve http --port <port>` when using `--server`).
+3. Point CLI clients from SSH or other terminals to that daemon with `--server` or `.adact/config.json`.
 
 ## `OPERATION_BLOCKED`
 
-| 症状 | 内容 |
+| Item | Description |
 | --- | --- |
-| exit code | 通常 `1` |
+| Exit code | Usually `1` |
 | stderr | `error OPERATION_BLOCKED` |
-| 典型原因 | 画面ロック中、UAC プロンプト表示中、対象ウィンドウが非アクティブまたは最小化されている |
+| Typical cause | The screen is locked, a UAC prompt is open, or the target window is inactive/minimized |
 
-復旧:
+Recovery:
 
-1. 画面がロックされている場合は解除する。
-2. UAC プロンプトが表示されている場合は許可または拒否して閉じる。
-3. 対象ウィンドウがアクティブで表示されていることを確認する。
+1. Unlock the screen if needed.
+2. Close or respond to any UAC prompt.
+3. Make sure the target window is active and visible.
 
-## daemon 接続失敗
+## Daemon connection failure
 
-| 症状 | 内容 |
+| Item | Description |
 | --- | --- |
-| exit code | `3` |
+| Exit code | `3` |
 | stderr | `error CONNECTION_FAILED` |
-| 典型原因 | `adact serve` が起動していない、port が違う、URL が `/mcp` ではない、firewall / port forward の問題 |
+| Typical cause | The daemon is not running, the port is wrong, the URL does not end with `/mcp`, or a firewall/port-forwarding issue exists |
 
-確認:
+Check with:
 
 ```powershell
-adact serve --port 41300
+adact serve http --port 41300
 adact list-windows --server http://127.0.0.1:41300/mcp
 ```
 
-`.adact/config.json` を使う場合:
+If you use `.adact/config.json`:
 
 ```json
 { "server": "http://127.0.0.1:41300/mcp" }
 ```
 
-接続先解決は `--server`、`.adact/config.json`、既定値の順です。`.adact/` が見つかると親 directory への探索はそこで止まります。
+Connection resolution checks `--server`, then `.adact/config.json`, then the default Named Pipe endpoint. Once `.adact/` is found, the search stops.
 
 ## `REF_NOT_FOUND`
 
-| 症状 | 内容 |
+| Item | Description |
 | --- | --- |
-| exit code | 通常 `1` |
-| 発生箇所 | `click` / `fill`、または MCP `adact_click` / `adact_fill` |
-| 典型原因 | ref の typo、別 session の ref、対象 element が最新 snapshot から消えた、daemon 再起動で状態が消えた |
+| Exit code | Usually `1` |
+| Where it happens | `click` / `fill`, or MCP `adact_click` / `adact_fill` |
+| Typical cause | A typo in the ref, a ref from another session, the element disappeared from the latest snapshot, or daemon restart cleared state |
 
-復旧:
+Recovery:
 
-1. `adact snapshot` を再実行する。
-2. 新しい `.txt` snapshot の `[ref=s...e...]` を使う。
-3. session 自体がない場合は `adact list-windows` -> `adact attach ...` からやり直す。
+1. Run `adact snapshot` again.
+2. Use the new `[ref=s...e...]` from the fresh snapshot.
+3. If the session itself is gone, start again from `adact list-windows` -> `adact attach ...`.
 
-現行 ref は `s<sid>e<eid>` です。古い `s<sid>g<gen>e<eid>` は過去形式です。
+Current refs use `s<sid>e<eid>`. The old `s<sid>g<gen>e<eid>` form is legacy.
 
 ## `INVALID_WINDOW_REF` / `WINDOW_NOT_FOUND`
 
-| Code | 原因 | 対処 |
+| Code | Cause | Fix |
 | --- | --- | --- |
-| `INVALID_WINDOW_REF` | `w<n>` が未登録もしくは retired (window が閉じた / `list-windows` 後にずれた) | `adact list-windows` を再取得して新しい `w<n>` を渡す |
-| `WINDOW_NOT_FOUND` | `w<n>` 解決後の HWND attach が失敗した (window が閉じられた等) | `adact list-windows` を再取得し、対象 window が存在することを確認する |
+| `INVALID_WINDOW_REF` | `w<n>` is unregistered or retired | Re-run `list-windows` and use the latest `w<n>` |
+| `WINDOW_NOT_FOUND` | HWND attach failed after resolving `w<n>` | Re-run `list-windows` and confirm the window still exists |
 
-例:
+Example:
 
 ```powershell
 adact list-windows
 adact attach w1
 ```
 
-`attach` は `w<n>` 形式の positional 引数のみ受け付けます。process name / title 等での matching は提供しません (`list-windows` で絞り込んでから `w<n>` を渡してください)。
+`attach` accepts only the positional `w<n>` ref. Use `list-windows` to narrow down the target first.
 
-## snapshot が大きい
+## Snapshot is too large
 
-| 状況 | 対処 |
+| Situation | Fix |
 | --- | --- |
-| AI に渡す snapshot を小さくしたい | 既定の `--filter operable` を使う |
-| デバッグで全 tree を見たい | `adact snapshot --filter raw` を使う |
-| 保存先を分けたい | `--snapshot-dir <dir>` を使う |
-| click/fill 後の snapshot が不要 | `--no-snapshot` を使う |
+| Want a smaller AI-facing snapshot | Use the default `--filter operable` |
+| Want the full tree for debugging | Use `adact snapshot --filter raw` |
+| Want a separate output folder | Use `--snapshot-dir <dir>` |
+| Do not want a post-click/fill snapshot | Use `--no-snapshot` |
 
-現行 CLI snapshot は `.txt` 形式で、旧 JSON 出力より小さくなっています。それでも大きい場合、対象 window が大きすぎる、UIA tree が深すぎる、または `raw` を使っている可能性があります。
+The current CLI snapshot format is `.txt`, which is usually smaller than the old JSON output.
 
-## 必要な要素が snapshot に見えない
+## Missing elements in the snapshot
 
-| 可能性 | 対処 |
+| Possibility | Fix |
 | --- | --- |
-| `operable` filter で落ちている | `adact snapshot --filter raw` で確認する |
-| element が offscreen | window を表示・展開・スクロールしてから再 snapshot する |
-| modal dialog に focus が移っている | snapshot 内の `[modal]` node を確認する |
-| UIA が情報を出していない | アプリ側の UIA 対応状況を確認する。必要なら将来の OCR / Vision 対象 |
-| 古い snapshot を読んでいる | stdout の `snapshot <path>` で最新 file path を確認する |
+| Filtered out by `operable` | Check with `adact snapshot --filter raw` |
+| Element is offscreen | Show, expand, or scroll the window and snapshot again |
+| Focus is on a modal dialog | Check the `[modal]` nodes in the snapshot |
+| UIA does not expose the element | Verify the app's UIA support; future OCR/Vision may help |
+| Looking at an old snapshot | Use the stdout `snapshot <path>` value to confirm the newest file |
 
-## `daemon-stop` が `LOCAL_ONLY`
+## `daemon-stop` is `LOCAL_ONLY`
 
-| 症状 | 原因 | 対処 |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| `error LOCAL_ONLY` | remote host の daemon を止めようとした、または stdio mode で `adact_daemon_stop` を呼んだ | daemon と同じ host の CLI から `adact daemon-stop` を実行する |
+| `error LOCAL_ONLY` | You tried to stop a remote daemon, or called `adact_daemon_stop` in stdio mode | Run `adact daemon-stop` from the same host as the daemon |
 
-`daemon-stop` は安全のため localhost target 専用です。
+`daemon-stop` is localhost-only for safety.
 
-## 実アプリテストが不安定
+## Real-app tests are flaky
 
-| 症状 | 対処 |
+| Symptom | Fix |
 | --- | --- |
-| Calculator E2E が競合する | 他の test run が同時に Calculator を触っていないか確認する |
-| click/fill が時々失敗する | 実行中に同じ desktop を人間が操作しない |
-| Notepad++ smoke が skip / fail する | Notepad++ のインストール、window title、権限を確認する |
-| `list-windows` が空 | daemon が対話 session で動いているか確認する |
+| Calculator E2E collides with another run | Make sure no other test run is using Calculator |
+| click/fill sometimes fail | Do not interact with the same desktop while tests are running |
+| Notepad++ smoke skips or fails | Check installation, window title, and permissions |
+| `list-windows` returns empty | Confirm the daemon is running in an interactive session |
 
-## 参照
+## References
 
-| 文書 | 内容 |
+| Document | Description |
 | --- | --- |
-| [../architecture/runtime-modes.md](../architecture/runtime-modes.md) | runtime mode と対話 session 制約 |
-| [../spec/errors-and-output.md](../spec/errors-and-output.md) | error code 一覧 |
-| [../spec/ref-ids.md](../spec/ref-ids.md) | ref の失効条件 |
-| [../spec/snapshot.md](../spec/snapshot.md) | snapshot filter と形式 |
+| [../architecture/runtime-modes.md](../architecture/runtime-modes.md) | Runtime modes and interactive-session constraints |
+| [../spec/errors-and-output.md](../spec/errors-and-output.md) | Error code list |
+| [../spec/ref-ids.md](../spec/ref-ids.md) | Ref invalidation rules |
+| [../spec/snapshot.md](../spec/snapshot.md) | Snapshot filters and format |

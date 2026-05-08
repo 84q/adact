@@ -11,9 +11,7 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// Unit tests for successful CLI action command argument mapping into MCP tool calls.
-/// </summary>
+/// <summary>Contains tests for the Command Action Success behavior.</summary>
 [Trait("Layer", "Unit")]
 [Collection(ConsoleCollection.Name)]
 public class CommandActionSuccessTests
@@ -22,12 +20,16 @@ public class CommandActionSuccessTests
     {
         private readonly Queue<CallToolResult> _results = new();
 
+        /// <summary>Gets the Calls value.</summary>
         public List<(string Name, IReadOnlyDictionary<string, object?>? Arguments)> Calls { get; } = [];
 
+        /// <summary>Performs the Enqueue operation.</summary>
         public void Enqueue(CallToolResult result) => _results.Enqueue(result);
 
+        /// <summary>Releases resources.</summary>
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
+        /// <summary>Performs the Call Tool Async operation.</summary>
         public ValueTask<CallToolResult> CallToolAsync(
             string name,
             IReadOnlyDictionary<string, object?>? arguments,
@@ -38,7 +40,7 @@ public class CommandActionSuccessTests
         }
     }
 
-    /// <summary>Verifies that click maps extended options into adact_click arguments.</summary>
+    /// <summary>Performs the Click Success Maps Options To Windows Click operation.</summary>
     [Fact]
     public async Task Click_Success_MapsOptionsToWindowsClick()
     {
@@ -74,7 +76,7 @@ public class CommandActionSuccessTests
         Assert.Equal(20, call.Arguments["positionY"]);
     }
 
-    /// <summary>Verifies that fill maps ref and value into adact_fill arguments.</summary>
+    /// <summary>Performs the Fill Success Maps Text To Windows Fill operation.</summary>
     [Fact]
     public async Task Fill_Success_MapsTextToWindowsFill()
     {
@@ -98,7 +100,7 @@ public class CommandActionSuccessTests
         Assert.Equal("hello world", call.Arguments["value"]);
     }
 
-    /// <summary>Verifies that type maps text and delay into adact_type arguments.</summary>
+    /// <summary>Performs the Type Success Maps Delay To Windows Type operation.</summary>
     [Fact]
     public async Task Type_Success_MapsDelayToWindowsType()
     {
@@ -123,7 +125,7 @@ public class CommandActionSuccessTests
         Assert.Equal(15, call.Arguments["delayMs"]);
     }
 
-    /// <summary>Verifies that resize maps dimensions and session id into adact_resize_window arguments.</summary>
+    /// <summary>Performs the Resize Success Maps Dimensions To Windows Resize operation.</summary>
     [Fact]
     public async Task Resize_Success_MapsDimensionsToWindowsResize()
     {
@@ -148,7 +150,7 @@ public class CommandActionSuccessTests
         Assert.Equal("s9", call.Arguments["sessionId"]);
     }
 
-    /// <summary>Verifies that doubleclick maps button, modifiers, and position into adact_doubleclick.</summary>
+    /// <summary>Performs the Dblclick Success Maps Options To Windows Dblclick operation.</summary>
     [Fact]
     public async Task Dblclick_Success_MapsOptionsToWindowsDblclick()
     {
@@ -180,7 +182,7 @@ public class CommandActionSuccessTests
         Assert.Equal(4, call["positionY"]);
     }
 
-    /// <summary>Verifies that hover maps modifiers and position into adact_hover.</summary>
+    /// <summary>Performs the Hover Success Maps Options To Windows Hover operation.</summary>
     [Fact]
     public async Task Hover_Success_MapsOptionsToWindowsHover()
     {
@@ -205,7 +207,7 @@ public class CommandActionSuccessTests
         Assert.Equal(9, call["positionY"]);
     }
 
-    /// <summary>Verifies that select maps the chosen selector into adact_select.</summary>
+    /// <summary>Performs the Select Success Maps Selector To Windows Select operation.</summary>
     [Theory]
     [InlineData("--name", "Option A", "name")]
     [InlineData("--index", "2", "index")]
@@ -234,7 +236,7 @@ public class CommandActionSuccessTests
         Assert.True(call.ContainsKey(expectedKey));
     }
 
-    /// <summary>Verifies ref-only auto-snapshot commands map ref to the expected tool.</summary>
+    /// <summary>Performs the Ref Only Auto Snapshot Commands Success Map Ref To Expected Tool operation.</summary>
     [Theory]
     [MemberData(nameof(RefOnlyAutoSnapshotCommands))]
     public async Task RefOnlyAutoSnapshotCommands_Success_MapRefToExpectedTool(Command command, string toolName)
@@ -257,7 +259,7 @@ public class CommandActionSuccessTests
         Assert.Equal("s8e4", call["ref"]);
     }
 
-    /// <summary>Verifies ref-only low-level commands map ref to the expected tool without snapshot output.</summary>
+    /// <summary>Performs the Ref Only Low Level Commands Success Map Ref To Expected Tool operation.</summary>
     [Theory]
     [MemberData(nameof(RefOnlyLowLevelCommands))]
     public async Task RefOnlyLowLevelCommands_Success_MapRefToExpectedTool(Command command, string toolName)
@@ -278,7 +280,7 @@ public class CommandActionSuccessTests
         Assert.Equal("s9e4", call["ref"]);
     }
 
-    /// <summary>Verifies low-level mouse commands map arguments to expected tools.</summary>
+    /// <summary>Performs the Mouse Low Level Commands Success Map Target To Expected Tool operation.</summary>
     [Theory]
     [MemberData(nameof(MouseLowLevelCommands))]
     public async Task MouseLowLevelCommands_Success_MapTargetToExpectedTool(
@@ -313,7 +315,7 @@ public class CommandActionSuccessTests
         }
     }
 
-    /// <summary>Verifies that mouse-wheel maps deltas into adact_mousewheel.</summary>
+    /// <summary>Performs the Mouse Wheel Success Maps Deltas To Windows Mouse Wheel operation.</summary>
     [Fact]
     public async Task MouseWheel_Success_MapsDeltasToWindowsMouseWheel()
     {
@@ -337,7 +339,7 @@ public class CommandActionSuccessTests
         Assert.Equal(3, call["deltaY"]);
     }
 
-    /// <summary>Verifies that press maps key into adact_keypress.</summary>
+    /// <summary>Performs the Press Success Maps Key To Windows Press operation.</summary>
     [Fact]
     public async Task Press_Success_MapsKeyToWindowsPress()
     {
@@ -361,7 +363,7 @@ public class CommandActionSuccessTests
         Assert.DoesNotContain("ref", call.Keys);
     }
 
-    /// <summary>Verifies key down/up map key names into the expected tools.</summary>
+    /// <summary>Performs the Key Commands Success Map Key To Expected Tool operation.</summary>
     [Theory]
     [MemberData(nameof(KeyCommands))]
     public async Task KeyCommands_Success_MapKeyToExpectedTool(Command command, string toolName)
@@ -383,7 +385,7 @@ public class CommandActionSuccessTests
         Assert.Equal("Shift", call["key"]);
     }
 
-    /// <summary>Verifies window-state commands map session id into the expected tools.</summary>
+    /// <summary>Performs the Window State Commands Success Map Session Id To Expected Tool operation.</summary>
     [Theory]
     [MemberData(nameof(WindowStateCommands))]
     public async Task WindowStateCommands_Success_MapSessionIdToExpectedTool(Command command, string toolName)
@@ -412,21 +414,21 @@ public class CommandActionSuccessTests
         StructuredContent = JsonSerializer.SerializeToElement(new { }),
     };
 
-    /// <summary>Provides auto-snapshot ref-only command builders and expected MCP tool names.</summary>
+    /// <summary>Performs the Ref Only Auto Snapshot Commands operation.</summary>
     public static IEnumerable<object[]> RefOnlyAutoSnapshotCommands()
     {
         yield return [CheckCommand.Build(), "adact_check"];
         yield return [UncheckCommand.Build(), "adact_uncheck"];
     }
 
-    /// <summary>Provides low-level ref-only command builders and expected MCP tool names.</summary>
+    /// <summary>Performs the Ref Only Low Level Commands operation.</summary>
     public static IEnumerable<object[]> RefOnlyLowLevelCommands()
     {
         yield return [FocusCommand.Build(), "adact_focus"];
         yield return [ScrollIntoViewCommand.Build(), "adact_scroll_into_view"];
     }
 
-    /// <summary>Provides low-level mouse command builders, CLI args, and expected MCP tool names.</summary>
+    /// <summary>Performs the Mouse Low Level Commands operation.</summary>
     public static IEnumerable<object[]> MouseLowLevelCommands()
     {
         yield return [MousemoveCommand.Build(), "adact_mousemove", new[] { "mousemove", "10,20" }, "10,20", null!];
@@ -434,14 +436,14 @@ public class CommandActionSuccessTests
         yield return [MouseupCommand.Build(), "adact_mouseup", new[] { "mouseup", "--button", "middle" }, string.Empty, "middle"];
     }
 
-    /// <summary>Provides key command builders and expected MCP tool names.</summary>
+    /// <summary>Performs the Key Commands operation.</summary>
     public static IEnumerable<object[]> KeyCommands()
     {
         yield return [KeydownCommand.Build(), "adact_keydown"];
         yield return [KeyupCommand.Build(), "adact_keyup"];
     }
 
-    /// <summary>Provides window-state command builders and expected MCP tool names.</summary>
+    /// <summary>Performs the Window State Commands operation.</summary>
     public static IEnumerable<object[]> WindowStateCommands()
     {
         yield return [MinimizeWindowCommand.Build(), "adact_minimize_window"];
@@ -479,7 +481,6 @@ public class CommandActionSuccessTests
             var root = new RootCommand("test");
             root.Options.Add(CommandHelpers.ServerOption);
             root.Subcommands.Add(command);
-            // HTTPモードを強制するために --server 引数を追加
             var argsWithServer = new List<string> { "--server", "http://localhost:41300/mcp" };
             argsWithServer.AddRange(args);
             var exit = await root.Parse(argsWithServer.ToArray()).InvokeAsync().ConfigureAwait(false);

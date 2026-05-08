@@ -4,15 +4,11 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Unit;
 
-/// <summary>
-/// RefRegistry の ref 安定性 (RuntimeId / positionalIndex フォールバック) をずらしたシナリオで集中検証する Unit テスト。
-/// </summary>
+/// <summary>Contains tests for the Ref Stability behavior.</summary>
 [Trait("Layer", "Unit")]
 public class RefStabilityTests
 {
-    /// <summary>
-    /// 同じ RuntimeId なら positionalIndex が変わっても eid が復元されることを確認する。
-    /// </summary>
+    /// <summary>Performs the Same Runtime Id Across Snapshots Reuses Eid operation.</summary>
     [Fact]
     public void SameRuntimeId_AcrossSnapshots_ReusesEid()
     {
@@ -23,15 +19,12 @@ public class RefStabilityTests
         var first = r.Register(new FakeElement { RuntimeId = rid }, positionalIndex: 0);
 
         r.BeginSnapshot();
-        // 2 回目の snapshot で別インスタンスでも RuntimeId が同じなら ref は再利用される。
         var second = r.Register(new FakeElement { RuntimeId = rid }, positionalIndex: 5);
 
         Assert.Equal(first, second);
     }
 
-    /// <summary>
-    /// 異なる RuntimeId には新しい eid が振られることを確認する。
-    /// </summary>
+    /// <summary>Performs the New Runtime Id Gets New Eid operation.</summary>
     [Fact]
     public void NewRuntimeId_GetsNewEid()
     {
@@ -43,9 +36,7 @@ public class RefStabilityTests
         Assert.NotEqual(a, b);
     }
 
-    /// <summary>
-    /// RuntimeId 未設定のときは positionalIndex ごとに ref が安定化されることを確認する。
-    /// </summary>
+    /// <summary>Performs the Runtime Id Missing Falls Back To Positional Index operation.</summary>
     [Fact]
     public void RuntimeIdMissing_FallsBackToPositionalIndex()
     {
@@ -55,7 +46,6 @@ public class RefStabilityTests
         var atIndex0 = r.Register(new FakeElement(), positionalIndex: 0);
         var atIndex1 = r.Register(new FakeElement(), positionalIndex: 1);
 
-        // 同じ positional index なら同じ ref を再利用、別 index なら別 ref。
         Assert.NotEqual(atIndex0, atIndex1);
 
         r.BeginSnapshot();
@@ -63,9 +53,7 @@ public class RefStabilityTests
         Assert.Equal(atIndex0, atIndex0Again);
     }
 
-    /// <summary>
-    /// 空の RuntimeId (Length=0) は未設定と同等に扱われ、positionalIndex フォールバックされることを確認する。
-    /// </summary>
+    /// <summary>Performs the Empty Runtime Id Is Treated As Missing operation.</summary>
     [Fact]
     public void EmptyRuntimeId_IsTreatedAsMissing()
     {

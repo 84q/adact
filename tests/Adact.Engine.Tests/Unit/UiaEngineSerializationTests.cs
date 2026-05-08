@@ -4,24 +4,14 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Unit;
 
-/// <summary>
-/// <see cref="UiaEngine.RunSerializedAsync{T}"/> の直列化ゲートを検証する Unit テスト。
-/// UIA 読み取りを並列しない仕様 (snapshot-pipeline.md) の回帰防止。
-/// </summary>
+/// <summary>Contains tests for the Uia Engine Serialization behavior.</summary>
 [Trait("Layer", "Unit")]
 public class UiaEngineSerializationTests
 {
-    /// <summary>
-    /// 2 つの Task を同時起動し、1 つ目の action が完了するまで 2 つ目の action が
-    /// 開始されないことを検証する。SemaphoreSlim(1, 1) ベースの直列化が機能していれば
-    /// 2 つ目の開始時刻 ≧ 1 つ目の完了時刻 となる。
-    /// </summary>
-    /// <returns>テスト完了タスク。</returns>
+    /// <summary>Performs the Run Serialized Async Two Concurrent Calls Are Serialized operation.</summary>
     [Fact]
     public async Task RunSerializedAsync_TwoConcurrentCalls_AreSerialized()
     {
-        // Engine は実 UIA に触らない (RunSerializedAsync は gate のみで UIA は呼ばない)
-        // ため automation を実体化しても問題ないが、構築コストを避けるため using で破棄。
         using var engine = new UiaEngine();
 
         var firstStartedTcs = new TaskCompletionSource();
@@ -38,7 +28,6 @@ public class UiaEngineSerializationTests
             return 0;
         }, CancellationToken.None);
 
-        // t1 が gate を取得したことを確認してから t2 を起動する
         await firstStartedTcs.Task;
 
         var t2 = engine.RunSerializedAsync(_ =>
@@ -47,7 +36,6 @@ public class UiaEngineSerializationTests
             return Task.FromResult(0);
         }, CancellationToken.None);
 
-        // この時点で t2 は gate 待ちでブロックされているはず
         Assert.False(t2.IsCompleted);
 
         releaseFirstTcs.SetResult();
@@ -55,17 +43,12 @@ public class UiaEngineSerializationTests
 
         Assert.NotNull(firstEndTicks);
         Assert.NotNull(secondStartTicks);
-        // 直列化されていれば second の開始は first の完了以降
         Assert.True(
             secondStartTicks!.Value >= firstEndTicks!.Value,
             $"second start ({secondStartTicks}) must be >= first end ({firstEndTicks})");
     }
 
-    /// <summary>
-    /// gate 待機中の CancellationToken を以てキャンセルすると OperationCanceledException が伝播し、以後の呼び出しも正常動作することを確認する。
-    /// gate 詳細を token キャンセルさせたときに semaphore がリークしない NRE の回帰防止。
-    /// </summary>
-    /// <returns>テスト完了タスク。</returns>
+    /// <summary>Performs the Run Serialized Async Cancellation Honours Cancellation Token operation.</summary>
     [Fact]
     public async Task RunSerializedAsync_Cancellation_HonoursCancellationToken()
     {
@@ -89,16 +72,11 @@ public class UiaEngineSerializationTests
         cts.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => t2);
 
-        // t1 を解放して engine が以後も健全であることを確認
         releaseFirstTcs.SetResult();
         await t1;
     }
 
-    /// <summary>
-    /// action が例外を投げても gate が解放され、次の呼び出しがデッドロックしないことを確認する。
-    /// snapshot 中の UIA 例外で engine がスタックしないよう保証するため。
-    /// </summary>
-    /// <returns>テスト完了タスク。</returns>
+    /// <summary>Performs the Run Serialized Async Exception Releases Gate operation.</summary>
     [Fact]
     public async Task RunSerializedAsync_Exception_ReleasesGate()
     {
@@ -107,8 +85,6 @@ public class UiaEngineSerializationTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             engine.RunSerializedAsync<int>(_ => throw new InvalidOperationException("boom"), CancellationToken.None));
 
-        // 例外で gate が release されないと次の呼び出しは無限に待機する。
-        // タイムアウト付きで動くことを確認する。
         var next = engine.RunSerializedAsync(_ => Task.FromResult(42), CancellationToken.None);
         var completed = await Task.WhenAny(next, Task.Delay(TimeSpan.FromSeconds(2)));
         Assert.Same(next, completed);

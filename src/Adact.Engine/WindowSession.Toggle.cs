@@ -17,40 +17,20 @@ namespace Adact.Engine;
 public sealed partial class WindowSession
 {
     /// <summary>
-    /// 指定要素を ToggleState.On にする。既に On なら何もしない。TogglePattern を持たない場合はエラー。
+    /// Checks an element.
     /// </summary>
-    /// <param name="refId">操作対象の Element Ref。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
-    /// <exception cref="RefNotFoundException">refId が解決できない場合。</exception>
-    /// <exception cref="ElementInteractionException">TogglePattern 不在 / 操作失敗の場合。</exception>
     public Task CheckAsync(string refId, CancellationToken ct = default)
         => SetToggleAsync(refId, ToggleState.On, "check", ct);
 
     /// <summary>
-    /// 指定要素を ToggleState.Off にする。既に Off なら何もしない。TogglePattern を持たない場合はエラー。
+    /// Unchecks an element.
     /// </summary>
-    /// <param name="refId">操作対象の Element Ref。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
-    /// <exception cref="RefNotFoundException">refId が解決できない場合。</exception>
-    /// <exception cref="ElementInteractionException">TogglePattern 不在 / 操作失敗の場合。</exception>
     public Task UncheckAsync(string refId, CancellationToken ct = default)
         => SetToggleAsync(refId, ToggleState.Off, "uncheck", ct);
 
     /// <summary>
-    /// 指定要素 (List / ComboBox 等) の選択肢を、SelectionTarget 配列で選択する。
-    /// ComboBox が closed の場合は事前に ExpandCollapsePattern.Expand を試行する。
+    /// Selects child items within a container element.
     /// </summary>
-    /// <param name="refId">List / ComboBox 等のコンテナ要素 Ref。</param>
-    /// <param name="targets">選択対象のアイテム配列。</param>
-    /// <param name="mode">選択モード (Replace / Add / Remove)。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
-    /// <exception cref="ArgumentException">targets が空の場合。</exception>
-    /// <exception cref="RefNotFoundException">ref が解決できない場合。</exception>
-    /// <exception cref="InvalidOperationException">Add/Remove モードで CanSelectMultiple=false の場合。</exception>
-    /// <exception cref="ElementInteractionException">SelectionItemPattern が無い / 子が見つからない場合。</exception>
     public Task SelectAsync(string refId, SelectionTarget[] targets, SelectionMode mode = SelectionMode.Replace, CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -73,7 +53,6 @@ public sealed partial class WindowSession
                 var inner = Inner(container);
                 TryExpand(inner);
 
-                // Add/Remove モードでは CanSelectMultiple を事前チェック
                 if (mode is SelectionMode.Add or SelectionMode.Remove)
                 {
                     var selectionPattern = inner.Patterns.Selection.PatternOrDefault;
@@ -123,7 +102,6 @@ public sealed partial class WindowSession
         }, ct);
     }
 
-    /// <summary>SelectionTarget から UIA AutomationElement を解決する。</summary>
     private AutomationElement ResolveTargetElement(string refId, AutomationElement inner, SelectionTarget target)
     {
         return target switch
@@ -160,13 +138,8 @@ public sealed partial class WindowSession
     }
 
     /// <summary>
-    /// 指定要素にキーボードフォーカスを当てる。auto-snapshot は発火しない (補助系)。
+    /// Focuses an element.
     /// </summary>
-    /// <param name="refId">フォーカス対象の Element Ref。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
-    /// <exception cref="RefNotFoundException">refId が解決できない場合。</exception>
-    /// <exception cref="ElementInteractionException">SetFocus が失敗した場合。</exception>
     public Task FocusAsync(string refId, CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -189,13 +162,8 @@ public sealed partial class WindowSession
     }
 
     /// <summary>
-    /// 指定要素を ScrollItemPattern.ScrollIntoView で表示領域内に持ってくる。Pattern 不在時はエラー。
+    /// Scrolls an element into view.
     /// </summary>
-    /// <param name="refId">対象 Element Ref。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
-    /// <exception cref="RefNotFoundException">refId が解決できない場合。</exception>
-    /// <exception cref="ElementInteractionException">ScrollItemPattern 不在 / 操作失敗の場合。</exception>
     public Task ScrollIntoViewAsync(string refId, CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -231,14 +199,8 @@ public sealed partial class WindowSession
     }
 
     /// <summary>
-    /// ScrollPattern を使ってコンテナ要素をスクロールする。
+    /// Scrolls an element using the specified mode.
     /// </summary>
-    /// <param name="refId">対象コンテナの Element Ref。</param>
-    /// <param name="mode">スクロールモード (Percent / Small / Large)。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <exception cref="ObjectDisposedException">本セッションが Dispose 済みの場合。</exception>
-    /// <exception cref="RefNotFoundException">refId が解決できない場合。</exception>
-    /// <exception cref="ElementInteractionException">ScrollPattern 不在 / 操作失敗の場合。</exception>
     public Task ScrollAsync(string refId, ScrollMode mode, CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -281,7 +243,6 @@ public sealed partial class WindowSession
         }, ct);
     }
 
-    /// <summary>Small/Large スクロールを |delta| 回繰り返す共通ヘルパー。</summary>
     private static void ScrollByAmount(
         FlaUI.Core.Patterns.IScrollPattern pat,
         int? deltaH,
@@ -312,11 +273,6 @@ public sealed partial class WindowSession
         }
     }
 
-    /// <summary>Toggle 系の共通実装: 現在の <see cref="ToggleState"/> を読み、必要なら <c>Toggle()</c> を呼ぶ。</summary>
-    /// <param name="refId">対象 Element Ref。</param>
-    /// <param name="desired">目標とする <see cref="ToggleState"/>。</param>
-    /// <param name="opName">エラーメッセージ用のオペレーション名 (<c>check</c>/<c>uncheck</c>)。</param>
-    /// <param name="ct">キャンセルトークン。</param>
     private Task SetToggleAsync(string refId, ToggleState desired, string opName, CancellationToken ct)
     {
         ThrowIfDisposed();
@@ -341,7 +297,6 @@ public sealed partial class WindowSession
                 var toggle = inner.Patterns.Toggle.PatternOrDefault;
                 if (toggle is null)
                 {
-                    // SelectionItemPattern (e.g. RadioButton) でも check/uncheck を実装する。
                     var sel = inner.Patterns.SelectionItem.PatternOrDefault;
                     if (sel is not null)
                     {
@@ -370,8 +325,6 @@ public sealed partial class WindowSession
         }, ct);
     }
 
-    /// <summary>ComboBox 等が closed の場合に Expand を試行する (失敗は無視)。</summary>
-    /// <param name="el">対象 UIA 要素。</param>
     private void TryExpand(AutomationElement el)
     {
         try
@@ -390,10 +343,7 @@ public sealed partial class WindowSession
         }
     }
 
-    /// <summary><see cref="IElement"/> から実体の <see cref="AutomationElement"/> を取り出す。</summary>
-    /// <param name="el">UIA 要素ラッパ。</param>
     /// <returns>FlaUI <see cref="AutomationElement"/>。</returns>
-    /// <exception cref="InvalidOperationException">FlaUI ラッパでない場合 (テスト用 FakeElement 等)。</exception>
     private static AutomationElement Inner(IElement el)
     {
         if (el is FlaUiElement fue) return fue.Inner;
@@ -401,9 +351,6 @@ public sealed partial class WindowSession
             $"UIA pattern operation requires a FlaUiElement, got {el.GetType().Name}.");
     }
 
-    /// <summary><see cref="AutomationElement.Properties"/> から Name を例外抑制で取得する。</summary>
-    /// <param name="el">UIA 要素。</param>
-    /// <returns>Name または空文字。</returns>
     private string SafeName(AutomationElement el)
     {
         try { return el.Properties.Name.ValueOrDefault ?? string.Empty; }

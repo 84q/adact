@@ -1,107 +1,97 @@
 # Ref IDs
 
-ADACT は Windows UIA 要素や window を短い ref ID で参照します。ref は daemon process 内の一時 ID であり、永続的な selector ではありません。
+ADACT refers to Windows UIA elements and windows with short ref IDs. Refs are temporary IDs inside the daemon process; they are not persistent selectors.
 
-## ID 形式
+## ID formats
 
-| 種類 | 形式 | 例 | 所有者 | 用途 |
+| Kind | Format | Example | Owner | Purpose |
 | --- | --- | --- | --- | --- |
-| Window Ref | `w<n>` | `w1` | `WindowRefStore` | top-level window を attach 対象として参照する |
-| Session ID | `s<n>` | `s1` | `SessionStore` | attached window session を参照する |
-| Element Ref | `s<sid>e<eid>` | `s1e7` | `WindowSession` / `RefRegistry` | snapshot 内の UIA 要素を click/fill 対象として参照する |
+| Window ref | `w<n>` | `w1` | `WindowRefStore` | Reference a top-level window for attach |
+| Session id | `s<n>` | `s1` | `SessionStore` | Reference an attached window session |
+| Element ref | `s<sid>e<eid>` | `s1e7` | `WindowSession` / `RefRegistry` | Reference a UIA element inside a snapshot |
 
-過去の discussion や旧 snapshot baseline には generation 付き `s<sid>g<gen>e<eid>` 形式が残っていることがあります。現行実装では generation は廃止済みで、新規 snapshot は `s<sid>e<eid>` を使います。
+Older discussion notes may still mention generation-based refs (`s<sid>g<gen>e<eid>`). The current implementation has removed generation, and new snapshots use `s<sid>e<eid>`.
 
-## Window Ref (`w<n>`)
+## Window ref (`w<n>`)
 
-| 項目 | 内容 |
+| Item | Description |
 | --- | --- |
-| 発行 | `adact_list_windows` / `adact list-windows` 実行時に top-level window へ割り当てる |
-| 安定性 | 同じ `WindowKey` には同じ `w<n>` を再利用する |
-| 失効 | window が list から消えると retired になり、`adact_attach(windowRef)` で解決できなくなる |
-| 主用途 | window title や process name が曖昧な場合に、一覧から選んで attach する |
+| Issued when | `list-windows` runs |
+| Stability | Reused for the same `WindowKey` |
+| Invalidation | Becomes retired when the window disappears from the list |
+| Main use | Picking a window from a list when the title or process name is ambiguous |
 
-`WindowKey` は HWND、process id、process start time など window 同一性を表す情報を使います。window title が変わっても同じ window とみなせるよう、list のたびに最新情報へ同期します。
+`WindowKey` uses HWND, process id, and process start time so the same window can be recognized even if the title changes.
 
-## Session ID (`s<n>`)
+## Session id (`s<n>`)
 
-| 項目 | 内容 |
+| Item | Description |
 | --- | --- |
-| 発行 | attach 成功時に `UiaEngine` が単調増加で採番する |
-| 保持 | daemon process 内の `SessionStore` |
-| active session | 最後に attach した session が active になる |
-| 失効 | `detach` / `close-window` / `kill` / `daemon-stop`、または daemon process 終了 |
-| 再利用 | 同じ daemon process 内では再利用しない |
+| Issued when | Attach succeeds |
+| Stored in | `SessionStore` |
+| Active session | The most recently attached session becomes active |
+| Invalidation | `detach`, `close-window`, `kill`, `daemon-stop`, or daemon exit |
+| Reuse | Never reused inside the same daemon process |
 
-`adact_snapshot`, `adact_detach`, `adact_close_window`, `adact_kill` は `sessionId` を省略すると active session を使います。active session がない場合は `NO_ACTIVE_SESSION` です。
+`snapshot`, `detach`, `close-window`, and `kill` use the active session when `sessionId` is omitted.
 
-## Element Ref (`s<sid>e<eid>`)
+## Element ref (`s<sid>e<eid>`)
 
-| 項目 | 内容 |
+| Item | Description |
 | --- | --- |
-| 発行 | `WindowSession.SnapshotAsync` が UIA tree を走査して各要素へ割り当てる |
-| prefix | `s<sid>` により session を一意に特定する |
-| 安定化 | RuntimeId が取れる要素は StableKey として使い、snapshot をまたいで同じ `eid` を再利用する |
-| fallback | RuntimeId が取れない場合は同 snapshot 内の出現順 fallback を使う |
-| 失効 | session 削除、daemon 終了、または現 snapshot に対応要素が存在しない場合 |
+| Issued when | `WindowSession.SnapshotAsync()` walks the UIA tree |
+| Prefix | `s<sid>` identifies the session |
+| Stability | Elements with a RuntimeId reuse the same `eid` across snapshots |
+| Fallback | When no RuntimeId exists, positional order is used |
+| Invalidation | Session deletion, daemon exit, or the element missing from the current snapshot |
 
-Element Ref は「直近 snapshot で確認できる要素」を操作するための一時 ID です。RuntimeId による安定化により、同一画面での連続 click/fill では ref が維持されやすくなっています。ただし virtualized list や要素再生成では失効する可能性があります。
+Element refs are temporary IDs used to interact with elements confirmed in the latest snapshot.
 
-## generation 付き形式の扱い
+## Legacy generation-based format
 
-| 形式 | 現在の扱い |
+| Format | Current handling |
 | --- | --- |
-| `s<sid>g<gen>e<eid>` | 過去形式。旧 baseline や古い discussion の記述として残ることがある |
-| `generation` field | 現行 MCP / CLI 出力では廃止済み |
-| snapshot file name の `gen-N` | 現行出力では廃止済み |
+| `s<sid>g<gen>e<eid>` | Legacy format kept in older notes and baselines |
+| `generation` field | Removed from current MCP/CLI output |
+| `gen-N` in snapshot file names | Removed from current output |
 
-古い `.json` baseline を Phase 7 の text formatter に通した場合、入力 JSON 内の古い ref がそのまま出ることがあります。新規取得した snapshot では generation なし形式を使います。
+## Lifecycle
 
-## ライフサイクル
-
-| 操作 | `windowRef` | `sessionId` | `elementRef` |
+| Operation | `windowRef` | `sessionId` | `elementRef` |
 | --- | --- | --- | --- |
-| `list-windows` | 発行・同期 | 既存 session があれば表示されることがある | 変化なし |
-| `attach` | session と関連付け | 発行または既存 session を返す | snapshot 取得時に発行 |
-| `snapshot` | 変化なし | 維持 | 現 snapshot の要素集合を更新 |
-| `click` / `fill` | 変化なし | 維持 | 操作後 snapshot で更新。RuntimeId が同じなら再利用 |
-| `wait-for-element` | 変化なし | 維持 | 変化なし。auto-snapshot は発火しないため ref の再採番は起こらない |
-| `wait-for-window` | 変化なし | 変化なし (attach は伴わない) | 変化なし。返り値は対象 window の info JSON のみで、`windowRef` の発行や session への関連付けは行わない |
-| `launch` | 変化なし | 変化なし (attach は伴わない) | 起動成功直後は `pid` のみ返る。要素操作するには `wait-for-window` -> `list-windows` -> `attach` の手順を踏む |
-| `detach` | session 関連を解除 | 削除 | 失効 |
-| `close-window` / `kill` | session 関連を解除 | 削除 | 失効 |
-| `daemon-stop` | daemon 終了で全消滅 | daemon 終了で全消滅 | daemon 終了で全消滅 |
+| `list-windows` | Issued and synchronized | May appear if an existing session exists | Unchanged |
+| `attach` | Associated with a session | Issued or reused | Issued on snapshot |
+| `snapshot` | Unchanged | Preserved | Current snapshot element set updated |
+| `click` / `fill` | Unchanged | Preserved | Updated by the post-action snapshot |
+| `wait-for-element` | Unchanged | Preserved | Unchanged |
+| `wait-for-window` | Unchanged | Unchanged | Unchanged |
+| `launch` | Unchanged | Unchanged | N/A until later attach |
+| `detach` | Association removed | Deleted | Invalidated |
+| `close-window` / `kill` | Association removed | Deleted | Invalidated |
+| `daemon-stop` | All refs disappear when the daemon exits | All refs disappear when the daemon exits | All refs disappear when the daemon exits |
 
-## 失効時の考え方
+## Invalidation summary
 
-| 状況 | 代表エラー | 対処 |
+| Situation | Typical error | Recovery |
 | --- | --- | --- |
-| `w<n>` が unknown / retired | `INVALID_WINDOW_REF` | `list-windows` を再実行し、最新の `windowRef` を使う |
-| `s<n>` が存在しない | `INVALID_ARGUMENT` または `NO_ACTIVE_SESSION` | `attach` し直す |
-| `s<sid>e<eid>` が malformed | `INVALID_REF_FORMAT` または `REF_NOT_FOUND` | snapshot の ref をそのまま使う |
-| element が現 snapshot に存在しない | `REF_NOT_FOUND` | `snapshot` を再取得し、新しい ref を選ぶ |
-| daemon が再起動した | 各種 not found / connection 状態リセット | `list-windows` からやり直す |
+| `w<n>` is unknown or retired | `INVALID_WINDOW_REF` | Run `list-windows` again |
+| `s<n>` does not exist | `INVALID_ARGUMENT` or `NO_ACTIVE_SESSION` | Re-attach |
+| `s<sid>e<eid>` is malformed | `INVALID_REF_FORMAT` or `REF_NOT_FOUND` | Copy the ref from the latest snapshot |
+| Element is missing from the current snapshot | `REF_NOT_FOUND` | Re-snapshot and choose a new ref |
+| Daemon restarted | Connection/state reset | Start from `list-windows` again |
 
-## 安定化の方針
+## Stability policy
 
-ADACT の Element Ref は Playwright MCP の `_ariaRef` に近い考え方で、同じ要素には同じ短い ref を再利用することを目指しています。現行実装の StableKey は次の優先順です。
+Element refs are intended to behave like Playwright MCP `_ariaRef` values: the same element should keep a short ref when possible. Current stability order is:
 
-| 優先度 | StableKey | 備考 |
+| Priority | Stable key | Notes |
 | ---: | --- | --- |
-| 1 | UIA RuntimeId | 主要対象アプリで安定性が確認されている |
-| 2 | 出現順 fallback | RuntimeId が取れない場合の最小保証。同 snapshot 内では一意 |
+| 1 | UIA RuntimeId | Stable enough for the primary supported apps |
+| 2 | Positional fallback | Minimal guarantee when RuntimeId is unavailable |
 
-将来的には親 path、ControlType、AutomationId、Name、child index などを組み合わせた合成 key を検討します。
+## References
 
-## 参照
-
-| 文書 | 内容 |
+| Document | Description |
 | --- | --- |
-| [../../discussion/011_ref安定化.md](../../discussion/011_ref安定化.md) | generation 廃止と RuntimeId ベース安定化の設計 |
-| [snapshot.md](snapshot.md) | snapshot 内での ref 表示形式 |
-| [mcp-tools.md](mcp-tools.md) | MCP tools の ref 引数 |
-
-## 2026-05 CLI 出力統一補足
-
-- `sessionId` は CLI の通常メタ領域には出さず、必要なコマンドの本文でのみ表示する。
-- `windowRef` は通常成功出力から廃止し、`list-windows` の TSV 本文列としてのみ残す。
+| [snapshot.md](snapshot.md) | Ref display format inside snapshots |
+| [mcp-tools.md](mcp-tools.md) | Ref arguments for MCP tools |

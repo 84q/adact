@@ -4,9 +4,7 @@ using Xunit;
 
 namespace Adact.Mcp.Common.Tests.Unit;
 
-/// <summary>
-/// Verifies SessionStore registration, active session, lookup, removal, and locking contracts.
-/// </summary>
+/// <summary>Contains tests for the Session Store behavior.</summary>
 [Trait("Layer", "Unit")]
 public class SessionStoreTests
 {
@@ -22,9 +20,7 @@ public class SessionStoreTests
     private static WindowSession Session(int id)
         => WindowSession.CreateForTest(id, Info(id));
 
-    /// <summary>
-    /// Register stores a session and makes it active.
-    /// </summary>
+    /// <summary>Performs the Register Sets Active Session And Allows Lookup operation.</summary>
     [Fact]
     public void Register_SetsActiveSessionAndAllowsLookup()
     {
@@ -39,9 +35,7 @@ public class SessionStoreTests
         Assert.Same(session, store.GetActiveOrNull());
     }
 
-    /// <summary>
-    /// Registering another session switches the active session without removing the first.
-    /// </summary>
+    /// <summary>Performs the Register Second Session Replaces Active Session operation.</summary>
     [Fact]
     public void Register_SecondSession_ReplacesActiveSession()
     {
@@ -58,9 +52,7 @@ public class SessionStoreTests
         Assert.Same(first, resolvedFirst);
     }
 
-    /// <summary>
-    /// ResolveByRef maps valid ref ids to their owning session and rejects invalid refs.
-    /// </summary>
+    /// <summary>Resolves the Resolve By Ref Returns Owning Session value.</summary>
     [Fact]
     public void ResolveByRef_ReturnsOwningSession()
     {
@@ -73,9 +65,7 @@ public class SessionStoreTests
         Assert.Null(store.ResolveByRef("s99e1"));
     }
 
-    /// <summary>
-    /// Removing the active session clears ActiveSessionId and lookup state.
-    /// </summary>
+    /// <summary>Attempts to perform the Try Remove Active Session Removes And Clears Active operation.</summary>
     [Fact]
     public void TryRemove_ActiveSession_RemovesAndClearsActive()
     {
@@ -92,9 +82,7 @@ public class SessionStoreTests
         Assert.False(store.TryGet("s1", out _));
     }
 
-    /// <summary>
-    /// Removing a non-active session leaves the current active session unchanged.
-    /// </summary>
+    /// <summary>Attempts to perform the Try Remove Non Active Session Keeps Current Active operation.</summary>
     [Fact]
     public void TryRemove_NonActiveSession_KeepsCurrentActive()
     {
@@ -112,9 +100,7 @@ public class SessionStoreTests
         Assert.Same(second, store.GetActiveOrNull());
     }
 
-    /// <summary>
-    /// Removing an unknown session returns false and no removed session.
-    /// </summary>
+    /// <summary>Attempts to perform the Try Remove Unknown Session Returns False operation.</summary>
     [Fact]
     public void TryRemove_UnknownSession_ReturnsFalse()
     {
@@ -126,9 +112,7 @@ public class SessionStoreTests
         Assert.Null(removedSession);
     }
 
-    /// <summary>
-    /// ListAll returns the currently registered sessions.
-    /// </summary>
+    /// <summary>Performs the List All Returns Snapshot Of Current Sessions operation.</summary>
     [Fact]
     public void ListAll_ReturnsSnapshotOfCurrentSessions()
     {
@@ -145,9 +129,7 @@ public class SessionStoreTests
         Assert.Contains(sessions, e => e.Key == "s2" && ReferenceEquals(e.Value, second));
     }
 
-    /// <summary>
-    /// AcquireAsync serializes access until the returned guard is disposed.
-    /// </summary>
+    /// <summary>Performs the Acquire Async Serializes Access Until Guard Is Disposed operation.</summary>
     [Fact]
     public async Task AcquireAsync_SerializesAccessUntilGuardIsDisposed()
     {
@@ -161,9 +143,7 @@ public class SessionStoreTests
         using var secondGuard = await secondAcquire.WaitAsync(TimeSpan.FromSeconds(1));
     }
 
-    /// <summary>
-    /// Dispose clears sessions and is idempotent.
-    /// </summary>
+    /// <summary>Performs the Dispose Can Be Called More Than Once operation.</summary>
     [Fact]
     public void Dispose_CanBeCalledMoreThanOnce()
     {
@@ -176,9 +156,7 @@ public class SessionStoreTests
         Assert.Empty(store.ListAll());
     }
 
-    /// <summary>
-    /// SessionStore.Dispose は利用中の UiaEngine を破棄せず、所有権を呼び出し側へ残すことを確認する。
-    /// </summary>
+    /// <summary>Performs the Dispose Does Not Dispose Engine operation.</summary>
     [Fact]
     public async Task Dispose_DoesNotDisposeEngine()
     {
@@ -187,22 +165,16 @@ public class SessionStoreTests
 
         store.Dispose();
 
-        // Engine が Dispose されていなければ ThrowIfDisposed() を通過する。
-        // ListWindowsAsync は ThrowIfDisposed() を最初に呼ぶため、
-        // ObjectDisposedException が出なければ Engine は生存している。
         var ex = await Record.ExceptionAsync(() => engine.ListWindowsAsync());
         Assert.False(ex is ObjectDisposedException,
             "SessionStore.Dispose should not dispose the injected UiaEngine.");
 
         engine.Dispose();
 
-        // 明示 Dispose 後は ObjectDisposedException になること。
         await Assert.ThrowsAsync<ObjectDisposedException>(() => engine.ListWindowsAsync());
     }
 
-    /// <summary>
-    /// 複数タスクから同時に Register してもすべてのセッションが登録されることを確認する。
-    /// </summary>
+    /// <summary>Performs the Register Concurrent Access All Sessions Registered operation.</summary>
     [Fact]
     public async Task Register_ConcurrentAccess_AllSessionsRegistered()
     {
@@ -219,9 +191,7 @@ public class SessionStoreTests
         Assert.Equal(count, all.Count);
     }
 
-    /// <summary>
-    /// 複数タスクから同時に TryRemove してもデータ不整合が起きないことを確認する。
-    /// </summary>
+    /// <summary>Attempts to perform the Try Remove Concurrent Access No Data Corruption operation.</summary>
     [Fact]
     public async Task TryRemove_ConcurrentAccess_NoDataCorruption()
     {

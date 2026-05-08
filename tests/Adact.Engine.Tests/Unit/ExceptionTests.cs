@@ -4,18 +4,11 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Unit;
 
-/// <summary>
-/// Engine が投げる例外型 (WindowNotFound / RefNotFound / ElementInteraction) の
-/// プロパティ・メッセージ生成を検証する Unit テスト。
-/// errors-and-output.md のエラーメッセージ仕様の回帰防止。
-/// </summary>
+/// <summary>Contains tests for the Exception behavior.</summary>
 [Trait("Layer", "Unit")]
 public class ExceptionTests
 {
-    /// <summary>
-    /// HWND 指定で生成された WindowNotFoundException のメッセージに HWND 値が 16 進で含まれることを確認する。
-    /// HWND ベース attach 失敗の診断情報がエラーメッセージから読めることの担保。
-    /// </summary>
+    /// <summary>Performs the Window Not Found Exception Given Hwnd Message Contains Hwnd Hex operation.</summary>
     [Fact]
     public void WindowNotFoundException_GivenHwnd_MessageContainsHwndHex()
     {
@@ -24,9 +17,7 @@ public class ExceptionTests
         Assert.Contains("ABCD", ex.Message);
     }
 
-    /// <summary>
-    /// RefNotFoundException の RefId/Reason プロパティが保持され、メッセージに両方が含まれることを確認する。
-    /// </summary>
+    /// <summary>Performs the Ref Not Found Exception Given Ref Id And Reason Preserves Both In Properties operation.</summary>
     [Fact]
     public void RefNotFoundException_GivenRefIdAndReason_PreservesBothInProperties()
     {
@@ -37,9 +28,7 @@ public class ExceptionTests
         Assert.Contains("not found in current snapshot", ex.Message);
     }
 
-    /// <summary>
-    /// ElementInteractionException の Operation プロパティが保持され、メッセージに operation/reason が含まれることを確認する。
-    /// </summary>
+    /// <summary>Performs the Element Interaction Exception Given Operation Name Preserves Operation Property operation.</summary>
     [Fact]
     public void ElementInteractionException_GivenOperationName_PreservesOperationProperty()
     {

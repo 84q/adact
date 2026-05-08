@@ -1,14 +1,17 @@
 namespace Adact.Engine.Exceptions;
 
-/// <summary>UIA ツリー走査または JSON 構築中に発生した snapshot 失敗を表す例外。</summary>
+/// <summary>
+/// Thrown when snapshot generation fails.
+/// </summary>
 public sealed class SnapshotException : AdactException
 {
-    /// <summary>メッセージのみを指定して新しいインスタンスを初期化する。</summary>
-    /// <param name="message">人間可読のエラーメッセージ。</param>
+    /// <summary>
+    /// Creates a new snapshot exception.
+    /// </summary>
     public SnapshotException(string message) : base(message) { }
 
-    /// <summary>メッセージと内部例外を指定して新しいインスタンスを初期化する。</summary>
-    /// <param name="message">人間可読のエラーメッセージ。</param>
-    /// <param name="inner">この例外を引き起こした内部例外。</param>
+    /// <summary>
+    /// Creates a new snapshot exception with an inner exception.
+    /// </summary>
     public SnapshotException(string message, Exception inner) : base(message, inner) { }
 }

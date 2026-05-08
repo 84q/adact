@@ -5,17 +5,11 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// <see cref="AttachCommand.ValidateAttachArgs"/> の入力検証ロジックを検証する Unit テスト。
-/// CLI の positional ref 必須・<c>w&lt;n&gt;</c> 形式 (cli.md §attach) の回帰防止。
-/// </summary>
+/// <summary>Contains tests for the Attach Command behavior.</summary>
 [Trait("Layer", "Unit")]
 public class AttachCommandTests
 {
-    /// <summary>
-    /// ref が未指定のとき INVALID_ARGUMENT エラーと、説明メッセージが返ることを確認する。
-    /// 必須 positional 引数の欠落を CLI 段階で検知する仕様の担保。
-    /// </summary>
+    /// <summary>Performs the Validate Attach Args Ref Null Returns Invalid Argument operation.</summary>
     [Fact]
     public void ValidateAttachArgs_RefNull_ReturnsInvalidArgument()
     {
@@ -26,9 +20,7 @@ public class AttachCommandTests
         Assert.NotNull(message);
     }
 
-    /// <summary>
-    /// ref の値が "w&lt;n&gt;" フォーマットでないときエラーとなり、フォーマットヒントを出すことを確認する。
-    /// </summary>
+    /// <summary>Performs the Validate Attach Args Invalid Ref Format Returns Invalid Argument operation.</summary>
     [Fact]
     public void ValidateAttachArgs_InvalidRefFormat_ReturnsInvalidArgument()
     {
@@ -39,9 +31,7 @@ public class AttachCommandTests
         Assert.Contains("w<n>", message);
     }
 
-    /// <summary>
-    /// 正規の windowRef ("w3" 等) 指定は有効でありエラーにならないことを確認する。
-    /// </summary>
+    /// <summary>Performs the Validate Attach Args Ref Only Succeeds operation.</summary>
     [Fact]
     public void ValidateAttachArgs_RefOnly_Succeeds()
     {

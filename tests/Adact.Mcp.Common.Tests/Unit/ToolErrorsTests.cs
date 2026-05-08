@@ -9,15 +9,11 @@ using Xunit;
 
 namespace Adact.Mcp.Common.Tests.Unit;
 
-/// <summary>
-/// Verifies MCP error result conversion for business exceptions.
-/// </summary>
+/// <summary>Contains tests for the Tool Errors behavior.</summary>
 [Trait("Layer", "Unit")]
 public class ToolErrorsTests
 {
-    /// <summary>
-    /// Returns business exception samples and their expected MCP error codes.
-    /// </summary>
+    /// <summary>Performs the Business Exception Cases operation.</summary>
     public static IEnumerable<object[]> BusinessExceptionCases()
     {
         yield return [new WindowNotFoundException(0x1234), ToolErrors.WindowNotFound];
@@ -31,9 +27,7 @@ public class ToolErrorsTests
         yield return [new OperationBlockedException("desktop locked", new InvalidOperationException("inner")), ToolErrors.OperationBlocked];
     }
 
-    /// <summary>
-    /// Business exceptions are mapped to isError results with code, message, and text content.
-    /// </summary>
+    /// <summary>Attempts to perform the Try Map Business Exceptions Returns Structured Error operation.</summary>
     [Theory]
     [MemberData(nameof(BusinessExceptionCases))]
     public void TryMap_BusinessExceptions_ReturnsStructuredError(Exception ex, string expectedCode)
@@ -53,9 +47,7 @@ public class ToolErrorsTests
         Assert.Equal($"{expectedCode}: {ex.Message}", block.Text);
     }
 
-    /// <summary>
-    /// RefNotFoundException includes the unresolved ref id in details.
-    /// </summary>
+    /// <summary>Attempts to perform the Try Map Ref Not Found Includes Ref Id Details operation.</summary>
     [Fact]
     public void TryMap_RefNotFound_IncludesRefIdDetails()
     {
@@ -67,9 +59,7 @@ public class ToolErrorsTests
         Assert.Equal("s9e8", details.GetProperty("refId").GetString());
     }
 
-    /// <summary>
-    /// Unknown exceptions are left unmapped for the host to treat as systemic errors.
-    /// </summary>
+    /// <summary>Attempts to perform the Try Map Unknown Exception Returns Null operation.</summary>
     [Fact]
     public void TryMap_UnknownException_ReturnsNull()
     {
@@ -78,9 +68,7 @@ public class ToolErrorsTests
         Assert.Null(result);
     }
 
-    /// <summary>
-    /// Error omits details when no details object is supplied.
-    /// </summary>
+    /// <summary>Performs the Error Without Details Omits Details Property operation.</summary>
     [Fact]
     public void Error_WithoutDetails_OmitsDetailsProperty()
     {
@@ -94,9 +82,7 @@ public class ToolErrorsTests
         Assert.False(structured.TryGetProperty("details", out _));
     }
 
-    /// <summary>
-    /// Error preserves a supplied details object in structured content.
-    /// </summary>
+    /// <summary>Performs the Error With Details Embeds Details Object operation.</summary>
     [Fact]
     public void Error_WithDetails_EmbedsDetailsObject()
     {

@@ -3,8 +3,14 @@ using System.Windows.Controls;
 
 namespace SampleApp.Tabs;
 
+/// <summary>
+/// Demonstrates selection behavior across combo boxes, list boxes, and item sources.
+/// </summary>
 public partial class SelectionTab : UserControl
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SelectionTab"/> class.
+    /// </summary>
     public SelectionTab()
     {
         InitializeComponent();
@@ -46,9 +52,23 @@ public partial class SelectionTab : UserControl
     }
 }
 
+/// <summary>
+/// Represents a product displayed in the selection sample list view.
+/// </summary>
 public class Product
 {
+    /// <summary>
+    /// Gets or sets the product name.
+    /// </summary>
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the product category.
+    /// </summary>
     public string Category { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the product price.
+    /// </summary>
     public double Price { get; set; }
 }

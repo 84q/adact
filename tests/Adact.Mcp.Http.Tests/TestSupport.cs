@@ -4,6 +4,7 @@ namespace Adact.Mcp.Http.Tests;
 
 internal static class SampleAppWindowFinder
 {
+    /// <summary>Performs the Find Window Ref operation.</summary>
     public static string? FindWindowRef(string listText)
     {
         using var listDoc = JsonDocument.Parse(listText);

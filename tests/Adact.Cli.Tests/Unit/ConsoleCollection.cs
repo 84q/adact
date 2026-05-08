@@ -2,12 +2,10 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// Console.Out / Console.Error をグローバルにリダイレクトするテストを直列実行するための xUnit collection。
-/// </summary>
+/// <summary>Defines a shared test collection.</summary>
 [CollectionDefinition(Name, DisableParallelization = true)]
 public sealed class ConsoleCollection
 {
-    /// <summary>collection 名コード。<c>[Collection(...)]</c> で参照される。</summary>
+    /// <summary>Gets the Name value.</summary>
     public const string Name = "Console";
 }

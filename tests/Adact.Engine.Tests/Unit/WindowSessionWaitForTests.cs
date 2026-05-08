@@ -5,13 +5,7 @@ using Xunit;
 
 namespace Adact.Engine.Tests.Unit;
 
-/// <summary>
-/// <see cref="WindowSession.WaitForRefAsync(string, WaitForState, TimeSpan, CancellationToken)"/> /
-/// <see cref="WindowSession.WaitForQueryAsync(WaitForElementQuery, WaitForState, TimeSpan, CancellationToken)"/>
-/// および周辺の値型 (<see cref="WaitForStateParser"/>, <see cref="WaitForElementQuery"/>,
-/// <see cref="WindowSearchQuery"/>) の引数検証・Dispose 挙動を確認する Unit テスト。
-/// 実 UIA / FlaUI には依存せず、UIA 到達前で弾かれる例外のみを検証する。
-/// </summary>
+/// <summary>Contains tests for the Window Session Wait For behavior.</summary>
 [Trait("Layer", "Unit")]
 public class WindowSessionWaitForTests
 {
@@ -39,7 +33,7 @@ public class WindowSessionWaitForTests
         return WindowSession.CreateForTest(1, info, root);
     }
 
-    /// <summary>WaitForRefAsync は refId が null の場合 ArgumentNullException を投げる。</summary>
+    /// <summary>Waits for the Wait For Ref Async Null Ref Throws Argument Null Exception condition.</summary>
     [Fact]
     public async Task WaitForRefAsync_NullRef_ThrowsArgumentNullException()
     {
@@ -48,7 +42,7 @@ public class WindowSessionWaitForTests
             session.WaitForRefAsync(null!, WaitForState.Visible, TimeSpan.FromSeconds(1)));
     }
 
-    /// <summary>WaitForRefAsync は timeout が 0 以下の場合 ArgumentOutOfRangeException を投げる。</summary>
+    /// <summary>Waits for the Wait For Ref Async Non Positive Timeout Throws Argument Out Of Range condition.</summary>
     [Fact]
     public async Task WaitForRefAsync_NonPositiveTimeout_ThrowsArgumentOutOfRange()
     {
@@ -57,7 +51,7 @@ public class WindowSessionWaitForTests
             session.WaitForRefAsync("s1e1", WaitForState.Visible, TimeSpan.Zero));
     }
 
-    /// <summary>WaitForRefAsync は Dispose 済みセッションで ObjectDisposedException を投げる。</summary>
+    /// <summary>Waits for the Wait For Ref Async After Dispose Throws Object Disposed condition.</summary>
     [Fact]
     public async Task WaitForRefAsync_AfterDispose_ThrowsObjectDisposed()
     {
@@ -67,7 +61,7 @@ public class WindowSessionWaitForTests
             session.WaitForRefAsync("s1e1", WaitForState.Visible, TimeSpan.FromMilliseconds(50)));
     }
 
-    /// <summary>WaitForQueryAsync は条件未指定で ArgumentException を投げる。</summary>
+    /// <summary>Waits for the Wait For Query Async No Condition Throws Argument Exception condition.</summary>
     [Fact]
     public async Task WaitForQueryAsync_NoCondition_ThrowsArgumentException()
     {
@@ -77,7 +71,7 @@ public class WindowSessionWaitForTests
             session.WaitForQueryAsync(query, WaitForState.Visible, TimeSpan.FromMilliseconds(50)));
     }
 
-    /// <summary>WaitForQueryAsync は state=Detached を ArgumentException で拒否する。</summary>
+    /// <summary>Waits for the Wait For Query Async Detached State Throws Argument Exception condition.</summary>
     [Fact]
     public async Task WaitForQueryAsync_DetachedState_ThrowsArgumentException()
     {
@@ -87,7 +81,7 @@ public class WindowSessionWaitForTests
             session.WaitForQueryAsync(query, WaitForState.Detached, TimeSpan.FromMilliseconds(50)));
     }
 
-    /// <summary>WaitForStateParser は許容ワイヤ値を全て受け入れる (case-insensitive)。</summary>
+    /// <summary>Waits for the Wait For State Parser Parses Known Values condition.</summary>
     [Theory]
     [InlineData("attached", WaitForState.Attached)]
     [InlineData("detached", WaitForState.Detached)]
@@ -103,7 +97,7 @@ public class WindowSessionWaitForTests
         Assert.Equal(expected, actual);
     }
 
-    /// <summary>WaitForStateParser は未知の値を拒否する。</summary>
+    /// <summary>Waits for the Wait For State Parser Rejects Unknown Values condition.</summary>
     [Theory]
     [InlineData("focused")]
     [InlineData("")]
@@ -113,7 +107,7 @@ public class WindowSessionWaitForTests
         Assert.False(WaitForStateParser.TryParse(wire, out _));
     }
 
-    /// <summary>WaitForStateParser.ToWireString は小文字ワイヤ値を返す。</summary>
+    /// <summary>Waits for the Wait For State Parser To Wire String Returns Lowercase condition.</summary>
     [Fact]
     public void WaitForStateParser_ToWireString_ReturnsLowercase()
     {
@@ -121,7 +115,7 @@ public class WindowSessionWaitForTests
         Assert.Equal("disabled", WaitForStateParser.ToWireString(WaitForState.Disabled));
     }
 
-    /// <summary>WaitForElementQuery.HasAnyCondition は少なくとも 1 フィールドが非空のとき true。</summary>
+    /// <summary>Waits for the Wait For Element Query Has Any Condition condition.</summary>
     [Theory]
     [InlineData(null, null, null, null, false)]
     [InlineData("", "", "", "", false)]
@@ -135,7 +129,7 @@ public class WindowSessionWaitForTests
         Assert.Equal(expected, q.HasAnyCondition);
     }
 
-    /// <summary>WindowSearchQuery.Matches は正規表現の AND マッチで判定する (case-insensitive)。</summary>
+    /// <summary>Performs the Window Search Query Matches And Combined Regexes operation.</summary>
     [Fact]
     public void WindowSearchQuery_Matches_AndCombinedRegexes()
     {
@@ -157,7 +151,7 @@ public class WindowSessionWaitForTests
         Assert.False(new WindowSearchQuery("Untitled", null, "calculator", null).Matches(info, executablePath: null));
     }
 
-    /// <summary>WindowSearchQuery.Matches は --exe 条件で executable path に対して照合する。</summary>
+    /// <summary>Performs the Window Search Query Matches Against Executable Path operation.</summary>
     [Fact]
     public void WindowSearchQuery_Matches_AgainstExecutablePath()
     {
@@ -168,7 +162,7 @@ public class WindowSessionWaitForTests
         Assert.False(q.Matches(info, executablePath: @"C:\Other\notepad.exe"));
     }
 
-    /// <summary>WindowSearchQuery.Matches は不正な regex を例外にせず false を返す。</summary>
+    /// <summary>Performs the Window Search Query Matches Bad Regex Returns False operation.</summary>
     [Fact]
     public void WindowSearchQuery_Matches_BadRegexReturnsFalse()
     {
@@ -177,7 +171,7 @@ public class WindowSessionWaitForTests
         Assert.False(q.Matches(info, executablePath: null));
     }
 
-    /// <summary>WaitForResult は record として値等価性を持つ。</summary>
+    /// <summary>Waits for the Wait For Result Is Record With Value Equality condition.</summary>
     [Fact]
     public void WaitForResult_IsRecordWithValueEquality()
     {
@@ -186,7 +180,7 @@ public class WindowSessionWaitForTests
         Assert.Equal(a, b);
     }
 
-    /// <summary>WaitForRefAsync はキャンセルトークンが発火済みの場合、即座に OperationCanceledException を投げる。</summary>
+    /// <summary>Waits for the Wait For Ref Async Cancelled Throws Operation Canceled Exception condition.</summary>
     [Fact]
     public async Task WaitForRefAsync_Cancelled_ThrowsOperationCanceledException()
     {
@@ -202,7 +196,7 @@ public class WindowSessionWaitForTests
             session.WaitForRefAsync("s1e2", WaitForState.Visible, TimeSpan.FromSeconds(1), cts.Token));
     }
 
-    /// <summary>WaitForQueryAsync はキャンセルトークンが発火済みの場合、即座に OperationCanceledException を投げる。</summary>
+    /// <summary>Waits for the Wait For Query Async Cancelled Throws Operation Canceled Exception condition.</summary>
     [Fact]
     public async Task WaitForQueryAsync_Cancelled_ThrowsOperationCanceledException()
     {
@@ -220,7 +214,7 @@ public class WindowSessionWaitForTests
                 cts.Token));
     }
 
-    /// <summary>WaitForRefAsync は状態が満たされずタイムアウトに達した場合、WaitTimeoutException を投げる。</summary>
+    /// <summary>Waits for the Wait For Ref Async Visible Not Satisfied Throws Wait Timeout Exception condition.</summary>
     [Fact]
     public async Task WaitForRefAsync_VisibleNotSatisfied_ThrowsWaitTimeoutException()
     {
@@ -237,6 +231,7 @@ public class WindowSessionWaitForTests
         Assert.Contains("s1e2", ex.Message, StringComparison.Ordinal);
     }
 
+    /// <summary>Waits for the Wait For Query Async Visible Match Returns Matching Ref condition.</summary>
     [Fact]
     public async Task WaitForQueryAsync_VisibleMatch_ReturnsMatchingRef()
     {
@@ -252,6 +247,7 @@ public class WindowSessionWaitForTests
         Assert.Equal(WaitForState.Visible, result.State);
     }
 
+    /// <summary>Waits for the Wait For Query Async Hidden Not Satisfied Throws Wait Timeout Exception condition.</summary>
     [Fact]
     public async Task WaitForQueryAsync_HiddenNotSatisfied_ThrowsWaitTimeoutException()
     {

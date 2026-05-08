@@ -13,14 +13,7 @@ namespace Adact.Mcp.Common;
 public sealed partial class WindowsTools
 {
     /// <summary>
-    /// アタッチ済みウィンドウまたは指定要素の bounding rect を PNG として保存する (設計 022 §10)。
-    /// auto-snapshot は発火しない。
     /// </summary>
-    /// <param name="ref">クリップ対象の Element Ref。null/省略でウィンドウ全体。</param>
-    /// <param name="out">出力ファイルパス。null/省略で <c>.adact/screenshot-&lt;sid&gt;-&lt;ts&gt;.png</c>。</param>
-    /// <param name="sessionId"><paramref name="ref"/> 未指定時のみ参照される対象 session。null はアクティブ。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>保存先 / 幅 / 高さを JSON で返す <see cref="CallToolResult"/>。</returns>
     [McpServerTool(Name = "adact_screenshot")]
     [Description("Capture a PNG screenshot of the attached window (or a specific element when ref is provided) and save it to disk. No snapshot is taken.")]
     public async Task<CallToolResult> ScreenshotAsync(

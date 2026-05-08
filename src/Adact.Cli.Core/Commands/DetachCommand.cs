@@ -3,12 +3,9 @@ using System.CommandLine;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>detach</c> コマンド。session を解放するが window 本体はそのまま残す。
 /// </summary>
 internal static class DetachCommand
 {
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>detach サブコマンド。</returns>
     public static Command Build()
     {
         var sid = new Argument<string?>("sid") { Description = "Target session ID (default: active session)." };

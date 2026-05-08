@@ -5,8 +5,14 @@ using Microsoft.Win32;
 
 namespace SampleApp.Tabs;
 
+/// <summary>
+/// Demonstrates common dialog interactions such as message boxes and file dialogs.
+/// </summary>
 public partial class DialogsTab : UserControl
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DialogsTab"/> class.
+    /// </summary>
     public DialogsTab()
     {
         InitializeComponent();

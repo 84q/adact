@@ -1,21 +1,21 @@
 namespace Adact.Engine;
 
 /// <summary>
-/// <see cref="WindowSession.WaitForQueryAsync"/> の検索条件。
-/// 指定されたフィールドはすべて exact match (case-insensitive) で AND 結合される。
-/// 少なくとも 1 つのフィールドを設定する必要がある。
+/// Describes a wait-for query against element properties.
 /// </summary>
-/// <param name="Name">UIA Name プロパティ exact match。</param>
-/// <param name="ControlType">UIA ControlType (例 "Button") exact match (case-insensitive)。</param>
-/// <param name="AutomationId">AutomationId exact match。</param>
-/// <param name="ClassName">ClassName exact match。</param>
+/// <param name="Name">Exact name match.</param>
+/// <param name="ControlType">Exact control type match.</param>
+/// <param name="AutomationId">Exact AutomationId match.</param>
+/// <param name="ClassName">Exact ClassName match.</param>
 public sealed record WaitForElementQuery(
     string? Name = null,
     string? ControlType = null,
     string? AutomationId = null,
     string? ClassName = null)
 {
-    /// <summary>少なくとも 1 つのフィールドが設定されているなら true。</summary>
+    /// <summary>
+    /// Gets whether at least one condition is set.
+    /// </summary>
     public bool HasAnyCondition =>
         !string.IsNullOrEmpty(Name)
         || !string.IsNullOrEmpty(ControlType)

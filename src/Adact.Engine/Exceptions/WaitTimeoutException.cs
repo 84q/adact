@@ -1,12 +1,12 @@
 namespace Adact.Engine.Exceptions;
 
 /// <summary>
-/// <see cref="WindowSession.WaitForRefAsync"/> / <see cref="WindowSession.WaitForQueryAsync"/> /
-/// <see cref="UiaEngine.WaitForWindowAsync"/> が指定タイムアウト内に成功条件を満たせなかった場合に投げる例外。
+/// Thrown when a wait-for operation times out.
 /// </summary>
 public sealed class WaitTimeoutException : AdactException
 {
-    /// <summary>新しいインスタンスをメッセージ指定で初期化する。</summary>
-    /// <param name="message">人間可読のエラーメッセージ。</param>
+    /// <summary>
+    /// Creates a new wait-timeout exception.
+    /// </summary>
     public WaitTimeoutException(string message) : base(message) { }
 }

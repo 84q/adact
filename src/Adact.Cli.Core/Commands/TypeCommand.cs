@@ -4,11 +4,8 @@ using Adact.Cli.Output;
 
 namespace Adact.Cli.Commands;
 
-/// <summary><c>type</c> コマンド。要素にフォーカスしテキストを 1 文字ずつ Type する (auto-snapshot あり)。</summary>
 internal static class TypeCommand
 {
-    /// <summary>type サブコマンドを構築する。</summary>
-    /// <returns>System.CommandLine 用 <see cref="Command"/>。</returns>
     public static Command Build()
     {
         var refArg = new Argument<string>("ref") { Description = "Element Ref ID like 's1e7'." };

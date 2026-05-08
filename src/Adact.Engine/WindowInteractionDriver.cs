@@ -12,8 +12,6 @@ using FlaUiMouseButton = FlaUI.Core.Input.MouseButton;
 namespace Adact.Engine;
 
 /// <summary>
-/// WindowSession の keyboard / mouse / auto-wait 操作境界。
-/// Production は FlaUI / Process を使い、テストでは fake driver を差し込む。
 /// </summary>
 internal interface IWindowInteractionDriver
 {

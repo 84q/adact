@@ -6,41 +6,32 @@ using Adact.Engine.Elements;
 namespace Adact.Engine.Snapshot;
 
 /// <summary>
-/// IElement のツリーを raw 全要素・全フィールドの JSON に変換するビルダ。
-///
-/// Phase 7 でフィルタ (operable/raw 切替・フィールド選別) は CLI 側へ移譲したため、
-/// ここでは原則すべての子要素を含め、UIA から取得できるプロパティを欠落なく出力する。
-/// モーダル兄弟ノード ( <c>isModalDialog: true</c> ) は引き続き root window の追加子として
-/// 挿入する (Architecture §6.5)。
+/// Builds JSON snapshots from UIA elements.
 /// </summary>
 public sealed class SnapshotBuilder
 {
-    /// <summary>SnapshotOptions.MaxDepth が 0 以下や未指定相当の時に使う既定の再帰深度上限。</summary>
     private const int DefaultMaxDepth = 64;
 
-    /// <summary>snapshot 中の Ref ID 採番に使うセッション固有レジストリ。</summary>
     private readonly RefRegistry _registry;
-    /// <summary>現 snapshot で既に出力済みの ref ID 集合。UWP の FindAllDescendants フラットリストによる重複を防ぐ。</summary>
     private readonly HashSet<string> _emittedRefs = new();
-    /// <summary>モーダル兄弟の RuntimeId 文字列集合。DFS 中にモーダル要素を検出して isModalDialog を付与するために使う。</summary>
     private HashSet<string>? _modalRuntimeIds;
 
-    /// <summary>新しいビルダーを <see cref="RefRegistry"/> 紐付けで初期化する。</summary>
-    /// <param name="registry">snapshot 中の Ref ID 採番に使用するセッション固有レジストリ。</param>
+    /// <summary>
+    /// Creates a new snapshot builder.
+    /// </summary>
     public SnapshotBuilder(RefRegistry registry)
     {
         _registry = registry;
     }
 
-    /// <summary>UIA ツリーを走査し、JSON snapshot を構築する。</summary>
-    /// <param name="input">root ウィンドウ・モーダル兄弟・オプションおよびメタ情報。</param>
-    /// <returns>構築された snapshot JSON とセッション ID 文字列。</returns>
+    /// <summary>
+    /// Builds a snapshot from the supplied input.
+    /// </summary>
     public SnapshotBuildResult Build(SnapshotBuildInput input)
     {
         _registry.BeginSnapshot();
         _emittedRefs.Clear();
 
-        // モーダル兄弟の RuntimeId を事前収集。DFS 中に UIA ツリー上のモーダル要素を検出するために使う。
         _modalRuntimeIds = null;
         if (input.ModalSiblings.Count > 0)
         {
@@ -57,7 +48,6 @@ public sealed class SnapshotBuilder
 
         var maxDepth = input.Options.MaxDepth > 0 ? input.Options.MaxDepth : DefaultMaxDepth;
 
-        // DFS 出現順カウンタ。RuntimeId 取得不可な要素の StableKey フォールバックに用いる。
         var positionalIndex = 0;
 
         var rootNode = BuildNode(input.RootWindow, depth: 0, maxDepth, isModalDialog: false, isPopup: false, ref positionalIndex);
@@ -81,8 +71,6 @@ public sealed class SnapshotBuilder
                 }
                 else
                 {
-                    // DFS で既に isModalDialog: true として出力済み。
-                    // modalSummaries にのみ追加する。
                     var refId = _registry.Register(modal, positionalIndex);
                     positionalIndex++;
                     modalSummaries.Add(new JsonObject
@@ -136,7 +124,6 @@ public sealed class SnapshotBuilder
         return new SnapshotBuildResult(json, $"s{_registry.SessionId}");
     }
 
-    /// <summary>raw 全フィールドを JSON ノードとして出力する (フィルタなし、すべての子を再帰)。</summary>
     private JsonObject? BuildNode(
         IElement el, int depth, int maxDepth, bool isModalDialog, bool isPopup, ref int positionalIndex)
     {
@@ -170,7 +157,6 @@ public sealed class SnapshotBuilder
         node["hasKeyboardFocus"] = el.HasKeyboardFocus;
         if (el.IsSelected) node["isSelected"] = true;
 
-        // DFS 中にモーダル兄弟を発見した場合もフラグを設定
         if (!isModalDialog && _modalRuntimeIds is not null)
         {
             var rid = el.RuntimeId;

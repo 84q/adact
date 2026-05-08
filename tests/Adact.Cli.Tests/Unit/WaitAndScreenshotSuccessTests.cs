@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
+/// <summary>Contains tests for the Wait And Screenshot Success behavior.</summary>
 [Trait("Layer", "Unit")]
 [Collection(ConsoleCollection.Name)]
 public class WaitAndScreenshotSuccessTests
@@ -18,12 +19,16 @@ public class WaitAndScreenshotSuccessTests
     private sealed class FakeClient : IAdactMcpClient
     {
         private readonly Queue<CallToolResult> _results = new();
+        /// <summary>Gets the Calls value.</summary>
         public List<(string Name, IReadOnlyDictionary<string, object?>? Arguments)> Calls { get; } = [];
 
+        /// <summary>Performs the Enqueue operation.</summary>
         public void Enqueue(CallToolResult result) => _results.Enqueue(result);
 
+        /// <summary>Releases resources.</summary>
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
+        /// <summary>Performs the Call Tool Async operation.</summary>
         public ValueTask<CallToolResult> CallToolAsync(
             string name,
             IReadOnlyDictionary<string, object?>? arguments,
@@ -34,6 +39,7 @@ public class WaitAndScreenshotSuccessTests
         }
     }
 
+    /// <summary>Performs the Screenshot Success Writes Resolved Session Id In Body operation.</summary>
     [Fact]
     public async Task Screenshot_Success_WritesResolvedSessionIdInBody()
     {
@@ -52,6 +58,7 @@ public class WaitAndScreenshotSuccessTests
         Assert.Equal("s3e7", call.Arguments!["ref"]);
     }
 
+    /// <summary>Performs the Screenshot With Sid Positional Passes Session Id operation.</summary>
     [Fact]
     public async Task Screenshot_WithSidPositional_PassesSessionId()
     {
@@ -68,6 +75,7 @@ public class WaitAndScreenshotSuccessTests
         Assert.DoesNotContain("ref", call.Arguments.Keys);
     }
 
+    /// <summary>Waits for the Wait For Success Writes Session Id In Body condition.</summary>
     [Fact]
     public async Task WaitFor_Success_WritesSessionIdInBody()
     {

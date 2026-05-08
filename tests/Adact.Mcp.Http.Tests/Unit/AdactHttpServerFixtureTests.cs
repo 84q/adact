@@ -4,20 +4,18 @@ using Xunit;
 
 namespace Adact.Mcp.Http.Tests;
 
-/// <summary>
-/// Verifies external daemon URL resolution for HTTP MCP smoke / E2E fixtures.
-/// </summary>
+/// <summary>Contains tests for the Adact Http Server Fixture behavior.</summary>
 [Trait("Layer", "Unit")]
 public class AdactHttpServerFixtureTests
 {
-    /// <summary>Unset environment variable keeps the default in-process server behavior.</summary>
+    /// <summary>Gets the Get External Server Uri When Unset Returns Null value.</summary>
     [Fact]
     public void GetExternalServerUri_WhenUnset_ReturnsNull()
     {
         Assert.Null(AdactHttpServerFixture.GetExternalServerUri(_ => null));
     }
 
-    /// <summary>A configured HTTP MCP endpoint is trimmed and returned as the fixture base URL.</summary>
+    /// <summary>Gets the Get External Server Uri When Set Returns Trimmed Absolute Url value.</summary>
     [Fact]
     public void GetExternalServerUri_WhenSet_ReturnsTrimmedAbsoluteUrl()
     {
@@ -26,7 +24,7 @@ public class AdactHttpServerFixtureTests
             AdactHttpServerFixture.GetExternalServerUri(_ => "  http://127.0.0.1:41300/mcp  "));
     }
 
-    /// <summary>Invalid endpoint values fail fast with a message that names the environment variable.</summary>
+    /// <summary>Gets the Get External Server Uri When Invalid Throws value.</summary>
     [Theory]
     [InlineData("127.0.0.1:41300/mcp")]
     [InlineData("ftp://127.0.0.1:41300/mcp")]

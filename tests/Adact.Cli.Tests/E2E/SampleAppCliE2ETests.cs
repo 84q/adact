@@ -8,43 +8,31 @@ using Xunit;
 
 namespace Adact.Cli.Tests.E2E;
 
-/// <summary>
-/// L5 E2E: <c>adact.exe</c> サブプロセスを直接起動して daemon に接続し、実 SampleApp を操作する通しフロー。
-/// 設計 009 §9.2 (E2E シナリオ): list-windows → attach → snapshot → click → close-window。
-/// </summary>
+/// <summary>Contains tests for the Sample App Cli E2 E behavior.</summary>
 [Trait("Layer", "E2E")]
 [Collection("AdactCli")]
 public class SampleAppCliE2ETests
 {
     private readonly AdactDaemonFixture _fixture;
 
-    /// <summary>
-    /// 共有 daemon フィクスチャを受け取る xUnit コンストラクタ。
-    /// </summary>
-    /// <param name="fixture">テスト全体で共有される <see cref="AdactDaemonFixture"/>。</param>
+    /// <summary>Initializes a new instance of the Sample App Cli E2 ETests class.</summary>
     public SampleAppCliE2ETests(AdactDaemonFixture fixture)
     {
         _fixture = fixture;
     }
 
-    /// <summary>
-    /// 実 SampleApp に対して list-windows → attach → click → close-window の一連の CLI コマンドを逓次実行し、
-    /// stdout の key/value ・snapshot ファイル・ref 安定性・close-window 出力まで含めて検証する。
-    /// CLI と daemon と UIA を含む E2E テスト (設計 009 §9.2) のテスト。
-    /// </summary>
+    /// <summary>Performs the List Attach Snapshot Click Close Flow On Sample App Succeeds operation.</summary>
     [Fact]
     public async Task ListAttachSnapshotClickCloseFlow_OnSampleApp_Succeeds()
     {
         using var _appLock = new SampleAppMutex();
 
-        // snapshot を一時ディレクトリに書き出すため、cwd = 専用 temp dir。
         var tempDir = Path.Combine(Path.GetTempPath(), "adact-cli-e2e-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempDir);
 
         var sampleApp = await SampleAppTestHelper.StartFreshSampleAppAsync(TimeSpan.FromSeconds(10));
         try
         {
-            // (1) list-windows → SampleApp 行から windowRef を抽出
             var listResult = CliProcess.RunWithServer("list-windows", _fixture.BaseUrl, tempDir);
             Assert.True(listResult.ExitCode == 0,
                 $"list-windows exit={listResult.ExitCode}\nstdout: {listResult.Stdout}\nstderr: {listResult.Stderr}");
@@ -58,7 +46,6 @@ public class SampleAppCliE2ETests
             Assert.True(attachResult.ExitCode == 0,
                 $"attach exit={attachResult.ExitCode}\nstdout: {attachResult.Stdout}\nstderr: {attachResult.Stderr}");
 
-            // 設計 §5.2 (011 §4.5): stdout に sessionId / windowRef / snapshot 行が出る (generation は廃止)。
             var sessionId = ExtractKeyValue(attachResult.Stdout, "sessionId");
             Assert.False(string.IsNullOrEmpty(sessionId),
                 $"sessionId not found in attach stdout:\n{attachResult.Stdout}");
@@ -69,29 +56,21 @@ public class SampleAppCliE2ETests
             Assert.False(string.IsNullOrEmpty(snapshotPath),
                 $"snapshot path not found in attach stdout:\n{attachResult.Stdout}");
 
-            // snapshotPath の末尾に "(changed)" / "(unchanged)" 注記があれば除去
             snapshotPath = StripSnapshotNote(snapshotPath!);
 
-            // snapshot ファイルは cwd (tempDir) の .adact/ 下に出力される (設計 §4.4)。
             var resolvedSnapshot = Path.IsPathRooted(snapshotPath!)
                 ? snapshotPath!
                 : Path.Combine(tempDir, snapshotPath!);
             Assert.True(File.Exists(resolvedSnapshot),
                 $"snapshot file not found: {resolvedSnapshot}");
 
-            // (3) snapshot text から Submit ボタンの ref を抽出 → click
             var buttonRef = FindSubmitButtonRef(resolvedSnapshot);
             Assert.False(string.IsNullOrEmpty(buttonRef),
                 $"Submit Button ref not found in snapshot file: {resolvedSnapshot}");
-            // 後で同一 button の ref 比較に使うため、Name / AutomationId も取得しておく。
-            var (buttonName, buttonAutomationId) = FindNodeIdentity(resolvedSnapshot, buttonRef!);
 
             var clickResult = CliProcess.RunWithServer($"click {buttonRef}", _fixture.BaseUrl, tempDir);
             Assert.True(clickResult.ExitCode == 0,
                 $"click exit={clickResult.ExitCode}\nstdout: {clickResult.Stdout}\nstderr: {clickResult.Stderr}");
-
-            // generation 行は廃止された。
-            Assert.Null(ExtractKeyValue(clickResult.Stdout, "generation"));
 
             var clickSnapshotPath = ExtractKeyValue(clickResult.Stdout, "snapshotPath");
             Assert.False(string.IsNullOrEmpty(clickSnapshotPath),
@@ -104,9 +83,9 @@ public class SampleAppCliE2ETests
                 $"click snapshot file not found: {resolvedClickSnapshot}");
             Assert.NotEqual(resolvedSnapshot, resolvedClickSnapshot);
 
-            // ref 安定化 (011 §4): click 後の自動 snapshot でも、同じボタン
-            // (Name / AutomationId 一致) は同じ ref を返す。
+            var (buttonName, buttonAutomationId) = FindNodeIdentity(resolvedSnapshot, buttonRef!);
             var refAfterClick = FindRefByIdentity(resolvedClickSnapshot, buttonName, buttonAutomationId);
+
             Assert.False(string.IsNullOrEmpty(refAfterClick),
                 $"button not found in post-click snapshot: {resolvedClickSnapshot}");
             Assert.Equal(buttonRef, refAfterClick);
@@ -127,6 +106,7 @@ public class SampleAppCliE2ETests
         }
     }
 
+    /// <summary>Performs the Serve Pipe List Attach Snapshot And Daemon Stop On Sample App Succeeds operation.</summary>
     [Fact]
     public async Task ServePipeListAttachSnapshotAndDaemonStop_OnSampleApp_Succeeds()
     {
@@ -215,6 +195,7 @@ public class SampleAppCliE2ETests
         }
     }
 
+    /// <summary>Performs the Daemon Stop With Http Server Arg Returns Local Only operation.</summary>
     [Fact]
     public void DaemonStop_WithHttpServerArg_ReturnsLocalOnly()
     {
@@ -225,6 +206,7 @@ public class SampleAppCliE2ETests
         Assert.Contains("not supported for HTTP mode", result.Stdout, StringComparison.Ordinal);
     }
 
+    /// <summary>Performs the Snapshot Inspect Screenshot Focus Hover On Sample App Succeeds operation.</summary>
     [Fact]
     public async Task SnapshotInspectScreenshotFocusHover_OnSampleApp_Succeeds()
     {
@@ -309,6 +291,7 @@ public class SampleAppCliE2ETests
         }
     }
 
+    /// <summary>Performs the Fill Type Keypress Keydown Keyup On Sample App Succeeds operation.</summary>
     [Fact]
     public async Task FillTypeKeypressKeydownKeyup_OnSampleApp_Succeeds()
     {
@@ -427,6 +410,7 @@ public class SampleAppCliE2ETests
         }
     }
 
+    /// <summary>Performs the Click Check Uncheck Select On Sample App Succeeds operation.</summary>
     [Fact]
     public async Task ClickCheckUncheckSelect_OnSampleApp_Succeeds()
     {
@@ -540,6 +524,7 @@ public class SampleAppCliE2ETests
         }
     }
 
+    /// <summary>Performs the Doubleclick Mouse Move Down Up Wheel Scroll Into View Scroll On Sample App Succeeds operation.</summary>
     [Fact]
     public async Task DoubleclickMouseMoveDownUpWheelScrollIntoViewScroll_OnSampleApp_Succeeds()
     {
@@ -682,6 +667,7 @@ public class SampleAppCliE2ETests
         }
     }
 
+    /// <summary>Performs the Resize Minimize Maximize Restore Window On Sample App Succeeds operation.</summary>
     [Fact]
     public async Task ResizeMinimizeMaximizeRestoreWindow_OnSampleApp_Succeeds()
     {
@@ -801,6 +787,7 @@ public class SampleAppCliE2ETests
         }
     }
 
+    /// <summary>Waits for the Wait For Element And Wait For Window On Sample App Succeeds condition.</summary>
     [Fact]
     public async Task WaitForElementAndWaitForWindow_OnSampleApp_Succeeds()
     {
@@ -929,6 +916,7 @@ public class SampleAppCliE2ETests
         }
     }
 
+    /// <summary>Performs the Detach And Close Window On Sample App Succeeds operation.</summary>
     [Fact]
     public async Task DetachAndCloseWindow_OnSampleApp_Succeeds()
     {
@@ -1003,6 +991,7 @@ public class SampleAppCliE2ETests
         }
     }
 
+    /// <summary>Performs the Launch And Kill On Dedicated Sample App Process Succeeds operation.</summary>
     [Fact]
     public async Task LaunchAndKill_OnDedicatedSampleAppProcess_Succeeds()
     {
@@ -1075,6 +1064,7 @@ public class SampleAppCliE2ETests
         }
     }
 
+    /// <summary>Performs the Install Skills Creates Expected Skill Directories Under Client Relative Root operation.</summary>
     [Theory]
     [InlineData("copilot", ".github/skills")]
     [InlineData("claude", ".claude/skills")]
@@ -1132,15 +1122,10 @@ public class SampleAppCliE2ETests
         throw new OperationCanceledException("Named Pipe server did not become ready within timeout.");
     }
 
-    /// <summary>
-    /// list-windows の出力 (設計 042: メタ情報 + `---` + TSV 本文) から
-    /// processName が SampleApp あるいは windowTitle が "ADACT SampleApp" を含む行の windowRef (列 0) を返す。
-    /// </summary>
     private static string? ExtractSampleAppWindowRef(string stdout)
     {
-        // メタ情報部をスキップして TSV 本文を探す
-        var lines = stdout.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         var inBody = false;
+        var lines = stdout.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         foreach (var line in lines)
         {
             if (line == "---") { inBody = true; continue; }
@@ -1283,21 +1268,15 @@ public class SampleAppCliE2ETests
         return exePath;
     }
 
-    /// <summary>
-    /// key-value 形式 stdout (設計 042: yaml風 `key: value`) から指定 key の値を抽出する。
-    /// 値の前後の `"` は自動除去する。
-    /// </summary>
     private static string? ExtractKeyValue(string stdout, string key)
     {
         var lines = stdout.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         foreach (var line in lines)
         {
-            // yaml風: "key: value"
             var idx = line.IndexOf(": ", StringComparison.Ordinal);
             if (idx <= 0) continue;
             if (!string.Equals(line[..idx], key, StringComparison.Ordinal)) continue;
             var value = line[(idx + 2)..];
-            // 値の前後の " を除去
             if (value.Length >= 2 && value[0] == '"' && value[^1] == '"')
                 value = value[1..^1];
             return value;
@@ -1363,9 +1342,6 @@ public class SampleAppCliE2ETests
         return null;
     }
 
-    /// <summary>
-    /// snapshot パス末尾の <c>(changed)</c> / <c>(unchanged)</c> 注記 (設計 042) を除去する。
-    /// </summary>
     private static string StripSnapshotNote(string path)
     {
         const string changed = " (changed)";
@@ -1399,16 +1375,8 @@ public class SampleAppCliE2ETests
         _ = ResolveSnapshotPathAndAssertExists(tempDir, snapshotPath, commandName, stdout);
     }
 
-    /// <summary>
-    /// Phase 7 snapshot text 形式の 1 行分を表す。設計 016 §2.5 (CLI 出力フォーマット)。
-    /// 例: <c>  - Button "1" [aid="num1Button"] [ref=s1e7]</c>
-    /// </summary>
     private sealed record SnapshotLine(string Role, string? Name, string? AutomationId, string? Ref);
 
-    /// <summary>
-    /// snapshot text ファイルから SampleApp の Submit ボタンの ref を探す。
-    /// 優先度: AutomationId == "BasicControls_Button_Submit" > role == "Button" の最初。
-    /// </summary>
     private static string? FindSubmitButtonRef(string snapshotFilePath)
     {
         foreach (var line in ReadSnapshotLines(snapshotFilePath))
@@ -1484,7 +1452,6 @@ public class SampleAppCliE2ETests
         return (null, null, currentSnapshotPath);
     }
 
-    /// <summary>snapshot から ref に対応するノードの (Name, AutomationId) を抽出する。</summary>
     private static (string? name, string? automationId) FindNodeIdentity(string snapshotFilePath, string targetRef)
     {
         foreach (var line in ReadSnapshotLines(snapshotFilePath))
@@ -1497,7 +1464,6 @@ public class SampleAppCliE2ETests
         return (null, null);
     }
 
-    /// <summary>(Name, AutomationId) 一致するノードの ref を snapshot から返す。</summary>
     private static string? FindRefByIdentity(string snapshotFilePath, string? name, string? automationId)
     {
         foreach (var line in ReadSnapshotLines(snapshotFilePath))

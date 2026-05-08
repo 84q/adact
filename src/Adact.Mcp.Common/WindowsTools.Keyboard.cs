@@ -10,10 +10,6 @@ namespace Adact.Mcp.Common;
 
 public sealed partial class WindowsTools
 {
-    /// <summary>キーコンボ ("Ctrl+Shift+E" 等) を 1 回 press する。session は参照しない。</summary>
-    /// <param name="key">キー記述。"Enter", "F5", "Ctrl+C" など。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "adact_keypress")]
     [Description("Press a key combo such as 'Ctrl+C' or 'Enter'. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> PressAsync(
@@ -42,10 +38,6 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_keypress"); }
     }
 
-    /// <summary>単一キーを押し下げる (release は <see cref="KeyUpAsync"/>)。session は参照しない。</summary>
-    /// <param name="key">単一キー名。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "adact_keydown")]
     [Description("Press and hold a single key. Pair with adact_keyup to release. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> KeyDownAsync(
@@ -69,10 +61,6 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_keydown"); }
     }
 
-    /// <summary>単一キーを解放する (<see cref="KeyDownAsync"/> と対で使用)。</summary>
-    /// <param name="key">単一キー名。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "adact_keyup")]
     [Description("Release a single key previously pressed by adact_keydown. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> KeyUpAsync(
@@ -96,12 +84,6 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_keyup"); }
     }
 
-    /// <summary>指定要素にフォーカスし、テキストを (オプションで遅延しながら) 1 文字ずつ Type する。</summary>
-    /// <param name="ref">入力対象 element ref。</param>
-    /// <param name="text">入力するテキスト。</param>
-    /// <param name="delayMs">各文字間に挟む遅延 (ms)。0 以下で遅延なし。</param>
-    /// <param name="ct">キャンセルトークン。</param>
-    /// <returns>成功時は空 content。</returns>
     [McpServerTool(Name = "adact_type")]
     [Description("Focus the element and type the given text character by character. Use adact_fill for atomic value-pattern set.")]
     public async Task<CallToolResult> TypeAsync(

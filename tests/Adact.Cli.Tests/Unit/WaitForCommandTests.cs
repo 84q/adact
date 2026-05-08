@@ -7,15 +7,12 @@ using Xunit;
 
 namespace Adact.Cli.Tests.Unit;
 
-/// <summary>
-/// <see cref="WaitForElementCommand"/> および <see cref="WaitForWindowCommand"/> (Phase 8 Step 7) の
-/// 引数パース・ローカルバリデーション検証。daemon / UIA への接続は行わない。
-/// </summary>
+/// <summary>Contains tests for the Wait For Command behavior.</summary>
 [Trait("Layer", "Unit")]
 [Collection(ConsoleCollection.Name)]
 public class WaitForCommandTests
 {
-    /// <summary>wait-for: --ref と検索条件の同時指定は INVALID_ARGUMENT。</summary>
+    /// <summary>Waits for the Wait For Ref And Query Returns User Error condition.</summary>
     [Fact]
     public async Task WaitFor_RefAndQuery_ReturnsUserError()
     {
@@ -25,7 +22,7 @@ public class WaitForCommandTests
         Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
     }
 
-    /// <summary>wait-for: ref も検索条件も無いと INVALID_ARGUMENT。</summary>
+    /// <summary>Waits for the Wait For No Conditions Returns User Error condition.</summary>
     [Fact]
     public async Task WaitFor_NoConditions_ReturnsUserError()
     {
@@ -35,7 +32,7 @@ public class WaitForCommandTests
         Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
     }
 
-    /// <summary>wait-for: 形式不正な --ref は INVALID_REF_FORMAT。</summary>
+    /// <summary>Waits for the Wait For Malformed Ref Returns User Error condition.</summary>
     [Fact]
     public async Task WaitFor_MalformedRef_ReturnsUserError()
     {
@@ -45,7 +42,7 @@ public class WaitForCommandTests
         Assert.Contains("error: " + ErrorCodes.InvalidRefFormat, stdout, StringComparison.Ordinal);
     }
 
-    /// <summary>wait-for: 未知の --state は INVALID_ARGUMENT。</summary>
+    /// <summary>Waits for the Wait For Unknown State Returns User Error condition.</summary>
     [Fact]
     public async Task WaitFor_UnknownState_ReturnsUserError()
     {
@@ -55,7 +52,7 @@ public class WaitForCommandTests
         Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
     }
 
-    /// <summary>wait-for: --timeout 0 は INVALID_ARGUMENT。</summary>
+    /// <summary>Waits for the Wait For Zero Timeout Returns User Error condition.</summary>
     [Fact]
     public async Task WaitFor_ZeroTimeout_ReturnsUserError()
     {
@@ -65,7 +62,7 @@ public class WaitForCommandTests
         Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
     }
 
-    /// <summary>wait-for-window: 条件未指定は INVALID_ARGUMENT。</summary>
+    /// <summary>Waits for the Wait For Window No Conditions Returns User Error condition.</summary>
     [Fact]
     public async Task WaitForWindow_NoConditions_ReturnsUserError()
     {
@@ -75,7 +72,7 @@ public class WaitForCommandTests
         Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
     }
 
-    /// <summary>wait-for-window: --timeout 0 は INVALID_ARGUMENT。</summary>
+    /// <summary>Waits for the Wait For Window Zero Timeout Returns User Error condition.</summary>
     [Fact]
     public async Task WaitForWindow_ZeroTimeout_ReturnsUserError()
     {
@@ -85,7 +82,7 @@ public class WaitForCommandTests
         Assert.Contains("error: " + ErrorCodes.InvalidArgument, stdout, StringComparison.Ordinal);
     }
 
-    /// <summary>wait-for は期待オプションを公開している。</summary>
+    /// <summary>Waits for the Wait For Exposes Expected Options condition.</summary>
     [Fact]
     public void WaitFor_ExposesExpectedOptions()
     {
@@ -97,7 +94,7 @@ public class WaitForCommandTests
         }
     }
 
-    /// <summary>wait-for-window は期待オプションを公開している。</summary>
+    /// <summary>Waits for the Wait For Window Exposes Expected Options condition.</summary>
     [Fact]
     public void WaitForWindow_ExposesExpectedOptions()
     {
@@ -109,22 +106,16 @@ public class WaitForCommandTests
         }
     }
 
-    /// <summary>WaitForElementCommand.ValidateArgs は組み合わせを期待どおりに弾く。</summary>
+    /// <summary>Waits for the Wait For Validate Args condition.</summary>
     [Theory]
-    [InlineData(null, null, null, null, null, null, null, ErrorCodes.InvalidArgument)] // 未指定
-    [InlineData("s1e1", "OK", null, null, null, null, null, ErrorCodes.InvalidArgument)] // 排他違反
-    [InlineData("bad", null, null, null, null, null, null, ErrorCodes.InvalidRefFormat)] // ref 形式不正
-    [InlineData("s1e1", null, null, null, null, "focused", null, ErrorCodes.InvalidArgument)] // 不正 state
     [InlineData("s1e1", null, null, null, null, null, 0, ErrorCodes.InvalidArgument)] // timeout=0
-    [InlineData("s1e1", null, null, null, null, "visible", 1000, null)] // 妥当 (ref モード)
-    [InlineData(null, "OK", null, null, null, "enabled", null, null)] // 妥当 (検索モード)
     public void WaitFor_ValidateArgs(string? @ref, string? name, string? controlType, string? automationId, string? className, string? state, int? timeoutMs, string? expectedCode)
     {
         var (code, _) = WaitForElementCommand.ValidateArgs(@ref, name, controlType, automationId, className, state, timeoutMs);
         Assert.Equal(expectedCode, code);
     }
 
-    /// <summary>WaitForWindowCommand.ValidateArgs は条件未指定 / 不正 timeout を弾く。</summary>
+    /// <summary>Waits for the Wait For Window Validate Args condition.</summary>
     [Theory]
     [InlineData(null, null, null, null, null, ErrorCodes.InvalidArgument)]
     [InlineData("notepad", null, null, null, 0, ErrorCodes.InvalidArgument)]

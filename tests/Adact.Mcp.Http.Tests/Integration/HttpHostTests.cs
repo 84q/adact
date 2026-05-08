@@ -14,15 +14,11 @@ using Xunit;
 
 namespace Adact.Mcp.Http.Tests.Integration;
 
-/// <summary>
-/// HTTP MCP host の構成を、実 GUI / 実 UIA に触らず検証するテスト。
-/// </summary>
+/// <summary>Contains tests for the Http Host behavior.</summary>
 [Trait("Layer", "Integration")]
 public sealed class HttpHostTests
 {
-    /// <summary>
-    /// <see cref="HttpHost.BuildApplication"/> が MCP endpoint と主要 singleton を構成することを確認する。
-    /// </summary>
+    /// <summary>Performs the Build Application Configures Mcp Route And Core Services operation.</summary>
     [Fact]
     public void BuildApplication_ConfiguresMcpRouteAndCoreServices()
     {
@@ -42,9 +38,7 @@ public sealed class HttpHostTests
         Assert.True(daemonControl.IsSupported);
     }
 
-    /// <summary>
-    /// HTTP mode の daemon control が host lifetime に停止要求を出すことを確認する。
-    /// </summary>
+    /// <summary>Performs the Daemon Control Stop Async Requests Application Stop operation.</summary>
     [Fact]
     public async Task DaemonControl_StopAsync_RequestsApplicationStop()
     {

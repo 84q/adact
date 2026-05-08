@@ -3,113 +3,182 @@ using Adact.Engine.Snapshot;
 namespace Adact.Engine;
 
 /// <summary>
-/// MCP 層が利用する window session 操作の境界。
-/// Production では <see cref="WindowSession"/> が実装し、テストでは fake session を登録できるようにする。
+/// Represents an attached window session.
 /// </summary>
 public interface IWindowSession : IDisposable
 {
-    /// <summary>Session ID の数値部分。</summary>
+    /// <summary>
+    /// Gets the session ID.
+    /// </summary>
     int SessionId { get; }
 
-    /// <summary>attach 対象プロセス名。</summary>
+    /// <summary>
+    /// Gets the owning process name.
+    /// </summary>
     string ProcessName { get; }
 
-    /// <summary>attach 対象プロセス ID。</summary>
+    /// <summary>
+    /// Gets the owning process ID.
+    /// </summary>
     int ProcessId { get; }
 
-    /// <summary>attach 対象ウィンドウタイトル。</summary>
+    /// <summary>
+    /// Gets the current window title.
+    /// </summary>
     string Title { get; }
 
-    /// <summary>attach 対象ウィンドウの HWND。</summary>
+    /// <summary>
+    /// Gets the native window handle.
+    /// </summary>
     nint NativeWindowHandle { get; }
 
-    /// <summary>UIA snapshot を取得する。</summary>
+    /// <summary>
+    /// Takes a snapshot of the window.
+    /// </summary>
     Task<SnapshotResult> SnapshotAsync(SnapshotOptions? options = null, CancellationToken ct = default);
 
-    /// <summary>要素をクリックする。</summary>
+    /// <summary>
+    /// Clicks an element identified by ref.
+    /// </summary>
     Task ClickAsync(string refId, ClickOptions? options = null, CancellationToken ct = default);
 
-    /// <summary>要素を詳細オプション付きでクリックする。</summary>
+    /// <summary>
+    /// Clicks an element with explicit mouse options.
+    /// </summary>
     Task ClickWithOptionsAsync(string refId, ClickOptions options, CancellationToken ct = default);
 
-    /// <summary>要素をダブルクリックする。</summary>
+    /// <summary>
+    /// Double-clicks an element identified by ref.
+    /// </summary>
     Task DoubleClickAsync(string refId, ClickOptions? options = null, CancellationToken ct = default);
 
-    /// <summary>入力要素の値を設定する。</summary>
+    /// <summary>
+    /// Fills text into an element identified by ref.
+    /// </summary>
     Task FillAsync(string refId, string text, CancellationToken ct = default);
 
-    /// <summary>要素または window へ key combo を送る。</summary>
+    /// <summary>
+    /// Sends a key press to the window or a specific element.
+    /// </summary>
     Task PressAsync(string key, string? refId = null, CancellationToken ct = default);
 
-    /// <summary>単一 key を押下状態にする。</summary>
+    /// <summary>
+    /// Sends a key-down event.
+    /// </summary>
     Task KeyDownAsync(string key, CancellationToken ct = default);
 
-    /// <summary>単一 key を解放する。</summary>
+    /// <summary>
+    /// Sends a key-up event.
+    /// </summary>
     Task KeyUpAsync(string key, CancellationToken ct = default);
 
-    /// <summary>要素へ逐次入力する。</summary>
+    /// <summary>
+    /// Types text into the window or a specific element.
+    /// </summary>
     Task TypeAsync(string? refId, string text, int delayMs = 0, CancellationToken ct = default);
 
-    /// <summary>要素上へマウスカーソルを移動する。</summary>
+    /// <summary>
+    /// Moves the mouse over an element.
+    /// </summary>
     Task HoverAsync(string refId, IReadOnlyList<string>? modifiers = null, int? positionX = null, int? positionY = null, CancellationToken ct = default);
 
-    /// <summary>マウスカーソルを指定 target へ移動する。</summary>
+    /// <summary>
+    /// Moves the mouse pointer to a point or element.
+    /// </summary>
     Task MouseMoveAsync(MouseTarget target, CancellationToken ct = default);
 
-    /// <summary>指定 target でマウスボタンを押下する。</summary>
+    /// <summary>
+    /// Presses a mouse button at a point or element.
+    /// </summary>
     Task MouseDownAsync(MouseTarget target, MouseButton button, CancellationToken ct = default);
 
-    /// <summary>指定 target でマウスボタンを解放する。</summary>
+    /// <summary>
+    /// Releases a mouse button at a point or element.
+    /// </summary>
     Task MouseUpAsync(MouseTarget target, MouseButton button, CancellationToken ct = default);
 
-    /// <summary>指定 target でマウスホイールを操作する。</summary>
+    /// <summary>
+    /// Scrolls the mouse wheel at a point or element.
+    /// </summary>
     Task MouseWheelAsync(MouseTarget target, int deltaX, int deltaY, CancellationToken ct = default);
 
-    /// <summary>toggle 要素を On にする。</summary>
+    /// <summary>
+    /// Checks an element.
+    /// </summary>
     Task CheckAsync(string refId, CancellationToken ct = default);
 
-    /// <summary>toggle 要素を Off にする。</summary>
+    /// <summary>
+    /// Unchecks an element.
+    /// </summary>
     Task UncheckAsync(string refId, CancellationToken ct = default);
 
-    /// <summary>list / combobox の item を選択する。</summary>
+    /// <summary>
+    /// Selects child items within a container element.
+    /// </summary>
     Task SelectAsync(string refId, SelectionTarget[] targets, SelectionMode mode = SelectionMode.Replace, CancellationToken ct = default);
 
-    /// <summary>要素へ keyboard focus を移す。</summary>
+    /// <summary>
+    /// Focuses an element.
+    /// </summary>
     Task FocusAsync(string refId, CancellationToken ct = default);
 
-    /// <summary>要素を表示領域へ scroll する。</summary>
+    /// <summary>
+    /// Scrolls an element into view.
+    /// </summary>
     Task ScrollIntoViewAsync(string refId, CancellationToken ct = default);
 
-    /// <summary>ScrollPattern でコンテナをスクロールする。</summary>
+    /// <summary>
+    /// Scrolls an element using the specified mode.
+    /// </summary>
     Task ScrollAsync(string refId, ScrollMode mode, CancellationToken ct = default);
 
-    /// <summary>要素の詳細情報を取得する。</summary>
+    /// <summary>
+    /// Inspects an element and returns its properties.
+    /// </summary>
     Task<InspectResult> InspectAsync(string refId, CancellationToken ct = default);
 
-    /// <summary>window または要素の screenshot を取得する。</summary>
+    /// <summary>
+    /// Captures a screenshot of the window or a specific element.
+    /// </summary>
     Task<ScreenshotResult> ScreenshotAsync(string? refId, string? outPath, CancellationToken ct = default);
 
-    /// <summary>window size を変更する。片方 null 時は現在値を維持する。</summary>
+    /// <summary>
+    /// Resizes the attached window.
+    /// </summary>
     Task ResizeAsync(int? width, int? height, CancellationToken ct = default);
 
-    /// <summary>window を最小化する。</summary>
+    /// <summary>
+    /// Minimizes the attached window.
+    /// </summary>
     Task MinimizeAsync(CancellationToken ct = default);
 
-    /// <summary>window を最大化する。</summary>
+    /// <summary>
+    /// Maximizes the attached window.
+    /// </summary>
     Task MaximizeAsync(CancellationToken ct = default);
 
-    /// <summary>window を通常表示へ戻す。</summary>
+    /// <summary>
+    /// Restores the attached window.
+    /// </summary>
     Task RestoreAsync(CancellationToken ct = default);
 
-    /// <summary>ref が指定 state になるまで待機する。</summary>
+    /// <summary>
+    /// Waits for a ref to reach a specific state.
+    /// </summary>
     Task<WaitForResult> WaitForRefAsync(string refId, WaitForState state, TimeSpan timeout, CancellationToken ct = default);
 
-    /// <summary>query に一致する要素が指定 state になるまで待機する。</summary>
+    /// <summary>
+    /// Waits for an element query to reach a specific state.
+    /// </summary>
     Task<WaitForResult> WaitForQueryAsync(WaitForElementQuery query, WaitForState state, TimeSpan timeout, CancellationToken ct = default);
 
-    /// <summary>window を close する。</summary>
+    /// <summary>
+    /// Closes the attached window.
+    /// </summary>
     Task CloseAsync(CancellationToken ct = default);
 
-    /// <summary>window の backing process を kill する。</summary>
+    /// <summary>
+    /// Kills the attached process.
+    /// </summary>
     Task<KillMethod> KillAsync(bool force = false, int timeoutMs = 5000, CancellationToken ct = default);
 }

@@ -3,12 +3,9 @@ using System.CommandLine;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>close-window</c> コマンド。UIA <c>WindowPattern.Close</c> を呼び、成功時は session も detach される。
 /// </summary>
 internal static class CloseWindowCommand
 {
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>close-window サブコマンド。</returns>
     public static Command Build()
     {
         var sid = new Argument<string?>("sid") { Arity = ArgumentArity.ZeroOrOne, Description = "Target session ID (default: active session)." };

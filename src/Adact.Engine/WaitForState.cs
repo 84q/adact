@@ -1,34 +1,49 @@
 namespace Adact.Engine;
 
 /// <summary>
-/// <see cref="WindowSession.WaitForRefAsync"/> / <see cref="WindowSession.WaitForQueryAsync"/> が
-/// 待機する要素状態。Playwright と揃えるため既定は <see cref="Visible"/>。
+/// Supported wait-for states.
 /// </summary>
 public enum WaitForState
 {
-    /// <summary>UIA tree に要素が存在する。</summary>
+    /// <summary>
+    /// The element is attached.
+    /// </summary>
     Attached,
-    /// <summary>UIA tree から要素が消えた。</summary>
+
+    /// <summary>
+    /// The element is detached.
+    /// </summary>
     Detached,
-    /// <summary>要素が存在し、<c>IsOffscreen == false</c>。</summary>
+
+    /// <summary>
+    /// The element is visible.
+    /// </summary>
     Visible,
-    /// <summary>要素が存在し、<c>IsOffscreen == true</c>。</summary>
+
+    /// <summary>
+    /// The element is hidden.
+    /// </summary>
     Hidden,
-    /// <summary>要素が存在し、<c>IsEnabled == true</c>。</summary>
+
+    /// <summary>
+    /// The element is enabled.
+    /// </summary>
     Enabled,
-    /// <summary>要素が存在し、<c>IsEnabled == false</c>。</summary>
+
+    /// <summary>
+    /// The element is disabled.
+    /// </summary>
     Disabled,
 }
 
 /// <summary>
-/// <see cref="WaitForState"/> 文字列パーサ。CLI / MCP どちらからも同じ判定を共有する。
+/// Parses and formats wait-for states.
 /// </summary>
 public static class WaitForStateParser
 {
-    /// <summary>"visible"/"hidden"/"attached"/"detached"/"enabled"/"disabled" を解析する (case-insensitive)。</summary>
-    /// <param name="value">解析対象。null/空は false。</param>
-    /// <param name="state">解析結果。</param>
-    /// <returns>成功時 true。</returns>
+    /// <summary>
+    /// Tries to parse a wait-for state from wire format.
+    /// </summary>
     public static bool TryParse(string? value, out WaitForState state)
     {
         state = WaitForState.Visible;
@@ -45,12 +60,14 @@ public static class WaitForStateParser
         }
     }
 
-    /// <summary>許容される state 値のカンマ区切り表記 (エラーメッセージ用)。</summary>
+    /// <summary>
+    /// The allowed wire values for wait-for state parsing.
+    /// </summary>
     public const string AllowedValues = "attached, detached, visible, hidden, enabled, disabled";
 
-    /// <summary><see cref="WaitForState"/> をワイヤフォーマット (lower-case) に変換する。</summary>
-    /// <param name="state">対象 state。</param>
-    /// <returns>lower-case 文字列。</returns>
+    /// <summary>
+    /// Converts a state to its wire-format string.
+    /// </summary>
     public static string ToWireString(WaitForState state) => state switch
     {
         WaitForState.Attached => "attached",

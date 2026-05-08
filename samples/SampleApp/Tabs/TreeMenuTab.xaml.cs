@@ -3,8 +3,14 @@ using System.Windows.Controls;
 
 namespace SampleApp.Tabs;
 
+/// <summary>
+/// Builds the hierarchical tree used by the menu and tree navigation sample.
+/// </summary>
 public partial class TreeMenuTab : UserControl
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TreeMenuTab"/> class.
+    /// </summary>
     public TreeMenuTab()
     {
         InitializeComponent();

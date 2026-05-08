@@ -3,15 +3,11 @@ using System.CommandLine;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <see cref="RootCommand"/> の共通初期化と、CLI / CLI Client 間で共有するサブコマンド登録をまとめる。
 /// </summary>
 internal static class RootCommandRegistration
 {
     /// <summary>
-    /// 説明文と共通 <c>--server</c> Option を持つ <see cref="RootCommand"/> を生成する。
     /// </summary>
-    /// <param name="description">ルートコマンド説明文。</param>
-    /// <returns>初期化済みの <see cref="RootCommand"/>。</returns>
     public static RootCommand CreateRoot(string description)
     {
         var root = new RootCommand(description);
@@ -20,10 +16,7 @@ internal static class RootCommandRegistration
     }
 
     /// <summary>
-    /// <c>serve</c> / <c>daemon-stop</c> を除く共通サブコマンドを登録する。
-    /// <c>install</c> / <c>launch</c> は順序差分を維持するため別メソッドで登録する。
     /// </summary>
-    /// <param name="command">登録先のコマンド。</param>
     public static void AddSharedCommands(Command command)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -63,10 +56,7 @@ internal static class RootCommandRegistration
     }
 
     /// <summary>
-    /// 両 CLI で共通な <c>install</c> / <c>launch</c> を、呼び出し側が必要とする順序で登録する。
     /// </summary>
-    /// <param name="command">登録先のコマンド。</param>
-    /// <param name="launchBeforeInstall"><c>true</c> の場合は launch → install、そうでなければ install → launch。</param>
     public static void AddInstallAndLaunchCommands(Command command, bool launchBeforeInstall)
     {
         ArgumentNullException.ThrowIfNull(command);

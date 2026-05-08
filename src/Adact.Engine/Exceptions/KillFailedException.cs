@@ -1,14 +1,17 @@
 namespace Adact.Engine.Exceptions;
 
-/// <summary>Process.Kill() 経由でプロセス終了が失敗した。</summary>
+/// <summary>
+/// Thrown when terminating a process fails.
+/// </summary>
 public sealed class KillFailedException : AdactException
 {
-    /// <summary>メッセージのみを指定して新しいインスタンスを初期化する。</summary>
-    /// <param name="message">人間可読のエラーメッセージ。</param>
+    /// <summary>
+    /// Creates a new kill-failed exception.
+    /// </summary>
     public KillFailedException(string message) : base(message) { }
 
-    /// <summary>メッセージと内部例外を指定して新しいインスタンスを初期化する。</summary>
-    /// <param name="message">人間可読のエラーメッセージ。</param>
-    /// <param name="inner">この例外を引き起こした内部例外。</param>
+    /// <summary>
+    /// Creates a new kill-failed exception with an inner exception.
+    /// </summary>
     public KillFailedException(string message, Exception inner) : base(message, inner) { }
 }

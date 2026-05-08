@@ -1,30 +1,19 @@
 namespace Adact.Tests.Common;
 
-/// <summary>
-/// テスト用外部サーバー接続情報のヘルパー。
-/// </summary>
+/// <summary>Provides helper methods for tests.</summary>
 public static class ExternalServerHelper
 {
-    /// <summary>
-    /// 外部サーバー URL を指定する環境変数名。
-    /// </summary>
+    /// <summary>Gets the Server Url Environment Variable value.</summary>
     public const string ServerUrlEnvironmentVariable = "ADACT_SERVER_URL";
 
-    /// <summary>
-    /// 環境変数 <c>ADACT_SERVER_URL</c> から外部サーバーの URI を取得する。
-    /// </summary>
+    /// <summary>Gets the Get External Server Uri value.</summary>
     public static Uri? GetExternalServerUri(Func<string, string?>? getEnvironmentVariable = null)
     {
         var value = (getEnvironmentVariable ?? Environment.GetEnvironmentVariable)(ServerUrlEnvironmentVariable);
         return ResolveExternalServerUri(value, ServerUrlEnvironmentVariable);
     }
 
-    /// <summary>
-    /// 外部サーバー URL 文字列を検証して <see cref="Uri"/> へ変換する。
-    /// </summary>
-    /// <param name="value">環境変数などから取得した生文字列。</param>
-    /// <param name="variableName">エラーメッセージに表示する設定名。</param>
-    /// <returns>未設定なら null、妥当な http(s) URL ならその <see cref="Uri"/>。</returns>
+    /// <summary>Resolves the Resolve External Server Uri value.</summary>
     public static Uri? ResolveExternalServerUri(string? value, string variableName = ServerUrlEnvironmentVariable)
     {
         if (string.IsNullOrWhiteSpace(value)) return null;

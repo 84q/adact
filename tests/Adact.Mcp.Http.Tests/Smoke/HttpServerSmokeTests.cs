@@ -9,20 +9,14 @@ using Xunit;
 
 namespace Adact.Mcp.Http.Tests.Smoke;
 
-/// <summary>
-/// HTTP daemon が起動して MCP initialize / 軽量ツール呼び出しに応答できるかを確認する Smoke テスト群。
-/// E2E より浅い層で HTTP ルーティング・MCP ハンドシェイクの回帰を素早く検出する。
-/// </summary>
+/// <summary>Contains tests for the Http Server Smoke behavior.</summary>
 [Trait("Layer", "Smoke")]
 [Collection("AdactHttp")]
 public class HttpServerSmokeTests
 {
     private readonly AdactHttpServerFixture _fixture;
 
-    /// <summary>
-    /// 共有 HTTP サーバーフィクスチャを受け取る xUnit コンストラクタ。
-    /// </summary>
-    /// <param name="fixture">テスト全体で共有される <see cref="AdactHttpServerFixture"/>。</param>
+    /// <summary>Initializes a new instance of the Http Server Smoke Tests class.</summary>
     public HttpServerSmokeTests(AdactHttpServerFixture fixture)
     {
         _fixture = fixture;
@@ -38,11 +32,7 @@ public class HttpServerSmokeTests
         });
     }
 
-    /// <summary>
-    /// HTTP MCP の初期化応答に server name "adact" が含まれることを確認する。
-    /// MCP 初期化ハンドシェイク全体の回帰を素早く検出する Smoke。
-    /// </summary>
-    /// <returns>テスト完了タスク。</returns>
+    /// <summary>Initializes the fixture.</summary>
     [Fact]
     public async Task Initialize_OnRunningHttpServer_ReturnsServerInfo()
     {
@@ -52,11 +42,7 @@ public class HttpServerSmokeTests
         Assert.Equal("adact", client.ServerInfo.Name);
     }
 
-    /// <summary>
-    /// HTTP MCP 経由で adact_list_windows を呼び、生存ウィンドウが 1 件以上返ることを確認する。
-    /// HTTP 配線と最も軽量な UIA ツールの疎通を Smoke として検出するため。
-    /// </summary>
-    /// <returns>テスト完了タスク。</returns>
+    /// <summary>Performs the List Apps On Running Http Server Returns Non Empty operation.</summary>
     [InteractiveFact]
     public async Task ListApps_OnRunningHttpServer_ReturnsNonEmpty()
     {

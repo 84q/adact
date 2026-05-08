@@ -7,12 +7,9 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
-/// <c>list-windows</c> コマンド。<c>adact_list_windows</c> tool を呼び、一覧を TSV で stdout に出力する。
 /// </summary>
 internal static class ListWindowsCommand
 {
-    /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
-    /// <returns>list-windows サブコマンド。</returns>
     public static Command Build()
     {
         var cmd = new Command("list-windows", "List top-level windows on this Windows desktop.");
@@ -20,15 +17,12 @@ internal static class ListWindowsCommand
         cmd.SetAction((parseResult, ct) =>
         {
             var serverArg = parseResult.GetValue(CommandHelpers.ServerOption);
-            // list-windows は自動起動対象
             return CommandHelpers.RunWithClientAndAutoStartAsync(serverArg, ExecuteAsync, ct);
         });
 
         return cmd;
     }
 
-    /// <summary><c>adact_list_windows</c> を呼び TSV として stdout に出力する。</summary>
-    /// <param name="client">接続済み MCP クライアント。</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
     private static async Task<int> ExecuteAsync(IAdactMcpClient client, CancellationToken ct)
@@ -40,7 +34,6 @@ internal static class ListWindowsCommand
 
         var json = McpResponse.GetJson(result);
 
-        // StructuredContent は { "windows": [...] }、Content[0].Text は raw 配列。両対応。
         JsonElement windows;
         if (json.ValueKind == JsonValueKind.Array)
         {

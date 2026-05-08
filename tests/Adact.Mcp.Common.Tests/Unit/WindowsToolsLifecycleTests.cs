@@ -10,61 +10,98 @@ using Xunit;
 
 namespace Adact.Mcp.Common.Tests.Unit;
 
-/// <summary>
-/// WindowsTools のライフサイクル系メソッド (detach / close / kill / adact_daemon_stop) を
-/// Engine 操作なしで検証する Unit テスト。成功パス (Engine 操作伴う) は L3 IntegrationUia /
-/// L4 Smoke (#9) で別途検証する。
-/// </summary>
+/// <summary>Contains tests for the Windows Tools Lifecycle behavior.</summary>
 [Trait("Layer", "Unit")]
 public class WindowsToolsLifecycleTests
 {
     private sealed class FakeWindowSession : IWindowSession
     {
+        /// <summary>Gets the Session Id value.</summary>
         public int SessionId { get; init; }
+        /// <summary>Gets the Process Name value.</summary>
         public string ProcessName { get; init; } = "fake";
+        /// <summary>Gets the Process Id value.</summary>
         public int ProcessId { get; init; }
+        /// <summary>Gets the Title value.</summary>
         public string Title { get; init; } = "Fake";
+        /// <summary>Gets the Native Window Handle value.</summary>
         public nint NativeWindowHandle { get; init; }
+        /// <summary>Gets the On Close Async value.</summary>
         public Func<CancellationToken, Task>? OnCloseAsync { get; init; }
 
+        /// <summary>Performs the Snapshot Async operation.</summary>
         public Task<SnapshotResult> SnapshotAsync(SnapshotOptions? options = null, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Click Async operation.</summary>
         public Task ClickAsync(string refId, ClickOptions? options = null, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Click With Options Async operation.</summary>
         public Task ClickWithOptionsAsync(string refId, ClickOptions options, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Double Click Async operation.</summary>
         public Task DoubleClickAsync(string refId, ClickOptions? options = null, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Fill Async operation.</summary>
         public Task FillAsync(string refId, string text, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Press Async operation.</summary>
         public Task PressAsync(string key, string? refId = null, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Key Down Async operation.</summary>
         public Task KeyDownAsync(string key, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Key Up Async operation.</summary>
         public Task KeyUpAsync(string key, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Type Async operation.</summary>
         public Task TypeAsync(string? refId, string text, int delayMs = 0, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Hover Async operation.</summary>
         public Task HoverAsync(string refId, IReadOnlyList<string>? modifiers = null, int? positionX = null, int? positionY = null, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Mouse Move Async operation.</summary>
         public Task MouseMoveAsync(MouseTarget target, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Mouse Down Async operation.</summary>
         public Task MouseDownAsync(MouseTarget target, MouseButton button, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Mouse Up Async operation.</summary>
         public Task MouseUpAsync(MouseTarget target, MouseButton button, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Mouse Wheel Async operation.</summary>
         public Task MouseWheelAsync(MouseTarget target, int deltaX, int deltaY, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Check Async operation.</summary>
         public Task CheckAsync(string refId, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Uncheck Async operation.</summary>
         public Task UncheckAsync(string refId, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Select Async operation.</summary>
         public Task SelectAsync(string refId, SelectionTarget[] targets, SelectionMode mode = SelectionMode.Replace, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Focus Async operation.</summary>
         public Task FocusAsync(string refId, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Scroll Into View Async operation.</summary>
         public Task ScrollIntoViewAsync(string refId, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Scroll Async operation.</summary>
         public Task ScrollAsync(string refId, ScrollMode mode, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Inspect Async operation.</summary>
         public Task<InspectResult> InspectAsync(string refId, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Screenshot Async operation.</summary>
         public Task<ScreenshotResult> ScreenshotAsync(string? refId, string? outPath, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Resize Async operation.</summary>
         public Task ResizeAsync(int? width, int? height, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Minimize Async operation.</summary>
         public Task MinimizeAsync(CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Maximize Async operation.</summary>
         public Task MaximizeAsync(CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Restore Async operation.</summary>
         public Task RestoreAsync(CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Waits for the Wait For Ref Async condition.</summary>
         public Task<WaitForResult> WaitForRefAsync(string refId, WaitForState state, TimeSpan timeout, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Waits for the Wait For Query Async condition.</summary>
         public Task<WaitForResult> WaitForQueryAsync(WaitForElementQuery query, WaitForState state, TimeSpan timeout, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Performs the Close Async operation.</summary>
         public Task CloseAsync(CancellationToken ct = default) => OnCloseAsync?.Invoke(ct) ?? Task.CompletedTask;
+        /// <summary>Performs the Kill Async operation.</summary>
         public Task<KillMethod> KillAsync(bool force = false, int timeoutMs = 5000, CancellationToken ct = default) => throw new NotSupportedException();
+        /// <summary>Releases resources.</summary>
         public void Dispose() { }
     }
 
     private sealed class FakeDaemonControl : IDaemonControl
     {
+        /// <summary>Gets a value indicating whether Is Supported.</summary>
         public bool IsSupported { get; init; }
+        /// <summary>Gets or sets the Stop Call Count value.</summary>
         public int StopCallCount { get; private set; }
+        /// <summary>Gets the On Stop value.</summary>
         public Action<int>? OnStop { get; init; }
+        /// <summary>Performs the Stop Async operation.</summary>
         public Task StopAsync(CancellationToken ct)
         {
             StopCallCount++;
@@ -94,10 +131,7 @@ public class WindowsToolsLifecycleTests
             doc.GetProperty("message").GetString()!);
     }
 
-    /// <summary>
-    /// sessionId 未指定かつアクティブセッションも無い状態で detach を呼ぶと NoActiveSession エラーになることを確認する。
-    /// 暗黙のアクティブセッション解決が失敗した時のエラーコード仕様の回帰防止。
-    /// </summary>
+    /// <summary>Performs the Detach No Session Id And No Active Returns No Active Session operation.</summary>
     [Fact]
     public async Task Detach_NoSessionIdAndNoActive_ReturnsNoActiveSession()
     {
@@ -111,10 +145,7 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// 未登録の sessionId を指定して detach すると NotFound エラーとメッセージ中の sessionId が返ることを確認する。
-    /// 誤った sessionId に対するエラー応答契約の回帰防止。
-    /// </summary>
+    /// <summary>Performs the Detach Unknown Session Id Returns Not Found operation.</summary>
     [Fact]
     public async Task Detach_UnknownSessionId_ReturnsNotFound()
     {
@@ -129,10 +160,7 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// アクティブセッションが無い状態で close を呼ぶと NoActiveSession エラーになることを確認する。
-    /// detach 系と同じ暗黙解決失敗エラー仕様の回帰防止。
-    /// </summary>
+    /// <summary>Performs the Close No Active Session Returns No Active Session operation.</summary>
     [Fact]
     public async Task Close_NoActiveSession_ReturnsNoActiveSession()
     {
@@ -146,9 +174,7 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// 未登録の sessionId で close を呼ぶと NotFound エラーになることを確認する。
-    /// </summary>
+    /// <summary>Performs the Close Unknown Session Id Returns Not Found operation.</summary>
     [Fact]
     public async Task Close_UnknownSessionId_ReturnsNotFound()
     {
@@ -162,9 +188,7 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// 未登録の sessionId で kill を呼ぶと NotFound エラーになることを確認する。
-    /// </summary>
+    /// <summary>Performs the Kill Unknown Session Id Returns Not Found operation.</summary>
     [Fact]
     public async Task Kill_UnknownSessionId_ReturnsNotFound()
     {
@@ -178,6 +202,7 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
+    /// <summary>Performs the Detach Removes Associated Window Ref Entry operation.</summary>
     [Fact]
     public async Task Detach_RemovesAssociatedWindowRefEntry()
     {
@@ -197,10 +222,7 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// IDaemonControl が未対応 (stdio モード相当) の場合、adact_daemon_stop が LocalOnly エラーを返し StopAsync を呼ばないことを確認する。
-    /// stdio 経由では HTTP daemon を停止できない仕様の回帰防止。
-    /// </summary>
+    /// <summary>Performs the Daemon Stop Stdio Mode Returns Local Only operation.</summary>
     [Fact]
     public async Task DaemonStop_StdioMode_ReturnsLocalOnly()
     {
@@ -215,10 +237,7 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// HTTP モードで adact_daemon_stop を呼ぶと IDaemonControl.StopAsync が 1 回起動され、stopped=true が返ることを確認する。
-    /// HTTP 経由の daemon 停止フロー (Phase5) の回帰防止。
-    /// </summary>
+    /// <summary>Performs the Daemon Stop Http Mode Invokes Control Stop operation.</summary>
     [Fact]
     public async Task DaemonStop_HttpMode_InvokesControlStop()
     {
@@ -234,10 +253,7 @@ public class WindowsToolsLifecycleTests
         finally { store.Dispose(); }
     }
 
-    /// <summary>
-    /// adact_daemon_stop が StopAsync を呼ぶ時点までに全セッションが detach され、WindowRefStore の SessionId も全クリアされていることを確認する。
-    /// listener 停止前にセッションを掃除する順序契約 (Phase5 §adact_daemon_stop) の回帰防止。
-    /// </summary>
+    /// <summary>Performs the Daemon Stop Detaches All Sessions Before Stopping Listener operation.</summary>
     [Fact]
     public async Task DaemonStop_DetachesAllSessionsBeforeStoppingListener()
     {
@@ -262,8 +278,6 @@ public class WindowsToolsLifecycleTests
 
         try
         {
-            // 2 つの dummy session を SessionStore へ流し込み、対応する WindowRefStore エントリを
-            // SessionId 紐付け済の状態で作る。
             var info1 = new WindowInfo(
                 ProcessId: 10001, ProcessName: "fake1", Title: "Fake 1",
                 ControlType: "Window", ClassName: null, NativeWindowHandle: 0x1001);
@@ -285,11 +299,9 @@ public class WindowsToolsLifecycleTests
 
             Assert.True(result.IsError != true);
             Assert.Equal(1, daemon.StopCallCount);
-            // detach は StopAsync の前に完了していること。
             Assert.True(sessionsEmptyAtStop, "sessions should be empty before StopAsync runs");
             Assert.True(refStoreSessionsCleared,
                 "WindowRefStore entries should have null SessionId before StopAsync runs");
-            // 事後状態の確認も。
             Assert.Empty(store.ListAll());
             Assert.All(refStore.ListActive(), e => Assert.Null(e.SessionId));
         }

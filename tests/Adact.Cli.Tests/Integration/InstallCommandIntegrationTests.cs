@@ -1,15 +1,8 @@
-﻿using Xunit;
+using Xunit;
 
 namespace Adact.Cli.Tests.Integration;
 
-/// <summary>
-/// 設計 013 §5.1: <c>adact install --skills &lt;client&gt; [--global]</c> の Integration テスト。
-/// 3 client × {cwd, --global} = 6 ケース + 上書き 1 ケース。
-///
-/// 実 adact.exe をテンポラリ cwd で起動し、期待パスにファイルが展開されることを検証する。
-/// <c>--global</c> 版は USERPROFILE 環境変数を差し替えてホーム領域のテンポラリ化を行う
-/// (設計 013 §5.1 「環境変数等で `~` を差し替え可能な設計」)。
-/// </summary>
+/// <summary>Contains tests for the Install Command Integration behavior.</summary>
 [Trait("Layer", "Integration")]
 public class InstallCommandIntegrationTests
 {
@@ -47,12 +40,7 @@ public class InstallCommandIntegrationTests
         "references/window-and-lifecycle.md",
     };
 
-    /// <summary>
-    /// cwd モードで install した際、クライアント別の期待パスに SKILL ファイル一式が展開されることを確認する。
-    /// 設計 013 §5.1 のクライアント対応マトリクスの回帰防止。
-    /// </summary>
-    /// <param name="client">クライアント名 (copilot / claude / codex)。</param>
-    /// <param name="relativeTail">cwd からの期待サブパス。</param>
+    /// <summary>Performs the Install Cwd Writes Skill Files operation.</summary>
     [Theory]
     [InlineData("copilot", ".github/skills/adact-cli")]
     [InlineData("claude", ".claude/skills/adact-cli")]
@@ -70,13 +58,7 @@ public class InstallCommandIntegrationTests
         Assert.Contains("installed: true", result.Stdout);
     }
 
-    /// <summary>
-    /// --global モードで install した際、USERPROFILE オーバーライド先に SKILL ファイルが展開され、
-    /// cwd には全く何も書き込まれないことを確認する。
-    /// USERPROFILE オーバーライドが効かず本物のホームへ出てしまう事故を防ぐため。
-    /// </summary>
-    /// <param name="client">クライアント名。</param>
-    /// <param name="relativeTail">USERPROFILE からの期待サブパス。</param>
+    /// <summary>Performs the Install Global Writes Skill Files operation.</summary>
     [Theory]
     [InlineData("copilot", ".copilot/skills/adact-cli")]
     [InlineData("claude", ".claude/skills/adact-cli")]
@@ -101,7 +83,6 @@ public class InstallCommandIntegrationTests
         AssertSkillFilesExist(targetDir);
         Assert.Contains("installed: true", result.Stdout);
 
-        // cwd 側には何も書き込まれないこと。
         // This is the last line of defence verifying that the USERPROFILE override
         // actually took effect: if the install command had ignored USERPROFILE and
         // fallen back to the real home directory (or written into cwd by mistake),
@@ -111,10 +92,7 @@ public class InstallCommandIntegrationTests
         Assert.False(Directory.Exists(Path.Combine(cwd.Path, ".agents")));
     }
 
-    /// <summary>
-    /// 2 回目の install で既存ファイルが上書きされ、人為的に書き換えたプレースホルダーが消えることを確認する。
-    /// install の idempotent 仕様 (古い SKILL を残さない) の回帰防止。
-    /// </summary>
+    /// <summary>Performs the Install Twice Overwrites Existing Files operation.</summary>
     [Fact]
     public void Install_Twice_OverwritesExistingFiles()
     {
@@ -122,11 +100,9 @@ public class InstallCommandIntegrationTests
         var targetDir = Path.Combine(temp.Path, ".github", "skills", "adact-cli");
         var skillFile = Path.Combine(targetDir, "SKILL.md");
 
-        // 1 回目。
         var first = CliProcess.Run("install --skills copilot", workingDirectory: temp.Path);
         AssertSuccess(first);
 
-        // 既存ファイルを書き換えて、2 回目で上書きされる (== 元に戻る) ことを確認する。
         File.WriteAllText(skillFile, "STALE PLACEHOLDER\n");
         Assert.Equal("STALE PLACEHOLDER\n", File.ReadAllText(skillFile));
 
@@ -168,15 +144,12 @@ public class InstallCommandIntegrationTests
     }
 }
 
-/// <summary>
-/// テスト用の使い捨て一時ディレクトリ。Dispose で再帰削除する。
-/// </summary>
 internal sealed class TempDirectory : System.IDisposable
 {
-    /// <summary>一時ディレクトリの絶対パス。</summary>
+    /// <summary>Gets the Path value.</summary>
     public string Path { get; }
 
-    /// <summary>一時ディレクトリを GUID 付きで作成する。</summary>
+    /// <summary>Initializes a new instance of the Temp Directory class.</summary>
     public TempDirectory()
     {
         Path = System.IO.Path.Combine(
@@ -185,7 +158,7 @@ internal sealed class TempDirectory : System.IDisposable
         Directory.CreateDirectory(Path);
     }
 
-    /// <summary>一時ディレクトリを再帰削除する。</summary>
+    /// <summary>Releases resources.</summary>
     public void Dispose()
     {
         try
@@ -197,7 +170,6 @@ internal sealed class TempDirectory : System.IDisposable
         }
         catch
         {
-            // テスト後始末の失敗はテスト結果に影響させない。
         }
     }
 }
