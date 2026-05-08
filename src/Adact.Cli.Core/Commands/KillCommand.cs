@@ -12,8 +12,8 @@ internal static class KillCommand
     public static Command Build()
     {
         var sid = new Argument<string?>("sid") { Arity = ArgumentArity.ZeroOrOne, Description = "Target session ID (default: active session)." };
-        var forceOption = new Option<bool>("--force", "Skip WM_CLOSE and immediately kill the process.");
-        var timeoutOption = new Option<int?>("--timeout", "Graceful shutdown timeout in milliseconds. Defaults to 5000.");
+        var forceOption = new Option<bool>("--force") { Description = "Skip WM_CLOSE and immediately kill the process." };
+        var timeoutOption = new Option<int?>("--timeout") { Description = "Graceful shutdown timeout in milliseconds. Defaults to 5000." };
 
         var cmd = new Command("kill", "Terminate the process backing a session (auto-detach on success).");
         cmd.Arguments.Add(sid);

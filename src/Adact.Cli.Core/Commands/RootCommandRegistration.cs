@@ -48,6 +48,7 @@ internal static class RootCommandRegistration
         command.Subcommands.Add(SelectCommand.Build());
         command.Subcommands.Add(FocusCommand.Build());
         command.Subcommands.Add(ScrollIntoViewCommand.Build());
+        command.Subcommands.Add(ScrollCommand.Build());
         command.Subcommands.Add(ResizeWindowCommand.Build());
         command.Subcommands.Add(MinimizeWindowCommand.Build());
         command.Subcommands.Add(MaximizeWindowCommand.Build());
