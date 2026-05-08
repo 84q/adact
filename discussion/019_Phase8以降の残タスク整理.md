@@ -11,7 +11,6 @@
 | :--- | :--- | :--- | :--- | :--- |
 | 4 | `.adact/config.json` 拡充 | `defaultSnapshotDir` / `outputFormat` 等、接続先以外の永続設定を追加する。 | 未実装 | `server` フィールドは完了。個人設定とリポジトリ共有設定の分離も含む。discussion/009 §3.3 参照。 |
 | 27 | 全サブコマンド自動統合テスト化 | discussion/032 で手動検証した内容（27コマンド）を自動テスト化。SampleApp を起動 → 操作 → 検証 → クリーンアップの一連を xUnit 化する。 | 未着手 | `Adact.Engine.Tests` または新規プロジェクトで実装。InteractiveTestGuard + CalculatorMutex パターンを参考に。 |
-| 26 | Skill 更新：別ウィンドウ扱いの要素説明 | ツールチップ・メニューサブメニュー・ダイアログボックス等が UIA 上で「別ウィンドウ」として snapshot に現れることを Skill に記載する。 | 未着手 | discussion/030、032 参照。Popup (`isPopup`)、Modal (`isModalDialog`) の概念を Skill の `snapshot` リファレンス等に追記。 |
 | 38 | 操作履歴・ログの永続化 | 現状は操作ログが stdout/stderr のみ。`.adact/history/` にタイムスタンプ付きでログを残し、デバッグ・再現性向上に役立てる。 | 未着手 | セキュリティ考慮（パスワード等の機密情報フィルタリング）が必要。 |
 | 40 | relay コマンド| AI実行環境とテスト実行環境が遠い(直接つながっていない)場合に、途中のマシンを中継サーバとして利用するためのコマンド | 未着手 | |
 | 7 | recipes 提供 | 電卓・メモ帳等の典型操作テンプレートを配布する。 | 未着手 | `adact-cli` Skill 内に含めるか、別 Skill/ディレクトリとして提供するか未決定。 |
@@ -51,3 +50,4 @@
 | 37 | エラーコード一覧整備 | `ErrorCodes` クラスと実際のエラーメッセージの対応表を `docs/` に作成。AI やユーザーがエラーの意味を素早く理解できるようにする。 | 完了 | Skill SKILL.md に全19コード + 対処法表を配置。docs/spec/errors-and-output.md にも対処法列を追加。 |
 | 21 | SampleApp 更新：close 拒否パターン | SampleApp のメイン MenuBar の File 配下に close 拒否を切り替えるチェック項目を追加し、`Closing` イベントで `close` 要求を拒否できるようにした。 | 完了 | discussion/032 参照。`MainWindow_MenuItem_File_BlockClose` を ON にするとウィンドウ close を拒否する。 |
 | 22 | SampleApp 更新：MenuItem にサブメニュー | SampleApp のメイン MenuBar の View 配下に多階層サブメニューを追加し、メインメニュー上で入れ子メニューの検証を可能にした。 | 完了 | discussion/032 参照。`View > Layout > Navigation Pane > Favorites` などの階層を追加。 |
+| 26 | Skill 更新：別ウィンドウ扱いの要素説明 | ツールチップ・メニューサブメニュー・ダイアログボックス等が UIA 上で「別ウィンドウ」として snapshot に現れることを Skill に記載する。 | 完了 | `references/popup-and-modal.md` に詳細を記載。SKILL.md・snapshots-and-inspection.md からリンク。`docs/spec/snapshot.md` に `isPopup` フィールド追加。 |
