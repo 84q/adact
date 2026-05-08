@@ -40,6 +40,8 @@ family doc that covers the command you are about to run.
 
 Popup menus, tooltips, and modal dialogs appear as separate windows in the snapshot with `[popup]` or `[modal]` flags.
 See [`references/popup-and-modal.md`](references/popup-and-modal.md) for identification and interaction patterns.
+Standard Windows file dialogs (Open/Save) appear as child `Window` nodes under the main window.
+See [`references/file-dialog.md`](references/file-dialog.md) for fixed AutomationIds and the operation sequence.
 | `adact inspect`        | Print detailed UIA properties of an element as JSON.  | [`references/snapshots-and-inspection.md`](references/snapshots-and-inspection.md) |
 | `adact screenshot`     | Save a PNG screenshot of the window or an element.    | [`references/snapshots-and-inspection.md`](references/snapshots-and-inspection.md) |
 | `adact click`          | Click an element identified by an element ref.        | [`references/element-actions.md`](references/element-actions.md) |

@@ -19,7 +19,6 @@
 | 33 | snapshot diff 機能 | `adact diff <file1> <file2>` で2つの snapshot の差分を表示する機能を追加。UI の変化を追跡するのに有用。 | 未着手 | テスト自動化やリグレッション検出に活用可能。 |
 | 28 | 異なる DPI/スケーリング環境でのテスト | 125%, 150%, 200% 等のディスプレイスケーリングで `BoundingRectangle` の値が変わり、クリック位置がずれる可能性があることを検証する。 | 未着手 | `SetProcessDPIAware` 等の対応が必要か、DPI 非依存座標系の検討。 |
 | 29 | UWP/Store アプリ対応テスト | Windows 電卓（新 `CalculatorApp`）等では UIA ツリー構造が異なり、既存操作パターンが通用しないケースを洗い出す。 | 未着手 | discussion/028 参照。UWP の `CoreWindow` 対応は部分的に実装済みだが、網羅的な検証が必要。 |
-| 23 | FileDialog 操作の解決策検討 | `OpenFileDialog` / `SaveFileDialog` を ADACT で操作する方法（ファイル選択・キャンセル）を検討・実装する。 | 未着手 | discussion/032 参照。ダイアログの button を `click` で押せるが、ファイルパスの入力方法が未定。 |
 | 15 | OCR・Vision | UIA が弱いアプリに対して画像認識・OCR を併用する。 | 未着手 | 初期スコープ外だった領域。 |
 | 13 | 認証・TLS・CORS | リモート daemon 運用時の保護方針を決め、必要最小限を実装する。 | 未着手 | リモート daemon をどの時点で本格サポート扱いにするか未決定。 |
 | 14 | Dashboard | daemon / session / window / snapshot の状態を可視化する管理 UI。 | 未着手 | 運用・デバッグ向け。 |
@@ -51,3 +50,4 @@
 | 21 | SampleApp 更新：close 拒否パターン | SampleApp のメイン MenuBar の File 配下に close 拒否を切り替えるチェック項目を追加し、`Closing` イベントで `close` 要求を拒否できるようにした。 | 完了 | discussion/032 参照。`MainWindow_MenuItem_File_BlockClose` を ON にするとウィンドウ close を拒否する。 |
 | 22 | SampleApp 更新：MenuItem にサブメニュー | SampleApp のメイン MenuBar の View 配下に多階層サブメニューを追加し、メインメニュー上で入れ子メニューの検証を可能にした。 | 完了 | discussion/032 参照。`View > Layout > Navigation Pane > Favorites` などの階層を追加。 |
 | 26 | Skill 更新：別ウィンドウ扱いの要素説明 | ツールチップ・メニューサブメニュー・ダイアログボックス等が UIA 上で「別ウィンドウ」として snapshot に現れることを Skill に記載する。 | 完了 | `references/popup-and-modal.md` に詳細を記載。SKILL.md・snapshots-and-inspection.md からリンク。`docs/spec/snapshot.md` に `isPopup` フィールド追加。 |
+| 23 | FileDialog 操作の解決策検討 | `OpenFileDialog` / `SaveFileDialog` を ADACT で操作する方法（ファイル選択・キャンセル）を検討・実装する。 | 完了 | discussion/052 参照。Skill `references/file-dialog.md` にナビゲーションバー直接入力パターンを記載。 |
