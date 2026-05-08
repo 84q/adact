@@ -14,6 +14,9 @@ namespace Adact.Cli.Commands;
 /// </summary>
 internal static class DaemonStopCommand
 {
+    private const int PostStopDelayMs = 500;
+    private const int PostStopServerCheckTimeoutMs = 1000;
+    private const int PipeExistenceCheckTimeoutMs = 100;
     /// <summary>System.CommandLine 用の <see cref="Command"/> を生成する。</summary>
     /// <returns>daemon-stop サブコマンド。</returns>
     public static Command Build()
@@ -72,9 +75,9 @@ internal static class DaemonStopCommand
         if (errorExit is { } code) return code;
 
         // サーバーが実際に停止したか確認
-        await Task.Delay(500, ct).ConfigureAwait(false);
+        await Task.Delay(PostStopDelayMs, ct).ConfigureAwait(false);
 
-        var isRunning = await NamedPipeMcpClient.IsServerRunningAsync(endpoint, 1000, ct).ConfigureAwait(false);
+        var isRunning = await NamedPipeMcpClient.IsServerRunningAsync(endpoint, PostStopServerCheckTimeoutMs, ct).ConfigureAwait(false);
         if (isRunning)
         {
             CliError.Write(
@@ -92,7 +95,7 @@ internal static class DaemonStopCommand
     private static async Task<NamedPipeMcpClient?> ConnectNamedPipeAsync(NamedPipeEndPoint endpoint, CancellationToken ct)
     {
         // 先に短時間でパイプの存在確認（100ms）
-        var isRunning = await NamedPipeMcpClient.IsServerRunningAsync(endpoint, 100, ct).ConfigureAwait(false);
+        var isRunning = await NamedPipeMcpClient.IsServerRunningAsync(endpoint, PipeExistenceCheckTimeoutMs, ct).ConfigureAwait(false);
         if (!isRunning)
         {
             return null; // パイプなし = すぐに返す

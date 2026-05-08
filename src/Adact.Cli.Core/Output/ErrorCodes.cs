@@ -30,8 +30,8 @@ internal static class ErrorCodes
     /// <summary>Process.Kill が失敗した。</summary>
     public const string KillFailed = "KILL_FAILED";
 
-    /// <summary>UIA / 操作のタイムアウト。</summary>
-    public const string Timeout = "TIMEOUT";
+    /// <summary>wait-for 系コマンドのタイムアウト。</summary>
+    public const string WaitTimeout = "WAIT_TIMEOUT";
 
     /// <summary>snapshot 取得処理が失敗した。</summary>
     public const string SnapshotFailed = "SNAPSHOT_FAILED";

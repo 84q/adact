@@ -26,6 +26,8 @@ public sealed partial class WindowsTools
     /// <summary><see cref="AttachAsync"/> で受け取る <c>windowRef</c> の文法 (<c>w</c> + 1 桁以上の数字) を検証する正規表現。</summary>
     private static readonly Regex WindowRefPattern = new("^w\\d+$", RegexOptions.Compiled);
 
+    private const int DefaultKillTimeoutMs = 5000;
+
     /// <summary>window session を sessionId で管理し、ツール呼び出しを直列化するストア。</summary>
     private readonly SessionStore _store;
     /// <summary>top-level window に対する <c>w&lt;n&gt;</c> ref の発行・同期を担うストア。</summary>
@@ -520,7 +522,7 @@ public sealed partial class WindowsTools
         KillMethod method;
         try
         {
-            method = await session.KillAsync(force, timeoutMs ?? 5000, ct).ConfigureAwait(false);
+            method = await session.KillAsync(force, timeoutMs ?? DefaultKillTimeoutMs, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

@@ -23,6 +23,8 @@ public static class NamedPipeHost
     /// </summary>
     public const int ExitCodeEnvironmentNotSupported = 4;
 
+    private const int ConnectionRetryDelayMs = 100;
+
     /// <summary>
     /// Named Pipe MCP サーバーをフォアグラウンドで起動し、<paramref name="ct" /> がキャンセルされるまで待機する。
     /// </summary>
@@ -129,7 +131,7 @@ public static class NamedPipeHost
                     loggerFactory.CreateLogger(typeof(NamedPipeHost))
                         .LogError(ex, "Error waiting for pipe connection");
                     pipeStream.Dispose();
-                    await Task.Delay(100, serverCt).ConfigureAwait(false);
+                    await Task.Delay(ConnectionRetryDelayMs, serverCt).ConfigureAwait(false);
                     continue;
                 }
 

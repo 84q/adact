@@ -12,6 +12,8 @@ namespace Adact.Cli.Commands;
 /// </summary>
 internal static class ServePipeCommand
 {
+    private const int PipeExistenceCheckTimeoutMs = 100;
+
     /// <summary>
     /// サーバーが既に起動しているか確認する関数。
     /// テストでモック可能にするため internal static プロパティとして公開する。
@@ -39,7 +41,7 @@ internal static class ServePipeCommand
             var endpoint = NamedPipeEndPoint.FromWorkspacePath(workspacePath);
 
             // 起動前にパイプの存在確認を行う
-            if (await IsServerRunningAsync(endpoint, 100, ct).ConfigureAwait(false))
+            if (await IsServerRunningAsync(endpoint, PipeExistenceCheckTimeoutMs, ct).ConfigureAwait(false))
             {
                 CliError.Write(
                     ErrorCodes.AlreadyRunning,
