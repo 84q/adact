@@ -8,7 +8,7 @@
     <AssemblyName>adact</AssemblyName>
     <RootNamespace>Adact.Cli</RootNamespace>
     <Version>0.1.0</Version>
-    <InformationalVersion>0.1.0</InformationalVersion>
+    <EnableShortGitInformationalVersion>true</EnableShortGitInformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

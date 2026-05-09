@@ -1,0 +1,28 @@
+<Project>
+  <PropertyGroup Condition="'$(EnableShortGitInformationalVersion)' == 'true'">
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <InformationalVersion>$(Version)</InformationalVersion>
+  </PropertyGroup>
+
+  <Target Name="SetInformationalVersionFromGit"
+          BeforeTargets="GetAssemblyVersion"
+          Condition="'$(EnableShortGitInformationalVersion)' == 'true'">
+    <PropertyGroup>
+      <ShortSourceRevisionId Condition="'$(SourceRevisionId)' != '' and $([System.String]::Copy('$(SourceRevisionId)').Length) &gt; 7">$([System.String]::Copy('$(SourceRevisionId)').Substring(0, 7))</ShortSourceRevisionId>
+      <ShortSourceRevisionId Condition="'$(SourceRevisionId)' != '' and $([System.String]::Copy('$(SourceRevisionId)').Length) &lt;= 7">$(SourceRevisionId)</ShortSourceRevisionId>
+    </PropertyGroup>
+
+    <Exec Condition="'$(ShortSourceRevisionId)' == ''"
+          Command="git rev-parse --short=7 HEAD"
+          ConsoleToMSBuild="true"
+          IgnoreExitCode="true"
+          StandardOutputImportance="Low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="ShortSourceRevisionId" />
+    </Exec>
+
+    <PropertyGroup>
+      <ShortSourceRevisionId>$([System.String]::Copy('$(ShortSourceRevisionId)').Trim())</ShortSourceRevisionId>
+      <InformationalVersion Condition="'$(ShortSourceRevisionId)' != ''">$(Version)+$(ShortSourceRevisionId)</InformationalVersion>
+    </PropertyGroup>
+  </Target>
+</Project>
