@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <_AdactCliVersioningEnabled>true</_AdactCliVersioningEnabled>
+    <AdactCliVersion>0.2.0</AdactCliVersion>
+    <Version>$(AdactCliVersion)</Version>
+  </PropertyGroup>
+</Project>

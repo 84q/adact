@@ -1,19 +1,21 @@
 <Project>
-  <PropertyGroup Condition="'$(EnableShortGitInformationalVersion)' == 'true'">
+  <PropertyGroup Condition="'$(_AdactCliVersioningEnabled)' == 'true'">
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <InformationalVersion>$(Version)</InformationalVersion>
+    <GitVersioningNullDevice Condition="'$(OS)' == 'Windows_NT'">NUL</GitVersioningNullDevice>
+    <GitVersioningNullDevice Condition="'$(GitVersioningNullDevice)' == ''">/dev/null</GitVersioningNullDevice>
   </PropertyGroup>
 
   <Target Name="SetInformationalVersionFromGit"
           BeforeTargets="GetAssemblyVersion"
-          Condition="'$(EnableShortGitInformationalVersion)' == 'true'">
+          Condition="'$(_AdactCliVersioningEnabled)' == 'true'">
     <PropertyGroup>
       <ShortSourceRevisionId Condition="'$(SourceRevisionId)' != '' and $([System.String]::Copy('$(SourceRevisionId)').Length) &gt; 7">$([System.String]::Copy('$(SourceRevisionId)').Substring(0, 7))</ShortSourceRevisionId>
       <ShortSourceRevisionId Condition="'$(SourceRevisionId)' != '' and $([System.String]::Copy('$(SourceRevisionId)').Length) &lt;= 7">$(SourceRevisionId)</ShortSourceRevisionId>
     </PropertyGroup>
 
     <Exec Condition="'$(ShortSourceRevisionId)' == ''"
-          Command="git rev-parse --short=7 HEAD"
+          Command="git rev-parse --short=7 HEAD 2&gt;$(GitVersioningNullDevice)"
           ConsoleToMSBuild="true"
           IgnoreExitCode="true"
           StandardOutputImportance="Low">

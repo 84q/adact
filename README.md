@@ -64,6 +64,8 @@ dotnet build src/Adact.Cli.Client
 
 The Windows automation host entry point is in `src/Adact.Cli/`. The cross-platform remote client entry point is in `src/Adact.Cli.Client/`.
 
+Source builds use repo-wide MSBuild defaults for `Nullable`, `ImplicitUsings`, and warnings-as-errors. The distributable CLI projects also always stamp `InformationalVersion` with a short Git SHA when available; if Git metadata is unavailable, they fall back to the plain `Version` value instead of failing the build.
+
 For more project docs, see [docs/README.md](docs/README.md).
 
 ## Quick start
@@ -200,6 +202,7 @@ For more detail, see [docs/architecture/overview.md](docs/architecture/overview.
 - [docs/spec/cli.md](docs/spec/cli.md) — CLI commands and output formats
 - [docs/architecture/overview.md](docs/architecture/overview.md) — system overview
 - [docs/development/testing.md](docs/development/testing.md) — test strategy and commands
+- [docs/development/building.md](docs/development/building.md) — shared build settings and Git-less version fallback
 - [docs/roadmap/phase8-and-beyond.md](docs/roadmap/phase8-and-beyond.md) — roadmap and current maturity
 
 ## Contributing

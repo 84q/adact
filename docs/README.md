@@ -22,6 +22,7 @@ Start with the diagrams if you want the design story. See [architecture/overview
 | Spec | [spec/snapshot.md](spec/snapshot.md) | Responsibility split between Engine/MCP raw JSON and CLI `.txt` snapshots |
 | Spec | [spec/errors-and-output.md](spec/errors-and-output.md) | Exit codes, stderr, stdout, and MCP error conventions |
 | Development | [development/testing.md](development/testing.md) | Test structure, Layer traits, commands, and real-app E2E notes |
+| Development | [development/building.md](development/building.md) | Shared MSBuild settings, CLI versioning, and Git-less build fallback |
 | Development | [development/troubleshooting.md](development/troubleshooting.md) | Common failures and recovery steps |
 | Roadmap | [roadmap/phase8-and-beyond.md](roadmap/phase8-and-beyond.md) | Remaining tasks and ideas for Phase 8+ |
 
