@@ -2,7 +2,7 @@
 
 **ADACT (AI-driven Desktop Application CLI Tools) is an AI-agent-centric CLI for automating Windows desktop applications through structured snapshots and stable element refs.**
 
-It brings a Playwright-like snapshot/ref workflow to Windows UI Automation, so AI agents and developers can inspect desktop UI, attach to windows, and perform repeatable actions from the command line.
+Built on FlaUI for Windows UI Automation, it brings a Playwright-like snapshot/ref workflow to desktop apps so AI agents and developers can inspect UI, attach to windows, and perform repeatable actions from the command line.
 
 ## Platform support
 
@@ -188,6 +188,12 @@ The CLI is the main user-facing interface. The daemon keeps session and element-
 
 For more detail, see [docs/architecture/overview.md](docs/architecture/overview.md).
 
+## Repository layout
+
+- `src/` — ADACT CLI, daemon, engine, and shared runtime code
+- `tests/` — unit, integration, smoke, and E2E test projects
+- `test-apps/SampleApp/` — WPF test application used by local smoke and E2E scenarios
+
 ## Documentation
 
 - [docs/README.md](docs/README.md) — documentation index
@@ -211,4 +217,4 @@ Please keep changes focused and use the docs in `docs/` as the source of deeper 
 
 ## License
 
-This repository is licensed under the [MIT License](LICENSE).
+This repository is licensed under the [MIT License](LICENSE); see `LICENSE` for the full text.

@@ -1253,7 +1253,7 @@ public class SampleAppCliE2ETests
 
         var exePath = Path.Combine(
             dir.FullName,
-            "samples",
+            "test-apps",
             "SampleApp",
             "bin",
             "Debug",

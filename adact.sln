@@ -30,9 +30,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adact.Cli.Core", "src\Adact
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adact.Cli.Client", "src\Adact.Cli.Client\Adact.Cli.Client.csproj", "{777A1413-C0C3-46B0-9419-D1FA6A14C31B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{5D20AA90-6969-D8BD-9DCD-8634F4692FDA}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test-apps", "test-apps", "{5D20AA90-6969-D8BD-9DCD-8634F4692FDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApp", "samples\SampleApp\SampleApp.csproj", "{C07F8BFE-D996-4F51-97CC-036835288D48}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApp", "test-apps\SampleApp\SampleApp.csproj", "{C07F8BFE-D996-4F51-97CC-036835288D48}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

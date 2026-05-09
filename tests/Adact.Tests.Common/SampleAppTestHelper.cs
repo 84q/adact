@@ -99,7 +99,7 @@ public static class SampleAppTestHelper
                 "adact.sln not found. Cannot locate SampleApp.exe.");
 
         var exePath = Path.Combine(
-            dir.FullName, "samples", "SampleApp", "bin", "Debug", "net10.0-windows", "SampleApp.exe");
+            dir.FullName, "test-apps", "SampleApp", "bin", "Debug", "net10.0-windows", "SampleApp.exe");
 
         if (!File.Exists(exePath))
             throw new FileNotFoundException(
