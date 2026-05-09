@@ -13,7 +13,16 @@ namespace Adact.Mcp.Common;
 
 public sealed partial class WindowsTools
 {
+    /// <summary>
+    /// Double-clicks an element identified by a ref.
+    /// </summary>
+    /// <param name="ref">The target element reference.</param>
     /// <param name="button">"left" (default) / "right" / "middle"。</param>
+    /// <param name="modifiers">Modifier keys to hold during the action.</param>
+    /// <param name="positionX">The optional X offset from the element's top-left corner.</param>
+    /// <param name="positionY">The optional Y offset from the element's top-left corner.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_doubleclick")]
     [Description("Double-click an element identified by ref. The session is determined automatically from the ref id prefix.")]
     public async Task<CallToolResult> DblclickAsync(
@@ -49,6 +58,15 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_doubleclick"); }
     }
 
+    /// <summary>
+    /// Moves the cursor over an element identified by a ref.
+    /// </summary>
+    /// <param name="ref">The target element reference.</param>
+    /// <param name="modifiers">Modifier keys to hold during the action.</param>
+    /// <param name="positionX">The optional X offset from the element's top-left corner.</param>
+    /// <param name="positionY">The optional Y offset from the element's top-left corner.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_hover")]
     [Description("Move the mouse cursor over an element identified by ref. The session is determined automatically from the ref id prefix.")]
     public async Task<CallToolResult> HoverAsync(
@@ -72,7 +90,12 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_hover"); }
     }
 
+    /// <summary>
+    /// Moves the cursor to absolute screen coordinates.
+    /// </summary>
     /// <param name="target">"x,y"。</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_mousemove")]
     [Description("Move the mouse cursor to absolute screen coordinates 'x,y'. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> MouseMoveAsync(
@@ -90,7 +113,12 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_mousemove"); }
     }
 
+    /// <summary>
+    /// Presses and holds a mouse button at the current cursor position.
+    /// </summary>
     /// <param name="button">"left" (default) / "right" / "middle"。</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_mousedown")]
     [Description("Press and hold a mouse button at the current cursor position. Pair with adact_mouseup to release. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> MouseDownAsync(
@@ -109,7 +137,12 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_mousedown"); }
     }
 
+    /// <summary>
+    /// Releases a mouse button at the current cursor position.
+    /// </summary>
     /// <param name="button">"left" (default) / "right" / "middle"。</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_mouseup")]
     [Description("Release a mouse button at the current cursor position. Pair with adact_mousedown. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> MouseUpAsync(
@@ -128,6 +161,13 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_mouseup"); }
     }
 
+    /// <summary>
+    /// Scrolls the mouse wheel at the current cursor position.
+    /// </summary>
+    /// <param name="deltaY">The vertical scroll amount in notches.</param>
+    /// <param name="deltaX">The horizontal scroll amount in notches.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_mousewheel")]
     [Description("Scroll the mouse wheel at the current cursor position. deltaY > 0 scrolls down, deltaX > 0 scrolls right. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> MouseWheelAsync(
@@ -156,7 +196,13 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_mousewheel"); }
     }
 
+    /// <summary>
+    /// Validates an element ref and resolves its owning session.
+    /// </summary>
     /// <param name="ref">element ref。</param>
+    /// <param name="session">The resolved window session when validation succeeds.</param>
+    /// <param name="error">The tool error to return when validation fails.</param>
+    /// <returns><see langword="true"/> when the ref is valid; otherwise <see langword="false"/>.</returns>
     private bool ValidateRef(string @ref, out IWindowSession? session, out CallToolResult? error)
     {
         session = null;

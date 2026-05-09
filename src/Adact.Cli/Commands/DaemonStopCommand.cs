@@ -9,6 +9,7 @@ using ModelContextProtocol.Protocol;
 namespace Adact.Cli.Commands;
 
 /// <summary>
+/// Builds and executes the <c>daemon-stop</c> command.
 /// </summary>
 internal static class DaemonStopCommand
 {
@@ -29,6 +30,7 @@ internal static class DaemonStopCommand
     }
 
     /// <param name="ct">cancellation token。</param>
+    /// <param name="serverArg">The optional server endpoint override.</param>
     /// <returns>exit code。</returns>
     private static async Task<int> RunAsync(string? serverArg, CancellationToken ct)
     {
@@ -99,7 +101,10 @@ internal static class DaemonStopCommand
     }
 
     /// <summary>
+    /// Determines whether an exception was caused by the daemon closing the connection.
     /// </summary>
+    /// <param name="ex">The exception to inspect.</param>
+    /// <returns><see langword="true"/> when the exception represents a dropped connection.</returns>
     internal static bool IsConnectionDropException(Exception ex)
     {
         for (var cur = ex; cur is not null; cur = cur.InnerException)

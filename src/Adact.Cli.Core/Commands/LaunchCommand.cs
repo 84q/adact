@@ -106,6 +106,8 @@ internal static class LaunchCommand
     }
 
     /// <param name="ct">cancellation token。</param>
+    /// <param name="client">The connected MCP client.</param>
+    /// <param name="arguments">The launch arguments sent to the tool.</param>
     /// <returns>exit code。</returns>
     private static async Task<int> ExecuteAsync(
         IAdactMcpClient client,

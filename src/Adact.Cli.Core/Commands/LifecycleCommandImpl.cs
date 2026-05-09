@@ -4,12 +4,19 @@ using Adact.Cli.Output;
 namespace Adact.Cli.Commands;
 
 /// <summary>
+/// Provides shared implementations for lifecycle-oriented CLI commands.
 /// </summary>
 internal static class LifecycleCommandImpl
 {
     /// <summary>
+    /// Executes a lifecycle command with an optional session id.
     /// </summary>
+    /// <param name="client">The connected MCP client.</param>
+    /// <param name="toolName">The MCP tool name to invoke.</param>
+    /// <param name="sessionId">The optional target session id.</param>
+    /// <param name="literalLines">Additional success fields to write with a value of <c>true</c>.</param>
     /// <param name="ct">cancellation token。</param>
+    /// <returns>The command exit code.</returns>
     public static async Task<int> ExecuteAsync(
         IAdactMcpClient client,
         string toolName,
@@ -49,8 +56,16 @@ internal static class LifecycleCommandImpl
     }
 
     /// <summary>
+    /// Executes a lifecycle command with optional extra request and response fields.
     /// </summary>
+    /// <param name="client">The connected MCP client.</param>
+    /// <param name="toolName">The MCP tool name to invoke.</param>
+    /// <param name="sessionId">The optional target session id.</param>
+    /// <param name="extraArgs">Additional request arguments to send.</param>
+    /// <param name="literalLines">Additional success fields to write with a value of <c>true</c>.</param>
+    /// <param name="responseFields">Response field names to copy into the success output.</param>
     /// <param name="ct">cancellation token。</param>
+    /// <returns>The command exit code.</returns>
     public static async Task<int> ExecuteAsync(
         IAdactMcpClient client,
         string toolName,

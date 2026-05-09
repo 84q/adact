@@ -11,6 +11,7 @@ using ModelContextProtocol.Protocol;
 namespace Adact.Cli.Commands;
 
 /// <summary>
+/// Provides shared helpers for CLI commands that call the MCP server.
 /// </summary>
 internal static class CommandHelpers
 {
@@ -22,7 +23,10 @@ internal static class CommandHelpers
     private const int AutoStartReconnectRetryCount = 5;
 
     /// <summary>
+    /// Executes a command with a connected MCP client.
     /// </summary>
+    /// <param name="serverArg">The optional server endpoint override.</param>
+    /// <param name="exec">The operation to run with the connected client.</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
     public static async Task<int> RunWithClientAsync(
@@ -104,7 +108,10 @@ internal static class CommandHelpers
     }
 
     /// <summary>
+    /// Executes a command with a connected MCP client and auto-start support for named-pipe servers.
     /// </summary>
+    /// <param name="serverArg">The optional server endpoint override.</param>
+    /// <param name="exec">The operation to run with the connected client.</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
     public static async Task<int> RunWithClientAndAutoStartAsync(
@@ -240,9 +247,16 @@ internal static class CommandHelpers
     };
 
     /// <summary>
+    /// Captures a snapshot and writes the formatted result to CLI output.
     /// </summary>
+    /// <param name="client">The connected MCP client.</param>
+    /// <param name="sessionId">The optional session id to snapshot.</param>
+    /// <param name="snapshotDir">The optional directory where snapshot files are written.</param>
     /// <param name="ct">cancellation token。</param>
+    /// <param name="writeSessionId"><see langword="true"/> to include the session id in YAML output.</param>
+    /// <param name="filter">The snapshot filter name.</param>
     /// <param name="writeContentToStdout">
+    /// <see langword="true"/> to print the formatted snapshot body to standard output.
     /// </param>
     public static async Task<int> WriteSnapshotResultAsync(
         IAdactMcpClient client,
@@ -330,7 +344,15 @@ internal static class CommandHelpers
     }
 
     /// <summary>
+    /// Runs an element-ref tool call and emits the follow-up snapshot unless disabled.
     /// </summary>
+    /// <param name="client">The connected MCP client.</param>
+    /// <param name="actionName">The user-facing action name.</param>
+    /// <param name="operationToolName">The MCP tool name to invoke.</param>
+    /// <param name="operationArgs">The tool arguments.</param>
+    /// <param name="elementRef">The target element reference.</param>
+    /// <param name="noSnapshot"><see langword="true"/> to skip the auto-snapshot output.</param>
+    /// <param name="snapshotDir">The optional directory where snapshot files are written.</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
     public static async Task<int> RunRefOperationAndAutoSnapshotAsync(
@@ -366,7 +388,15 @@ internal static class CommandHelpers
     }
 
     /// <summary>
+    /// Runs a session-scoped tool call and emits the follow-up snapshot unless disabled.
     /// </summary>
+    /// <param name="client">The connected MCP client.</param>
+    /// <param name="actionName">The user-facing action name.</param>
+    /// <param name="operationToolName">The MCP tool name to invoke.</param>
+    /// <param name="operationArgs">The tool arguments.</param>
+    /// <param name="sessionId">The optional target session id.</param>
+    /// <param name="noSnapshot"><see langword="true"/> to skip the auto-snapshot output.</param>
+    /// <param name="snapshotDir">The optional directory where snapshot files are written.</param>
     /// <param name="ct">cancellation token。</param>
     /// <returns>exit code。</returns>
     public static async Task<int> RunSessionOperationAndAutoSnapshotAsync(

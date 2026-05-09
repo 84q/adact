@@ -1,21 +1,47 @@
 namespace Adact.Cli;
 
 /// <summary>
+/// Represents a window or element state that a wait command can target.
 /// </summary>
 public enum WaitForState
 {
+    /// <summary>
+    /// The target is attached.
+    /// </summary>
     Attached,
+    /// <summary>
+    /// The target is detached.
+    /// </summary>
     Detached,
+    /// <summary>
+    /// The target is visible.
+    /// </summary>
     Visible,
+    /// <summary>
+    /// The target is hidden.
+    /// </summary>
     Hidden,
+    /// <summary>
+    /// The target is enabled.
+    /// </summary>
     Enabled,
+    /// <summary>
+    /// The target is disabled.
+    /// </summary>
     Disabled,
 }
 
 /// <summary>
+/// Parses <see cref="WaitForState"/> values used by CLI and wire payloads.
 /// </summary>
 public static class WaitForStateParser
 {
+    /// <summary>
+    /// Attempts to parse a wait state value.
+    /// </summary>
+    /// <param name="value">The input value to parse.</param>
+    /// <param name="state">The parsed state when successful.</param>
+    /// <returns><see langword="true"/> when parsing succeeds; otherwise <see langword="false"/>.</returns>
     public static bool TryParse(string? value, out WaitForState state)
     {
         state = WaitForState.Visible;
@@ -32,8 +58,16 @@ public static class WaitForStateParser
         }
     }
 
+    /// <summary>
+    /// Gets the comma-separated list of accepted wait state values.
+    /// </summary>
     public const string AllowedValues = "attached, detached, visible, hidden, enabled, disabled";
 
+    /// <summary>
+    /// Converts a wait state to its wire-format string.
+    /// </summary>
+    /// <param name="state">The state to convert.</param>
+    /// <returns>The lowercase wire-format value.</returns>
     public static string ToWireString(WaitForState state) => state switch
     {
         WaitForState.Attached => "attached",

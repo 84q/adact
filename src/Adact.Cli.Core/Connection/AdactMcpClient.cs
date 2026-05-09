@@ -44,7 +44,10 @@ internal sealed class AdactMcpClient : IAdactMcpClient, IAsyncDisposable
     }
 
     /// <summary>
+    /// Calls an MCP tool over the HTTP transport.
     /// </summary>
+    /// <param name="name">The MCP tool name.</param>
+    /// <param name="arguments">The optional tool arguments.</param>
     /// <param name="cancellationToken">cancellation token。</param>
     /// <returns>MCP <see cref="CallToolResult"/>。</returns>
     public ValueTask<CallToolResult> CallToolAsync(

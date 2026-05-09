@@ -10,6 +10,12 @@ namespace Adact.Mcp.Common;
 
 public sealed partial class WindowsTools
 {
+    /// <summary>
+    /// Ensures that a toggleable element is checked.
+    /// </summary>
+    /// <param name="ref">The target element reference.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_check")]
     [Description("Ensure a checkbox / toggle / radio is in the On (selected) state. Idempotent.")]
     public async Task<CallToolResult> CheckAsync(
@@ -27,6 +33,12 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_check"); }
     }
 
+    /// <summary>
+    /// Ensures that a toggleable element is unchecked.
+    /// </summary>
+    /// <param name="ref">The target element reference.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_uncheck")]
     [Description("Ensure a checkbox / toggle is in the Off (unselected) state. Idempotent.")]
     public async Task<CallToolResult> UncheckAsync(
@@ -44,6 +56,17 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_uncheck"); }
     }
 
+    /// <summary>
+    /// Selects or deselects items in a selectable container.
+    /// </summary>
+    /// <param name="ref">The target container reference.</param>
+    /// <param name="name">The item names to target.</param>
+    /// <param name="index">The item indexes to target.</param>
+    /// <param name="itemRef">The item refs to target.</param>
+    /// <param name="add"><see langword="true"/> to add to the current selection.</param>
+    /// <param name="remove"><see langword="true"/> to remove from the current selection.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_select")]
     [Description("Select items in a list/combobox by Name ('name'), 0-based 'index', or child 'itemRef'. Provide one or more of a single kind. Use 'add' to keep existing selection, 'remove' to deselect.")]
     public async Task<CallToolResult> SelectAsync(
@@ -103,6 +126,12 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_select"); }
     }
 
+    /// <summary>
+    /// Sets keyboard focus to an element.
+    /// </summary>
+    /// <param name="ref">The target element reference.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_focus")]
     [Description("Set keyboard focus to the element identified by ref.")]
     public async Task<CallToolResult> FocusAsync(
@@ -120,6 +149,12 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_focus"); }
     }
 
+    /// <summary>
+    /// Scrolls an element into view.
+    /// </summary>
+    /// <param name="ref">The target element reference.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_scroll_into_view")]
     [Description("Scroll the element into view using ScrollItemPattern. Errors if the element does not support the pattern.")]
     public async Task<CallToolResult> ScrollIntoViewAsync(
@@ -137,6 +172,18 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_scroll_into_view"); }
     }
 
+    /// <summary>
+    /// Scrolls a container element using one scroll mode at a time.
+    /// </summary>
+    /// <param name="ref">The target scrollable container reference.</param>
+    /// <param name="percentH">The horizontal scroll percentage.</param>
+    /// <param name="percentV">The vertical scroll percentage.</param>
+    /// <param name="smallH">The number of small horizontal scroll steps.</param>
+    /// <param name="smallV">The number of small vertical scroll steps.</param>
+    /// <param name="largeH">The number of large horizontal scroll steps.</param>
+    /// <param name="largeV">The number of large vertical scroll steps.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_scroll")]
     [Description("Scroll a container element using ScrollPattern. Specify exactly one group: percent (percentH/percentV), small (smallH/smallV), or large (largeH/largeV).")]
     public async Task<CallToolResult> ScrollAsync(

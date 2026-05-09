@@ -13,20 +13,31 @@ using Microsoft.Extensions.Logging.Console;
 namespace Adact.Cli.Server;
 
 /// <summary>
+/// Hosts the ADACT HTTP MCP server.
 /// </summary>
 public static class HttpHost
 {
+    /// <summary>
+    /// The HTTP path used for MCP requests.
+    /// </summary>
     public const string McpPath = "/mcp";
 
     /// <summary>
+    /// Exit code returned when the current session cannot host interactive UI automation.
     /// </summary>
     public const int ExitCodeEnvironmentNotSupported = 4;
 
     /// <summary>
+    /// Runs the HTTP host until shutdown.
     /// </summary>
+    /// <param name="hostAddress">The local address to bind.</param>
+    /// <param name="port">The TCP port to bind.</param>
+    /// <param name="ct">The cancellation token.</param>
     /// <returns>
+    /// The process exit code.
     /// </returns>
     /// <remarks>
+    /// Returns <see cref="ExitCodeEnvironmentNotSupported"/> when the process is not running in an interactive Windows session.
     /// </remarks>
     public static async Task<int> RunAsync(IPAddress hostAddress, int port, CancellationToken ct)
     {
@@ -41,6 +52,7 @@ public static class HttpHost
     }
 
     /// <summary>
+    /// Verifies that UI automation can run in the current Windows session.
     /// </summary>
     private static bool EnsureInteractiveSession()
     {
@@ -59,8 +71,13 @@ public static class HttpHost
     }
 
     /// <summary>
+    /// Builds the configured HTTP application without starting it.
     /// </summary>
+    /// <param name="hostAddress">The local address to bind.</param>
+    /// <param name="port">The TCP port to bind.</param>
+    /// <returns>The configured web application.</returns>
     /// <remarks>
+    /// The returned application exposes the MCP endpoint at <see cref="McpPath"/>.
     /// </remarks>
     public static WebApplication BuildApplication(IPAddress hostAddress, int port)
     {
@@ -104,6 +121,7 @@ public static class HttpHost
     }
 
     /// <summary>
+    /// Gets the assembly version string reported by the server.
     /// </summary>
     private static string ThisAssemblyVersion()
     {

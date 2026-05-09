@@ -54,6 +54,10 @@ internal static class ScreenshotCommand
     }
 
     /// <param name="ct">cancellation token。</param>
+    /// <param name="client">The connected MCP client.</param>
+    /// <param name="refValue">The optional element reference to capture.</param>
+    /// <param name="outValue">The optional output PNG path.</param>
+    /// <param name="sidValue">The optional session id to capture when no ref is supplied.</param>
     /// <returns>exit code。</returns>
     private static async Task<int> ExecuteAsync(
         IAdactMcpClient client,

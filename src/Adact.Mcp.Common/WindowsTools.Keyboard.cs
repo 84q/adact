@@ -10,6 +10,12 @@ namespace Adact.Mcp.Common;
 
 public sealed partial class WindowsTools
 {
+    /// <summary>
+    /// Presses a key combination as a global input action.
+    /// </summary>
+    /// <param name="key">The key combination to press.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_keypress")]
     [Description("Press a key combo such as 'Ctrl+C' or 'Enter'. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> PressAsync(
@@ -38,6 +44,12 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_keypress"); }
     }
 
+    /// <summary>
+    /// Presses and holds a single key as a global input action.
+    /// </summary>
+    /// <param name="key">The key to press.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_keydown")]
     [Description("Press and hold a single key. Pair with adact_keyup to release. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> KeyDownAsync(
@@ -61,6 +73,12 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_keydown"); }
     }
 
+    /// <summary>
+    /// Releases a key previously held by <c>adact_keydown</c>.
+    /// </summary>
+    /// <param name="key">The key to release.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_keyup")]
     [Description("Release a single key previously pressed by adact_keydown. This is a low-level global input operation and does not require a session.")]
     public async Task<CallToolResult> KeyUpAsync(
@@ -84,6 +102,14 @@ public sealed partial class WindowsTools
         catch (Exception ex) { return MapOrLog(ex, "adact_keyup"); }
     }
 
+    /// <summary>
+    /// Focuses an element and types text into it character by character.
+    /// </summary>
+    /// <param name="ref">The target element reference.</param>
+    /// <param name="text">The text to type.</param>
+    /// <param name="delayMs">The optional delay between characters in milliseconds.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>The tool result.</returns>
     [McpServerTool(Name = "adact_type")]
     [Description("Focus the element and type the given text character by character. Use adact_fill for atomic value-pattern set.")]
     public async Task<CallToolResult> TypeAsync(

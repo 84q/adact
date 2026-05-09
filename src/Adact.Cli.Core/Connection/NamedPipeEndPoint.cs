@@ -31,9 +31,13 @@ internal sealed class NamedPipeEndPoint
     }
 
     /// <summary>
+    /// Creates a named-pipe endpoint for the given workspace path.
     /// </summary>
     /// <param name="workspacePath">
+    /// The workspace path used to derive the stable pipe hash.
     /// </param>
+    /// <param name="sessionName">The optional logical session name appended to the pipe name.</param>
+    /// <returns>The derived named-pipe endpoint.</returns>
     public static NamedPipeEndPoint FromWorkspacePath(string workspacePath, string? sessionName = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(workspacePath);
