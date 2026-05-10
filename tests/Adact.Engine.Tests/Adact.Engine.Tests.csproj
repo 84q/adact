@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Adact.Engine\Adact.Engine.csproj" />
+    <ProjectReference Include="..\..\test-apps\SampleApp\SampleApp.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\tests\Adact.Tests.Common\Adact.Tests.Common.csproj" />
   </ItemGroup>
 
